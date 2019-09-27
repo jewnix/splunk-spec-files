@@ -1,4 +1,4 @@
-#   Version 7.0.10
+#   Version 7.0.11
 #
 # This file contains possible attribute/value pairs for configuring Splunk's
 # processing properties via props.conf.

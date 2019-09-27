@@ -1,4 +1,4 @@
-#   Version 6.6.3
+#   Version 6.6.4
 #
 # This file contains the set of attributes and values you can use to
 # configure server options in server.conf.
@@ -205,21 +205,24 @@ embedSecret = <string>
   nodes on a search head pool.
 
 parallelIngestionPipelines = <integer>
-* Data being loaded into splunk, whether for indexing or forwarding,
-  progresses through a series of steps arranged into "pipelines".
-  By setting this to more than one, more processor threads can be set up
-  to perform this work.
-* Defaults to 1.
-* NOTE: Be careful when changing this.  By increasing the CPU used by
-  data ingestion, less is available for other tasks such as searching.
-  For most installs the default setting is optimal.
+* The number of discrete data ingestion pipeline sets to create for this
+  instance.
+* A pipeline set handles the processing of data, from receiving streams
+  of events, through event processing and writing the events to disk.
+* An indexer that operates multiple pipeline sets can achieve improved
+  performance with data parsing and disk writing, at the cost of additional
+  CPU cores.
+* Be very careful when changing this setting. Increasing the CPU usage for data
+  ingestion reduces available CPU cores for other tasks like searching.
+* For most installations, the default setting is optimal.
 * NOTE: Enabling multiple ingestion pipelines can change the behavior of some
-  settings in limits.conf. Each ingestion pipeline enforces the limits
-  independently:
-    1. maxKBps
-    2. max_fd
-    3. maxHotBuckets
-    4. maxHotSpanSecs
+  settings in other configuration files. Each ingestion pipeline enforces 
+  the limits of the following settings independently:
+    1. maxKBps (in limits.conf)
+    2. max_fd (in limits.conf)
+    3. maxHotBuckets (in indexes.conf)
+    4. maxHotSpanSecs (in indexes.conf)
+* Default: 1
 
 instanceType = <string>
 * Should not be modified by users.

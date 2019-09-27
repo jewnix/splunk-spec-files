@@ -1,4 +1,4 @@
-#   Version 6.6.3
+#   Version 6.6.4
 #
 # This file contains all possible options for an indexes.conf file.  Use
 # this file to configure Splunk's indexes and their properties.
@@ -1690,6 +1690,18 @@ remote.s3.endpoint = <URL>
   constructed automatically based on the EC2 region of the instance where the
   indexer is running, as follows: https://s3-<region>.amazonaws.com
 * Example: https://s3-us-west-2.amazonaws.com
+
+remote.s3.multipart_download.part_size = <unsigned int>
+* Optional.
+* Sets the download size of parts during a multipart download.
+* This setting uses HTTP/1.1 Range Requests (RFC 7233) to improve throughput
+  overall and for retransmission of failed transfers.
+* A value of 0 disables downloading in multiple parts, i.e., files will always
+  be downloaded as a single (large) part.
+* Do not change this value unless that value has been proven to improve
+  throughput.
+* Minimum value: 5242880 (5 MB)
+* Defaults: 134217728 (128 MB)
 
 remote.s3.multipart_upload.part_size = <unsigned int>
 * Optional.

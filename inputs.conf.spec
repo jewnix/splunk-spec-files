@@ -1,4 +1,4 @@
-#   Version 6.6.3
+#   Version 6.6.4
 
 # This file contains possible settings you can use to configure inputs,
 # distributed inputs such as forwarders, and file system monitoring in
@@ -869,6 +869,8 @@ requireClientCert = <bool>
 * Full path to the root CA (Certificate Authority) certificate store.
 * The <path> must refer to a PEM format file containing one or more root CA
   certificates concatenated together.
+* Certificates with the same Common Name as the CA's certificate will fail
+  this check.
 * Defaults to false.
 
 sslVersions = <string>

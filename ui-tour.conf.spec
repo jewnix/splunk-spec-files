@@ -1,4 +1,4 @@
-#   Version 6.6.3
+#   Version 6.6.4
 #
 # This file contains the tours available for Splunk Onboarding
 #

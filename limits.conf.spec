@@ -1,4 +1,4 @@
-#   Version 6.6.3
+#   Version 6.6.4
 #
 ############################################################################
 # OVERVIEW
@@ -584,6 +584,19 @@ auto_cancel_after_pause = <integer>
   the search is automatically cancelled.
 * If set to 0, a paused search is never automatically cancelled.
 * Default: 0
+
+enable_conditional_expansion = <bool>
+* Controls whether to enable scoped(by sourcetype, source or host)
+  conditional expansion of knowledge objects during search string
+  expansion.
+* When set to true, Report Acceleration avoids full expansion of tags,
+  event types, aliases and reverse lookups, and instead uses any scope
+  information available either as part of the knowledge object definition
+  or any predicates available on default, non-multivalued fields, such as
+  sourcetype, source, and host.
+* Field extractions and field aliases are scoped by either sourcetype,
+  source or host.
+* Default: false
 
 ############################################################################
 # Parsing
@@ -2113,7 +2126,7 @@ max_fd = <integer>
 
 monitornohandle_max_heap_mb = <integer>
 * Controls the maximum memory used by the Windows-specific modular input
-  MonitorNoHandle.
+  MonitorNoHandle in user mode.
 * The memory of this input grows in size when the data being produced
   by applications writing to monitored files comes in faster than the Splunk
   system can accept it.
@@ -2125,6 +2138,26 @@ monitornohandle_max_heap_mb = <integer>
 
 tailing_proc_speed = <integer>
 * REMOVED.  This setting is no longer used.
+
+monitornohandle_max_driver_mem_mb = <integer>
+* Controls the maximum NonPaged memory used by the Windows-specific kernel driver of modular input
+  MonitorNoHandle.
+* The memory of this input grows in size when the data being produced
+  by applications writing to monitored files comes in faster than the Splunk
+  system can accept it.
+* When set to 0, the NonPaged memory size (memory allocated in the kernel driver of modular input) can grow
+  without limit.
+* If this size is limited, and the limit is encountered, the input will drop
+  some data to stay within the limit.
+* Default: 0
+
+monitornohandle_max_driver_records = <integer>
+* Controls memory growth by limiting the maximum in-memory records stored
+  by the kernel module of Windows-specific modular input MonitorNoHandle.
+* When monitornohandle_max_driver_mem_mb is set to > 0, this config is ignored.
+* monitornohandle_max_driver_mem_mb and monitornohandle_max_driver_records are mutually exclusive.
+* If the limit is encountered, the input will drop some data to stay within the limit.
+* Defaults to 500.
 
 time_before_close = <integer>
 * MOVED.  This setting is now configured per-input in inputs.conf.
@@ -2751,6 +2784,16 @@ match_limit = <integer>
   function, match(). If set too low, PCRE might fail to correctly match a pattern.
 * Default: 100000
 
+recursion_limit = <integer>
+* Limits the amount of resources that are spent by PCRE
+  when running patterns that will not match.
+* Use this to set an upper bound on how many times PCRE calls an internal
+  function, match() recursively. If set too low, PCRE might fail to correctly match a pattern.
+* Since not all calls to match() are recursive, this limit is of use only
+  if it is set smaller than match_limit.
+* Default: 1000
+
+
 
 [slc]
 
@@ -2937,16 +2980,30 @@ orphan_searches = enabled|disabled
 [thruput]
 
 maxKBps = <integer>
-* If specified and not zero, this limits the speed through the thruput 
-  processor in the ingestion pipeline to the specified rate in kilobytes 
-  per second.
-* To control the CPU load while indexing, use this to throttle the number 
-  of events this indexer processes to the rate (in KBps) you specify.
-* Note that this limit will be applied per ingestion pipeline. For more 
-  information about multiple ingestion pipelines see 
-  parallelIngestionPipelines in the server.conf.spec file.
-* With N parallel ingestion pipelines the thruput limit across all of the 
-  ingestion pipelines will be N * maxKBps.
+* The maximum speed, in kilobytes per second, that incoming data is 
+  processed through the thruput processor in the ingestion pipeline.
+* To control the CPU load while indexing, use this setting to throttle
+  the number of events this indexer processes to the rate (in
+  kilobytes per second) that you specify.
+* NOTE:
+  * There is no guarantee that the thruput processor 
+    will always process less than the number of kilobytes per
+    second that you specify with this setting. The status of 
+    earlier processing queues in the pipeline can cause
+    temporary bursts of network activity that exceed what
+    is configured in the setting. 
+  * The setting does not limit the amount of data that is 
+    written to the network from the tcpoutput processor, such 
+    as what happens when a universal forwarder sends data to 
+    an indexer.  
+  * The thruput processor applies the 'maxKBps' setting for each
+    ingestion pipeline. If you configure multiple ingestion
+    pipelines, the processor multiplies the 'maxKBps' value
+    by the number of ingestion pipelines that you have
+    configured.
+  * For more information about multiple ingestion pipelines, see 
+    the 'parallelIngestionPipelines' setting in the 
+    server.conf.spec file.
 * Default: 0 (unlimited)
 
 

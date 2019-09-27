@@ -1,4 +1,4 @@
-#   Version 7.0.9
+#   Version 7.0.10
 #
 # This file contains all possible options for an indexes.conf file.  Use
 # this file to configure Splunk's indexes and their properties.

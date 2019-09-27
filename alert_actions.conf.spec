@@ -1,4 +1,4 @@
-#   Version 6.6.4
+#   Version 6.6.5
 #
 # This file contains possible attributes and values for configuring global
 # saved search actions in alert_actions.conf.  Saved searches are configured

@@ -274,6 +274,9 @@ cumulativeRTSrchJobsQuota = <number>
 * Lets a user trigger pstacks generation of the main splunkd process
   using a REST endpoint.
 
+[capability::edit_watchdog]
+* Lets a user reconfigure watchdog settings using a REST endpoint.
+
 [capability::edit_forwarders]
 * Lets a user edit settings for forwarding data, including settings 
   for SSL, backoff schemes, etc.

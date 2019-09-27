@@ -199,12 +199,13 @@ recv_timeout = <positive integer>
 
 [target-broker:deploymentServer]
 
+# NOTE: You can no longer configure the 'phoneHomeIntervalInSecs' setting under this 
+# stanza. Configuring it here has no effect. Configure the setting under the
+# '[deployment-client]' stanza instead.
+
 targetUri= <uri>
 * An example of <uri>: <scheme>://<deploymentServer>:<mgmtPort>
 * URI of the deployment server.
-
-phoneHomeIntervalInSecs = <nonnegative number>
-* see phoneHomeIntervalInSecs above
 
 connect_timeout = <positive integer>
 * See 'connect_timeout' in the "[deployment-client]" stanza for information on this setting.

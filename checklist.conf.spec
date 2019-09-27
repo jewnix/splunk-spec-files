@@ -1,4 +1,4 @@
-#   Version 7.1.6
+#   Version 7.1.7
 #
 # This file contains the set of attributes and values you can use to
 # configure checklist.conf to run health checks in Monitoring Console.
@@ -22,8 +22,11 @@ description = <ASCII string>
 * If omitted no description will be displayed.
 
 failure_text = <ASCII string>
-* (optional) If this health check did not pass, this tells what could have gone wrong.
-* If omitted nothing will be displayed to help the user identify why this check is failing.
+* If this health check did not pass, the text that you specify in this setting can
+  explain what went wrong.
+* While this setting is optional, if you do not specify a value for this
+  setting, this health check does not display any text that helps
+  identify why it did not pass.
 
 suggested_action = <ASCII string>
 * (optional) Suggested actions for diagnosing and fixing your Splunk installation

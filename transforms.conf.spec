@@ -1,4 +1,4 @@
-#   Version 7.1.6
+#   Version 7.1.7
 #
 # This file contains attributes and values that you can use to configure
 # data transformations.  and event signing in transforms.conf.

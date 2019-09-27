@@ -1,4 +1,4 @@
-#   Version 7.1.6
+#   Version 7.1.7
 #
 # This file contains possible attributes and values for configuring a
 # deployment client to receive content (apps and configurations) from a

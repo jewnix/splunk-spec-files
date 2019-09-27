@@ -1,4 +1,4 @@
-#   Version 7.1.6
+#   Version 7.1.7
 #
 # This file contains the set of attributes and values you can use to
 # configure server options in server.conf.

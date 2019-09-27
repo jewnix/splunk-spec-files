@@ -1,4 +1,4 @@
-#   Version 7.1.6
+#   Version 7.1.7
 #
 # This file documents the syntax of default-mode.conf for comprehension and
 # troubleshooting purposes.

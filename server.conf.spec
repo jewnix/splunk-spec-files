@@ -1,4 +1,4 @@
-#   Version 7.2.1
+#   Version 7.2.2
 ############################################################################
 # This file contains settings and values to configure server options 
 # in server.conf.

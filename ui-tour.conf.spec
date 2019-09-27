@@ -1,4 +1,4 @@
-#   Version 7.1.0
+#   Version 7.1.1
 #
 # This file contains the tours available for Splunk Onboarding
 #

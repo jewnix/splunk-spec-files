@@ -1,4 +1,4 @@
-#   Version 7.0.3
+#   Version 7.0.4
 #
 # This file contains all possible options for configuring settings for the
 # file classifier in source-classifier.conf.

@@ -1,4 +1,4 @@
-#   Version 7.0.3
+#   Version 7.0.4
 #
 # This file contains the set of attributes and values you can use to
 # configure server options in server.conf.
@@ -459,7 +459,7 @@ sslRootCAPath = <path>
   Splunk Enterprise" manual for information on the status of Common
   Criteria certification.
 * This setting is valid on Windows machines only if you set
-  'sslRootCAPathHonoredonWindows' to "true".
+  'sslRootCAPathHonoredOnWindows' to "true".
 * Default is unset.
 
 sslRootCAPathHonoredOnWindows = <boolean>

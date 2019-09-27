@@ -187,6 +187,19 @@ acceleration.hunk.dfs_block_size = <unsigned int>
 acceleration.hunk.file_format = <string>
 * Applicable only to Hunk data models. Valid options are "orc" and "parquet"
 
+acceleration.workload_pool = <name of workload pool>¬
+* Optional.
+* Sets the workload pool to be used by this search.
+* There are multiple workload pools defined in workload_pools.conf.
+  Each workload pool has resource limits associated with it. For example,
+  CPU, Memory, etc.
+* The specific workload_pool to use is defined in workload_pools.conf.
+* The search process for this search runs in the specified workload_pool.
+* If workload management is enabled and a workload_pool is not specified,
+  the search is put into a proper pool as specified by the workload rules defined
+  in workload_rules.conf. If there is no rule defined for this search, the
+  default_pool defined in workload_pools.conf is used.
+
 
 #******** Dataset Related Attributes ******
 # These attributes affect your interactions with datasets in Splunk Web and should

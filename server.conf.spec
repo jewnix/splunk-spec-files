@@ -1,4 +1,4 @@
-#   Version 7.0.7
+#   Version 7.0.8
 #
 # This file contains the set of attributes and values you can use to
 # configure server options in server.conf.
@@ -1875,6 +1875,20 @@ site_mappings = <comma-separated string>
 * Example 3: site_mappings = default_mapping:site5
   The above cluster must include site5 in available_sites.
   The origin bucket copies for any decommissioned sites will be mapped onto site5
+
+constrain_singlesite_buckets = <bool>
+* Only valid for mode=master and is only used if multisite is true.
+* Specifies whether the cluster keeps single-site buckets within one site
+  in multisite clustering.
+* When this setting is "true", buckets in a single site cluster do not
+  replicate outside of their site. The buckets follow 'replication_factor'
+  'search factor' policies rather than 'site_replication_factor'
+  'site_search_factor' policies. This is to mimic the behavior of
+  single-site clustering.
+* When this setting is "false", buckets in non-multisite clusters can
+  replicate across sites, and must meet the specified
+  'site_replication_factor' and 'site_search_factor' policies.
+* Defaults to true.
 
 heartbeat_timeout = <positive integer>
 * Only valid for mode=master

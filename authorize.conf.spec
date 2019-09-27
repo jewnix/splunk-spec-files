@@ -1,4 +1,4 @@
-#   Version 6.5.4
+#   Version 6.5.5
 #
 # This file contains possible attribute/value pairs for creating roles in
 # authorize.conf.  You can configure roles and granular access controls by
@@ -97,6 +97,14 @@ srchTimeWin = <number>
 srchDiskQuota = <number>
 * Maximum amount of disk space (MB) that can be used by search jobs of a
   user that belongs to this role
+* The dispatch manager checks the quota at the dispatch time of a search
+  and additionally the search process will check at intervals that are defined
+  in the 'disk_usage_update_period' setting in limits.conf as long as the
+  search is active.
+* The quota can be exceeded at times, since the search process does not check
+  the quota constantly.
+* Exceeding this quota causes the search to be auto-finalized immediately,
+  even if there are results that have not yet been returned.
 * Defaults to '100', for 100 MB.
 
 srchJobsQuota = <number>
@@ -430,6 +438,12 @@ cumulativeRTSrchJobsQuota = <number>
 [capability::accelerate_search]
 * Required to save an accelerated search
 * All users have this capability by default
+
+[capability::list_accelerate_search]
+* This capability is a subset of the 'accelerate_search' capability.
+* This capability grants access to the summaries that are required to run accelerated searches.
+* Users with this capability, but without the 'accelerate_search' capability, can run,
+  but not create, accelerated searches.
 
 [capability::web_debug]
 * Required to access /_bump and /debug/** web debug endpoints

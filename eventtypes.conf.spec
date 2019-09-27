@@ -1,4 +1,4 @@
-#   Version 6.5.4
+#   Version 6.5.5
 #
 # This file contains all possible attributes and value pairs for an
 # eventtypes.conf file.  Use this file to configure event types and their

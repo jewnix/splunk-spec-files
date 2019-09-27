@@ -1,4 +1,4 @@
-#   Version 6.5.4
+#   Version 6.5.5
 #
 # This file contains possible attributes and values you can use to configure
 # auditing and event signing in audit.conf.
@@ -23,25 +23,6 @@
 #########################################################################################
 # KEYS: specify your public and private keys for encryption.
 #########################################################################################
-
-[auditTrail]
-* This stanza turns on cryptographic signing for audit trail events (set in inputs.conf).
-* You must have a private key to encrypt the signatures and a public key to
-  decrypt them.
-* WARNING: Enabling signing for audit trail events may increase HTTP response latency if
-           the Splunk instance is handling large numbers of concurrent requests.
-
-privateKey= <path>
-* The path to the file containing the private key.
-* Generate your own keys using openssl in $SPLUNK_HOME/bin/.
-* If not present, a default key will be generated one time and placed at
-  $SPLUNK_HOME/etc/auth/audit/private.pem
-
-publicKey= <path>
-* The path to the file containing the public key.
-* Generate your own keys using openssl in $SPLUNK_HOME/bin/.
-* If not present, a default key will be generated one time and placed at
-  $SPLUNK_HOME/etc/auth/audit/public.pem
 
 queueing=[true|false]
 * Turn off sending audit events to the indexQueue -- tail the audit events

@@ -1,4 +1,4 @@
-#   Version 6.5.4
+#   Version 6.5.5
 #
 # This file contains possible attribute/value pairs for configuring
 # data models.  To configure a datamodel for an app, put your custom
@@ -89,7 +89,6 @@ acceleration.manual_rebuilds = <bool>
 	* The data model search stored in its metadata no longer matches its current 
 	  data model search.
 	* The search stored in its metadata cannot be parsed.
-    * A lookup table associated with the data model is altered.
 * NOTE: If the Splunk software finds a partial summary be outdated, it always 
   rebuilds that summary so that a bucket summary only has results corresponding to
   one datamodel search.

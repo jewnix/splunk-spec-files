@@ -1,4 +1,4 @@
-#   Version 6.5.4
+#   Version 6.5.5
 #
 # This file contains attribute/value pairs for configuring externalized strings
 # in literals.conf.

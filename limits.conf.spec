@@ -1,4 +1,4 @@
-#   Version 6.5.4
+#   Version 6.5.5
 #
 # This file contains possible attribute/value pairs for configuring limits for
 # search commands.
@@ -1272,6 +1272,10 @@ enforce_time_order = <bool>
 disk_usage_update_period = <number>
 * Specifies how frequently (in seconds) should the search process estimate the
   artifact disk usage.
+* The quota for the amount of disk space that a search job can use is
+  controlled by the 'srchDiskQuota' setting in authorize.conf.
+* Exceeding this quota causes the search to be auto-finalized immediately,
+  even if there are results that have not yet been returned.
 * Fractional seconds are allowed.
 * Defaults to 10
 

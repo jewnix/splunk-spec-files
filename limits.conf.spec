@@ -1,4 +1,4 @@
-#   Version 6.5.2
+#   Version 6.5.3
 #
 # This file contains possible attribute/value pairs for configuring limits for
 # search commands.
@@ -1191,6 +1191,12 @@ force_saved_search_dispatch_as_user = <bool>
   the entire install, if that more closely aligns with security goals.
 * Defaults to false.
 
+auto_cancel_after_pause = <integer>
+* Specifies the amount of time, in seconds, that a search must be paused before
+  the search is automatically cancelled.
+* If set to 0, a paused search is never automatically cancelled.
+* Default: 0
+
 -- Unsupported [search] settings: --
 
 enable_status_cache = <bool>
@@ -1320,6 +1326,16 @@ alerting_period_ms = <int>
   overwhelm the alerting system.
 * Precedence: Searchhead
 * Default: 0
+
+
+[rex]
+
+match_limit = <integer>
+* Limits the amount of resources that are spent by PCRE
+  when running patterns that will not match.
+* Use this to set an upper bound on how many times PCRE calls an internal
+  function, match(). If set too low, PCRE might fail to correctly match a pattern.
+* Default: 100000
 
 
 [slc]

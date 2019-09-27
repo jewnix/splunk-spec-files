@@ -1,4 +1,4 @@
-#   Version 6.5.2
+#   Version 6.5.3
 #
 # This file contains the set of attributes and values you can use to
 # configure server options in server.conf.
@@ -69,6 +69,10 @@ allowRemoteLogin = always|never|requireSetPassword
   * In the free license, remote login is disabled.
   * In the pro license, remote login is only disabled for "admin" user if
     default password of "admin" has not been changed.
+
+tar_format = gnutar|ustar
+* Sets the default tar format.
+* defaults to gnutar
 
 access_logging_for_phonehome = true|false
 * Enables/disables logging to splunkd_access.log for client phonehomes
@@ -465,6 +469,8 @@ sendStrictTransportSecurityHeader = <bool>
 allowSslCompression = <bool>
 * If set to true, the server will allow clients to negotiate
   SSL-layer data compression.
+* KV Store also observes this setting. If set to false, KV Store will
+  disable TLS compression.
 * Defaults to true.
 
 allowSslRenegotiation = <bool>
@@ -475,6 +481,23 @@ allowSslRenegotiation = <bool>
   single TCP connection can use, but it can cause connectivity problems
   especially for long-lived connections.
 * Defaults to true.
+
+sslClientSessionPath = <path>
+* Path where all client sessions are stored for session re-use.
+* Used if useSslClientSessionCache is set to true.
+* Not set by default.
+
+useSslClientSessionCache = <bool>
+* Whether to re-use client session.
+* When set to true, client sessions are stored in memory for session re-use.
+  This reduces handshake time, latency and computation time to improve SSL performance.
+* When set to false, each ssl connection will perform full ssl handshake.
+* Defaults to false
+
+sslServerSessionTimeout = <integer>
+* Timeout for newly created session in seconds.
+* If set 0, disables Server side session cache.
+* Defaults to openssl default (300).
 
 ############################################################################
 # Splunkd HTTP server configuration
@@ -937,8 +960,8 @@ pollingFrequency = <num>
 * The default frequency is every 100000 events.
 
 pollingTimerFrequency = <num>
-* After every pollingTimerFrequency seconds, the disk usage is checked
-* The default value is 10 seconds
+* Minimum time, in seconds, between two disk usage checks.
+* The default value is 10 seconds.
 
 ############################################################################
 # Queue settings

@@ -1,4 +1,4 @@
-#   Version 6.5.2
+#   Version 6.5.3
 #
 # This file contains attributes and values that you can use to configure
 # data transformations.  and event signing in transforms.conf.
@@ -80,8 +80,8 @@ REGEX = <regular expression>
 * NOTE: This attribute is valid for both index-time and search-time field
   extraction.
 * REGEX is required for all search-time transforms unless you are setting up
-  a delimiter-based field extraction, in which case you use DELIMS (see the
-  DELIMS attribute description, below).
+  an ASCII-only delimiter-based field extraction, in which case you can use
+  DELIMS (see the DELIMS attribute description, below).
 * REGEX is required for all index-time transforms.
 * REGEX and the FORMAT attribute:
   * Name-capturing groups in the REGEX are extracted directly to fields.
@@ -262,15 +262,17 @@ DELIMS = <quoted string list>
 * NOTE: This attribute is only valid for search-time field extractions.
 * IMPORTANT: If a value may contain an embedded unescaped double quote
   character, such as "foo"bar", use REGEX, not DELIMS. An escaped double
-  quote (\") is ok.
-* Optional. Used in place of REGEX when dealing with delimiter-based field
-  extractions, where field values (or field/value pairs) are separated by
-  delimiters such as colons, spaces, line breaks, and so on.
+  quote (\") is ok. Non-ASCII delimiters also require the use of REGEX.
+* Optional. Used in place of REGEX when dealing with ASCII-only delimiter-
+  based field extractions, where field values (or field/value pairs) are
+  separated by delimiters such as colons, spaces, line breaks, and so on.
 * Sets delimiter characters, first to separate data into field/value pairs,
   and then to separate field from value.
-* Each individual character in the delimiter string is used as a delimiter
-  to split the event.
-* Delimiters must be quoted with " " (use \ to escape).
+* Each individual ASCII character in the delimiter string is used as a
+  delimiter to split the event.
+* Delimiters must be specified within double quotes (eg. DELIMS="|,;").
+  Special escape sequences are \t (tab), \n (newline), \r (carriage return),
+  \\ (backslash) and \" (double quotes).
 * When the event contains full delimiter-separated field/value pairs, you
   enter two sets of quoted characters for DELIMS:
 * The first set of quoted delimiters extracts the field/value pairs.

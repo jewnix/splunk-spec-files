@@ -4,12 +4,12 @@
 #
 # Props.conf is commonly used for:
 #
-# * Configuring linebreaking for multiline events.
+# * Configuring line breaking for multiline events.
 # * Setting up character set encoding.
 # * Allowing processing of binary files.
 # * Configuring timestamp recognition.
 # * Configuring event segmentation.
-# * Overriding Splunk's automated host and source type matching. You can use
+# * Overriding automated host and source type matching. You can use
 #   props.conf to:
 #     * Configure advanced (regex-based) host and source type overrides.
 #     * Override source type matching for data from a particular source.
@@ -137,8 +137,8 @@ implementation of PCRE with the translation of ..., * and . Thus . matches a
 period, * matches non-directory separators, and ... matches any number of
 any characters.
 
-For more information see the wildcards section at:
-http://docs.splunk.com/Documentation/Splunk/latest/Data/Specifyinputpathswithwildcards
+For more information, see the "Specify input paths with wildcards" topic in
+the Splunk documentation website.
 
 **[<spec>] stanza pattern collisions:**
 
@@ -147,8 +147,8 @@ patterns. If the [<spec>] stanzas for these patterns each supply distinct
 settings, Splunk applies all of these settings.
 
 However, suppose two [<spec>] stanzas supply the same setting. In this case,
-Splunk chooses the value to apply based on the ASCII order of the patterns
-in question.
+Splunk software chooses the value to apply based on the ASCII order of the
+patterns in question.
 
 For example, take this source:
 
@@ -163,8 +163,8 @@ and the following colliding patterns:
     sourcetype = z
 
 In this case, the settings provided by the pattern [source::...a...] take
-precedence over those provided by [source::...z...], and sourcetype ends up
-with "a" as its value.
+precedence over those provided by [source::...z...], and the source type
+ends up with "a" as its value.
 
 To override this default ASCII ordering, use the priority key:
 
@@ -176,8 +176,8 @@ To override this default ASCII ordering, use the priority key:
     sourcetype = z
     priority = 10
 
-Assigning a higher priority to the second stanza causes sourcetype to have
-the value "z".
+Assigning a higher priority to the second stanza causes the source type 
+to have the value "z".
 
 **Case-sensitivity for [<spec>] stanza matching:**
 
@@ -231,8 +231,8 @@ respective priority key values.
 # International characters and character encoding.
 
 CHARSET = <string>
-* When set, Splunk assumes the input from the given [<spec>] is in the
-  specified encoding.
+* When set, Splunk software assumes the input from the given [<spec>] is in
+  the specified encoding.
 * Can only be used as the basis of [<sourcetype>] or [source::<spec>], 
   not [host::<spec>].
 * A list of valid encodings can be retrieved using the command "iconv -l" on
@@ -242,12 +242,12 @@ CHARSET = <string>
 * If the source encoding is valid, but some characters from the [<spec>] are
   not valid in the specified encoding, then the characters are escaped as
   hex (for example, "\xF3").
-* When set to "AUTO", Splunk attempts to automatically determine the character encoding and
-  convert text from that encoding to UTF-8.
-* For a complete list of the character sets Splunk automatically detects,
-  see the online documentation.
-* This setting applies at input time, when data is first read by Splunk.
-  The setting is used on a Splunk system that has configured inputs
+* When set to "AUTO", Splunk software attempts to automatically determine 
+  the character encoding and convert text from that encoding to UTF-8.
+* For a complete list of the character sets that Splunk software automatically
+  detects, see the online documentation.
+* This setting applies at input time, when data is first read by Splunk
+  software. The setting is used on a Splunk instance that has configured inputs
   acquiring the data.
 * Defaults to ASCII.
 
@@ -274,20 +274,20 @@ LINE_BREAKER = <regular expression>
   delimited by any number of carriage return or newline characters.
 * The regex must contain a capturing group -- a pair of parentheses which
   defines an identified subcomponent of the match.
-* Wherever the regex matches, Splunk considers the start of the first
+* Wherever the regex matches, Splunk software considers the start of the first
   capturing group to be the end of the previous event, and considers the end
   of the first capturing group to be the start of the next event.
 * The contents of the first capturing group are discarded, and will not be
-  present in any event.  You are telling Splunk that this text comes between
+  present in any event. This setting specifies the text that comes between
   lines.
 * NOTE: You get a significant boost to processing speed when you use
   LINE_BREAKER to delimit multiline events (as opposed to using
   SHOULD_LINEMERGE to reassemble individual lines into multiline events).
   * When using LINE_BREAKER to delimit events, SHOULD_LINEMERGE should be set
     to false, to ensure no further combination of delimited events occurs.
-  * Using LINE_BREAKER to delimit events is discussed in more detail in the web
-    documentation at the following url:
-    http://docs.splunk.com/Documentation/Splunk/latest/Data/indexmulti-lineevents
+  * Using LINE_BREAKER to delimit events is discussed in more detail in
+    the "Configure event linebreaking" topic on the Splunk documentation
+    web site.
 
 ** Special considerations for LINE_BREAKER with branched expressions  **
 
@@ -305,7 +305,7 @@ both regular expressions and the complexity of the behavior they rely on.
 If possible, it is strongly recommended that you reconstruct your regex to
 have a leftmost capturing group that always matches.
 
-It may be useful to use non-capturing groups if you need to express a group
+It might be useful to use non-capturing groups if you need to express a group
 before the text to discard.
     EG. LINE_BREAKER = (?:one|two)([\r\n]+)
     * This will match the text one, or two, followed by any amount of
@@ -349,72 +349,73 @@ Example 2: Example 1 would probably be better written as follows.  This is
 LINE_BREAKER_LOOKBEHIND = <integer>
 * When there is leftover data from a previous raw chunk,
   LINE_BREAKER_LOOKBEHIND indicates the number of bytes before the end of
-  the raw chunk (with the next chunk concatenated) that Splunk applies the
-  LINE_BREAKER regex. You may want to increase this value from its default
-  if you are dealing with especially large or multiline events.
+  the raw chunk (with the next chunk concatenated) that Splunk software
+  applies the LINE_BREAKER regex. You might  want to increase this value 
+  from its default if you are dealing with especially large or multiline events.
 * Defaults to 100 (bytes).
 
 # Use the following attributes to specify how multiline events are handled.
 
 SHOULD_LINEMERGE = [true|false]
-* When set to true, Splunk combines several lines of data into a single
-  multiline event, based on the following configuration attributes.
+* When set to true, Splunk software combines several lines of data into a
+  single multiline event, based on the following configuration attributes.
 * Defaults to true.
 
 # When SHOULD_LINEMERGE is set to true, use the following attributes to
-# define how Splunk builds multiline events.
+# define how Splunk software builds multiline events.
 
 BREAK_ONLY_BEFORE_DATE = [true|false]
-* When set to true, Splunk creates a new event only if it encounters a new
-  line with a date.
+* When set to true, Splunk software creates a new event only if it encounters
+  a new line with a date.
   * Note, when using DATETIME_CONFIG = CURRENT or NONE, this setting is not
     meaningful, as timestamps are not identified.
 * Defaults to true.
 
 BREAK_ONLY_BEFORE = <regular expression>
-* When set, Splunk creates a new event only if it encounters a new line that
-  matches the regular expression.
+* When set, Splunk software creates a new event only if it encounters a new
+  line that matches the regular expression.
 * Defaults to empty.
 
 MUST_BREAK_AFTER = <regular expression>
 * When set and the regular expression matches the current line, Splunk
-  creates a new event for the next input line.
-* Splunk may still break before the current line if another rule matches.
+  software creates a new event for the next input line.
+* Splunk software might still break before the current line if another rule matches.
 * Defaults to empty.
 
 MUST_NOT_BREAK_AFTER = <regular expression>
-* When set and the current line matches the regular expression, Splunk does
-  not break on any subsequent lines until the MUST_BREAK_AFTER expression
+* When set and the current line matches the regular expression, Splunk software
+  does not break on any subsequent lines until the MUST_BREAK_AFTER expression
   matches.
 * Defaults to empty.
 
 MUST_NOT_BREAK_BEFORE = <regular expression>
-* When set and the current line matches the regular expression, Splunk does
-  not break the last event before the current line.
+* When set and the current line matches the regular expression, Splunk software
+  does not break the last event before the current line.
 * Defaults to empty.
 
 MAX_EVENTS = <integer>
 * Specifies the maximum number of input lines to add to any event.
-* Splunk breaks after the specified number of lines are read.
+* Splunk software breaks after the specified number of lines are read.
 * Defaults to 256 (lines).
 
-# Use the following attributes to handle better load balancing from UF.
-# Please note the EVENT_BREAKER properties are applicable for Splunk Universal
-# Forwarder instances only.
+# Use the following attributes to handle better load balancing from
+# universal forwarders (UF).
+# Please note the EVENT_BREAKER properties are applicable for Splunk 
+# universal forwarder instances only.
 
 EVENT_BREAKER_ENABLE = [true|false]
-* When set to true, Splunk will split incoming data with a light-weight
+* When set to true, the UF will split incoming data with a light-weight
   chunked line breaking processor so that data is distributed fairly evenly
   amongst multiple indexers. Use this setting on the UF to indicate that
   data should be split on event boundaries across indexers especially
   for large files.
-* Defaults to false
+* Defaults to false.
 
-# Use the following to define event boundaries for multi-line events
-# For single-line events, the default settings should suffice
+# Use the following to define event boundaries for multiline events
+# For single-line events, the default settings should suffice.
 
 EVENT_BREAKER = <regular expression>
-* When set, Splunk will use the setting to define an event boundary at the
+* When set, the UF will use the setting to define an event boundary at the
   end of the first matching group instance.
 
 #******************************************************************************
@@ -432,7 +433,7 @@ DATETIME_CONFIG = <filename relative to $SPLUNK_HOME>
     aggregator processor.
   * "NONE" will leave the event time set to whatever time was selected by
     the input layer
-    * For data sent by splunk forwarders over the splunk protocol, the input
+    * For data sent by Splunk forwarders over the Splunk protocol, the input
       layer will be the time that was selected on the forwarder by its input
       behavior (as below).
     * For file-based inputs (monitor, batch) the time chosen will be the
@@ -447,7 +448,7 @@ DATETIME_CONFIG = <filename relative to $SPLUNK_HOME>
 * Defaults to /etc/datetime.xml (for example, $SPLUNK_HOME/etc/datetime.xml).
 
 TIME_PREFIX = <regular expression>
-* If set, splunk scans the event text for a match for this regex in event
+* If set, Splunk software scans the event text for a match for this regex in event
   text before attempting to extract a timestamp.
 * The timestamping algorithm only looks for a timestamp in the text
   following the end of the first regex match.
@@ -458,8 +459,8 @@ TIME_PREFIX = <regular expression>
 * Defaults to empty.
 
 MAX_TIMESTAMP_LOOKAHEAD = <integer>
-* Specifies how far (in characters) into an event Splunk should look for a
-  timestamp.
+* Specifies how far (in characters) into an event Splunk software should 
+  look for a timestamp.
 * This constraint to timestamp extraction is applied from the point of the
   TIME_PREFIX-set location.
 * For example, if TIME_PREFIX positions a location 11 characters into the
@@ -517,27 +518,31 @@ TZ_ALIAS = <key=value>[,<key=value>]...
 
 MAX_DAYS_AGO = <integer>
 * Specifies the maximum number of days in the past, from the current date as
-  provided by input layer(For e.g. forwarder current time, or modtime for files),
-  that an extracted date can be valid. Splunk still indexes events with dates
-  older than MAX_DAYS_AGO with the timestamp of the last acceptable event. If no
-  such acceptable event exists, new events with timestamps older than
-  MAX_DAYS_AGO will use the current timestamp.
-* For example, if MAX_DAYS_AGO = 10, Splunk applies the timestamp of the last
-  acceptable event to events with extracted timestamps older than 10 days in the
-  past. If no acceptable event exists, Splunk applies the current timestamp.
+  provided by the input layer (For example, forwarder current time, or
+  modification time for files),that an extracted date can be valid. Splunk 
+  software still indexes events with dates that are more than MAX_DAYS_AGO
+  in the past with the timestamp of the last acceptable event. If no such 
+  acceptable event exists, new events with timestamps more than MAX_DAYS_AGO
+  will use the current timestamp.
+* For example, if MAX_DAYS_AGO = 10, Splunk software  applies the timestamp 
+  of the last acceptable event to events with extracted timestamps that are
+  more than 10 days in the past. If no acceptable event exists, Splunk
+  software applies the current timestamp.
 * Defaults to 2000 (days), maximum 10951.
 * IMPORTANT: If your data is older than 2000 days, increase this setting.
 
 MAX_DAYS_HENCE = <integer>
 * Specifies the maximum number of days in the future, from the current date as
-  provided by input layer(For e.g. forwarder current time, or modtime for files),
-  that an extracted date can be valid. Splunk still indexes events with dates
-  more than MAX_DAYS_HENCE in the future with the timestamp of the last
-  acceptable event. If no such acceptable event exists, new events with
-  timestamps after MAX_DAYS_HENCE will use the current timestamp.
-* For example, if MAX_DAYS_HENCE = 3, Splunk applies the timestamp of the last
-  acceptable event to events with extracted timestamps more than 3 days in the
-  future. If no acceptable event exists, Splunk applies the current timestamp.
+  provided by the input layer (For example, forwarder current time, or 
+  modification time for files), that an extracted date can be valid. Splunk
+  software still indexes events with dates that are more than MAX_DAYS_HENCE 
+  in the future with the timestamp of the last acceptable event. If no such
+  acceptable event exists, new events with timestamps after MAX_DAYS_HENCE
+  will use the current timestamp.
+* For example, if MAX_DAYS_HENCE = 3, Splunk software applies the timestamp
+  of the last acceptable event to events with extracted timestamps more than
+  3 days in the future. If no acceptable event exists, Splunk software applies
+  the current timestamp.
 * The default value includes dates from one day in the future.
 * If your servers have the wrong date set or are in a timezone that is one
   day ahead, increase this value to at least 3.
@@ -546,15 +551,15 @@ MAX_DAYS_HENCE = <integer>
              with caution.
 
 MAX_DIFF_SECS_AGO = <integer>
-* This setting prevents Splunk Enterprise from rejecting events with timestamps
+* This setting prevents Splunk software from rejecting events with timestamps
   that are out of order.
-* Do not use this setting to filter events because Splunk Enterprise uses
+* Do not use this setting to filter events because Splunk software uses
   complicated heuristics for time parsing.
-* Splunk Enterprise warns you if an event timestamp is more than <integer>
+* Splunk software warns you if an event timestamp is more than <integer>
   seconds BEFORE the previous timestamp and does not have the same time
   format as the majority of timestamps from the source.
-* After Splunk Enterprise throws the warning, it only rejects an event if it
-  cannot apply a timestamp to the event (for example, if Splunk cannot
+* After Splunk software throws the warning, it only rejects an event if it
+  cannot apply a timestamp to the event (for example, if it cannot
   recognize the time of the event.)
 * IMPORTANT: If your timestamps are wildly out of order, consider increasing
   this value.
@@ -564,15 +569,15 @@ MAX_DIFF_SECS_AGO = <integer>
 * Defaults to 3600 (one hour), maximum 2147483646.
 
 MAX_DIFF_SECS_HENCE = <integer>
-* This setting prevents Splunk Enterprise from rejecting events with timestamps
+* This setting prevents Splunk software from rejecting events with timestamps
   that are out of order.
-* Do not use this setting to filter events because Splunk Enterprise uses
+* Do not use this setting to filter events because Splunk software uses
   complicated heuristics for time parsing.
-* Splunk Enterprise warns you if an event timestamp is more than <integer>
+* Splunk software warns you if an event timestamp is more than <integer>
   seconds AFTER the previous timestamp and does not have the same time format
   as the majority of timestamps from the source.
-* After Splunk Enterprise throws the warning, it only rejects an event if it
-  cannot apply a timestamp to the event (for example, if Splunk cannot
+* After Splunk software throws the warning, it only rejects an event if it
+  cannot apply a timestamp to the event (for example, if it cannot
   recognize the time of the event.)
 * IMPORTANT: If your timestamps are wildly out of order, or you have logs that
   are written less than once a week, consider increasing this value.
@@ -584,8 +589,8 @@ MAX_DIFF_SECS_HENCE = <integer>
 #******************************************************************************
 
 * This feature and all of its settings apply at input time, when data is
-  first read by Splunk.  The setting is used on a Splunk system that has
-  configured inputs acquiring the data.
+  first read by Splunk software.  The setting is used on a Splunk instance
+  that has configured inputs acquiring the data.
 
 # Special characters for Structured Data Header Extraction:
 # Some unprintable characters can be described with escape sequences. The
@@ -597,8 +602,8 @@ MAX_DIFF_SECS_HENCE = <integer>
 # \v : vertical tab    byte: 0x0b
 
 INDEXED_EXTRACTIONS = < CSV|W3C|TSV|PSV|JSON >
-* Tells Splunk the type of file and the extraction and/or parsing method
-  Splunk should use on the file.
+* Tells Splunk software the type of file and the extraction and/or parsing
+  method that the software should use on the file.
   CSV  - Comma separated value format
   TSV  - Tab-separated value format
   PSV  - pipe "|" separated value format
@@ -610,7 +615,7 @@ INDEXED_EXTRACTIONS = < CSV|W3C|TSV|PSV|JSON >
 
 PREAMBLE_REGEX = <regex>
 * Some files contain preamble lines. This attribute specifies a regular
-  expression which allows Splunk to ignore these preamble lines, based on
+  expression which lets Splunk software ignore these preamble lines, based on
   the pattern specified.
 
 FIELD_HEADER_REGEX = <regex>
@@ -620,34 +625,34 @@ FIELD_HEADER_REGEX = <regex>
 * This attribute supports the use of the special characters described above.
 
 HEADER_FIELD_LINE_NUMBER = <integer>
-* Tells Splunk the line number of the line within the file that contains the
-  header fields.  If set to 0, Splunk attempts to locate the header fields
-  within the file automatically.
+* Specifies the line number of the line within the file that 
+  contains the header fields.  If set to 0, the software attempts to locate
+  the header fields within the file automatically.
 * The default value is set to 0.
 
 FIELD_DELIMITER = <character>
-* Tells Splunk which character delimits or separates fields in the specified
-  file or source.
-* This attribute supports the use of the special characters described above.
-
-HEADER_FIELD_DELIMITER = <character>
-* Tells Splunk which character delimits or separates header fields in the
+* Specifies which character delimits or separates fields in the 
   specified file or source.
 * This attribute supports the use of the special characters described above.
 
+HEADER_FIELD_DELIMITER = <character>
+* Specifies which character delimits or separates header fields 
+  in the specified file or source.
+* This attribute supports the use of the special characters described above.
+
 FIELD_QUOTE = <character>
-* Tells Splunk the character to use for quotes in the specified file or
-  source.
+* Specifies the character to use for quotes in the specified
+  file or source.
 * This attribute supports the use of the special characters described above.
 
 HEADER_FIELD_QUOTE = <character>
-* Specifies Splunk the character to use for quotes in the header of the
+* Specifies the character to use for quotes in the header of the
   specified file or source.
 * This attribute supports the use of the special characters described above.
 
 TIMESTAMP_FIELDS = [ <string>,..., <string>]
 * Some CSV and structured files have their timestamp encompass multiple
-  fields in the event separated by delimiters. This attribue tells Splunk to
+  fields in the event separated by delimiters. This setting tells Splunk to
   specify all such fields which constitute the timestamp in a
   comma-separated fashion.
 * If not specified, Splunk tries to automatically extract the timestamp of
@@ -655,19 +660,24 @@ TIMESTAMP_FIELDS = [ <string>,..., <string>]
 
 FIELD_NAMES = [ <string>,..., <string>] 
 * Some CSV and structured files might have missing headers. This attribute
-  tells Splunk to specify the header field names directly.
+  specifies the header field names directly.
 
 MISSING_VALUE_REGEX = <regex>
-* Tells Splunk the placeholder to use in events where no value is present.
+* Specifies the placeholder to use in events where no value is present.
 
 JSON_TRIM_BRACES_IN_ARRAY_NAMES = <bool>
-* Tell the json parser not to add the curly braces to array names.
-* Note that enabling this will make json indextime extracted array fiels names
-  inconsistant with spath search processor's naming convention.
-* For a json document containing the following array object, with trimming 
-  enabled a indextime field 'mount_point' will be generated instead of the 
-  spath consistant field 'mount_point{}'
-      "mount_point": ["/disk48","/disk22"]
+* Tells the JSON parser not to add the curly braces to array names.
+* NOTE: If you enable this setting, JSON index-time extracted array field 
+  names will be inconsistent with the naming convention for the 'spath' search
+  processor.
+* For example, if you have a JSON document that contains the following 
+  array object:
+       "mount_point": ["/disk48","/disk22"]
+  then configuring this setting to 'true' results in an index-time field of
+       "mount_point"
+  instead of the 'spath'-consistent field
+       "mount_point{}"
+  being extracted.
 * Defaults to false.
 
 #******************************************************************************
@@ -691,17 +701,17 @@ extractions. Use the REPORT or EXTRACT field extraction types to create
 search-time field extractions.
 
 NOTE: Index-time field extractions have performance implications. Creating
-      additions to Splunk's default set of indexed fields is ONLY
-      recommended in specific circumstances.  Whenever possible, extract
+      additions to the default set of indexed fields is ONLY
+      recommended in specific circumstances. Whenever possible, extract
       fields only at search time.
 
-There are times when you may find that you need to change or add to your set
-of indexed fields. For example, you may have situations where certain
+There are times when you might find that you need to change or add to your set
+of indexed fields. For example, you might have situations where certain
 search-time field extractions are noticeably impacting search performance.
 This can happen when the value of a search-time extracted field exists
 outside of the field more often than not. For example, if you commonly
 search a large event set with the expression company_id=1 but the value 1
-occurs in many events that do *not* have company_id=1, you may want to add
+occurs in many events that do *not* have company_id=1, you might want to add
 company_id to the list of fields extracted by Splunk at index time. This is
 because at search time, Splunk will want to check each instance of the value
 1 to see if it matches company_id, and that kind of thing slows down
@@ -709,7 +719,7 @@ performance when you have Splunk searching a large set of data.
 
 Conversely, if you commonly search a large event set with expressions like
 company_id!=1 or NOT company_id=1, and the field company_id nearly *always*
-takes on the value 1, you may want to add company_id to the list of fields
+takes on the value 1, you might want to add company_id to the list of fields
 extracted by Splunk at index time.
 
 For more information about index-time field extraction, search the
@@ -734,17 +744,17 @@ transforms.conf component is required.
 
 **Search-time field extractions: Why use REPORT if EXTRACT will do?**
 
-It's a good question. And much of the time, EXTRACT is all you need for
-search-time field extraction. But when you build search-time field
-extractions, there are specific cases that require the use of REPORT and the
-field transform that it references. Use REPORT if you want to:
+The EXTRACT type satisfies most use cases for search-time field extraction.
+But when you build search-time field extractions, there are specific cases
+that require the use of REPORT and the field transform that it references. 
+Use REPORT if you want to:
 
 * Reuse the same field-extracting regular expression across multiple
   sources, source types, or hosts. If you find yourself using the same regex
   to extract fields across several different sources, source types, and
   hosts, set it up as a transform, and then reference it in REPORT
   extractions in those stanzas. If you need to update the regex you only
-  have to do it in one place. Handy!
+  have to do it in one place.
 * Apply more than one field-extracting regular expression to the same
   source, source type, or host. This can be necessary in cases where the
   field or fields that you want to extract from a particular source, source
@@ -752,10 +762,11 @@ field transform that it references. Use REPORT if you want to:
 * Set up delimiter-based field extractions. Useful if your event data
   presents field-value pairs (or just field values) separated by delimiters
   such as commas, spaces, bars, and so on.
-* Configure extractions for multivalued fields. You can have Splunk append
-  additional values to a field as it finds them in the event data.
+* Configure extractions for multivalued fields. You can have Splunk
+  software append additional values to a field as it finds them in the
+  event data.
 * Extract fields with names beginning with numbers or underscores.
-  Ordinarily, Splunk's key cleaning functionality removes leading numeric
+  Ordinarily, the key cleaning functionality removes leading numeric
   characters and underscores from field names. If you need to keep them,
   configure your field transform to turn key cleaning off.
 * Manage formatting of extracted fields, in cases where you are extracting
@@ -763,9 +774,9 @@ field transform that it references. Use REPORT if you want to:
 
 **Precedence rules for TRANSFORMS, REPORT, and EXTRACT field extraction types**
 
-* For each field extraction, Splunk takes the configuration from the highest
-  precedence configuration stanza (see precedence rules at the beginning of
-  this file).
+* For each field extraction, Splunk software takes the configuration from
+  the highest  precedence configuration stanza (see precedence rules at the
+  beginning of this file).
 * If a particular field extraction is specified for a source and a source
   type, the field extraction for source wins out.
 * Similarly, if a particular field extraction is specified in ../local/ for
@@ -781,9 +792,9 @@ TRANSFORMS-<class> = <transform_stanza_name>, <transform_stanza_name2>,...
   spaces are allowed. <class> values are not subject to key cleaning.
 * <transform_stanza_name> is the name of your stanza from transforms.conf.
 * Use a comma-separated list to apply multiple transform stanzas to a single
-  TRANSFORMS extraction. Splunk applies them in the list order. For example,
-  this sequence ensures that the [yellow] transform stanza gets applied
-  first, then [blue], and then [red]:
+  TRANSFORMS extraction. Splunk software applies them in the list order.
+  For example, this sequence ensures that the [yellow] transform stanza
+  gets applied first, then [blue], and then [red]:
         [source::color_logs]
         TRANSFORMS-colorchange = yellow, blue, red
 
@@ -798,9 +809,9 @@ REPORT-<class> = <transform_stanza_name>, <transform_stanza_name2>,...
 * <transform_stanza_name> is the name of your stanza from transforms.conf.
 * Use a comma-separated list to apply multiple transform stanzas to a single
   REPORT extraction.
-  Splunk applies them in the list order. For example, this sequence insures
-  that the [yellow] transform stanza gets applied first, then [blue], and
-  then [red]:
+  Splunk software applies them in the list order. For example, this sequence
+  insures that the [yellow] transform stanza gets applied first, then
+  [blue], and then [red]:
     [source::color_logs]
     REPORT-colorchange = yellow, blue, red
 
@@ -826,7 +837,7 @@ EXTRACT-<class> = [<regex>|<regex> in <src_field>]
   (a-z, A-Z, 0-9, and _).
 * If your regex needs to end with 'in <string>' where <string> is *not* a
   field name, change the regex to end with '[i]n <string>' to ensure that
-  Splunk doesn't try to match <string> to a field name.
+  Splunk software doesn't try to match <string> to a field name.
 
 KV_MODE = [none|auto|auto_escaped|multi|json|xml]
 * Used for search-time field extractions only.
@@ -854,7 +865,7 @@ MATCH_LIMIT = <integer>
 * Optional. Limits the amount of resources that will be spent by PCRE
   when running patterns that will not match.
 * Use this to set an upper bound on how many times PCRE calls an internal
-  function, match(). If set too low, PCRE may fail to correctly match a pattern.
+  function, match(). If set too low, PCRE might fail to correctly match a pattern. 
 * Defaults to 100000
 
 AUTO_KV_JSON = [true|false]
@@ -874,9 +885,9 @@ KV_TRIM_SPACES = true|false
     would result in a field called 'myfield' with a value of ' apples '.
 * The trimming logic applies only to space characters, not tabs, or other
   whitespace.
-* NOTE: The Splunk UI currently has limitations with displaying and
-  interactively clicking on  fields that have leading or trailing
-  whitespace.  Field values with leading or trailing spaces may not look
+* NOTE: Splunk Web currently has limitations with displaying and
+  interactively clicking on fields that have leading or trailing
+  whitespace. Field values with leading or trailing spaces might not look
   distinct in the event viewer, and clicking on a field value will typically
   insert the term into the search string without its embedded spaces.
   * These warts are not specific to this feature.  Any such embedded spaces
@@ -888,11 +899,11 @@ CHECK_FOR_HEADER = [true|false]
 * Used for index-time field extractions only.
 * Set to true to enable header-based field extraction for a file.
 * If the file has a list of columns and each event contains a field value
-  (without field name), Splunk picks a suitable header line to use to for
+  (without field name), Splunk software picks a suitable header line to use for
   extracting field names.
 * If the file has a list of columns and each event contains a field value
-  (without a field name), Splunk picks a suitable header line to use for
-  field extraction.
+  (without a field name), Splunk software picks a suitable header line to use
+  for field extraction.
 * Can only be used on the basis of [<sourcetype>] or [source::<spec>],
   not [host::<spec>].
 * Disabled when LEARN_SOURCETYPE = false.
@@ -901,8 +912,9 @@ CHECK_FOR_HEADER = [true|false]
 * The field names are stored in etc/apps/learned/local/props.conf.
   * Because of this, this feature will not work in most environments where
     the data is forwarded.
-* This setting applies at input time, when data is first read by Splunk.
-  The setting is used on a Splunk system that has configured inputs
+* This setting applies at input time, when Splunk software first reads
+  the data.
+  The setting is used on a Splunk instance that has configured inputs
   acquiring the data.
 * Defaults to false.
 
@@ -911,7 +923,8 @@ SEDCMD-<class> = <sed script>
 * Commonly used to anonymize incoming data at index time, such as credit
   card or social security numbers. For more information, search the online
   documentation for "anonymize data."
-* Used to specify a sed script which Splunk applies to the _raw field.
+* Used to specify a sed script which Splunk software applies to the
+  _raw field.
 * A sed script is a space-separated list of sed commands. Currently the
   following subset of sed commands is supported:
     * replace (s) and character substitution (y).
@@ -949,7 +962,7 @@ EVAL-<fieldname> = <eval statement>
   For example say you have two statements: EVAL-x = y*2 and EVAL-y=100. In
   this case, "x" will be assigned the original value of "y * 2," not the
   value of "y" after it is set to 100.
-* Splunk processes calculated fields after field extraction and field
+* Splunk software processes calculated fields after field extraction and field
   aliasing but before lookups. This means that:
   * You can use a field alias in the eval statement for a calculated
     field.
@@ -960,30 +973,31 @@ LOOKUP-<class> = $TRANSFORM (<match_field> (AS <match_field_in_event>)?)+ (OUTPU
 * At search time, identifies a specific lookup table and describes how that
   lookup table should be applied to events.
 * <match_field> specifies a field in the lookup table to match on.
-  * By default Splunk looks for a field with that same name in the event to
-    match with (if <match_field_in_event> is not provided)
+  * By default Splunk software looks for a field with that same name 
+    in the event to match with (if <match_field_in_event> is not provided)
   * You must provide at least one match field. Multiple match fields are
     allowed.
 * <output_field> specifies a field in the lookup entry to copy into each
   matching event, where it will be in the field <output_field_in_event>.
   * If you do not specify an <output_field_in_event> value, Splunk 
-    uses <output_field>.
+    software uses <output_field>.
   * A list of output fields is not required.
 * If they are not provided, all fields in the lookup table except for the
   match fields (and the timestamp field if it is specified) will be output
   for each matching event.
 * If the output field list starts with the keyword "OUTPUTNEW" instead of
-  "OUTPUT", then each outputfield is only written out if it did not previous
-  exist. Otherwise, the output fields are always overridden. Any event that
-  has all of the <match_field> values but no matching entry in the lookup
-  table clears all of the output fields.  NOTE that OUTPUTNEW behavior has
-  changed since 4.1.x (where *none* of the output fields were written to if
-  *any* of the output fields previously existed).
-* Splunk processes lookups after it processes field extractions, field
-  aliases, and calculated fields (EVAL-* statements). This means that you
-  can use extracted fields, aliased fields, and calculated fields to specify
-  lookups. But you can't use fields discovered by lookups in the
-  configurations of extracted fields, aliased fields, or calculated fields.
+  "OUTPUT", then each output field is only written out if it did not
+  previously exist. Otherwise, the output fields are always overridden.
+  Any event that has all of the <match_field> values but no matching entry
+  in the lookup table clears all of the output fields.  NOTE that OUTPUTNEW
+  behavior has changed since 4.1.x (where *none* of the output fields were
+  written to if *any* of the output fields previously existed).
+* Splunk software processes lookups after it processes field 
+  extractions, field aliases, and calculated fields (EVAL-* statements).
+  This means that you can use extracted fields, aliased fields, and
+  calculated fields to specify lookups. But you can't use fields discovered
+  by lookups in the configurations of extracted fields, aliased fields, or 
+  calculated fields.
 * The LOOKUP- prefix is actually case-insensitive. Acceptable variants include:
    LOOKUP_<class> = [...]
    LOOKUP<class>  = [...]
@@ -995,32 +1009,37 @@ LOOKUP-<class> = $TRANSFORM (<match_field> (AS <match_field_in_event>)?)+ (OUTPU
 #******************************************************************************
 
 NO_BINARY_CHECK = [true|false]
-* When set to true, Splunk processes binary files.
+* Specifies whether or not to process files in binary format.
+* Splunk software checks for and ignores binary files by default.
+* When set to true, Splunk software does not perform this check. It processes
+  the file whether or not the file is binary.
 * Can only be used on the basis of [<sourcetype>], or [source::<source>],
   not [host::<host>].
 * Defaults to false (binary files are ignored).
-* This setting applies at input time, when data is first read by Splunk.
-  The setting is used on a Splunk system that has configured inputs
+* This setting applies at input time, when Splunk software first reads
+  the data.
+* The setting is used on a Splunk instance that has configured inputs
   acquiring the data.
 
 detect_trailing_nulls = [auto|true|false]
-* When enabled, Splunk will try to avoid reading in null bytes at the end of
-  a file.
-* When false, splunk will assume that all the bytes in the file should be
-  read and indexed.
+* When enabled, Splunk software tries to avoid reading in null bytes
+  at the end of a file.
+* When false, Splunk software will assume that all the bytes in the file
+  should be read and indexed.
 * Set this value to false for UTF-16 and other encodings (CHARSET) values
   that can have null bytes as part of the character text.
 * Subtleties of 'true' vs 'auto':
-  * 'true' is the splunk-on-windows historical behavior of trimming all null
+  * 'true' is the Splunk-on-Windows historical behavior of trimming all null
            bytes.
   * 'auto' is currently a synonym for true but will be extended to be
            sensitive to the charset selected (ie quantized for multi-byte
-           encodings, and disabled for unsafe variable-width encdings)
-* This feature was introduced to work around programs which foolishly
-  pre-allocate their log files with nulls and fill in data later.  The
+           encodings, and disabled for unsafe variable-width encodings)
+* This feature was introduced to work around programs that pre-
+  allocate their log files with nulls and fill in data later.  The
   well-known case is Internet Information Server.
-* This setting applies at input time, when data is first read by Splunk.
-  The setting is used on a Splunk system that has configured inputs
+* This setting applies at input time, when Splunk software first reads
+  the data.
+* The setting is used on a Splunk instance that has configured inputs
   acquiring the data.
 * Defaults to false on *nix, true on windows.
 
@@ -1030,7 +1049,7 @@ detect_trailing_nulls = [auto|true|false]
 
 SEGMENTATION = <segmenter>
 * Specifies the segmenter from segmenters.conf to use at index time for the
-  host, source, or sourcetype specified by <spec> in the stanza heading.
+  host, source, or source type specified by <spec> in the stanza heading.
 * Defaults to indexing.
 
 SEGMENTATION-<segment selection> = <segmenter>
@@ -1059,7 +1078,7 @@ CHECK_METHOD = [endpoint_md5|entire_md5|modtime]
   each detected change.
 * Important: this option is only valid for [source::<source>] stanzas.
 * This setting applies at input time, when data is first read by Splunk.
-  The setting is used on a Splunk system that has configured inputs
+  The setting is used on a Splunk instance that has configured inputs
   acquiring the data.
 * Defaults to endpoint_md5.
 
@@ -1071,7 +1090,7 @@ initCrcLength = <integer>
 #******************************************************************************
 
 PREFIX_SOURCETYPE = [true|false]
-* NOTE: this attribute is only relevant to the "[too_small]" sourcetype.
+* NOTE: this attribute is only relevant to the "[too_small]" source type.
 * Determines the source types that are given to files smaller than 100
   lines, and are therefore not classifiable.
 * PREFIX_SOURCETYPE = false sets the source type to "too_small."
@@ -1082,24 +1101,25 @@ PREFIX_SOURCETYPE = [true|false]
     effective.
   * For example, a Splunk search of "sourcetype=access*" will retrieve
     "access" files as well as "access-too_small" files.
-* This setting applies at input time, when data is first read by Splunk.
-  The setting is used on a Splunk system that has configured inputs
+* This setting applies at input time, when Splunk software first reads
+  the data.
+* The setting is used on a Splunk instance that has configured inputs
   acquiring the data.
 * Defaults to true.
 
 
 #******************************************************************************
-# Sourcetype configuration
+# Source type configuration
 #******************************************************************************
 
 sourcetype = <string>
 * Can only be set for a [source::...] stanza.
 * Anything from that <source> is assigned the specified source type.
-* Is used by file-based inputs, at input time (when accessing logfiles) such
+* Is used by file-based inputs, at input time (when accessing log files) such
   as on a forwarder, or indexer monitoring local files.
-* sourcetype assignment settings on a system receiving forwarded splunk data
+* Source type assignment settings on a system that receives forwarded data
   will not be applied to forwarded data.
-* For logfiles read locally, data from logfiles matching <source> is
+* For log files read locally, data from log files matching <source> is
   assigned the specified source type.
 * Defaults to empty.
 
@@ -1112,33 +1132,33 @@ rename = <string>
   sourcetype=<string>
 * To search for the original source type without renaming it, use the 
   field _sourcetype.
-* Data from a a renamed sourcetype will only use the search-time
-  configuration for the target sourcetype. Field extractions
-  (REPORTS/EXTRACT) for this stanza sourcetype will be ignored.
+* Data from a renamed source type will only use the search-time
+  configuration for the target source type. Field extractions
+  (REPORTS/EXTRACT) for this stanza source type will be ignored.
 * Defaults to empty.
 
 invalid_cause = <string>
 * Can only be set for a [<sourcetype>] stanza.
 * If invalid_cause is set, the Tailing code (which handles uncompressed
-  logfiles) will not read the data, but hand it off to other components or
+  log files) will not read the data, but hand it off to other components or
   throw an error.
 * Set <string> to "archive" to send the file to the archive processor
   (specified in unarchive_cmd).
 * When set to "winevt", this causes the file to be handed off to the
-  eventlog input processor.
+  Event Log  input processor.
 * Set to any other string to throw an error in the splunkd.log if you are
   running Splunklogger in debug mode.
-* This setting applies at input time, when data is first read by Splunk.
-  The setting is used on a Splunk system that has configured inputs
+* This setting applies at input time, when Splunk software first reads
+  the data.
+* The setting is used on a Splunk instance that has configured inputs
   acquiring the data.
 * Defaults to empty.
 
 is_valid = [true|false]
 * Automatically set by invalid_cause.
-* This setting applies at input time, when data is first read by Splunk,
-  such as on a forwarder.
-* This setting applies at input time, when data is first read by Splunk.
-  The setting is used on a Splunk system that has configured inputs
+* This setting applies at input time, when Splunk software first reads
+  the data.
+* The setting is used on a Splunk instance that has configured inputs
   acquiring the data.
 * DO NOT SET THIS.
 * Defaults to true.
@@ -1149,33 +1169,36 @@ unarchive_cmd = <string>
 * <string> specifies the shell command to run to extract an archived source.
 * Must be a shell command that takes input on stdin and produces output on
   stdout.
-* Use _auto for Splunk's automatic handling of archive files (tar, tar.gz,
+* Use _auto to enable automatic handling of archive files (tar, tar.gz,
   tgz, tbz, tbz2, zip)
-* This setting applies at input time, when data is first read by Splunk.
-  The setting is used on a Splunk system that has configured inputs
+* This setting applies at input time, when Splunk software first reads
+  the data.
+* The setting is used on a Splunk instance that has configured inputs
   acquiring the data.
 * Defaults to empty.
 
 unarchive_sourcetype = <string>
 * Sets the source type of the contents of the matching archive file. Use
-  this field instead of the sourcetype field to set the source type of
+  this field instead of the 'sourcetype' field to set the source type of
   archive files that have the following extensions: gz, bz, bz2, Z.
 * If this field is empty (for a matching archive file props lookup) Splunk
-  strips off the archive file's extension (.gz, bz etc) and lookup another
-  stanza to attempt to determine the sourcetype.
-* This setting applies at input time, when data is first read by Splunk.
-  The setting is used on a Splunk system that has configured inputs
+  software strips off the archive file's extension (.gz, bz etc) and 
+  looks up another stanza to attempt to determine the source type.
+* This setting applies at input time, when Splunk software first reads
+  the data.
+* The setting is used on a Splunk instance that has configured inputs
   acquiring the data.
 * Defaults to empty.
 
 LEARN_SOURCETYPE = [true|false]
-* Determines whether learning of known or unknown sourcetypes is enabled.
-  * For known sourcetypes, refer to LEARN_MODEL.
-  * For unknown sourcetypes, refer to the rule:: and delayedrule::
+* Determines whether learning of known or unknown source types is enabled.
+  * For known source types, refer to LEARN_MODEL.
+  * For unknown source types, refer to the rule:: and delayedrule::
     configuration (see below).
 * Setting this field to false disables CHECK_FOR_HEADER as well (see above).
-* This setting applies at input time, when data is first read by Splunk.
-  The setting is used on a Splunk system that has configured inputs
+* This setting applies at input time, when Splunk software first reads
+  the data.
+* The setting is used on a Splunk instance that has configured inputs
   acquiring the data.
 * Defaults to true.
 
@@ -1183,27 +1206,29 @@ LEARN_MODEL = [true|false]
 * For known source types, the file classifier adds a model file to the
   learned directory.
 * To disable this behavior for diverse source types (such as sourcecode,
-  where there is no good exemple to make a sourcetype) set LEARN_MODEL =
+  where there is no good example to make a source type) set LEARN_MODEL =
   false.
-* This setting applies at input time, when data is first read by Splunk.
-  The setting is used on a Splunk system that has configured inputs
+* This setting applies at input time, when Splunk software first reads
+  the data.
+* The setting is used on a Splunk instance that has configured inputs
   acquiring the data.
 * Defaults to true.
 
 maxDist = <integer>
 * Determines how different a source type model may be from the current file.
-* The larger the maxDist value, the more forgiving Splunk will be with
-  differences.
+* The larger the maxDist value, the more forgiving Splunk software
+  will be with differences.
   * For example, if the value is very small (for example, 10), then files
-    of the specified sourcetype should not vary much.
+    of the specified source type should not vary much.
   * A larger value indicates that files of the given source type can vary
     quite a bit.
 * If you're finding that a source type model is matching too broadly, reduce
   its maxDist value by about 100 and try again. If you're finding that a
   source type model is being too restrictive, increase its maxDist value by
   about 100 and try again.
-* This setting applies at input time, when data is first read by Splunk.
-  The setting is used on a Splunk system that has configured inputs
+* This setting applies at input time, when Splunk software first reads
+  the data.
+* The setting is used on a Splunk instance that has configured inputs
   acquiring the data.
 * Defaults to 300.
 
@@ -1212,8 +1237,8 @@ maxDist = <integer>
 MORE_THAN<optional_unique_value>_<number> = <regular expression> (empty)
 LESS_THAN<optional_unique_value>_<number> = <regular expression> (empty)
 
-* These settingg apply at input time, when data is first read by Splunk,
-  such as on a forwarder.
+* These settings apply at input time, when Splunk software first reads the
+  data.
 
 An example:
 
@@ -1252,8 +1277,9 @@ HEADER_MODE = <empty> | always | firstline | none
   * If "none", the string ***SPLUNK*** is treated as normal data.
   * If <empty>, scripted inputs take the value "always" and file inputs
     take the value "none".
-* This setting applies at input time, when data is first read by Splunk.
-  The setting is used on a Splunk system that has configured inputs
+* This setting applies at input time, when Splunk software first reads
+  the data.
+* The setting is used on a Splunk instance that has configured inputs
   acquiring the data.
 * Defaults to <empty>.
 
@@ -1273,9 +1299,10 @@ pulldown_type = <bool>
 
 given_type = <string>
 * Internal field used by the CHECK_FOR_HEADER feature to remember the
-  original sourcetype.
-* This setting applies at input time, when data is first read by Splunk.
-  The setting is used on a Splunk system that has configured inputs
+  original source type.
+* This setting applies at input time, when Splunk software first reads
+  the data.
+* The setting is used on a Splunk instance that has configured inputs
   acquiring the data.
 * Default to unset.
 
@@ -1284,10 +1311,10 @@ given_type = <string>
 #******************************************************************************
 
 description = <string>
-* Field used to describe the sourcetype. Does not affect indexing behaviour.
+* Field used to describe the source type. Does not affect indexing behavior.
 * Defaults to unset.
 
 category = <string>
-* Field used to classify sourcetypes for organization in the front end. Case
-  sensitive. Does not affect indexing behaviour.
+* Field used to classify source types for organization in the front end. Case
+  sensitive. Does not affect indexing behavior.
 * Defaults to unset.

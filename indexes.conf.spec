@@ -1,4 +1,4 @@
-#   Version 6.5.2
+#   Version 6.5.3
 #
 # This file contains all possible options for an indexes.conf file.  Use
 # this file to configure Splunk's indexes and their properties.
@@ -629,6 +629,9 @@ maxHotSpanSecs = <positive integer>
 * Upper bound of timespan of hot/warm buckets in seconds.
 * NOTE: If you set this too small, you can get an explosion of hot/warm
   buckets in the filesystem.
+* NOTE: If maxHotBuckets is set to 1, Splunk will attempt to send all
+  events to the single hot bucket and maxHotSpanSeconds will not be
+  enforced.
 * If you set this parameter to less than 3600, it will be automatically
   reset to 3600, which will then activate snapping behavior (see below).
 * This is an advanced parameter that should be set

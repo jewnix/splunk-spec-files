@@ -71,6 +71,12 @@ datasets:showInstallDialog = <boolean>
 * Flag to enable/disable the install dialog for the datasets addon
 * Defaults to true
 
+dismissedInstrumentationOptInVersion = <integer>
+* Set by splunk_instrumentation app to its current value of optInVersion when the opt-in modal is dismissed.
+
+hideInstrumentationOptInModal = <boolean>
+* Set to 1 by splunk_instrumentation app when the opt-in modal is dismissed.
+
 [default]
 # Additional settings exist, but are entirely UI managed.
 <setting> = <value>

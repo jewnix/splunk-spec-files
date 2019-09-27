@@ -709,7 +709,9 @@ vsid = <string>
 
 is_visible = true | false
 * Specifies whether this saved search should be listed in the visible saved
-  search list.
+  search list within apps.
+* Saved searches are still visible when accessing the "Searches, reports,
+  and alerts" page in Splunk Web.
 * Defaults to true.
 
 description = <string>

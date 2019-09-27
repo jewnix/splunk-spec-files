@@ -1644,6 +1644,12 @@ channel_cookie = <string>
 * If no value is set (the default), then no cookie will be returned.
 * Defaults to the empty string (no cookie).
 
+maxEventSize = <positive integer>[KB|MB|GB]
+* The maximum size of a single HEC (HTTP Event Collector) event.
+* HEC disregards and triggers a parsing error for events whose size is
+  greater than 'maxEventSize'.
+* Defaults to 5MB.
+
 #*******
 # HTTP Event Collector (HEC) - Local stanza for each token
 #*******

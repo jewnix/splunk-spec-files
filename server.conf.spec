@@ -254,6 +254,13 @@ remoteStorageRecreateIndexesInStandalone = <bool>
 * Controls re-creation of remote storage enabled indexes in standalone mode.
 * Defaults to true.
 
+remoteStorageRecreateObjectCountPerSecondInStandalone = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The maximum number of remote storage transactions that can be run
+  against the remote storage per second.
+* Defaults to no limit
+
 cleanRemoteStorageByDefault = <bool>
 * Currently not supported. This setting is related to a feature that is
   still under development.

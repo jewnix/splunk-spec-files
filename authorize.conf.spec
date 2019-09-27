@@ -1,4 +1,4 @@
-#   Version 7.2.4.2
+#   Version 7.2.5
 #
 # This file contains possible attribute/value pairs for creating roles in
 # authorize.conf.  You can configure roles and granular access controls by
@@ -274,6 +274,9 @@ cumulativeRTSrchJobsQuota = <number>
 [capability::request_pstacks]
 * Lets a user trigger pstacks generation of the main splunkd process
   using a REST endpoint.
+
+[capability::edit_watchdog]
+* Lets a user reconfigure watchdog settings using a REST endpoint.
 
 [capability::edit_forwarders]
 * Lets a user edit settings for forwarding data, including settings 

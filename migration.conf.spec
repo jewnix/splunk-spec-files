@@ -1,4 +1,4 @@
-#   Version 7.2.4.2
+#   Version 7.2.5
 #
 # This file maintains the migration status in Splunk Enterprise.
 #

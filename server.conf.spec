@@ -1,4 +1,4 @@
-#   Version 7.2.4.2
+#   Version 7.2.5
 ############################################################################
 # This file contains settings and values to configure server options 
 # in server.conf.
@@ -2479,6 +2479,15 @@ buckets_status_notification_batch_size = <positive integer>
   Splunk personnel.
 * Default: 10
 
+local_executor_evict_deletes_enabled = <boolean>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* If true, enables jobs that invalidate delete files by marking them as stale,
+  to be enqueued on bucket primary changes.
+* Otherwise, these jobs are not enqueued on bucket primary changes and
+  the files of these buckets are considered to be up-to-date.
+* Default: true
+
 notify_scan_period = <non-zero positive integer>
 * Only valid for 'mode=slave'.
 * Controls the frequency, in seconds, that the indexer handles 
@@ -3806,6 +3815,35 @@ max_cache_size = <positive integer>
 * A value of 0 means this feature is not used, and has no maximum size.
 * Default: 0
 
+persist_pending_upload_from_external = <bool>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies whether the information of the buckets that have been uploaded
+  to remote storage can be serialized to disk or not.
+* When set to true, this information is serialized to disk and
+  the bucket is deemed to be on remote storage.
+* Otherwise, the bucket is deemed to be not on remote storage and
+  bucket is then uploaded to remote storage.
+* Default: true
+
+persistent_id_set_remove_min_sync_secs = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Cache manager persists the set of objects that are
+  no longer pending upload to the remote storage based
+  on when the previous set of changes were persisted to disk.
+* This setting controls the interval from the last persist time that
+  cache manager waits to persist the current set of changes to disk.
+* Default: 5
+
+enable_open_on_stale_object = <bool>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies whether the buckets with stale files can be opened for search.
+* When set to true, these buckets can be opened for search.
+  Otherwise, searches are not allowed to open these buckets.
+* Default: true
+
 hotlist_recency_secs = <unsigned integer>
 * The cache manager attempts to defer bucket eviction until the interval
   between the bucket's latest time and the current time exceeds this setting,
@@ -3875,15 +3913,15 @@ actionsInterval = <decimal>
   value instead.
 * NOTE: Very small timeout may have impact performance by increasing CPU usage.
   Splunk may be also slowed down by frequently executed action.
-* Defaults to 0.7 second.
+* Default: 1
 
 pstacksEndpoint = <boolean>
 * Enables pstacks endpoint at /services/server/pstacks
 * Endpoint allows ad-hoc pstacks generation of all running threads.
-* NOTE: This setting is ignored if 'watchdog' is not enabled.
-* NOTE: This setting should be used only during troubleshooting and only if you 
-  have been explicitly asked to set it by a Splunk Support engineer. 
-* Defaults to true.
+* This setting is ignored if 'watchdog' is not enabled.
+* NOTE: This setting should be used only during troubleshooting and only if you
+  have been explicitly asked to set it by a Splunk Support engineer.
+* Default: true
 
 [watchdog:timeouts]
 reaperThread = <decimal>
@@ -3897,17 +3935,18 @@ reaperThread = <decimal>
 * Defaults to 30 seconds.
 
 [watchdogaction:pstacks]
+* Setting under this stanza are ignored if 'pstacks' is not enabled in the 
+  'actions' list.
+* NOTE: Change these settings only during troubleshooting, and if you have
+  been asked to set it by a Splunk Support engineer. It can affect performance 
+  by increasing CPU and disk usage.
+
 dumpAllThreads = <boolean>
 * Determines whether or not the watchdog saves stacks of all monitored threads 
   when it encounters a blocked thread.
 * If you set 'dumpAllThreads' to true, the watchdog generates call stacks for 
   all threads, regardless of thread state.
-* NOTE: This setting is ignored if 'pstacks' is not enabled in the 'actions' 
-  list.
-* NOTE: This setting should be used only during troubleshooting, and if you have 
-  been asked to set it by a Splunk Support engineer. It may impact performance
-  by increasing CPU and disk usage.
-* Defaults to false.
+* Default: true
 
 stacksBufferSizeOrder = <unsigned integer>
 * Controls the maximum number of call stacks an internal queue can hold.
@@ -3922,10 +3961,9 @@ stacksBufferSizeOrder = <unsigned integer>
 * The watchdog uses this value to calculate the real size of the buffer, whose 
   value must be a power of 2. For example, if 'stackBufferSizeOrder' is 4, the 
   size of the buffer is 4 ^ 2, or 16.
-* This setting is ignored if 'pstacks' is not enabled in the 'actions' list.
-* CAUTION: Setting to too low a value can cause dropped call stacks, and too high 
-  a value can cause increased memory consumption.
-* Defaults to 14.
+* CAUTION: Setting to too low a value can cause dropped call stacks, and too
+  high a value can cause increased memory consumption.
+* Default: 14
 
 maxStacksPerBlock = <unsigned integer>
 * Maximum number of stacks that the watchdog can generate for a blocked thread.
@@ -3936,11 +3974,25 @@ maxStacksPerBlock = <unsigned integer>
 * If another thread blockage occurs, the watchdog begins generating stacks 
   again, up to 'maxStacksPerBlock' stacks.
 * When set to 0, an unlimited number of stacks will be generated.
-* NOTE: This setting is ignored if 'pstacks' is not enabled in the 'actions' 
   list.
-* Defaults to 100.
+* Default: 60
+
+batchStacksThreshold = <unsigned integer>|auto
+* The timeout, in milliseconds, after which the watchdog generates a new call stack file.
+* This setting controls the batching up of call stacks when saving them to files, and can
+  decrease the number of files the watchdog creates.
+* When set to 0, batching is disabled.
+* When set to 'auto', Splunk Enterprise determines the best frequency to create new
+  call stack files.
+* Default: auto
 
 [watchdogaction:script]
+* Setting under this stanza are ignored if 'script' is not enabled in the 
+  'actions' list.
+* NOTE: Change these settings only during troubleshooting, and if you have
+  been asked to set it by a Splunk Support engineer. It can affect performance 
+  by increasing CPU and disk usage.
+
 path = <string>
 * The path to the script to execute when the watchdog triggers the action.
 * No default. If you do not set 'path', the watchdog ignores the action.

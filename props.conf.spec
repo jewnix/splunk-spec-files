@@ -1,4 +1,4 @@
-#   Version 7.2.4.2
+#   Version 7.2.5
 #
 # This file contains possible setting/value pairs for configuring Splunk 
 # software's processing properties via props.conf.
@@ -600,14 +600,34 @@ ADD_EXTRA_TIME_FIELDS = [true|false]
   software, such as on a forwarder that has configured inputs acquiring the 
   data.
 
-# Special characters for Structured Data Header Extraction:
-# Some unprintable characters can be described with escape sequences. The
-# settings that can use these characters specifically mention that
-# capability in their descriptions below.
-# \f : form feed       byte: 0x0c
-# \s : space           byte: 0x20
-# \t : horizontal tab  byte: 0x09
-# \v : vertical tab    byte: 0x0b
+# These special string delimiters, which are single ASCII characters,
+# can be used in the settings that follow, which state
+# "You can use the delimiters for structured data header extraction with
+# this setting."
+#
+# You can only use a single delimiter for any setting.
+# It is not possible to configure multiple delimiters or characters per
+# setting.
+#
+# Example of using the delimiters:
+#
+# FIELD_DELIMITER=space
+# * Tells Splunk software to use the space character to separate fields
+# in the specified source.
+# space           - Space separator (separates on a single space)
+# tab / \t        - Tab separator
+# fs              - ASCII file separator
+# gs              - ASCII group separator
+# rs              - ASCII record separator
+# us              - ASCII unit separator
+#\xHH             - HH is two heaxadecimal digits to use as a separator
+                    Example : \x14 - select 0x14 as delimiter
+# none            - (Valid for FIELD_QUOTE and HEADER_FIELD_QUOTE only)
+                    null termination character separator
+# whitespace / ws - (Valid for FIELD_DELIMITER and
+                    HEADER_FIELD_DELIMITER only)
+                    treats any number of spaces and tabs as a
+                    single delimiter
 
 INDEXED_EXTRACTIONS = <CSV|TSV|PSV|W3C|JSON|HEC>
 * Tells Splunk software the type of file and the extraction and/or parsing 
@@ -670,7 +690,6 @@ FIELD_HEADER_REGEX = <regex>
 * A regular expression that specifies a pattern for prefixed headers. Note
   that the actual header starts after the pattern and it is not included in
   the header field.
-* This setting supports the use of the special characters described above.
 
 HEADER_FIELD_LINE_NUMBER = <integer>
 * Tells Splunk software the line number of the line within the file that 
@@ -681,22 +700,26 @@ HEADER_FIELD_LINE_NUMBER = <integer>
 FIELD_DELIMITER = <character>
 * Tells Splunk software which character delimits or separates fields in the  
   specified file or source.
-* This setting supports the use of the special characters described above.
+* You can use the delimiters for structured data header extraction with
+  this setting.
 
 HEADER_FIELD_DELIMITER = <character>
-* Tells Splunk software which character delimits or separates header fields in   
+* Tells Splunk software which character delimits or separates header fields in
   the specified file or source.
-* This setting supports the use of the special characters described above.
+* You can use the delimiters for structured data header extraction with
+  this setting.
 
 FIELD_QUOTE = <character>
 * Tells Splunk software the character to use for quotes in the specified file 
   or source.
-* This setting supports the use of the special characters described above.
+* You can use the delimiters for structured data header extraction with
+  this setting.
 
 HEADER_FIELD_QUOTE = <character>
 * Specifies the character to use for quotes in the header of the
   specified file or source.
-* This setting supports the use of the special characters described above.
+* You can use the delimiters for structured data header extraction with
+  this setting.
 
 TIMESTAMP_FIELDS = [ <string>,..., <string>]
 * Some CSV and structured files have their timestamp encompass multiple
@@ -1003,14 +1026,30 @@ SEDCMD-<class> = <sed script>
     * substitute - y/string1/string2/
       * substitutes the string1[i] with string2[i]
 
-FIELDALIAS-<class> = (<orig_field_name> AS <new_field_name>)+
-* Use this to apply aliases to a field. The original field is not removed.
-  This just means that the original field can be searched on using any of
-  its aliases.
+FIELDALIAS-<class> = (<orig_field_name> AS|ASNEW <new_field_name>)+  
+* Use FIELDALIAS configurations to apply aliases to a field. This lets you 
+  search for the original field using one or more alias field names. 
+* <orig_field_name> is the original name of the field. It is not removed by 
+  this configuration. 
+* <new_field_name> is the alias to assign to the <orig_field_name>.
 * You can create multiple aliases for the same field.
-* <orig_field_name> is the original name of the field.
-* <new_field_name> is the alias to assign to the field.
 * You can include multiple field alias renames in the same stanza.
+* Avoid applying the same alias field name to multiple original field names.
+  * If you must do this, set it up as a calculated field (an EVAL-* statement)
+    that uses the 'coalesce' function to create a new field that takes the 
+    value of one or more existing fields. This method lets you be explicit 
+    about ordering of input field values in the case of NULL fields. For 
+    example: EVAL-ip = coalesce(clientip,ipaddress)
+* The following is true if you use AS in this configuration:
+  * If the alias field name <new_field_name> already exists, the Splunk 
+    software replaces its value with the value of <orig_field_name>.
+  * If the <orig_field_name> field has no value or does not exist, the 
+    <new_field_name> is removed. 
+* The following is true if you use ASNEW in this configuration:
+  * If the alias field name <new_field_name> already exists, the Splunk 
+    software does not change it.
+  * If the <orig_field_name> field has no value or does not exist, the 
+    <new_field_name> is kept.
 * Field aliasing is performed at search time, after field extraction, but
   before calculated fields (EVAL-* statements) and lookups.
   This means that:

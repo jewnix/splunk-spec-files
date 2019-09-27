@@ -1,4 +1,4 @@
-#   Version 7.0.1
+#   Version 7.0.2
 #
 # This file contains all possible options for an indexes.conf file.  Use
 # this file to configure Splunk's indexes and their properties.
@@ -1752,6 +1752,23 @@ remote.s3.multipart_upload.part_size = <unsigned int>
 * Sets the upload size of parts during a multipart upload.
 * Minimum value: 5242880 (5 MB)
 * Defaults: 134217728 (128 MB)
+
+remote.s3.multipart_max_connections = <unsigned int>
+* Specifies the maximum number of HTTP connections to have in progress for
+  either multipart download or upload.
+* A value of 0 means unlimited.
+* Default: 8
+
+remote.s3.enable_data_integrity_checks = <bool>
+* If set to true, Splunk sets the data checksum in the metadata field of the HTTP header
+  during upload operation to S3.
+* The checksum is used to verify the integrity of the data on uploads.
+* Default: false
+
+remote.s3.enable_signed_payloads  = <bool>
+* If set to true, Splunk signs the payload during upload operation to S3.
+* Valid only for remote.s3.signature_version = v4
+* Default: true
 
 remote.s3.timeout.connect = <unsigned int>
 * Currently not supported. This setting is related to a feature that is

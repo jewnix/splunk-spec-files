@@ -1,4 +1,4 @@
-#   Version 7.0.1
+#   Version 7.0.2
 #
 # This file contains attributes and values that you can use to configure
 # data transformations.  and event signing in transforms.conf.
@@ -151,6 +151,15 @@ MATCH_LIMIT = <integer>
 * Use this to set an upper bound on how many times PCRE calls an internal
   function, match(). If set too low, PCRE may fail to correctly match a pattern.
 * Defaults to 100000
+
+DEPTH_LIMIT = <integer>
+* Only set in transforms.conf for REPORT and TRANSFORMS field extractions.
+   For EXTRACT type field extractions, set this in props.conf.
+* Optional. Limits the amount of resources that are spent by PCRE
+  when running patterns that will not match.
+* Use this to limit the depth of nested backtracking in an internal PCRE
+  function, match(). If set too low, PCRE might fail to correctly match a pattern.
+* Default: 1000
 
 CLONE_SOURCETYPE = <string>
 * This name is wrong; a transform with this setting actually clones and

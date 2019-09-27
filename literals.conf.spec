@@ -1,4 +1,4 @@
-#   Version 7.0.1
+#   Version 7.0.2
 #
 # This file contains attribute/value pairs for configuring externalized strings
 # in literals.conf.

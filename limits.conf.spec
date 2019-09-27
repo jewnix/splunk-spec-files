@@ -1,4 +1,4 @@
-#   Version 7.0.1
+#   Version 7.0.2
 #
 ############################################################################
 # OVERVIEW
@@ -594,6 +594,19 @@ auto_cancel_after_pause = <integer>
   the search is automatically cancelled.
 * If set to 0, a paused search is never automatically cancelled.
 * Default: 0
+
+enable_conditional_expansion = <bool>
+* Controls whether to enable scoped(by sourcetype, source or host)
+  conditional expansion of knowledge objects during search string
+  expansion.
+* When set to true, Report Acceleration avoids full expansion of tags,
+  event types, aliases and reverse lookups, and instead uses any scope
+  information available either as part of the knowledge object definition
+  or any predicates available on default, non-multivalued fields, such as
+  sourcetype, source, and host.
+* Field extractions and field aliases are scoped by either sourcetype,
+  source or host.
+* Default: false
 
 ############################################################################
 # Parsing
@@ -2145,8 +2158,8 @@ max_fd = <integer>
 
 monitornohandle_max_heap_mb = <integer>
 * Controls the maximum memory used by the Windows-specific modular input
-  MonitorNoHandle.
-* The memory of this input grows in size when the data being produced
+  MonitorNoHandle in user mode.
+* The amount of memory that this input uses grows in size when the data produced
   by applications writing to monitored files comes in faster than the Splunk
   system can accept it.
 * When set to 0, the heap size (memory allocated in the modular input) can grow
@@ -2157,6 +2170,32 @@ monitornohandle_max_heap_mb = <integer>
 
 tailing_proc_speed = <integer>
 * REMOVED.  This setting is no longer used.
+
+monitornohandle_max_driver_mem_mb = <integer>
+* The maximum amount of non-paged memory, in megabytes, that the MonitorNoHandle
+  kernel driver can use.
+* The MonitorNoHandle input is specific to Windows, and this setting determines
+  how much guaranteed physical memory that the input driver can use.
+* The amount of memory that this input uses increases when data that
+  applications write to monitored files arrives faster than the 
+  MonitorNoHandle input can process it.
+* If you set this setting to 0, the input kernel driver allocates non-paged 
+  memory as needed up and until all available memory has been exhausted.
+* Otherwise, when the specified amount of allocated non-paged memory has been
+  reached, the input drops events to remain under that amount.
+* Default: 0
+
+monitornohandle_max_driver_records = <integer>
+* The number of records that the MonitorNoHandle input kernel driver holds in 
+  memory at a time.
+* This setting helps control memory usage by the MonitorNoHandle input kernel
+  driver.
+* This setting and the 'monitornohandle_max_driver_mem_mb' setting are mutually
+  exclusive. If you set 'monitornohandle_max_driver_mem_mb' to > 0, the input
+  ignores this setting.
+* If the input driver currently holds 'monitornohandle_max_driver_records'
+  records in memory, it drops some data to remain below that amount.
+* Default: 500.
 
 time_before_close = <integer>
 * MOVED.  This setting is now configured per-input in inputs.conf.
@@ -2803,6 +2842,13 @@ match_limit = <integer>
 * Use this to set an upper bound on how many times PCRE calls an internal
   function, match(). If set too low, PCRE might fail to correctly match a pattern.
 * Default: 100000
+
+depth_limit = <integer>
+* Limits the amount of resources that are spent by PCRE
+  when running patterns that will not match.
+* Use this to limit the depth of nested backtracking in an internal PCRE
+  function, match(). If set too low, PCRE might fail to correctly match a pattern.
+* Default: 1000
 
 
 [slc]

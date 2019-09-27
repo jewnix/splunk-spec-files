@@ -1,4 +1,4 @@
-#   Version 7.0.4
+#   Version 7.0.5
 #
 ############################################################################
 # OVERVIEW
@@ -2076,8 +2076,9 @@ max_number_of_tokens = <unsigned int>
 * Default: 10000
 
 max_content_length = <integer>
-* The maximum length of http request content accepted by HTTP Input server.
-* Default: 1000000 (~ 1MB)
+* The maximum length, in bytes, of HTTP request content that is
+  accepted by the HTTP Event Collector server.
+* Default: 838860800 (~ 800MB)
 
 max_number_of_ack_channel = <integer>
 * The maximum number of ACK channels accepted by HTTP Event Collector 

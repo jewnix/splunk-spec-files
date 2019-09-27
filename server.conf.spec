@@ -1,4 +1,4 @@
-#   Version 7.0.4
+#   Version 7.0.5
 #
 # This file contains the set of attributes and values you can use to
 # configure server options in server.conf.
@@ -254,6 +254,13 @@ remoteStorageRecreateIndexesInStandalone = <bool>
   still under development.
 * Controls re-creation of remote storage enabled indexes in standalone mode.
 * Defaults to true.
+
+remoteStorageRecreateObjectCountPerSecondInStandalone = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The maximum number of remote storage transactions that can be run
+  against the remote storage per second.
+* Defaults to no limit
 
 cleanRemoteStorageByDefault = <bool>
 * Currently not supported. This setting is related to a feature that is

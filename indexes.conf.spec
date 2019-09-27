@@ -1,4 +1,4 @@
-#   Version 7.0.0
+#   Version 7.0.1
 #
 # This file contains all possible options for an indexes.conf file.  Use
 # this file to configure Splunk's indexes and their properties.
@@ -101,7 +101,7 @@ rtRouterThreads = 0|1
   throughput drops rapidly if there are a handful of these running concurrently on the system.
 * If you are not sure what "indexed vs non-indexed" real time searches are, see
   README of indexed_realtime* settings in limits.conf
-* NOTE: This is not a boolean value, only 0 or 1 is accepted.  In the future, we 
+* NOTE: This is not a boolean value, only 0 or 1 is accepted.  In the future, we
   may allow more than a single thread, but current implementation
   only allows one to create a single thread per pipeline set
 
@@ -255,8 +255,8 @@ hotBucketTimeRefreshInterval = <positive integer>
 # PER INDEX OPTIONS
 # These options may be set under an [<index>] entry.
 #
-# Index names must consist of only numbers, lowercase letters, underscores, 
-# and hyphens. They cannot begin with an underscore or hyphen, or contain 
+# Index names must consist of only numbers, lowercase letters, underscores,
+# and hyphens. They cannot begin with an underscore or hyphen, or contain
 # the word "kvstore".
 #**************************************************************************
 
@@ -275,9 +275,9 @@ deleted = true
 
 homePath = <path on index server>
 * An absolute path that contains the hotdb and warmdb for the index.
-* It is recommended that you specify the path with the following syntax: 
+* It is recommended that you specify the path with the following syntax:
      homePath = $SPLUNK_DB/$_index_name/db
-  At runtime, Splunk expands "$_index_name" to the name of the index. For example, 
+  At runtime, Splunk expands "$_index_name" to the name of the index. For example,
   if the index name is "newindex", homePath becomes "$SPLUNK_DB/newindex/db".
 * Splunkd keeps a file handle open for warmdbs at all times.
 * May contain a volume reference (see volume section below) in place of $SPLUNK_DB.
@@ -308,9 +308,9 @@ homePath = <path on index server>
 
 coldPath = <path on index server>
 * An absolute path that contains the colddbs for the index.
-* It is recommended that you specify the path with the following syntax: 
+* It is recommended that you specify the path with the following syntax:
      coldPath = $SPLUNK_DB/$_index_name/colddb
-  At runtime, Splunk expands "$_index_name" to the name of the index. For example, 
+  At runtime, Splunk expands "$_index_name" to the name of the index. For example,
   if the index name is "newindex", coldPath becomes "$SPLUNK_DB/newindex/colddb".
 * Cold databases are opened as needed when searching.
 * May contain a volume reference (see volume section below) in place of $SPLUNK_DB.
@@ -336,7 +336,7 @@ thawedPath = <path on index server>
 
 bloomHomePath = <path on index server>
 * Location where the bloomfilter files for the index are stored.
-* If specified, bloomHomePath must be defined in terms of a volume definition 
+* If specified, bloomHomePath must be defined in terms of a volume definition
   (see volume section below).
 * If bloomHomePath is not specified, bloomfilter files for index will be
   stored inline, inside bucket directories.
@@ -356,7 +356,7 @@ summaryHomePath = <path on index server>
 * An absolute path where transparent summarization results for data in this
   index should be stored. Must be different for each index and may be on any
   disk drive.
-* It is recommended that you specify the path with the following syntax: 
+* It is recommended that you specify the path with the following syntax:
      summaryHomePath = $SPLUNK_DB/$_index_name/summary
   At runtime, Splunk expands "$_index_name" to the name of the index. For example,
   if the index name is "newindex", summaryHomePath becomes "$SPLUNK_DB/newindex/summary".
@@ -451,20 +451,20 @@ maxTotalDataSizeMB = <nonnegative integer>
 maxGlobalDataSizeMB = <nonnegative integer>
 * Currently not supported. This setting is related to a feature that is
   still under development.
-* The maximum amount of local disk space (in MB) that a remote storage 
+* The maximum amount of local disk space (in MB) that a remote storage
   enabled index can occupy, shared across all peers in the cluster.
-* This attribute controls the disk space that the index occupies on the peers 
+* This attribute controls the disk space that the index occupies on the peers
   only. It does not control the space that the index occupies on remote storage.
-* If the size that an index occupies across all peers exceeds the maximum size, 
+* If the size that an index occupies across all peers exceeds the maximum size,
   the oldest data is frozen.
-* For example, assume that the attribute is set to 500 for a four-peer cluster, 
-  and each peer holds a 100 MB bucket for the index. If a new bucket of size 
-  200 MB is then added to one of the peers, the cluster freezes the oldest bucket 
+* For example, assume that the attribute is set to 500 for a four-peer cluster,
+  and each peer holds a 100 MB bucket for the index. If a new bucket of size
+  200 MB is then added to one of the peers, the cluster freezes the oldest bucket
   in the cluster, no matter which peer the bucket resides on.
 * This value applies to hot, warm and cold buckets. It does not apply to
   thawed buckets.
 * The maximum allowable value is 4294967295
-* Defaults to 0, which means that it does not limit the space that the index 
+* Defaults to 0, which means that it does not limit the space that the index
   can occupy on the peers.
 
 rotatePeriodInSecs = <positive integer>
@@ -689,7 +689,7 @@ maxHotSpanSecs = <positive integer>
   and manage its own set of hot buckets, without taking into account the state
   of hot buckets managed by other ingestion pipelines.  Each ingestion pipeline
   will independently apply this setting only to its own set of hot buckets.
-* NOTE: the bucket timespan snapping behavior is removed from this setting. 
+* NOTE: the bucket timespan snapping behavior is removed from this setting.
   See the 6.5 spec file for details of this behavior.
 
 maxHotIdleSecs = <nonnegative integer>
@@ -741,7 +741,7 @@ minHotIdleSecsBeforeForceRoll = <nonnegative integer>|auto
   controls a hot bucket roll *only* under the circumstances when the timestamp
   of a new event cannot fit into the existing hot buckets given the other
   parameter constraints on the system (parameters such as maxHotBuckets,
-  maxHotSpanSecs and quarantinePastSecs). 
+  maxHotSpanSecs and quarantinePastSecs).
 * auto: Specifying "auto" will cause Splunk to autotune this parameter
   (recommended). The value begins at 600 seconds but automatically adjusts upwards for
   optimal performance. Specifically, the value will increase when a hot bucket rolls
@@ -754,7 +754,7 @@ minHotIdleSecsBeforeForceRoll = <nonnegative integer>|auto
   constraints of other parameters.  Instead, we will find a best fitting
   bucket to accommodate that event.
 * Highest legal value is 4294967295.
-* NOTE: If you set this configuration, there is a chance that this could lead to 
+* NOTE: If you set this configuration, there is a chance that this could lead to
   frequent hot bucket rolls depending on the value. If your index contains a
   large number of buckets whose size-on-disk falls considerably short of the
   size specified in maxDataSize, and if the reason for the roll of these buckets
@@ -772,6 +772,7 @@ splitByIndexKeys = <comma separated index keys>
   longer be split by time ranges.
 * Valid values are: host, sourcetype, source, metric_name
 * Defaults to an empty string (no key). If not set, splitting by time span is applied.
+* NOTE: This setting only applies to metric indexes.
 
 quarantinePastSecs = <positive integer>
 * Events with timestamp of quarantinePastSecs older than "now" will be
@@ -941,7 +942,7 @@ journalCompression = gzip|lz4
 
 enableTsidxReduction = true|false
 * By enabling this setting, you turn on the tsidx reduction capability. This causes the
-  indexer to reduce the tsidx files of buckets, when the buckets reach the age specified 
+  indexer to reduce the tsidx files of buckets, when the buckets reach the age specified
   by timePeriodInSecBeforeTsidxReduction.
 * Defaults to false.
 
@@ -1425,7 +1426,7 @@ vix.input.x.required.fields = <comma separated list of fields>
 
 # Earliest time extractions - For all 'et' settings, there's an equivalent 'lt' setting.
 vix.input.x.et.regex = <regex>
-* Regex extracting earliest time from vix.input.x.path 
+* Regex extracting earliest time from vix.input.x.path
 
 vix.input.x.et.format = <java.text.SimpleDateFormat date pattern>
 * Format of the extracted earliest time.
@@ -1491,7 +1492,7 @@ vix.unified.search.cutoff_sec = <seconds>
 #
 # Virtual index level prefix:
 # vix.input.<input_id>.<option_suffix>
-# 
+#
 # Provider level prefix:
 # vix.splunk.search.<option_suffix>
 #**************************************************************************
@@ -1583,24 +1584,24 @@ storageType = local | remote
 * Setting this to "remote" is currently not supported. This setting is
   related to a feature that is still under development.
 * Optional.
-* Specifies whether the volume definition is for indexer local storage or remote 
-  storage. Only the remotePath attribute references a remote volume. 
+* Specifies whether the volume definition is for indexer local storage or remote
+  storage. Only the remotePath attribute references a remote volume.
 * Defaults to: local.
 
 path = <path on server>
 * Required.
 * If storageType is set to its default value of "local":
   * The path attribute points to the location on the file system where all indexes
-   that will use this volume reside.  
+   that will use this volume reside.
    * This location must not overlap with the location for any other volume or index.
 * If storageType is set to "remote":
-  * The path attribute points to the remote storage location where indexes reside. 
+  * The path attribute points to the remote storage location where indexes reside.
   * The format for this attribute is: <scheme>://<remote-location-specifier>
-    * The "scheme" identifies a supported external storage system type.  
-    * The "remote-location-specifier" is an external system-specific string for 
-       identifying a location inside the storage system. 
-  * These external systems are supported: 
-     - Object stores that support AWS's S3 protocol. These use the scheme "s3". 
+    * The "scheme" identifies a supported external storage system type.
+    * The "remote-location-specifier" is an external system-specific string for
+       identifying a location inside the storage system.
+  * These external systems are supported:
+     - Object stores that support AWS's S3 protocol. These use the scheme "s3".
        For example, "path=s3://mybucket/some/path".
      - POSIX file system, potentially a remote filesystem mounted over NFS. These
        use the scheme "file". For example, "path=file:///mnt/cheap-storage/some/path".
@@ -1635,11 +1636,11 @@ datatype = <event|metric>
 
 remote.* = <String>
 * Optional.
-* With remote volumes, communication between the indexer and the external 
-  storage system may require additional configuration, specific to the type of 
-  storage system. You can pass configuration information to the storage 
-  system by specifying the settings through the following schema: 
-  remote.<scheme>.<config-variable> = <value>. 
+* With remote volumes, communication between the indexer and the external
+  storage system may require additional configuration, specific to the type of
+  storage system. You can pass configuration information to the storage
+  system by specifying the settings through the following schema:
+  remote.<scheme>.<config-variable> = <value>.
   For example: remote.s3.access_key = ACCESS_KEY
 
 ################################################################
@@ -1660,11 +1661,11 @@ remote.s3.access_key = <String>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Optional.
-* Specifies the access key to use when authenticating with the remote storage 
-  system supporting the S3 API. 
-* If not specified, the indexer will look for these environment variables: 
+* Specifies the access key to use when authenticating with the remote storage
+  system supporting the S3 API.
+* If not specified, the indexer will look for these environment variables:
   AWS_ACCESS_KEY_ID or AWS_ACCESS_KEY (in that order).
-* If the environment variables are not set and the indexer is running on EC2, 
+* If the environment variables are not set and the indexer is running on EC2,
   the indexer attempts to use the access key from the IAM role.
 * Default: unset
 
@@ -1672,20 +1673,20 @@ remote.s3.secret_key = <String>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Optional.
-* Specifies the secret key to use when authenticating with the remote storage 
-  system supporting the S3 API. 
+* Specifies the secret key to use when authenticating with the remote storage
+  system supporting the S3 API.
 * If not specified, the indexer will look for these environment variables:
-  AWS_SECRET_ACCESS_KEY or AWS_SECRET_KEY (in that order). 
-* If the environment variables are not set and the indexer is running on EC2, 
+  AWS_SECRET_ACCESS_KEY or AWS_SECRET_KEY (in that order).
+* If the environment variables are not set and the indexer is running on EC2,
   the indexer attempts to use the secret key from the IAM role.
 * Default: unset
-  
+
 remote.s3.signature_version = v2|v4
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Optional.
-* The signature version to use when authenticating with the remote storage 
-  system supporting the S3 API. 
+* The signature version to use when authenticating with the remote storage
+  system supporting the S3 API.
 * If not specified, it defaults to v2.
 * For 'sse-kms' server-side encryption scheme, you must use signature_version=v4.
 
@@ -1693,8 +1694,8 @@ remote.s3.auth_region = <String>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Optional
-* The authentication region to use when signing the requests when interacting with the remote 
-  storage system supporting the S3 API. If unset, Splunk will attempt to automatically extract 
+* The authentication region to use when signing the requests when interacting with the remote
+  storage system supporting the S3 API. If unset, Splunk will attempt to automatically extract
   the value from the endpoint URL
 * Defaults: unset
 
@@ -1722,10 +1723,10 @@ remote.s3.endpoint = <URL>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Optional.
-* The URL of the remote storage system supporting the S3 API. 
-* The scheme, http or https, can be used to enable or disable SSL connectivity 
-  with the endpoint. 
-* If not specified and the indexer is running on EC2, the endpoint will be 
+* The URL of the remote storage system supporting the S3 API.
+* The scheme, http or https, can be used to enable or disable SSL connectivity
+  with the endpoint.
+* If not specified and the indexer is running on EC2, the endpoint will be
   constructed automatically based on the EC2 region of the instance where the
   indexer is running, as follows: https://s3-<region>.amazonaws.com
 * Example: https://s3-us-west-2.amazonaws.com
@@ -1755,21 +1756,21 @@ remote.s3.multipart_upload.part_size = <unsigned int>
 remote.s3.timeout.connect = <unsigned int>
 * Currently not supported. This setting is related to a feature that is
   still under development.
-* Optional 
+* Optional
 * Set the connection timeout, in milliseconds, to use when interacting with S3 for this volume
 * Defaults: 5000
 
 remote.s3.timeout.read = <unsigned int>
 * Currently not supported. This setting is related to a feature that is
   still under development.
-* Optional 
+* Optional
 * Set the read timeout, in milliseconds, to use when interacting with S3 for this volume
 * Defaults: 60000
 
 remote.s3.timeout.write = <unsigned int>
 * Currently not supported. This setting is related to a feature that is
   still under development.
-* Optional 
+* Optional
 * Set the write timeout, in milliseconds, to use when interacting with S3 for this volume
 * Defaults: 60000
 

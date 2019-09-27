@@ -1,4 +1,4 @@
-# Version 7.0.0
+# Version 7.0.1
 #
 # ** FOR USE IN SPLUNK LIGHT ONLY
 #

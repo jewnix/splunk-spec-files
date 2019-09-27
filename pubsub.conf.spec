@@ -1,4 +1,4 @@
-#   Version 7.0.0
+#   Version 7.0.1
 #
 # This file contains possible attributes and values for configuring a client of
 # the PubSub system (broker).

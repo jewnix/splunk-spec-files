@@ -106,5 +106,5 @@ OR
 
 <token_list> = _token_list_ <comma-separated list>
 * Defines a list of static tokens in a section.
-* This is useful for tables with no header, for example: the output of 'ls -lah' 
+* This is useful for tables with no header, for example: the output of 'ls -lah'
   which misses a header altogether.

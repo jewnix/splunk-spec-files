@@ -117,7 +117,7 @@ the value of a specified field.
   </block>
 
   <!-- iterative update in this block -->
-  <block title="Configure search" endpoint="saved/eventypes/" entity="*" mode="iter">
+  <block title="Configure search" endpoint="saved/eventtypes/" entity="*" mode="iter">
     <input field="search">
       <label>$name$ search</label>
       <type>string</type>

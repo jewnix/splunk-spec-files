@@ -70,7 +70,7 @@ INDEXED_VALUE = [true|false|<sed-cmd>|<simple-substitution-string>]
 * This setting also supports a simple substitution based on looking for the
   literal string '<VALUE>' (including the '<' and '>' characters).
   For example, 'INDEXED_VALUE=source::*<VALUE>*' would take a search for
-  'myfield=myvalue' and search for 'source::*myvalue*' in the index as a 
+  'myfield=myvalue' and search for 'source::*myvalue*' in the index as a
   single term.
 * For both substitution constructs, if the resulting string starts with a '[',
   Splunk interprets the string as a Splunk LISPY expression.  For example,

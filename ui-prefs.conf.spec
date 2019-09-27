@@ -58,7 +58,6 @@ countPerPage = [10|20|50]
 display.general.enablePreview = 0 | 1
 
 # Event options
-# TODO: uncomment the fields when we are ready to merge the values
 display.events.fields = <string>
 display.events.type = [raw|list|table]
 display.events.rowNumbers = 0 | 1
@@ -92,3 +91,4 @@ display.page.search.timeline.scale = [linear|log]
 display.page.search.showFields = 0 | 1
 display.page.home.showGettingStarted = 0 | 1
 display.page.search.searchHistoryTimeFilter = [0|@d|-7d@d|-30d@d]
+display.page.search.searchHistoryCount = [10|20|50]

@@ -46,6 +46,11 @@ tourPage = <string>
 * The Splunk view this tour is associated with (only necessary if it is linked to).
 * Optional
 
+managerPage = <boolean>
+* Used to signifiy that the tourPage is a manager page. This will change the url of
+* when the tourPage is rendered to "/manager/{app}/{view}" rather than "/app/{app}/{view}"
+* Optional
+
 viewed = <boolean>
 * A boolean to determine if this tour has been viewed by a user.
 * Set by Splunk

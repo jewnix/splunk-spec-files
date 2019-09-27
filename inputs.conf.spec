@@ -1894,6 +1894,15 @@ formatString = <double format specifier>
 * Do not use quotes when specifying this string.
 * Defaults to "%.20g" (without quotes).
 
+usePDHFmtNoCap100 = <boolean>
+* Whether or not performance counter values that are greater than 100 (for example,
+  counter values that measure the processor load on computers with multiple
+  processors) are reset to 100.
+* If set to "true", the counter values can exceed 100.
+* If set to "false", the input resets counter values to 100 if the 
+  processor load on multiprocessor computers exceeds 100.
+* Default: false
+
 ###
 # Direct Access File Monitor (does not use file handles)
 # For Windows systems only.

@@ -1,4 +1,4 @@
-#   Version 6.5.6
+#   Version 6.5.7
 #
 # This file contains possible attribute/value pairs for configuring limits for
 # search commands.
@@ -1588,7 +1588,7 @@ max_fd = <integer>
 
 monitornohandle_max_heap_mb = <integer>
 * Controls the maximum memory used by the Windows-specific modular input
-  MonitorNoHandle.
+  MonitorNoHandle in user mode.
 * The memory of this input grows in size when the data being produced
   by applications writing to monitored files comes in faster than the Splunk
   system can accept it.
@@ -1597,6 +1597,26 @@ monitornohandle_max_heap_mb = <integer>
 * If this size is limited, and the limit is encountered, the input will drop
   some data to stay within the limit.
 * Defaults to 0.
+
+monitornohandle_max_driver_mem_mb = <integer>
+* Controls the maximum NonPaged memory used by the Windows-specific kernel driver of modular input
+  MonitorNoHandle.
+* The memory of this input grows in size when the data being produced
+  by applications writing to monitored files comes in faster than the Splunk
+  system can accept it.
+* When set to 0, the NonPaged memory size (memory allocated in the kernel driver of modular input) can grow
+  without limit.
+* If this size is limited, and the limit is encountered, the input will drop
+  some data to stay within the limit.
+* Default: 0
+
+monitornohandle_max_driver_records = <integer>
+* Controls memory growth by limiting the maximum in-memory records stored
+  by the kernel module of Windows-specific modular input MonitorNoHandle.
+* When monitornohandle_max_driver_mem_mb is set to > 0, this config is ignored.
+* monitornohandle_max_driver_mem_mb and monitornohandle_max_driver_records are mutually exclusive.
+* If the limit is encountered, the input will drop some data to stay within the limit.
+* Defaults to 500.
 
 time_before_close = <integer>
 * MOVED.  This setting is now configured per-input in inputs.conf.

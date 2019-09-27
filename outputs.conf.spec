@@ -1,4 +1,4 @@
-#   Version 6.5.6
+#   Version 6.5.7
 #
 # Forwarders require outputs.conf; non-forwarding Splunk instances do not
 # use it.  It determines how the forwarder sends data to receiving Splunk
@@ -431,8 +431,9 @@ sslRootCAPath = <path>
 * Default is unset.
 
 sslVerifyServerCert = <bool>
-* If true, you must make sure that the server you are connecting to is a
-  valid one (authenticated).
+* If true, you must make sure that the server you are connecting to has a valid
+  SSL certificate. Note that certificates with the same Common Name as the CA's
+  certificate will fail this check.
 * Both the common name and the alternate name of the server are then checked
   for a match.
 * Defaults to false.

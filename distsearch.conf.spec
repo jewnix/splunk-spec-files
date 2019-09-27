@@ -1,4 +1,4 @@
-#   Version 6.6.1
+#   Version 6.6.2
 #
 # This file contains possible attributes and values you can use to configure
 # distributed search.
@@ -195,9 +195,13 @@ sendRcvTimeout = <int, in seconds>
 * The maximum number of seconds to wait for the sending of a full replication
   to a peer.
 
-replicationThreads = <int>
+replicationThreads = <positive int>|auto
 * The maximum number of threads to use when performing bundle replication to peers.
-* Must be a positive number
+* If you configure this setting to "auto", the peer autotunes the number of threads it uses for bundle replication.
+** If the peer has less than 4 CPUs, it allocates 2 threads.
+** If the peer has 4 or more, but less than 8 CPUs, it allocates up to '# of CPUs - 2' threads.
+** If the peer has 8 or more, but less than 16 CPUs, it allocates up to '# of CPUs - 3' threads.
+** If the peer has 16 or more CPUs, it allocates up to '# of CPUs - 4' threads.
 * Defaults to 5.
 
 maxMemoryBundleSize = <int>

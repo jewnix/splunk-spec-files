@@ -1,4 +1,4 @@
-#   Version 6.6.1
+#   Version 6.6.2
 #
 # This file contains possible attributes and values you can use to configure
 # Splunk's web interface.
@@ -1118,6 +1118,13 @@ loginDocumentTitleText = <document_title_text>
 loginPasswordHint = <default_password_hint>
 * Text to display password hint at first time login on the login page.
 * Text only. Default is "changeme".
+
+appNavReportsLimit = <integer>
+* Maximum number of reports to fetch to populate the navigation drop-down menu of an app.
+* An app must be configured to list reports in its navigation XML configuration before it can list any reports.
+* Set to -1 to display all the available reports in the navigation menu.
+* NOTE: Setting to either -1 or a value that is higher than the default might result in decreased browser performance due to listing large numbers of available reports in the drop-down menu.
+* Defaults to 500.
 
 [framework]
 # Put App Framework settings here

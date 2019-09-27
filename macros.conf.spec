@@ -1,4 +1,4 @@
-#   Version 6.6.1
+#   Version 6.6.2
 #
 # This file contains possible attribute/value pairs for search language macros.
 

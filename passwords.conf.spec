@@ -1,4 +1,4 @@
-#   Version 6.6.1
+#   Version 6.6.2
 #
 # This file maintains the credential information for a given app in Splunk Enterprise.
 #

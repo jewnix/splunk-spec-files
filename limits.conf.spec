@@ -1,4 +1,4 @@
-#   Version 6.6.1
+#   Version 6.6.2
 #
 ############################################################################
 # OVERVIEW
@@ -490,6 +490,10 @@ indexed_as_exact_metasearch = <bool>
 disk_usage_update_period = <number>
 * Specifies how frequently, in seconds, should the search process estimate the
   artifact disk usage.
+* The quota for the amount of disk space that a search job can use is
+  controlled by the 'srchDiskQuota' setting in authorize.conf.
+* Exceeding this quota causes the search to be auto-finalized immediately,
+  even if there are results that have not yet been returned.
 * Fractional seconds are allowed.
 * Default: 10
 

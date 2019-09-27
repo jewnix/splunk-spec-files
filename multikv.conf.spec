@@ -1,4 +1,4 @@
-#   Version 6.6.1
+#   Version 6.6.2
 #
 # This file contains possible attribute and value pairs for creating multikv
 # rules.  Multikv is the process of extracting events from table-like events,

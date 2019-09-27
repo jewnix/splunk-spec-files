@@ -1,4 +1,4 @@
-#   Version 6.5.5
+#   Version 6.5.6
 #
 # This file contains definitions for visualizations an app makes avialable
 # to the system. An app intending to share visualizations with the system

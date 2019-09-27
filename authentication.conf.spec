@@ -1,4 +1,4 @@
-#   Version 6.5.5
+#   Version 6.5.6
 #
 # This file contains possible attributes and values for configuring
 # authentication via authentication.conf.
@@ -687,15 +687,16 @@ signatureAlgorithm = RSA-SHA1 | RSA-SHA256
 #####################
 
 [userToRoleMap_<saml-authSettings-key>]
-* The mapping of SAML user to Splunk roles for the SAML stanza specified
-  by <authSettings-key>
-* Follow this stanza name with several User-to-Role(s) mappings as defined
-  below.
+* The mapping of SAML user to Splunk roles, realname and email,
+  for the SAML stanza specified by <authSettings-key>
+* Follow this stanza name with several User-to-Role::Realname::Email mappings
+  as defined below.
 * The stanza is used only when the IDP does not support Attribute Query Request
 
-<SAML User> = <Splunk Roles string>
-* Maps a SAML user to Splunk role (from authorize.conf)
-* This Splunk Role list is semicolon delimited (no spaces).
+<SAML User> = <Splunk Roles string>::<Realname>::<Email>
+* Maps a SAML user to Splunk role(from authorize.conf), Realname and Email
+* The Splunk Roles string is semicolon delimited (no spaces).
+* The Splunk Roles string, Realname and Email are :: delimited (no spaces).
 
 #####################
 # Authentication Response Attribute Map

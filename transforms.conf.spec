@@ -1,4 +1,4 @@
-#   Version 7.2.7
+#   Version 7.2.8
 #
 # This file contains settings and values that you can use to configure
 # data transformations.  
@@ -85,14 +85,18 @@ REGEX = <regular expression>
   DELIMS (see the DELIMS setting description, below).
 * REGEX is required for all index-time transforms.
 * REGEX and the FORMAT setting:
+  * FORMAT must be used in conjunction with REGEX for index-time transforms.
+    Use of FORMAT in conjunction with REGEX is optional for search-time
+    transforms.
   * Name-capturing groups in the REGEX are extracted directly to fields.
     This means that you do not need to specify the FORMAT setting for
-    simple field extraction cases (see the description of FORMAT, below).
+    simple search-time field extraction cases (see the description of FORMAT,
+    below).
   * If the REGEX extracts both the field name and its corresponding field
     value, you can use the following special capturing groups if you want to
-    skip specifying the mapping in FORMAT:
+    skip specifying the mapping in FORMAT for search-time field extractions:
       _KEY_<string>, _VAL_<string>.
-  * For example, the following are equivalent:
+  * For example, the following are equivalent for search-time field extractions:
     * Using FORMAT:
       * REGEX  = ([a-z]+)=([a-z]+)
       * FORMAT = $1::$2
@@ -104,12 +108,13 @@ REGEX = <regular expression>
 * Default: empty string
 
 FORMAT = <string>
-* NOTE: This option is valid for both index-time and search-time field 
-  extraction. However, FORMAT behaves differently depending on whether the 
-  extraction is performed at index time or search time.
-* This setting specifies the format of the event, including any field names or  
+* NOTE: This option is valid for both index-time and search-time field
+  extraction. Index-time field extraction configurations require the FORMAT
+  setting. The FORMAT setting is optional for search-time field extraction
+  configurations.
+* This setting specifies the format of the event, including any field names or
   values you want to add.
-* FORMAT for index-time extractions:
+* FORMAT is required for index-time extractions:
   * Use $n (for example $1, $2, etc) to specify the output of each REGEX
     match.
   * If REGEX does not have n groups, the matching fails.

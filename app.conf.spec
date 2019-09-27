@@ -1,4 +1,4 @@
-#   Version 6.6.10
+#   Version 6.6.11
 #
 # This file maintains the state of a given app in Splunk Enterprise. It may also be used
 # to customize certain aspects of an app.

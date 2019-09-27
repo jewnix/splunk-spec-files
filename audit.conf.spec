@@ -1,4 +1,4 @@
-#   Version 6.6.10
+#   Version 6.6.11
 #
 # This file contains possible attributes and values you can use to configure
 # auditing and event signing in audit.conf.

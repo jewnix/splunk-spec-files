@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.1
 #
 # This file contains possible attribute/value pairs for configuring
 # data models.  To configure a datamodel for an app, put your custom
@@ -68,11 +68,22 @@ acceleration.backfill_time = <relative-time-str>
 acceleration.max_time = <unsigned int>
 * The maximum amount of time that the column store creation search is
   allowed to run (in seconds).
-* Note that this is an approximate time, as the 'summarize' search only
-  finishes on clean bucket boundaries to avoid wasted work.
+* Note that this is an approximate time.
 * Defaults to: 3600
 * An 'acceleration.max_time' setting of '0' indicates that there is no time 
   limit.
+
+acceleration.poll_buckets_until_maxtime = <bool>
+* In a distributed environment that consist of heterogenous machines, summarizations might complete sooner
+  on machines with less data and faster resources. After the summarization search is finished with all of 
+  the buckets, the search ends. However, the overall search runtime is determined by the slowest machine in the 
+  environment. 
+* When set to "true": All of the machines run for "max_time" (approximately). 
+  The buckets are polled repeatedly for new data to summarize
+* Set this to true if your data model is sensitive to summarization latency delays.
+* When this setting is enabled, the summarization search is counted against the 
+  number of concurrent searches you can run until "max_time" is reached.
+* Default: false
 
 acceleration.cron_schedule = <cron-string>
 * Cron schedule to be used to probe/generate the column stores for this
@@ -89,6 +100,7 @@ acceleration.manual_rebuilds = <bool>
 	* The data model search stored in its metadata no longer matches its current 
 	  data model search.
 	* The search stored in its metadata cannot be parsed.
+    * A lookup table associated with the data model is altered.
 * NOTE: If the Splunk software finds a partial summary be outdated, it always 
   rebuilds that summary so that a bucket summary only has results corresponding to
   one datamodel search.
@@ -97,7 +109,7 @@ acceleration.manual_rebuilds = <bool>
 acceleration.max_concurrent = <unsigned int>
 * The maximum number of concurrent acceleration instances for this data
   model that the scheduler is allowed to run.
-* Defaults to: 2
+* Defaults to: 3
 
 acceleration.schedule_priority = default | higher | highest
 * Raises the scheduling priority of a search:
@@ -191,3 +203,21 @@ dataset.display.datasummary.earliestTime = <time-str>
 dataset.display.datasummary.latestTime = <time-str>
 * The latest time used for the search that powers the datasummary view of 
   the dataset.
+  
+tags_whitelist = <list-of-tags>
+* A comma-separated list of tag fields that the data model requires 
+  for its search result sets.
+* This is a search performance setting. Apply it only to data models 
+  that use a significant number of tag field attributes in their 
+  definitions. Data models without tag fields cannot use this setting. 
+  This setting does not recognize tags used in constraint searches.
+* Only the tag fields identified by tag_whitelist (and the event types 
+  tagged by them) are loaded when searches are performed with this 
+  data model.
+* When you update tags_whitelist for an accelerated data model, 
+  the Splunk software rebuilds the data model unless you have 
+  enabled accleration.manual_rebuild for it.
+* If tags_whitelist is empty, the Splunk software attempts to optimize 
+  out unnecessary tag fields when searches are performed with this 
+  data model.
+* Defaults to empty.

@@ -1,4 +1,4 @@
-#   Version 6.6.0
+#   Version 6.6.1
 #
 # This file contains the set of attributes and values you can use to
 # configure server options in server.conf.

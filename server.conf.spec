@@ -1,4 +1,4 @@
-#   Version 7.0.2
+#   Version 7.0.3
 #
 # This file contains the set of attributes and values you can use to
 # configure server options in server.conf.
@@ -458,8 +458,22 @@ sslRootCAPath = <path>
   Criteria mode until it has been certified by NIAP. See the "Securing
   Splunk Enterprise" manual for information on the status of Common
   Criteria certification.
-* This setting is not used on Windows.
+* This setting is valid on Windows machines only if you set
+  'sslRootCAPathHonoredonWindows' to "true".
 * Default is unset.
+
+sslRootCAPathHonoredOnWindows = <boolean>
+* DEPRECATED.
+* Whether or not the Splunk instance respects the 'sslRootCAPath' setting on
+  Windows machines.
+* If you set this setting to "true", then the instance respects the
+  'sslRootCAPath' setting on Windows machines.
+* This setting is valid only on Windows, and only if you have set
+  'sslRootCAPath'.
+* When the 'sslRootCAPath' setting is respected, the instance expects to find
+  a valid PEM file with valid root certificates that are referenced by that
+  path. If a valid file is not present, SSL communication fails.
+* Default: false.
 
 caCertFile = <filename>
 * DEPRECATED; use 'sslRootCAPath' instead.
@@ -546,6 +560,17 @@ no_proxy = <string>
 * If set, splunkd will use the no_proxy rules to decide whether the proxy server
   needs to be bypassed for matching hosts/IP Addresses. Requests going to
   localhost/loopback address will not be proxied.
+* '*' (asterisk): Bypasses proxies for all requests. This is the only 
+  wildcard, and it can only be used by itself.
+* <IPv4 or IPv6 address>: Bypasses the proxy if the request is intended for
+  that IP address.
+* <hostname>/<domain name>: Bypasses the proxy if the request is intended for
+  that host or domain name. For example:
+** no_proxy = "wimpy": Matches the host name "wimpy"
+** no_proxy = "splunk.com": Matches all host names in the domain 
+   splunk.com (apps.splunk.com, www.splunk.com, etc.)
+* If any of the rules in the list has a '*', then that rule overrides all
+  other rules, and proxies are bypassed for all requests.
 * Default set to "localhost, 127.0.0.1, ::1"
 
 ############################################################################
@@ -1880,10 +1905,9 @@ quiet_period = <positive integer>
 * Defaults to 60s.
 
 generation_poll_interval = <positive integer>
-* Only valid if mode=master or mode=searchhead
-* Determines how often the searchhead polls the master for generation
-  information.
-* Defaults to 60s.
+* How often, in seconds, the search head polls the master for generation information.
+* This setting is valid only if you have set 'mode' to "master" or "searchhead".
+* Defaults to 5s.
 
 max_peer_build_load = <integer>
 * This is the maximum number of concurrent tasks to make buckets
@@ -2742,7 +2766,8 @@ pass4SymmKey = <password>
 * If set in the [shclustering] stanza, it takes precedence over any setting
   in the [general] stanza.
 * Defaults to 'changeme' from the [general] stanza in the default
-  server.conf.
+  server.conf. This default value is going to be removed in future versions of 
+  Splunk software.
 * Unencrypted passwords must not begin with "$1$", as this is used by
   Splunk software to determine if the password is already encrypted.
 

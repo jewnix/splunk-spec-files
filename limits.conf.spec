@@ -1,4 +1,4 @@
-#   Version 7.0.2
+#   Version 7.0.3
 #
 ############################################################################
 # OVERVIEW
@@ -3081,6 +3081,30 @@ ttl = <integer>
   for reaping
 * Default: 86400 (24 hours)
 
+[scheduled_views]
+
+# Scheduled views are hidden [saved searches / reports] that trigger PDF generation
+# for a dashboard. When a user enables scheduled PDF delivery in the dashboard UI,
+# scheduled views are created.
+#
+# The naming pattern for scheduled views is _ScheduledView__<view_name>,
+# where <view_name> is the name of the corresponding dashboard.
+#
+# The scheduled views reaper, if enabled, runs periodically to look for
+# scheduled views that have been orphaned. A scheduled view becomes orphaned
+# when its corresponding dashboard has been deleted. The scheduled views reaper
+# deletes these orphaned scheduled views. The reaper only deletes scheduled
+# views if the scheduled views have not been disabled and their permissions
+# have not been modified.
+
+enable_reaper = <boolean>
+* Controls whether the scheduled views reaper runs, as well as whether
+* scheduled views are deleted when the dashboard they reference is deleted.
+* Default: true
+
+reaper_freq = <integer>
+* Controls how often, in seconds, the scheduled views reaper runs.
+* Default: 86400 (24 hours)
 
 ############################################################################
 # OPTIMIZATION

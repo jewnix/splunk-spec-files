@@ -1073,6 +1073,14 @@ vix.splunk.setup.package.replication = true|false
 * Optional. If not set, the default replication factor for the file-system
   will apply.
 
+vix.splunk.setup.bundle.reap.timelimit = <positive integer>
+* Specific to Splunk Analytics for Hadoop provider
+* For bundles in the working directory on each data node, this property controls
+  how old they must be before they are eligible for reaping.
+* Unit is milliseconds
+* Defaults to 24 hours, e.g. 24 * 3600 * 1000.
+* Values larger than 24 hours will be treated as if set to 24 hours.
+
 vix.splunk.setup.package.max.inactive.wait = <positive integer>
 * A positive integer represent a time interval in seconds.
 * Defaults to 5.

@@ -1368,6 +1368,20 @@ maxThreads = <int>
 * If set to a negative number, the input does not enforce a limit on threads.
 * Defaults to 0.
 
+keepAliveIdleTimeout = <int>
+* How long, in seconds, that the HTTP Input data server allows a keep-alive
+  connection to remain idle before forcibly disconnecting it.
+* If this number is less than 7200, it will be set to 7200.
+* Defaults to 7200 seconds.
+
+busyKeepAliveIdleTimeout = <int>
+* How long, in seconds, that the HTTP Input data server allows a keep-alive
+  connection to remain idle while in a busy state before forcibly disconnecting it.
+* Use caution when configuring this setting as a value that is too large
+  can result in file descriptor exhaustion due to idling connections.
+* If this number is less than 12, it will be set to 12.
+* Defaults to 12 seconds.
+
 serverCert = <path>
 * The full path to the server certificate PEM format file.
 * The same file may also contain a private key.

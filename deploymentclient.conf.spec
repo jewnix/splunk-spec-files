@@ -184,7 +184,8 @@ ecdhCurves = <comma separated list of ec curves>
 
 [target-broker:deploymentServer]
 
-targetUri= <deploymentServer>:<mgmtPort>
+targetUri= <uri>
+* An example of <uri>: <scheme>://<deploymentServer>:<mgmtPort>
 * URI of the deployment server.
 
 phoneHomeIntervalInSecs = <nonnegative number>

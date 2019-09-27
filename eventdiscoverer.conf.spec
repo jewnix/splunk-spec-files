@@ -1,4 +1,4 @@
-#   Version 6.6.8
+#   Version 6.6.9
 
 # This file contains possible attributes and values you can use to configure
 # event discovery through the search command "typelearner."

@@ -51,6 +51,12 @@ host = <string>
   time, the setup logic adds the local hostname as determined by DNS to the
   $SPLUNK_HOME/etc/system/local/inputs.conf default stanza, which is the
   effective default value.
+* If you remove host conf setting from $SPLUNK_HOME/etc/system/local/inputs.conf
+  or remove $SPLUNK_HOME/etc/system/local/inputs.conf file, host config will
+  be set to '$decideOnStartup'. Apps that need resolved host value should
+  use 'host_resolved' property in REST call response, which is set to Splunk 
+  instance's local hostname. 'host_resolved' property is a read-only property 
+  and is not written to inputs.conf. 
 
 index = <string>
 * Sets the index to store events from this input.

@@ -1,4 +1,4 @@
-#   Version 7.1.5
+#   Version 7.1.6
 #
 # This file contains attribute/value pairs for configuring externalized strings
 # in messages.conf.

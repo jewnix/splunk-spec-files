@@ -1,4 +1,4 @@
-#   Version 6.5.3
+#   Version 6.5.4
 #
 # This file contains possible attribute/value pairs for configuring limits for
 # search commands.
@@ -1410,7 +1410,7 @@ perc_method = nearest-rank|interpolated
     pick ranks R1 = floor(F) and R2 = ceiling(F).
     Answer = (R2 * (F - R1)) + (R1 * (1 - (F - R1)))
 * See wikipedia percentile entries on nearest rank and "alternative methods"
-* Defaults to interpolated
+* Defaults to nearest-rank
 
 approx_dc_threshold = <integer>
 * When using approximate distinct count (i.e. estdc(<field>) in

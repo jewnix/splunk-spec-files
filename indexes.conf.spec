@@ -1,4 +1,4 @@
-#   Version 6.5.3
+#   Version 6.5.4
 #
 # This file contains all possible options for an indexes.conf file.  Use
 # this file to configure Splunk's indexes and their properties.
@@ -1124,6 +1124,26 @@ vix.splunk.setup.package.replication = true|false
   the average access time for the package across Task Nodes.
 * Optional. If not set, the default replication factor for the file-system
   will apply.
+
+vix.splunk.setup.bundle.reap.timelimit = <positive integer>
+* Specific to Splunk Analytics for Hadoop provider
+* For bundles in the working directory on each data node, this attribute controls
+  how old they must be before they are eligible for reaping.
+* Unit is milliseconds
+* Defaults to 24 hours, e.g. 24 * 3600 * 1000.
+* Values larger than 24 hours will be treated as if set to 24 hours.
+
+vix.splunk.setup.bundle.reap.limit = <positive integer>
+* Specific to Splunk Analytics for Hadoop provider
+* For bundles stored in the hdfs, this attribute controls
+  how old they must be before they are eligible for reaping.
+* Any bundle younger than 24 hours is not deleted
+* Also any bundle used by search process is not deleted.
+* Any bundle  older than 24 hours are considered for deletion,
+  of these latest 4(default (5)-1) are skipped and rest deleted.
+* Unit is positive value.
+* Defaults to 5
+* Values less than 5 will be treated as if set to default value of 5.
 
 vix.splunk.setup.package.max.inactive.wait = <positive integer>
 * A positive integer represent a time interval in seconds.

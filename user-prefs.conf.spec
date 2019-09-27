@@ -54,6 +54,7 @@ install_source_checksum = <string>
 search_syntax_highlighting = [light|dark|black-white]
 * Highlights different parts of a search string with different colors.
 * Defaults to light.
+* Dashboards ignore this setting.
 
 search_use_advanced_editor = <boolean>
 * Specifies whether the search bar is run using the advanced editor or in just plain text.

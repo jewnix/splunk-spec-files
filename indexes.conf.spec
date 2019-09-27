@@ -38,6 +38,34 @@ defaultDatabase = <index name>
 * The specified index displays as the default in Splunk Manager settings.
 * Defaults to "main".
 
+bucketMerging = <bool>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Set to true to enable bucket merging service on all indexes
+* You can override this value per index
+* Defaults to false
+
+bucketMerge.minMergeSizeMB = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Minimum cumulative bucket sizes to merge
+* You can override this value per index
+* Defaults to 750MB
+
+bucketMerge.maxMergeSizeMB = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Maximum cumulative bucket sizes to merge
+* You can override this value per index
+* Defaults to 1000MB
+
+bucketMerge.maxMergeTimeGapSecs = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Maximum allowed time gap in seconds between buckets about to be merged
+* You can override this value per index
+* Defaults to 7776000 seconds (90 days).
+
 queryLanguageDefinition = <path to file>
 * DO NOT EDIT THIS SETTING. SERIOUSLY.
 * The path to the search language definition file.
@@ -398,8 +426,6 @@ tstatsHomePath = <path on index server>
   where $_index_name is runtime-expanded to the name of the index
 
 remotePath = <root path for remote volume, prefixed by a URI-like scheme>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional.
 * Presence of this parameter means that this index uses remote storage, instead
   of the local file system, as the main repository for bucket storage. The
@@ -427,6 +453,17 @@ maxBloomBackfillBucketAge = <nonnegative integer>[smhd]|infinite
 * Highest legal value in computed seconds is 2 billion, or 2000000000, which
   is approximately 68 years.
 * Defaults to 30d.
+
+hotlist_recency_secs = <unsigned integer>
+* The cache manager attempts to defer bucket eviction until the interval
+  between the bucket's latest time and the current time exceeds this setting.
+* Defaults to the global setting under server.conf/[cachemanager].
+
+hotlist_bloom_filter_recency_hours = <unsigned integer>
+* The cache manager attempts to defer eviction of the non-journal and non-tsidx
+  bucket files, such as the bloomfilter file, until the interval between the
+  bucket's latest time and the current time exceeds this setting.
+* Defaults to the global setting under server.conf/[cachemanager].
 
 enableOnlineBucketRepair = true|false
 * Controls asynchronous "online fsck" bucket repair, which runs concurrently
@@ -468,8 +505,6 @@ maxTotalDataSizeMB = <nonnegative integer>
 
 
 maxGlobalDataSizeMB = <nonnegative integer>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * The maximum amount of local disk space (in MB) that a remote storage
   enabled index can occupy, shared across all peers in the cluster.
 * This attribute controls the disk space that the index occupies on the peers
@@ -955,8 +990,13 @@ streamingTargetTsidxSyncPeriodMsec = <nonnegative integer>
   needed for multi-site clustering where streaming targets may be primary.
 * if set to 0, we never sync (equivalent to infinity)
 
-journalCompression = gzip|lz4
-* Select compression algorithm for rawdata journal file
+journalCompression = gzip|lz4|zstd
+* Select compression algorithm for rawdata journal file of new buckets
+* This does not have any effect on already created butckets -- there is
+  no problem searching buckets compressed with different algorithms
+* zstd is only supported in Splunk 7.2.x and later -- do not enable that
+  compression format if you have an indexer cluster where some indexers
+  are running an older version of splunk.
 * Defaults to gzip
 
 enableTsidxReduction = true|false
@@ -966,6 +1006,13 @@ enableTsidxReduction = true|false
 * CAUTION: Do not set this parameter to "true" on indexes that have been
   configured to use remote storage with the "remotePath" parameter.
 * Defaults to false.
+
+tsidxWritingLevel = 1 or 2
+* Defaults to 1
+* Enables various performance and space-saving improvements for tsidx files
+* Set this to 2 if this node is NOT part of a multi-site index cluster
+  OR if you have a multi-site cluster and all your indexer nodes are 7.2.0
+  or higher
 
 suspendHotRollByDeleteQuery = true|false
 * When the "delete" search command is run, all buckets containing data to be deleted are
@@ -1563,6 +1610,85 @@ splitter.file.split.maxsize = <bytes>
 * Defaults to Long.MAX_VALUE.
 
 #**************************************************************************
+# Dynamic Data Self Storage settings.  This section describes settings that affect the archiver-
+# optional and archiver-mandatory parameters only.
+#
+# As the first step in the Dynamic Data Self Storage feature, it allows users to move
+# their data from Splunk indexes to customer-owned external storage in AWS S3
+# when the data reaches the end of the retention period. Note that only the
+# raw data and delete marker files are transferred to the external storage.
+# Future development may include the support for storage hierarchies and the
+# automation of data rehydration.
+#
+# For example, use the following settings to configure Dynamic Data Self Storage.
+#   archiver.selfStorageProvider     = S3
+#   archiver.selfStorageBucket       = mybucket
+#   archiver.selfStorageBucketFolder = folderXYZ
+#**************************************************************************
+archiver.selfStorageProvider = <string>
+* Currently not supported. This setting is related to a feature that is
+still under development.
+* Specifies the storage provider for Self Storage.
+* Optional. Only required when using Self Storage.
+* The only supported provider is S3. More providers will be added in the future
+for other cloud vendors and other storage options.
+
+archiver.selfStorageBucket = <string>
+* Currently not supported. This setting is related to a feature that is
+still under development.
+* Specifies the destination bucket for Self Storage.
+* Optional. Only required when using Self Storage.
+
+archiver.selfStorageBucketFolder = <string>
+* Currently not supported. This setting is related to a feature that is
+still under development.
+* Specifies the folder on the destination bucket for Self Storage.
+* Optional. If not specified, data is uploaded to the root path in the destination bucket.
+
+#**************************************************************************
+# Dynamic Data Archive allows you to move your data from your Splunk Cloud indexes to a
+# storage location. You can configure Splunk Cloud to automatically move the data
+# in an index when the data reaches the end of the Splunk Cloud retention period
+# you configure. In addition, you can restore your data to Splunk Cloud if you need
+# to perform some analysis on the data.
+# For each index, you can use Dynamic Data Self Storage or Dynamic Data Archive, but not both.
+#
+# For example, use the following settings to configure Dynamic Data Archive.
+#   archiver.coldStorageProvider        = Glacier
+#   archiver.coldStorageRetentionPeriod = 365
+#**************************************************************************
+archiver.coldStorageProvider = <string>
+* Currently not supported. This setting is related to a feature that is
+still under development.
+* Specifies the storage provider for Dynamic Data Archive.
+* Optional. Only required when using Dynamic Data Archive.
+* The only supported provider is Glacier. More providers will be added in the future
+for other cloud vendors and other storage options.
+
+archiver.coldStorageRetentionPeriod = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+still under development.
+* Defines how long Splunk will maintain data in days, including the archived period.
+* Optional. Only required when using Dynamic Data Archive.
+* Must be greater than 0
+
+archiver.enableDataArchive = true|false
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* If set to true, Dynamic Data Archiver is enabled for the index.
+* Defaults to false.
+
+archiver.maxDataArchiveRetentionPeriod = <nonnegative integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The maximum total time in seconds, that data for the specified index is
+  maintained by Splunk, including the archived period.
+* The archiver.maxDataArchiveRetentionPeriod controls the maxiumum value of the
+  coldStorageRetentionPeriod. coldStorageRetentionPeriod cannot exceed this value.
+* Defaults to 0.
+
+
+#**************************************************************************
 # Volume settings.  This section describes settings that affect the volume-
 # optional and volume-mandatory parameters only.
 #
@@ -1602,8 +1728,6 @@ splitter.file.split.maxsize = <bytes>
 #**************************************************************************
 
 storageType = local | remote
-* Setting this to "remote" is currently not supported. This setting is
-  related to a feature that is still under development.
 * Optional.
 * Specifies whether the volume definition is for indexer local storage or remote
   storage. Only the remotePath attribute references a remote volume.
@@ -1621,11 +1745,6 @@ path = <path on server>
     * The "scheme" identifies a supported external storage system type.
     * The "remote-location-specifier" is an external system-specific string for
        identifying a location inside the storage system.
-  * These external systems are supported:
-     - Object stores that support AWS's S3 protocol. These use the scheme "s3".
-       For example, "path=s3://mybucket/some/path".
-     - POSIX file system, potentially a remote filesystem mounted over NFS. These
-       use the scheme "file". For example, "path=file:///mnt/cheap-storage/some/path".
 
 maxVolumeDataSizeMB = <positive integer>
 * Optional, ignored for storageType=remote
@@ -1669,8 +1788,6 @@ remote.* = <String>
 ################################################################
 
 remote.s3.header.<http-method-name>.<header-field-name> = <String>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional.
 * Enable server-specific features, such as reduced redundancy, encryption, and so on,
   by passing extra HTTP headers with the REST requests.
@@ -1679,8 +1796,6 @@ remote.s3.header.<http-method-name>.<header-field-name> = <String>
 * Example: remote.s3.header.PUT.x-amz-storage-class = REDUCED_REDUNDANCY
 
 remote.s3.access_key = <String>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional.
 * Specifies the access key to use when authenticating with the remote storage
   system supporting the S3 API.
@@ -1691,8 +1806,6 @@ remote.s3.access_key = <String>
 * Default: unset
 
 remote.s3.secret_key = <String>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional.
 * Specifies the secret key to use when authenticating with the remote storage
   system supporting the S3 API.
@@ -1702,9 +1815,12 @@ remote.s3.secret_key = <String>
   the indexer attempts to use the secret key from the IAM role.
 * Default: unset
 
+remote.s3.list_objects_version = v1|v2
+* The AWS S3 Get Bucket (List Objects) Version to use.
+* See AWS S3 documentation "GET Bucket (List Objects) Version 2" for details.
+* Default: v1
+
 remote.s3.signature_version = v2|v4
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional.
 * The signature version to use when authenticating with the remote storage
   system supporting the S3 API.
@@ -1712,17 +1828,19 @@ remote.s3.signature_version = v2|v4
 * For 'sse-kms' server-side encryption scheme, you must use signature_version=v4.
 
 remote.s3.auth_region = <String>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional
-* The authentication region to use when signing the requests when interacting with the remote
-  storage system supporting the S3 API. If unset, Splunk will attempt to automatically extract
-  the value from the endpoint URL
+* The authentication region to use for signing requests when interacting with the remote
+  storage system supporting the S3 API. 
+* Used with v4 signatures only.
+* If unset and the endpoint (either automatically constructed or explicitly set with 
+  remote.s3.endpoint setting) uses an AWS URL (for example, https://s3-us-west-1.amazonaws.com),
+  the instance attempts to extract the value from the endpoint URL (for
+  example, "us-west-1").  See the description for the remote.s3.endpoint setting.
+* If unset and an authentication region cannot be determined, the request will be signed
+  with an empty region value.
 * Defaults: unset
 
 remote.s3.use_delimiter = true | false
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional.
 * Specifies whether a delimiter (currently "guidSplunk") should be
   used to list the objects that are present on the remote storage.
@@ -1732,8 +1850,6 @@ remote.s3.use_delimiter = true | false
 * Defaults to: true
 
 remote.s3.supports_versioning = true | false
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional.
 * Specifies whether the remote storage supports versioning.
 * Versioning is a means of keeping multiple variants of an object
@@ -1741,8 +1857,6 @@ remote.s3.supports_versioning = true | false
 * Defaults to: true
 
 remote.s3.endpoint = <URL>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional.
 * The URL of the remote storage system supporting the S3 API.
 * The scheme, http or https, can be used to enable or disable SSL connectivity
@@ -1753,8 +1867,6 @@ remote.s3.endpoint = <URL>
 * Example: https://s3-us-west-2.amazonaws.com
 
 remote.s3.multipart_download.part_size = <unsigned int>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional.
 * Sets the download size of parts during a multipart download.
 * This setting uses HTTP/1.1 Range Requests (RFC 7233) to improve throughput
@@ -1767,8 +1879,6 @@ remote.s3.multipart_download.part_size = <unsigned int>
 * Defaults: 134217728 (128 MB)
 
 remote.s3.multipart_upload.part_size = <unsigned int>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional.
 * Sets the upload size of parts during a multipart upload.
 * Minimum value: 5242880 (5 MB)
@@ -1818,29 +1928,21 @@ remote.s3.max_count.max_retries_in_total = <unsigned int>
 * Defaults: 128
 
 remote.s3.timeout.connect = <unsigned int>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional
 * Set the connection timeout, in milliseconds, to use when interacting with S3 for this volume
 * Defaults: 5000
 
 remote.s3.timeout.read = <unsigned int>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional
 * Set the read timeout, in milliseconds, to use when interacting with S3 for this volume
 * Defaults: 60000
 
 remote.s3.timeout.write = <unsigned int>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional
 * Set the write timeout, in milliseconds, to use when interacting with S3 for this volume
 * Defaults: 60000
 
 remote.s3.sslVerifyServerCert = <bool>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional
 * If this is set to true, Splunk verifies certificate presented by S3 server and checks
   that the common name/alternate name matches the ones specified in
@@ -1848,8 +1950,6 @@ remote.s3.sslVerifyServerCert = <bool>
 * Defaults: false
 
 remote.s3.sslVersions = <versions_list>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional
 * Comma-separated list of SSL versions to connect to 'remote.s3.endpoint'.
 * The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
@@ -1862,24 +1962,18 @@ remote.s3.sslVersions = <versions_list>
 * Defaults: tls1.2
 
 remote.s3.sslCommonNameToCheck = <commonName1>, <commonName2>, ..
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * If this value is set, and 'remote.s3.sslVerifyServerCert' is set to true,
   splunkd checks the common name of the certificate presented by
   the remote server (specified in 'remote.s3.endpoint') against this list of common names.
 * Defaults: unset
 
 remote.s3.sslAltNameToCheck = <alternateName1>, <alternateName2>, ..
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * If this value is set, and 'remote.s3.sslVerifyServerCert' is set to true,
   splunkd checks the alternate name(s) of the certificate presented by
   the remote server (specified in 'remote.s3.endpoint') against this list of subject alternate names.
 * Defaults: unset
 
 remote.s3.sslRootCAPath = <path>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional
 * Full path to the Certificate Authrity (CA) certificate PEM format file
   containing one or more certificates concatenated together. S3 certificate
@@ -1887,8 +1981,6 @@ remote.s3.sslRootCAPath = <path>
 * Defaults: [sslConfig/caCertFile] in server.conf
 
 remote.s3.cipherSuite = <cipher suite string>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional
 * If set, uses the specified cipher string for the SSL connection.
 * If not set, uses the default cipher string.
@@ -1896,8 +1988,6 @@ remote.s3.cipherSuite = <cipher suite string>
 * Defaults: TLSv1+HIGH:TLSv1.2+HIGH:@STRENGTH
 
 remote.s3.ecdhCurves = <comma separated list of ec curves>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional
 * ECDH curves to use for ECDH key negotiation.
 * The curves should be specified in the order of preference.
@@ -1911,8 +2001,6 @@ remote.s3.ecdhCurves = <comma separated list of ec curves>
 * Defaults: unset
 
 remote.s3.dhFile = <path>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional
 * PEM format Diffie-Hellman parameter file name.
 * DH group size should be no less than 2048bits.
@@ -1920,8 +2008,6 @@ remote.s3.dhFile = <path>
 * Defaults:unset.
 
 remote.s3.encryption = sse-s3 | sse-kms | sse-c | none
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional
 * Specifies the scheme to use for Server-side Encryption (SSE) for data-at-rest.
 * sse-s3: Check http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html
@@ -1931,8 +2017,6 @@ remote.s3.encryption = sse-s3 | sse-kms | sse-c | none
 * Defaults: none
 
 remote.s3.encryption.sse-c.key_type = kms
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional
 * Determines the mechanism Splunk uses to generate the key for sending over to
   S3 for SSE-C.
@@ -1942,16 +2026,12 @@ remote.s3.encryption.sse-c.key_type = kms
 * Defaults: kms.
 
 remote.s3.encryption.sse-c.key_refresh_interval = <unsigned int>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional
 * Specifies period in seconds at which a new key will be generated and used
   for encrypting any new data being uploaded to S3.
 * Defaults: 86400
 
 remote.s3.kms.key_id = <String>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Required if remote.s3.encryption = sse-c | sse-kms
 * Specifies the identifier for Customer Master Key (CMK) on KMS. It can be the
   unique key ID or the Amazon Resource Name (ARN) of the CMK or the alias
@@ -1964,16 +2044,12 @@ remote.s3.kms.key_id = <String>
 * Defaults: unset
 
 remote.s3.kms.access_key = <String>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional.
 * Similar to 'remote.s3.access_key'.
 * If not specified, KMS access uses 'remote.s3.access_key'.
 * Default: unset
 
 remote.s3.kms.secret_key = <String>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional.
 * Similar to 'remote.s3.secret_key'.
 * If not specified, KMS access uses 'remote.s3.secret_key'.
@@ -1987,16 +2063,12 @@ remote.s3.kms.auth_region = <String>
 * Defaults: unset
 
 remote.s3.kms.max_concurrent_requests = <unsigned int>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional.
 * Limits maximum concurrent requests to KMS from this Splunk instance.
 * NOTE: Can severely affect search performance if set to very low value.
 * Defaults: 10
 
 remote.s3.kms.<ssl_settings> = <...>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Optional.
 * Check the descriptions of the SSL settings for remote.s3.<ssl_settings>
   above. e.g. remote.s3.sslVerifyServerCert.
@@ -2004,33 +2076,3 @@ remote.s3.kms.<ssl_settings> = <...>
   sslCommonNameToCheck, cipherSuite, ecdhCurves and dhFile.
 * All of these are optional and fall back to same defaults as
   remote.s3.<ssl_settings>.
-
-#**************************************************************************
-# Archiver settings.  This section describes settings that affect the archiver-
-# optional and archiver-mandatory parameters only.
-#
-# As the first step in the Archiver feature, Self Storage allows users to move
-# their data from Splunk indexes to customer-owned external storage in AWS S3
-# when the data reaches the end of the retention period. Note that only the
-# raw data and delete marker files are transferred to the external storage.
-# Future development may include the support for storage hierarchies and the
-# automation of data rehydration.
-#
-# For example, use the following settings to configure Self Storage.
-#   archiver.selfStorageProvider     = S3
-#   archiver.selfStorageBucket       = mybucket
-#   archiver.selfStorageBucketFolder = folderXYZ
-#**************************************************************************
-archiver.selfStorageProvider = <string>
-* Specifies the storage provider for Self Storage.
-* Optional. Only required when using Self Storage.
-* The only supported provider is S3. More providers will be added in the future
-  for other cloud vendors and other storage options.
-
-archiver.selfStorageBucket = <string>
-* Specifies the destination bucket for Self Storage.
-* Optional. Only required when using Self Storage.
-
-archiver.selfStorageBucketFolder = <string>
-* Specifies the folder on the destination bucket for Self Storage.
-* Optional. If not specified, data is uploaded to the root path in the destination bucket.

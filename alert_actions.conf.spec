@@ -103,6 +103,16 @@ icon_path = <string>
   action. The path refers to appserver/static within the app where the
   alert action is defined in.
 
+forceCsvResults = auto|<bool>
+* If set to a true boolean, any saved search that includes this action will
+  always store results in CSV format, instead of the internal SRS format.
+* If set to a false boolean, results will always be serialized using the
+  internal SRS format.
+* If set to "auto", results will be serialized as CSV if the 'command' setting
+  in this stanza starts with "sendalert" or contains the string
+  "$results.file$".
+* Defaults to "auto".
+
 alert.execute.cmd = <string>
 * For custom alert actions: Explicitly specify the command to be executed
   when the alert action is triggered. This refers to a binary or script

@@ -197,6 +197,20 @@ schedule_window = <unsigned int> | auto
 * A non-zero schedule_window is mutually exclusive with a non-default
   schedule_priority (see schedule_priority for details).
 
+#*******
+# Workload management options
+#*******
+
+workload_pool = <name of workload pool>
+* Sets the name of the workload pool to be used by this search.
+* There are multiple workload pools defined in workload_pools.conf.
+  Each workload pool has different resource limits associated with it,
+  for example, CPU, Memory, etc.
+* The search process of this search will be launched into the
+  workload_pool specified above.
+* The workload_pool used should be defined in workload_pools.conf.
+* If workload management is enabled and a explicit workload_pool is not specified,
+  the default_pool defined in workload_pools.conf will be used.
 
 #*******
 # Notification options

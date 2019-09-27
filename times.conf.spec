@@ -56,8 +56,39 @@ order = <integer>
   ranges according to the 'order' key, and then alphabetically.
 * Optional.  Default value is 0.
 
+disabled = <integer>
+* Determines if the menu item is shown. Set to 1 to hide menu item.
+* Optional. Default value is 0
+
 sub_menu = <submenu name>
 * REMOVED.  This setting is no longer used.
 
 is_sub_menu = <boolean>
 * REMOVED.  This setting is no longer used.
+
+[settings]
+* List of flags that modify the panels that are displayed in the time range picker.
+
+show_advanced = [true|false]
+* Determines if the 'Advanced' panel should be displayed in the time range picker
+* Optional. Default value is true
+
+show_date_range = [true|false]
+* Determines if the 'Date Range' panel should be displayed in the time range picker
+* Optional. Default value is true
+
+show_datetime_range = [true|false]
+* Determines if the 'Date & Time Range' panel should be displayed in the time range picker
+* Optional. Default value is true
+
+show_presets = [true|false]
+* Determines if the 'Presets' panel should be displayed in the time range picker
+* Optional. Default value is true
+
+show_realtime = [true|false]
+* Determines if the 'Realtime' panel should be displayed in the time range picker
+* Optional. Default value is true
+
+show_relative = [true|false]
+* Determines if the 'Relative' panel should be displayed in the time range picker
+* Optional. Default value is true

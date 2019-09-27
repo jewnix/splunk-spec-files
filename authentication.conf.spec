@@ -489,6 +489,16 @@ constantLoginTime = <number>
 * Maximum value: 5.0
 * Default: 0
 
+verboseLoginFailMsg = <boolean>
+* Specifies whether or not the login failure message explains
+  the failure reason.
+* When set to true, Splunk software displays a message on login
+  along with the failure reason.
+* When set to false, Splunk software displays a generic failure
+  message without a specific failure reason.
+* This setting is optional.
+* Default: true
+
 #####################
 # SAML settings
 #####################

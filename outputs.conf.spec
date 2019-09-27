@@ -1,4 +1,4 @@
-#   Version 6.6.12
+#   Version 7.0.0
 #
 # Forwarders require outputs.conf; non-forwarding Splunk instances do not
 # use it.  It determines how the forwarder sends data to receiving Splunk
@@ -409,18 +409,6 @@ autoLBVolume = <bytes>
 # If you want to use SSL for authentication, add a stanza for each receiver
 # that must be certified.
 
-useSSL = <true | false | legacy>
-* Whether or not the forwarder uses SSL to connect to the receiver, or relies 
-  on the 'clientCert' setting to be active for SSL connections.
-* If set to 'true', then the forwarder uses SSL to connect to the receiver.
-  You do not need to set 'clientCert' if 'requireClientCert' is set to 
-  'false' on the receiver.
-* If set to 'false', then the forwarder does not use SSL to connect to the 
-  receiver.
-* If set to 'legacy', then the forwarder uses the 'clientCert' property to
-  determine whether or not to use SSL to connect.
-* Defaults to 'legacy'.
-
 sslPassword = <password>
 * The password associated with the CAcert.
 * The default Splunk CAcert uses the password "password".
@@ -428,8 +416,7 @@ sslPassword = <password>
 
 clientCert = <path>
 * The full path to the client SSL certificate in PEM format.
-* If you have not set 'useSSL', then this connection uses SSL if and only if
-  you specify this setting with a valid client SSL certificate file.
+* If (and only if) specified, this connection will use SSL.
 * There is no default value.
 
 sslCertPath = <path>
@@ -468,9 +455,8 @@ sslRootCAPath = <path>
 * Default is unset.
 
 sslVerifyServerCert = <bool>
-* If true, you must make sure that the server you are connecting to has a valid
-  SSL certificate. Note that certificates with the same Common Name as the CA's
-  certificate will fail this check.
+* If true, you must make sure that the server you are connecting to is a
+  valid one (authenticated).
 * Both the common name and the alternate name of the server are then checked
   for a match.
 * Defaults to false.

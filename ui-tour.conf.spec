@@ -1,4 +1,4 @@
-#   Version 6.6.12
+#   Version 7.0.0
 #
 # This file contains the tours available for Splunk Onboarding
 #
@@ -41,7 +41,8 @@ type = <image || interactive>
 
 label = <string>
 * The identifying name for this tour used in the tour creation app.
-* Optional
+* Optional in general
+* Required only if this tour is being to linked from another tour (nextTour)
 
 tourPage = <string>
 * The Splunk view this tour is associated with (only necessary if it is linked to).
@@ -55,6 +56,28 @@ managerPage = <boolean>
 viewed = <boolean>
 * A boolean to determine if this tour has been viewed by a user.
 * Set by Splunk
+
+skipText = <string>
+* The string for the skip button (interactive and image)
+* Defaults to "Skip tour"
+* Optional
+
+doneText = <string>
+* The string for the button at the end of a tour (interactive and image)
+* Defaults to "Try it now"
+* Optional
+
+doneURL = <string>
+* The Splunk URL of where the user will be directed once the tour is over.
+* The user will click a link/button.
+* Helpful to use with above doneText attribute to specify location.
+* Splunk link is formed after the localization portion of the full URL. For example if the link
+* is localhost:8000/en-US/app/search/reports, the doneURL will be "app/search/reports"
+* Optional
+
+forceTour = <boolean>
+* Used with auto tours to force users to take the tour and not be able to skip
+* Optional
 
 ############################
 ## For image based tours
@@ -92,6 +115,7 @@ context = <system || <specific app name>>
 
 urlData = <string>
 * String of any querystring variables used with tourPage to create full url executing this tour.
+* Don't add the "?" to the beginning of this string
 * Optional
 
 stepText<int> = <string>

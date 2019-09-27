@@ -1,4 +1,4 @@
-#   Version 6.6.12
+#   Version 7.0.0
 #
 # This file contains the set of attributes and values you can use to
 # configure server options in server.conf.
@@ -181,7 +181,12 @@ skipHTTPCompressionAcl = <network_acl>
 site = <site-id>
 * Specifies the site that this splunk instance belongs to when multisite is
   enabled.
-* Valid values for site-id include site1 to site63
+* Valid values for site-id include site0 to site63
+* The special value "site0" can be set only on search heads or on forwarders 
+  that are participating in indexer discovery.
+  * For a search head, "site0" disables search affinity. 
+  * For a forwarder participating in indexer discovery, "site0" causes the 
+    forwarder to send data to all peer nodes across all sites.
 
 useHTTPClientCompression = true|false|on-http|on-https
 * Whether gzip compression should be supported when Splunkd acts as a client
@@ -210,11 +215,11 @@ parallelIngestionPipelines = <integer>
 * A pipeline set handles the processing of data, from receiving streams
   of events, through event processing and writing the events to disk.
 * An indexer that operates multiple pipeline sets can achieve improved
-  performance with data parsing and disk writing, at the cost of additional
-  CPU cores.
-* Be very careful when changing this setting. Increasing the CPU usage for data
+  performance with data parsing and disk writing, at the cost of additional 
+  CPU cores. 
+* Be very careful when changing this setting. Increasing the CPU usage for data 
   ingestion reduces available CPU cores for other tasks like searching.
-* For most installations, the default setting is optimal.
+* For most installations, the default setting is optimal. 
 * NOTE: Enabling multiple ingestion pipelines can change the behavior of some
   settings in other configuration files. Each ingestion pipeline enforces 
   the limits of the following settings independently:
@@ -245,10 +250,14 @@ requireBootPassphrase = <bool>
   Criteria certification.
 
 remoteStorageRecreateIndexesInStandalone = <bool>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Controls re-creation of remote storage enabled indexes in standalone mode.
 * Defaults to true.
 
 cleanRemoteStorageByDefault = <bool>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Allows 'splunk clean eventdata' to clean the remote indexes when set to true.
 * Defaults to false.
 ############################################################################
@@ -449,22 +458,8 @@ sslRootCAPath = <path>
   Criteria mode until it has been certified by NIAP. See the "Securing
   Splunk Enterprise" manual for information on the status of Common
   Criteria certification.
-* This setting is valid on Windows machines only if you set
-  'sslRootCAPathHonoredOnWindows' to "true".
+* This setting is not used on Windows.
 * Default is unset.
-
-sslRootCAPathHonoredOnWindows = <boolean>
-* DEPRECATED.
-* Whether or not the Splunk instance respects the 'sslRootCAPath' setting on
-  Windows machines.
-* If you set this setting to "true", then the instance respects the
-  'sslRootCAPath' setting on Windows machines.
-* This setting is valid only on Windows, and only if you have set
-  'sslRootCAPath'.
-* When the 'sslRootCAPath' setting is respected, the instance expects to find
-  a valid PEM file with valid root certificates that are referenced by that
-  path. If a valid file is not present, SSL communication fails.
-* Default: false.
 
 caCertFile = <filename>
 * DEPRECATED; use 'sslRootCAPath' instead.
@@ -551,17 +546,6 @@ no_proxy = <string>
 * If set, splunkd will use the no_proxy rules to decide whether the proxy server
   needs to be bypassed for matching hosts/IP Addresses. Requests going to
   localhost/loopback address will not be proxied.
-* '*' (asterisk): Bypasses proxies for all requests. This is the only 
-  wildcard, and it can only be used by itself.
-* <IPv4 or IPv6 address>: Bypasses the proxy if the request is intended for
-  that IP address.
-* <hostname>/<domain name>: Bypasses the proxy if the request is intended for
-  that host or domain name. For example:
-** no_proxy = "wimpy": Matches the host name "wimpy"
-** no_proxy = "splunk.com": Matches all host names in the domain 
-   splunk.com (apps.splunk.com, www.splunk.com, etc.)
-* If any of the rules in the list has a '*', then that rule overrides all
-  other rules, and proxies are bypassed for all requests.
 * Default set to "localhost, 127.0.0.1, ::1"
 
 ############################################################################
@@ -2157,6 +2141,8 @@ heartbeat_period = <non-zero positive integer>
 * Controls the frequency the slave attempts to send heartbeats
 
 remote_storage_upload_timeout = <non-zero positive integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Only valid for mode=slave
 * Set it in seconds
 * For a remote storage enabled index, this attribute specifies the interval
@@ -2165,6 +2151,8 @@ remote_storage_upload_timeout = <non-zero positive integer>
 * Defaults to 300 seconds
 
 remote_storage_retention_period = <non-zero positive integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Only valid for mode=master
 * Set it in seconds
 * Controls the length of peer-node retention for buckets in
@@ -2173,6 +2161,8 @@ remote_storage_retention_period = <non-zero positive integer>
 * Defaults to 900 seconds
 
 recreate_bucket_attempts_from_remote_storage = <positive integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Only valid for mode=master
 * Controls the number of attempts the master will make to recreate the
   bucket of a remote storage enabled index on a random peer node
@@ -2194,6 +2184,8 @@ recreate_bucket_attempts_from_remote_storage = <positive integer>
 * Defaults to 10 attempts
 
 recreate_bucket_fetch_manifest_batch_size = <positive integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Only valid for mode=master
 * Controls the maximum number of bucket IDs for which slave will
   attempt to initiate a parallel fetch of manifests at a time
@@ -2204,6 +2196,8 @@ recreate_bucket_fetch_manifest_batch_size = <positive integer>
 * Defaults to 50 bucket IDs
 
 recreate_index_attempts_from_remote_storage = <positive integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Only valid for mode=master
 * Controls the number of attempts the master will make to recreate
   a remote storage enabled index on a random peer node when the master
@@ -2226,6 +2220,8 @@ recreate_index_attempts_from_remote_storage = <positive integer>
 * Defaults to 10 attempts
 
 recreate_index_fetch_bucket_batch_size = <positive integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Only valid for mode=master
 * Controls the maximum number of bucket IDs that the master will
   request a random peer node to fetch from remote storage as part of
@@ -2326,7 +2322,9 @@ pass4SymmKey = <password>
 site = <site-id>
 * Specifies the site this searchhead belongs to for this particular master
   when multisite is enabled (see below).
-* Valid values for site-id include site1 to site63.
+* Valid values for site-id include site0 to site63.
+* The special value "site0" disables site affinity for a search head in a 
+  multisite cluster. It is only valid for a search head.
 
 multisite = [true|false]
 * Turns on the multisite feature for this master_uri for the searchhead.
@@ -2744,7 +2742,7 @@ pass4SymmKey = <password>
 * If set in the [shclustering] stanza, it takes precedence over any setting
   in the [general] stanza.
 * Defaults to 'changeme' from the [general] stanza in the default
-  server.conf. 
+  server.conf.
 * Unencrypted passwords must not begin with "$1$", as this is used by
   Splunk software to determine if the password is already encrypted.
 
@@ -3418,28 +3416,47 @@ indexerWeightByDiskCapacity = <bool>
 ############################################################################
 [cachemanager]
 max_concurrent_downloads = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * The maximum number of buckets that can be downloaded simultaneously from
   external storage
 * Defaults to 8
 
 max_concurrent_uploads = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * The maximum number of buckets that can be uploaded simultaneously to external
   storage.
 * Defaults to 8
 
 eviction_policy = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * The name of the eviction policy to use.
 * Current options: lru, clock, random, lrlt, noevict
 * Do not change the value from the default of "clock" unless instructed by
   Splunk Support.
 * Defaults to clock
 
+eviction_padding = <positive integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies the additional space, in bytes, beyond 'minFreeSpace' that the
+  cache manager uses as the threshold to start evicting data.
+* If free space on a partition falls below ('minFreeSpace' + 'eviction_padding'),
+  then the cache manager tries to evict data from remote storage enabled indexes.
+* Defaults to 5368709120 (~5GB)
+
 hotlist_recency_secs = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * The cache manager attempts to defer bucket eviction until the interval between the
   bucket's latest time and the current time exceeds this setting.
 * Defaults to 86400 (24 hours)
 
 hotlist_bloom_filter_recency_hours = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * The cache manager attempts to defer eviction of the non-journal and non-tsidx
   bucket files, such as the bloomfilter file, until the interval between the
   bucket's latest time and the current time exceeds this setting.

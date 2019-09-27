@@ -1,4 +1,4 @@
-#   Version 6.6.12
+#   Version 7.0.0
 #
 # This file contains possible attributes and values for configuring
 # authentication via authentication.conf.
@@ -263,7 +263,8 @@ timelimit = <integer>
   request to complete
 * If your searches finish quickly, you should lower this value from the
   default
-* Defaults to 15
+* Defaults to 15 seconds
+* Maximum value is 30 seconds
 
 network_timeout = <integer>
 * OPTIONAL

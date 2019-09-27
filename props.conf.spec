@@ -1,4 +1,4 @@
-#   Version 6.6.12
+#   Version 7.0.0
 #
 # This file contains possible attribute/value pairs for configuring Splunk's
 # processing properties via props.conf.
@@ -473,7 +473,7 @@ MAX_TIMESTAMP_LOOKAHEAD = <integer>
   effectively disabled.  This can have negative performance implications
   which scale with the length of input lines (or with event size when
   LINE_BREAKER is redefined for event splitting).
-* Defaults to 128 (characters).
+* Defaults to 150 (characters).
 
 TIME_FORMAT = <strptime-style format>
 * Specifies a strptime format string to extract the date.
@@ -582,6 +582,13 @@ MAX_DIFF_SECS_HENCE = <integer>
   are written less than once a week, consider increasing this value.
 * Defaults to 604800 (one week), maximum 2147483646.
 
+ADD_EXTRA_TIME_FIELDS = [true|false]
+* This setting controls whether or not the following keys will be automatically
+  generated and indexed with events:
+    date_hour, date_mday, date_minute, date_month, date_second, date_wday,
+    date_year, date_zone, timestartpos, timeendpos, timestamp.
+* These fields are never required, and may be turned off as desired.
+* Defaults to true and is enabled for most data sources.
 
 #******************************************************************************
 # Structured Data Header Extraction and configuration
@@ -600,7 +607,7 @@ MAX_DIFF_SECS_HENCE = <integer>
 # \t : horizontal tab  byte: 0x09
 # \v : vertical tab    byte: 0x0b
 
-INDEXED_EXTRACTIONS = < CSV|W3C|TSV|PSV|JSON >
+INDEXED_EXTRACTIONS = < CSV|W3C|TSV|PSV|JSON>
 * Tells Splunk the type of file and the extraction and/or parsing method
   Splunk should use on the file.
   CSV  - Comma separated value format
@@ -611,6 +618,29 @@ INDEXED_EXTRACTIONS = < CSV|W3C|TSV|PSV|JSON >
 * These settings default the values of the remaining settings to the
   appropriate values for these known formats.
 * Defaults to unset.
+
+METRICS_PROTOCOL = <STATSD|COLLECTD_HTTP>
+* Tells Splunk which protocol the incoming metric data is using:
+  STATSD - Supports statsd protocol, in the following format:
+           <metric name>:<value>|<metric type>
+           Use STATSD-DIM-TRANSFORMS setting to manually extract
+           dimensions for the above format. Splunk will auto-extract
+           dimensions when the data has "#" as dimension delimiter
+           as shown below:
+           <metric name>:<value>|<metric type>|#<dim1>:<val1>,
+           <dim2>:<val2>...
+  COLLECTD_HTTP - This is Data from the write_http collectd plugin being parsed
+            as streaming JSON docs with the _value living in "values" array
+            and the dimension names in "dsnames" and the metric type
+            (ie counter vs gauge) is derived from "dstypes".
+* Defaults to unset, for event (non-metric) data.
+
+STATSD-DIM-TRANSFORMS = <statsd_dim_stanza_name1>,<statsd_dim_stanza_name2>..
+* Will be used only when METRICS_PROTOCOL is set as statsd
+* A comma separated list of transforms stanza names which are used to extract
+  dimensions from statsd metric data.
+* Optional for sourcetype which has only one transforms stanza for extracting
+  dimensions and the stanza name is the same as that of sourcetype's name.
 
 PREAMBLE_REGEX = <regex>
 * Some files contain preamble lines. This attribute specifies a regular
@@ -875,17 +905,6 @@ MATCH_LIMIT = <integer>
 * Use this to set an upper bound on how many times PCRE calls an internal
   function, match(). If set too low, PCRE may fail to correctly match a pattern.
 * Defaults to 100000
-
-RECURSION_LIMIT = <integer>
-* Only set in props.conf for EXTRACT type field extractions.
-  For REPORT and TRANSFORMS field extractions, set this in transforms.conf.
-* Optional. Limits the amount of resources that are spent by PCRE
-  when running patterns that will not match.
-* Use this to set an upper bound on how many times PCRE calls an internal
-  function, match() recursively. If set too low, PCRE might fail to correctly match a pattern.
-* Since not all calls to match() are recursive, this limit is of use only
-  if it is set smaller than match_limit.
-* Default: 1000
 
 AUTO_KV_JSON = [true|false]
 * Used for search-time field extractions only.

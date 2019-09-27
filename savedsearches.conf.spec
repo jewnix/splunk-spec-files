@@ -1,4 +1,4 @@
-#   Version 6.6.12
+#   Version 7.0.0
 #
 # This file contains possible attribute/value pairs for saved search entries in
 # savedsearches.conf.  You can configure saved searches by creating your own
@@ -403,8 +403,7 @@ action.populate_lookup = 0 | 1
 
 action.populate_lookup.dest = <string>
 * Can be one of the following two options:
-  * A lookup definition name from transforms.conf that references a CSV file. 
-  	The lookup name cannot be associated with KV store.
+  * A lookup name from transforms.conf. The lookup name cannot be associated with KV store.
   * A path to a lookup .csv file that Splunk should copy the search results to,
     relative to $SPLUNK_HOME.
     * NOTE: This path must point to a .csv file in either of the following
@@ -527,7 +526,7 @@ dispatch.rt_backfill = <bool>
 
 dispatch.indexedRealtime = <bool>
 * Specifies whether to use indexed-realtime mode when doing realtime searches.
-* Overrides the setting in the limits.conf file for the indexed_realtime_use_by_default 
+* Overrides the setting in the limits.conf file for the indexed_realtime_use_by_default
   attribute in the [realtime] stanza.
 * This setting applies to each job.
 * See the [realtime] stanza in the limits.conf.spec file for more information.
@@ -689,6 +688,11 @@ alert.display_view = <string>
   is missing then "search" will be used
 * Defaults to empty string
 
+alert.managedBy = <string>
+* Specifies the feature/component that created the alert.
+* Defaults to empty string.
+
+
 #*******
 # UI-specific settings
 #*******
@@ -769,6 +773,7 @@ display.visualizations.charting.drilldown = [all|none]
 display.visualizations.charting.chart.style = [minimal|shiny]
 display.visualizations.charting.layout.splitSeries = 0 | 1
 display.visualizations.charting.layout.splitSeries.allowIndependentYRanges = 0 | 1
+display.visualizations.charting.legend.mode = [standard|seriesCompare]
 display.visualizations.charting.legend.placement = [right|bottom|top|left|none]
 display.visualizations.charting.legend.labelStyle.overflowMode = [ellipsisEnd|ellipsisMiddle|ellipsisStart]
 display.visualizations.charting.axisTitleX.text = <string>
@@ -780,6 +785,9 @@ display.visualizations.charting.axisTitleY2.visibility = [visible|collapsed]
 display.visualizations.charting.axisX.scale = linear|log
 display.visualizations.charting.axisY.scale = linear|log
 display.visualizations.charting.axisY2.scale = linear|log|inherit
+display.visualizations.charting.axisX.abbreviation = none|auto
+display.visualizations.charting.axisY.abbreviation = none|auto
+display.visualizations.charting.axisY2.abbreviation = none|auto
 display.visualizations.charting.axisLabelsX.majorLabelStyle.overflowMode = [ellipsisMiddle|ellipsisNone]
 display.visualizations.charting.axisLabelsX.majorLabelStyle.rotation = [-90|-45|0|45|90]
 display.visualizations.charting.axisLabelsX.majorUnit = <float> | auto
@@ -799,6 +807,8 @@ display.visualizations.charting.chart.rangeValues = [<string>(, <string>)*]
 display.visualizations.charting.chart.bubbleMaximumSize = <int>
 display.visualizations.charting.chart.bubbleMinimumSize = <int>
 display.visualizations.charting.chart.bubbleSizeBy = [area|diameter]
+display.visualizations.charting.fieldDashStyles = <string>
+display.visualizations.charting.lineWidth = <float>
 display.visualizations.custom.drilldown = [all|none]
 display.visualizations.custom.height = <int>
 display.visualizations.custom.type = <string>

@@ -1,4 +1,4 @@
-#   Version 6.6.12
+#   Version 7.0.0
 #
 # This file contains possible attribute/value pairs for creating roles in
 # authorize.conf.  You can configure roles and granular access controls by
@@ -461,7 +461,7 @@ configuration.
 
 [capability::schedule_rtsearch]
 * Lets a user schedule real time saved searches. The scheduled_search
-  capability must also be enabled for the user.
+scheduled_search and rtsearch capabilities must be enabled for the role.
 
 [capability::schedule_search]
 * Lets a user schedule saved searches, create and update alerts, and review triggered alert information.
@@ -474,12 +474,6 @@ configuration.
 
 [capability::use_file_operator]
 * Lets a user use the "file" search operator.
-
-[capability::list_accelerate_search]
-* This capability is a subset of the 'accelerate_search' capability.
-* This capability grants access to the summaries that are required to run accelerated reports.
-* Users with this capability, but without the 'accelerate_search' capability, can run,
-  but not create, accelerated reports.
 
 [capability::web_debug]
 * Lets a user access /_bump and /debug/** web debug endpoints.

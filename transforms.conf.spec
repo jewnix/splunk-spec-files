@@ -1,4 +1,4 @@
-#   Version 6.6.12
+#   Version 7.0.0
 #
 # This file contains attributes and values that you can use to configure
 # data transformations.  and event signing in transforms.conf.
@@ -151,17 +151,6 @@ MATCH_LIMIT = <integer>
 * Use this to set an upper bound on how many times PCRE calls an internal
   function, match(). If set too low, PCRE may fail to correctly match a pattern.
 * Defaults to 100000
-
-RECURSION_LIMIT = <integer>
-* Only set in transforms.conf for REPORT and TRANSFORMS field extractions.
-   For EXTRACT type field extractions, set this in props.conf.
-* Optional. Limits the amount of resources that are spent by PCRE
-  when running patterns that will not match.
-* Use this to set an upper bound on how many times PCRE calls an internal
-  function, match() recursively. If set too low, PCRE might fail to correctly match a pattern.
-* Since not all calls to match() are recursive, this limit is of use only
-  if it is set smaller than match_limit.
-* Default: 1000
 
 CLONE_SOURCETYPE = <string>
 * This name is wrong; a transform with this setting actually clones and
@@ -373,15 +362,10 @@ CAN_OPTIMIZE = [true|false]
 
 filename = <string>
 * Name of static lookup file.
-* File should be in $SPLUNK_HOME/etc/system/lookups/, or in
-  $SPLUNK_HOME/etc/<app_name>/lookups/ if the lookup belongs to a specific app.
+* File should be in $SPLUNK_HOME/etc/<app_name>/lookups/ for some <app_name>, or in
+  $SPLUNK_HOME/etc/system/lookups/
 * If file is in multiple 'lookups' directories, no layering is done.
 * Standard conf file precedence is used to disambiguate.
-* Only file names are supported. Paths are explicitly not supported. If you
-  specify a path, the Splunk software strips the path to use the value after
-  the final path separator.
-* The Splunk software then looks for this filename in
-  $SPLUNK_HOME/etc/system/lookups/ or $SPLUNK_HOME/etc/<app_name>/lookups/.
 * Defaults to empty string.
 
 collection = <string>
@@ -534,6 +518,25 @@ replicate = true|false
 * Note that replicate=true works only if it is included in replication whitelist,
   See distSearch.conf/[replicationWhitelist] option.
 * Defaults to true.
+
+[statsd-dims:<unique_transforms_stanza_name>]
+* 'statsd-dims' prefix indicates this stanza is applicable only to statsd metric
+  type input data.
+* This stanza is used to define regular expression to match and extract dimensions
+  out of statsd dotted name segments.
+* By default, only the unmatched segments of the statsd dotted name segment
+  becomes the metric_name.
+
+REGEX = <regular expression>
+* Splunk supports named capturing group extraction format (?<dim1>group)(?<dim2>group)..
+  to provide dimension names of the corresponding values being extracted out.
+
+REMOVE_DIMS_FROM_METRIC_NAME = <boolean>
+* By default, this is set to true.
+* If set to false, the matched dimension values from the regex above would also
+  be a part of the metric name.
+* If true, the matched dimension values would not be a part of metric name.
+
 
 #*******
 # KEYS:

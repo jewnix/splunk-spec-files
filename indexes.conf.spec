@@ -1,4 +1,4 @@
-#   Version 6.6.12
+#   Version 7.0.0
 #
 # This file contains all possible options for an indexes.conf file.  Use
 # this file to configure Splunk's indexes and their properties.
@@ -388,6 +388,8 @@ tstatsHomePath = <path on index server>
   where $_index_name is runtime-expanded to the name of the index
 
 remotePath = <root path for remote volume, prefixed by a URI-like scheme>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional.
 * Presence of this parameter means that this index uses remote storage, instead
   of the local file system, as the main repository for bucket storage. The
@@ -447,6 +449,8 @@ maxTotalDataSizeMB = <nonnegative integer>
 * Defaults to 500000.
 
 maxGlobalDataSizeMB = <nonnegative integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * The maximum amount of local disk space (in MB) that a remote storage 
   enabled index can occupy, shared across all peers in the cluster.
 * This attribute controls the disk space that the index occupies on the peers 
@@ -759,6 +763,15 @@ minHotIdleSecsBeforeForceRoll = <nonnegative integer>|auto
   splunkd.log for a similar message below for rolls due to this setting.
     INFO  HotBucketRoller - finished moving hot to warm bid=_internal~0~97597E05-7156-43E5-85B1-B0751462D16B idx=_internal from=hot_v1_0 to=db_1462477093_1462477093_0 size=40960 caller=lru maxHotBuckets=3, count=4 hot buckets,evicting_count=1 LRU hots
 * Defaults to "auto".
+
+splitByIndexKeys = <comma separated index keys>
+* By default, buckets are split by time ranges with each bucket having its earliest
+  and latest time.
+* If one or several keys are provided, buckets will be split by the index key or
+  a combination of the index keys if more than one is provided. The buckets will no
+  longer be split by time ranges.
+* Valid values are: host, sourcetype, source, metric_name
+* Defaults to an empty string (no key). If not set, splitting by time span is applied.
 
 quarantinePastSecs = <positive integer>
 * Events with timestamp of quarantinePastSecs older than "now" will be
@@ -1567,6 +1580,8 @@ splitter.file.split.maxsize = <bytes>
 #**************************************************************************
 
 storageType = local | remote
+* Setting this to "remote" is currently not supported. This setting is
+  related to a feature that is still under development.
 * Optional.
 * Specifies whether the volume definition is for indexer local storage or remote 
   storage. Only the remotePath attribute references a remote volume. 
@@ -1574,11 +1589,11 @@ storageType = local | remote
 
 path = <path on server>
 * Required.
-* If storageType = local:
+* If storageType is set to its default value of "local":
   * The path attribute points to the location on the file system where all indexes
    that will use this volume reside.  
    * This location must not overlap with the location for any other volume or index.
-* If storageType = remote:
+* If storageType is set to "remote":
   * The path attribute points to the remote storage location where indexes reside. 
   * The format for this attribute is: <scheme>://<remote-location-specifier>
     * The "scheme" identifies a supported external storage system type.  
@@ -1610,6 +1625,14 @@ rotatePeriodInSecs = <nonnegative integer>
 * If not set, the value of global rotatePeriodInSecs attribute is inherited.
 * Highest legal value is 4294967295
 
+datatype = <event|metric>
+* Optional, defaults to 'event'.
+* Determines whether the index stores log events or metric data.
+* If set to 'metric', we optimize the index to store metric data which can be
+  queried later only using the mstats operator as searching metric data is
+  different from traditional log events.
+* Use 'metric' data type only for metric sourcetypes like statsd.
+
 remote.* = <String>
 * Optional.
 * With remote volumes, communication between the indexer and the external 
@@ -1624,6 +1647,8 @@ remote.* = <String>
 ################################################################
 
 remote.s3.header.<http-method-name>.<header-field-name> = <String>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional.
 * Enable server-specific features, such as reduced redundancy, encryption, and so on,
   by passing extra HTTP headers with the REST requests.
@@ -1632,6 +1657,8 @@ remote.s3.header.<http-method-name>.<header-field-name> = <String>
 * Example: remote.s3.header.PUT.x-amz-storage-class = REDUCED_REDUNDANCY
 
 remote.s3.access_key = <String>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional.
 * Specifies the access key to use when authenticating with the remote storage 
   system supporting the S3 API. 
@@ -1642,6 +1669,8 @@ remote.s3.access_key = <String>
 * Default: unset
 
 remote.s3.secret_key = <String>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional.
 * Specifies the secret key to use when authenticating with the remote storage 
   system supporting the S3 API. 
@@ -1652,6 +1681,8 @@ remote.s3.secret_key = <String>
 * Default: unset
   
 remote.s3.signature_version = v2|v4
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional.
 * The signature version to use when authenticating with the remote storage 
   system supporting the S3 API. 
@@ -1659,6 +1690,8 @@ remote.s3.signature_version = v2|v4
 * For 'sse-kms' server-side encryption scheme, you must use signature_version=v4.
 
 remote.s3.auth_region = <String>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional
 * The authentication region to use when signing the requests when interacting with the remote 
   storage system supporting the S3 API. If unset, Splunk will attempt to automatically extract 
@@ -1666,6 +1699,8 @@ remote.s3.auth_region = <String>
 * Defaults: unset
 
 remote.s3.use_delimiter = true | false
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional.
 * Specifies whether a delimiter (currently "guidSplunk") should be
   used to list the objects that are present on the remote storage.
@@ -1675,6 +1710,8 @@ remote.s3.use_delimiter = true | false
 * Defaults to: true
 
 remote.s3.supports_versioning = true | false
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional.
 * Specifies whether the remote storage supports versioning.
 * Versioning is a means of keeping multiple variants of an object
@@ -1682,6 +1719,8 @@ remote.s3.supports_versioning = true | false
 * Defaults to: true
 
 remote.s3.endpoint = <URL>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional.
 * The URL of the remote storage system supporting the S3 API. 
 * The scheme, http or https, can be used to enable or disable SSL connectivity 
@@ -1692,6 +1731,8 @@ remote.s3.endpoint = <URL>
 * Example: https://s3-us-west-2.amazonaws.com
 
 remote.s3.multipart_download.part_size = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional.
 * Sets the download size of parts during a multipart download.
 * This setting uses HTTP/1.1 Range Requests (RFC 7233) to improve throughput
@@ -1704,27 +1745,37 @@ remote.s3.multipart_download.part_size = <unsigned int>
 * Defaults: 134217728 (128 MB)
 
 remote.s3.multipart_upload.part_size = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional.
 * Sets the upload size of parts during a multipart upload.
 * Minimum value: 5242880 (5 MB)
 * Defaults: 134217728 (128 MB)
 
 remote.s3.timeout.connect = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional 
 * Set the connection timeout, in milliseconds, to use when interacting with S3 for this volume
 * Defaults: 5000
 
 remote.s3.timeout.read = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional 
 * Set the read timeout, in milliseconds, to use when interacting with S3 for this volume
 * Defaults: 60000
 
 remote.s3.timeout.write = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional 
 * Set the write timeout, in milliseconds, to use when interacting with S3 for this volume
 * Defaults: 60000
 
 remote.s3.sslVerifyServerCert = <bool>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional
 * If this is set to true, Splunk verifies certificate presented by S3 server and checks
   that the common name/alternate name matches the ones specified in
@@ -1732,6 +1783,8 @@ remote.s3.sslVerifyServerCert = <bool>
 * Defaults: false
 
 remote.s3.sslVersions = <versions_list>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional
 * Comma-separated list of SSL versions to connect to 'remote.s3.endpoint'.
 * The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
@@ -1744,18 +1797,24 @@ remote.s3.sslVersions = <versions_list>
 * Defaults: tls1.2
 
 remote.s3.sslCommonNameToCheck = <commonName1>, <commonName2>, ..
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * If this value is set, and 'remote.s3.sslVerifyServerCert' is set to true,
   splunkd checks the common name of the certificate presented by
   the remote server (specified in 'remote.s3.endpoint') against this list of common names.
 * Defaults: unset
 
 remote.s3.sslAltNameToCheck = <alternateName1>, <alternateName2>, ..
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * If this value is set, and 'remote.s3.sslVerifyServerCert' is set to true,
   splunkd checks the alternate name(s) of the certificate presented by
   the remote server (specified in 'remote.s3.endpoint') against this list of subject alternate names.
 * Defaults: unset
 
 remote.s3.sslRootCAPath = <path>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional
 * Full path to the Certificate Authrity (CA) certificate PEM format file
   containing one or more certificates concatenated together. S3 certificate
@@ -1763,6 +1822,8 @@ remote.s3.sslRootCAPath = <path>
 * Defaults: [sslConfig/caCertFile] in server.conf
 
 remote.s3.cipherSuite = <cipher suite string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional
 * If set, uses the specified cipher string for the SSL connection.
 * If not set, uses the default cipher string.
@@ -1770,6 +1831,8 @@ remote.s3.cipherSuite = <cipher suite string>
 * Defaults: TLSv1+HIGH:TLSv1.2+HIGH:@STRENGTH
 
 remote.s3.ecdhCurves = <comma separated list of ec curves>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional
 * ECDH curves to use for ECDH key negotiation.
 * The curves should be specified in the order of preference.
@@ -1783,6 +1846,8 @@ remote.s3.ecdhCurves = <comma separated list of ec curves>
 * Defaults: unset
 
 remote.s3.dhFile = <path>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional
 * PEM format Diffie-Hellman parameter file name.
 * DH group size should be no less than 2048bits.
@@ -1790,6 +1855,8 @@ remote.s3.dhFile = <path>
 * Defaults:unset.
 
 remote.s3.encryption = sse-s3 | sse-kms | sse-c | none
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional
 * Specifies the scheme to use for Server-side Encryption (SSE) for data-at-rest.
 * sse-s3: Check http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html
@@ -1799,6 +1866,8 @@ remote.s3.encryption = sse-s3 | sse-kms | sse-c | none
 * Defaults: none
 
 remote.s3.encryption.sse-c.key_type = kms
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional
 * Determines the mechanism Splunk uses to generate the key for sending over to
   S3 for SSE-C.
@@ -1808,12 +1877,16 @@ remote.s3.encryption.sse-c.key_type = kms
 * Defaults: kms.
 
 remote.s3.encryption.sse-c.key_refresh_interval = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional
 * Specifies period in seconds at which a new key will be generated and used
   for encrypting any new data being uploaded to S3.
 * Defaults: 86400
 
 remote.s3.kms.key_id = <String>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Required if remote.s3.encryption = sse-c | sse-kms
 * Specifies the identifier for Customer Master Key (CMK) on KMS. It can be the
   unique key ID or the Amazon Resource Name (ARN) of the CMK or the alias
@@ -1826,12 +1899,16 @@ remote.s3.kms.key_id = <String>
 * Defaults: unset
 
 remote.s3.kms.access_key = <String>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional.
 * Similar to 'remote.s3.access_key'.
 * If not specified, KMS access uses 'remote.s3.access_key'.
 * Default: unset
 
 remote.s3.kms.secret_key = <String>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional.
 * Similar to 'remote.s3.secret_key'.
 * If not specified, KMS access uses 'remote.s3.secret_key'.
@@ -1845,12 +1922,16 @@ remote.s3.kms.auth_region = <String>
 * Defaults: unset
 
 remote.s3.kms.max_concurrent_requests = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional.
 * Limits maximum concurrent requests to KMS from this Splunk instance.
 * NOTE: Can severely affect search performance if set to very low value.
 * Defaults: 10
 
 remote.s3.kms.<ssl_settings> = <...>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional.
 * Check the descriptions of the SSL settings for remote.s3.<ssl_settings>
   above. e.g. remote.s3.sslVerifyServerCert.

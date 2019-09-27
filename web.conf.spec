@@ -1,4 +1,4 @@
-#   Version 6.6.12
+#   Version 7.0.0
 #
 # This file contains possible attributes and values you can use to configure
 # Splunk's web interface.
@@ -144,15 +144,15 @@ docsCheckerBaseURL = http://quickdraw.splunk.com/help
 enable_insecure_login = [True | False]
 * Indicates if the GET-based /account/insecurelogin endpoint is enabled
 * Provides an alternate GET-based authentication mechanism
-* If True, the /account/insecurelogin?username=USERNAME&password=PASSWD is
-  available
+* If True, the following url is available:
+http://localhost:8000/en-US/account/insecurelogin?loginType=splunk&username=noc&password=XXXXXXX
 * If False, only the main /account/login endpoint is available
 * Defaults to False
 
 simple_error_page = [True | False]
-   * If set to True a simplified error page will be displayed for errors (404, 500, etc.) only containing the status
-   * If set to False a more verbose error page will be displayed containing homelink, message, more_results_link, crashes, referrer, debug output and byline
-   * Defaults to False
+* If set to True a simplified error page will be displayed for errors (404, 500, etc.) only containing the status
+* If set to False a more verbose error page will be displayed containing homelink, message, more_results_link, crashes, referrer, debug output and byline
+* Defaults to False
 
 login_content = <content_string>
 * Add custom content to the login page
@@ -331,6 +331,7 @@ ui_inactivity_timeout = <integer>
 * Defaults to 60 minutes
 
 js_no_cache = [True | False]
+* DEPRECATED
 * Toggle js cache control
 * Defaults to False
 
@@ -455,6 +456,8 @@ jschart_series_limit = <int>
 
 jschart_results_limit = <int>
 * Chart results per series limit for all browsers.
+* DEPRECATED: Use data_sources.primary.params.count in visualizations.conf
+* to override the results per series limit for individual visualizations.
 * Defaults to 10000
 
 choropleth_shape_limit = <int>
@@ -1058,8 +1061,7 @@ loginCustomLogo = <fullUrl, pathToMyFile, myApp:pathToMyFile, or blank for defau
       * Default destination folder: $SPLUNK_HOME/etc/apps/search/appserver/static/logincustomlogo.
         * Example: If your logo image is located at $SPLUNK_HOME/etc/apps/search/appserver/static/logincustomlogo/logo.png, type loginCustomLogo = logincustomlogo/logo.png.
       * Manual location: $SPLUNK_HOME/etc/apps/<myApp>/appserver/static/<pathToMyFile>, and type loginCustomLogo = <myApp:pathToMyFile>.
-* Logo height limit is 100px. Logo displays original dimensions unless the image height is greater than 100px.
-* If image height exceeds 100px, the image is resized and width automatically adjusts.
+* The maximum image size is 485px wide and 100px high. If the image exceeds these limits, the image is automatically resized.
 
 loginBackgroundImageOption = [default| custom | none]
 * Controls display of the background image of the login page.

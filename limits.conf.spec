@@ -1,4 +1,4 @@
-#   Version 6.6.12
+#   Version 7.0.0
 #
 ############################################################################
 # OVERVIEW
@@ -62,7 +62,8 @@ DelayArchiveProcessorShutdown = <bool>
 max_mem_usage_mb = <non-negative integer>
 * Provides a limitation to the amount of RAM, in megabytes (MB), a batch of 
   events or results will use in the memory of a search process.
-* Operates on an estimation of memory use which is not exact.
+* Operates on an estimation of memory use which is not exact. The estimation can 
+  deviate by an order of magnitude or so to both the smaller and larger sides.
 * The limitation is applied in an unusual way; if the number of results or
   events exceeds maxresults, AND the estimated memory exceeds this limit, the
   data is spilled to disk.
@@ -76,25 +77,34 @@ max_mem_usage_mb = <non-negative integer>
 * When set to “0”: Specifies that the size is unbounded. Searches might be
   allowed to grow to arbitrary sizes.
 * NOTE: 
-  * The mvexpand command uses the “max_mem_usage_mb” value in a different way.
-    * The mvexpand command has no combined logic with maxresults.
+  * The mvexpand command uses the ‘max_mem_usage_mb’ value in a different way.
+    * The mvexpand command has no combined logic with ‘maxresults’.
     * If the memory limit is exceeded, output is truncated, not spilled to disk.
-  * The 'stats' processor uses the “max_mem_usage_mb” value in the following way.
+  * The stats command processor uses the ‘max_mem_usage_mb’ value in the following way.
     * If the estimated memory usage exceeds the specified limit, the results are 
       spilled to disk.
     * If 0 is specified, the results are spilled to the disk when the number of 
-      results exceed the “maxresultrows” setting.
-* This value is not exact. The estimation can deviate by an order of magnitude
-  or so to both the smaller and larger sides.
+      results exceed the ‘maxresultrows’ setting.
+  * The eventstats command processor uses the ‘max_mem_usage_mb’ value in the 
+    following way.
+    * Both the ‘max_mem_usage_mb’ and the ‘maxresultrows’ settings are used to determine
+      the maximum number of results to return.  If the limit for one setting is reached, 
+      the eventstats processor continues to return results until the limit for the 
+      other setting is reached. When both limits are reached, the eventstats command 
+      processor stops adding the requested fields to the search results.
+    * If you set ‘max_mem_usage_mb’ to 0, the eventstats command processor uses 
+      only the ‘maxresultsrows’ setting as the threshold. When the number of 
+      results exceeds the ‘maxresultsrows’ setting, the eventstats command processor 
+      stops adding the requested fields to the search results. 
 * Default: 200
 
 min_batch_size_bytes = <integer>
-* Specifies the size, in bytes, of the file/tar after which the 
+* Specifies the size, in megabytes (MB), of the file/tar after which the 
   file is handled by the batch reader instead of the trailing processor.
 * Global parameter, cannot be configured per input.
 * NOTE: Configuring this to a very small value could lead to backing up of jobs
   at the tailing processor.
-* Default: 20,971,520 bytes
+* Default: 20
 
 regex_cpu_profiling = <bool>
 * Enable CPU time metrics for RegexProcessor. Output will be in the 
@@ -132,6 +142,7 @@ tocsv_retryperiod_ms = <integer>
 * These setting control logging of error messages to the info.csv file.
   All messages will be logged to the search.log file regardless of 
   these settings.
+
 
 [search_info]
 * This stanza controls logging of messages to the info.csv file.
@@ -258,14 +269,6 @@ batch_retry_scaling = <double>
 * The value should be > 1.0.
 * Default: 1.5
 
-batch_wait_after_end = <int>
-* The amount of time, in seconds, to wait after a search ends to retry to 
-  connect with peers where the connection failed or was lost. 
-* Batch mode considers the search ended (finished) when all peers, without
-  communication failure, have explicitly indicated that they are complete.
-  This means that the peers have delivered the complete answer.  
-* Default: 900
-
 ############################################################################
 # Bundles
 ############################################################################
@@ -386,6 +389,14 @@ result_queue_max_size = <integer>
   “result_queue_max_size” value. 
 * Default: 100
 
+batch_wait_after_end = <int>
+* The amount of time, in seconds, to wait when the search executing on the
+  search head has not received new results from any of the peers.
+* Cannot be less than the 'receiveTimeout' setting in the distsearch.conf
+  file.
+* The setting is for all types of searches, not only batch mode.
+* Default: 900
+
 ############################################################################
 # Field stats 
 ############################################################################
@@ -490,7 +501,7 @@ disk_usage_update_period = <number>
 * Specifies how frequently, in seconds, should the search process estimate the
   artifact disk usage.
 * The quota for the amount of disk space that a search job can use is
-  controlled by the 'srchDiskQuota' setting in authorize.conf.
+  controlled by the 'srchDiskQuota' setting in the authorize.conf file.
 * Exceeding this quota causes the search to be auto-finalized immediately,
   even if there are results that have not yet been returned.
 * Fractional seconds are allowed.
@@ -584,32 +595,6 @@ auto_cancel_after_pause = <integer>
 * If set to 0, a paused search is never automatically cancelled.
 * Default: 0
 
-enable_conditional_expansion = <bool>
-* Controls whether to enable scoped(by sourcetype, source or host)
-  conditional expansion of knowledge objects during search string
-  expansion.
-* When set to true, Report Acceleration avoids full expansion of tags,
-  event types, aliases and reverse lookups, and instead uses any scope
-  information available either as part of the knowledge object definition
-  or any predicates available on default, non-multivalued fields, such as
-  sourcetype, source, and host.
-* Field extractions and field aliases are scoped by either sourcetype,
-  source or host.
-* Default: false
-
-always_include_indexedfield_lispy = <bool>
-* Determines whether or not a search must always look for a field in the 
-  lexicon that does not have "INDEXED = true" set in fields.conf using both
-  the indexed and non-indexed forms
-* If set to true, when searching for <field>=<val>, search looks for 
-  both <field>::<val> and <val> in the lexicon
-* If set to false, when searching for <field>=<val>, search looks for  
-  only <val> in the lexicon 
-* Set to true if you have fields that are sometimes indexed and sometimes
-  not indexed.  For field name that are always indexed, it is much better 
-  performance wise to set INDEXED=true in fields.conf for that field instead.
-* Default: false
-
 ############################################################################
 # Parsing
 ############################################################################
@@ -673,7 +658,7 @@ phased_execution = <bool>
   If not carefully applied, the phased execution can cause certain searches
   to slow down.
 * Explicitly set to true for the phased_execution to be operational.
-* More related settings in [parallelreduce] stanza.  
+* More related settings in the [parallelreduce] stanza.  
 * Default: false
 
 ############################################################################
@@ -808,6 +793,8 @@ realtime_buffer = <int>
 # This section contains settings for remote storage.
 
 bucket_localize_max_timeout_sec = <int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * The maximum amount of time, in seconds, to spend localizing a bucket stored 
   in remote storage.
 * If the bucket contents (what is required for the search) cannot be localized 
@@ -817,6 +804,8 @@ bucket_localize_max_timeout_sec = <int>
 * Default: 300 (5 minutes)
 
 bucket_localize_status_check_period_ms = <int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * The amount of time, in milliseconds, between consecutive status checks to see
   if the needed bucket contents required by the search have been localized.
 * This setting is only relevant when using remote storage.
@@ -827,9 +816,11 @@ bucket_localize_status_check_period_ms = <int>
 * Default: 500 (.5 seconds)
 
 bucket_localize_max_lookahead = <int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Specifies the maximum number of buckets the search command localizes
   for look-ahead purposes, in addition to the required bucket. 
-* Increasing this value can improve performance, at the cost of additional 
+* Increasing this value can improve performance, at the cost of additional
   network/io/disk utilization.
 * Valid values are 0-64. Any value larger than 64 will be set to 64. Other
   invalid values will be discarded and the default will be substituted.
@@ -837,6 +828,8 @@ bucket_localize_max_lookahead = <int>
 * Default: 5
 
 bucket_predictor = [consec_not_needed|everything]
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Specifies which bucket file prediction algorithm to use.
 * Do not change this unless you know what you are doing.
 * Default: consec_not_needed
@@ -1255,14 +1248,6 @@ ttl = <integer>
   remove the job from underneath.
 * Default: 600 (10 minutes)
 
-srtemp_dir_ttl = <integer>
-* Time to live, in seconds, before the reaper deletes srtemp directories and files
-* for intermediate search results. These directories can be found in
-* $SPLUNK_HOME/var/run/splunk/srtemp. The duration is measured by looking
-* at the newest file modification time  within the directory.
-* When set to 0: temporary files and directories are not reaped.
-* Default: 86400 (24 hours)
-
 ############################################################################
 # Unsupported settings 
 ############################################################################
@@ -1538,10 +1523,12 @@ max_reverse_matches = <integer>
 [metadata]
 
 bucket_localize_max_lookahead = <int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * This setting is only relevant when using remote storage.
 * Specifies the maximum number of buckets the metadata command localizes
   for look-ahead purposes, in addition to the required bucket. 
-* Increasing this value can improve performance, at the cost of additional 
+* Increasing this value can improve performance, at the cost of additional
   network/io/disk utilization.
 * Valid values are 0-64. Any value larger than 64 will be set to 64. Other
   invalid values will be discarded and the default will be substituted.
@@ -1732,7 +1719,7 @@ perc_digest_type = rdigest|tdigest
   ( and medians=50 percentile).
   * rdigest picks the rdigest_k, rdigest_maxnodes and perc_method properties.
   * tdigest picks the tdigest_k and tdigest_max_buffer_size properties.
-* Default: rdigest
+* Default: tdigest
 
 sparkline_maxsize = <int>
 * Maximum number of elements to emit for a sparkline
@@ -1783,7 +1770,7 @@ tdigest_k = <integer>
 * tdigest compression factor
 * Higher values mean less compression, more mem usage, but better accuracy.
 * Must be greater than or equal to 1.
-* Default: 100
+* Default: 50
 
 tdigest_max_buffer_size = <integer>
 * Maximum number of elements before automatic reallocation of buffer storage is triggered.
@@ -1791,7 +1778,7 @@ tdigest_max_buffer_size = <integer>
 * Very small values (<100) are not recommended as they will be very slow.
 * Larger values help performance up to a point after which it actually hurts performance.
 * Recommended range is around 10tdigest_k to 30tdigest_k.
-* Default: 2048
+* Default: 1000
 
 
 [top]
@@ -1859,6 +1846,18 @@ apply_search_filter = <boolean>
 * Note: we never apply search filters to data collected with tscollect or 
   datamodel acceleration
 * Default: true
+
+bucket_localize_max_lookahead = <int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* This setting is only relevant when using remote storage.
+* Specifies the maximum number of buckets the tstats command localizes for
+  look-ahead purposes, in addition to the required bucket.
+* Increasing this value can improve performance, at the cost of additional
+  network/io/disk utilization.
+* Valid values are 0-64. Any value larger than 64 will be set to 64. Other
+  invalid values will be discarded and the default will be substituted.
+* Default: 10
 
 chunk_size = <unsigned int>
 * ADVANCED: The default value of 'chunk_size' arg if not specified by 
@@ -2146,7 +2145,7 @@ max_fd = <integer>
 
 monitornohandle_max_heap_mb = <integer>
 * Controls the maximum memory used by the Windows-specific modular input
-  MonitorNoHandle in user mode.
+  MonitorNoHandle.
 * The memory of this input grows in size when the data being produced
   by applications writing to monitored files comes in faster than the Splunk
   system can accept it.
@@ -2158,26 +2157,6 @@ monitornohandle_max_heap_mb = <integer>
 
 tailing_proc_speed = <integer>
 * REMOVED.  This setting is no longer used.
-
-monitornohandle_max_driver_mem_mb = <integer>
-* Controls the maximum NonPaged memory used by the Windows-specific kernel driver of modular input
-  MonitorNoHandle.
-* The memory of this input grows in size when the data being produced
-  by applications writing to monitored files comes in faster than the Splunk
-  system can accept it.
-* When set to 0, the NonPaged memory size (memory allocated in the kernel driver of modular input) can grow
-  without limit.
-* If this size is limited, and the limit is encountered, the input will drop
-  some data to stay within the limit.
-* Default: 0
-
-monitornohandle_max_driver_records = <integer>
-* Controls memory growth by limiting the maximum in-memory records stored
-  by the kernel module of Windows-specific modular input MonitorNoHandle.
-* When monitornohandle_max_driver_mem_mb is set to > 0, this config is ignored.
-* monitornohandle_max_driver_mem_mb and monitornohandle_max_driver_records are mutually exclusive.
-* If the limit is encountered, the input will drop some data to stay within the limit.
-* Defaults to 500.
 
 time_before_close = <integer>
 * MOVED.  This setting is now configured per-input in inputs.conf.
@@ -2286,6 +2265,21 @@ max_threads_per_outputlookup = <unsigned int>
 * Default: 1
 
 
+[input_channels]
+
+max_inactive = <integer>
+* Internal setting, do not change unless instructed to do so by Splunk
+  Support.
+
+lowater_inactive = <integer>
+* Internal setting, do not change unless instructed to do so by Splunk
+  Support.
+
+inactive_eligibility_age_seconds = <integer>
+* Internal setting, do not change unless instructed to do so by Splunk
+  Support.
+
+
 [ldap]
 
 allow_multiple_matching_users = <bool>
@@ -2353,7 +2347,7 @@ render_endpoint_timeout = <unsigned int>
 # These can all be overridden for a single search via REST API arguments
 
 alerting_period_ms = <int>
-* This limits the frequency that we will trigger alerts during a realtime search
+* This limits the frequency that we will trigger alerts during a realtime search.
 * A value of 0 means unlimited and we will trigger an alert for every batch of
   events we read in dense realtime searches with expensive alerts this can
   overwhelm the alerting system.
@@ -2669,6 +2663,12 @@ priority_skipped_factor = <double>
   how quickly this happens.
 * Default: 1
 
+dispatch_retry_delay = <unsigned int>
+* The amount of time, in seconds, to delay retrying a scheduled search that
+  failed to dispatch (usually due to hitting concurrency limits).
+* Maximum value: 30
+* Default: 0
+
 saved_searches_disabled = <bool>
 * Whether saved search jobs are disabled by the scheduler.
 * Default: false
@@ -2804,16 +2804,6 @@ match_limit = <integer>
   function, match(). If set too low, PCRE might fail to correctly match a pattern.
 * Default: 100000
 
-recursion_limit = <integer>
-* Limits the amount of resources that are spent by PCRE
-  when running patterns that will not match.
-* Use this to set an upper bound on how many times PCRE calls an internal
-  function, match() recursively. If set too low, PCRE might fail to correctly match a pattern.
-* Since not all calls to match() are recursive, this limit is of use only
-  if it is set smaller than match_limit.
-* Default: 1000
-
-
 
 [slc]
 
@@ -2873,7 +2863,6 @@ threshold_data_volume = <unsigned int>
 
 
 [summarize]
-
 
 bucket_refresh_interval = <int>
 * When poll_buckets_until_maxtime is enabled in a non-clustered 
@@ -3046,30 +3035,6 @@ ttl = <integer>
   for reaping
 * Default: 86400 (24 hours)
 
-[scheduled_views]
-
-# Scheduled views are hidden [saved searches / reports] that trigger PDF generation
-# for a dashboard. When a user enables scheduled PDF delivery in the dashboard UI,
-# scheduled views are created.
-#
-# The naming pattern for scheduled views is _ScheduledView__<view_name>,
-# where <view_name> is the name of the corresponding dashboard.
-#
-# The scheduled views reaper, if enabled, runs periodically to look for
-# scheduled views that have been orphaned. A scheduled view becomes orphaned
-# when its corresponding dashboard has been deleted. The scheduled views reaper
-# deletes these orphaned scheduled views. The reaper only deletes scheduled
-# views if the scheduled views have not been disabled and their permissions
-# have not been modified.
-
-enable_reaper = <boolean>
-* Controls whether the scheduled views reaper runs, as well as whether
-* scheduled views are deleted when the dashboard they reference is deleted.
-* Default: true
-
-reaper_freq = <integer>
-* Controls how often, in seconds, the scheduled views reaper runs.
-* Default: 86400 (24 hours)
 
 ############################################################################
 # OPTIMIZATION
@@ -3083,8 +3048,20 @@ enabled = <bool>
 * Default: true
 
 
-[search_optimization::predicate_merge]
 # NOTE: Do not edit the below configurations unless directed by support
+[search_optimization::replace_append_with_union]
+
+enabled = <bool>
+* Enables replace append with union command optimization
+* Default: true
+
+[search_optimization::merge_union]
+
+enabled = <bool>
+* Merge consecutive unions
+* Default: true
+
+[search_optimization::predicate_merge]
 
 enabled = <bool>
 * Enables predicate merge optimization
@@ -3094,6 +3071,15 @@ inputlookup_merge = <bool>
 * Enables predicate merge optimization to merge predicates into inputlookup
 * predicate_merge must be enabled for this optimization to be performed
 * Default: true
+
+merge_to_base_search = <bool>
+* Enable the predicate merge optimization to merge the predicates into the first search in the pipeline.
+* Default: true
+
+fields_black_list = <fields_list>
+* A comma-separated list of fields that will not be merged into the first search in the pipeline.
+* If a field contains sub-tokens as values, then the field should be added to fields_black_list 
+* Default: no default
 
 
 [search_optimization::predicate_push]
@@ -3137,6 +3123,40 @@ fields = <comma-separated-string>
   to process a search are loaded by the search processor.
 * Only change this setting if you need to troubleshoot an issue.
 * Default: eventtype, tag
+
+[search_optimization::search_flip_normalization]
+enabled = <bool>
+* Enables predicate flip normalization.
+* This type of normalization takes 'where' command statements
+  in which the value is placed before the field name and reverses
+  them so that the field name comes first.
+* Predicate flip normalization only works for numeric values and
+  string values where the value is surrounded by quotes.
+* Predicate flip normalization also prepares searches to take
+  advantage of predicate merge optimization.
+* Disable search_flip_normalization if you determine that it is
+  causing slow search performance.
+* Default: true
+
+[search_optimization::search_sort_normalization]
+enabled = <bool>
+* Enables predicate sort normalization.
+* This type of normalization applies lexicographical sorting logic
+  to 'search' command expressions and 'where' command statements,
+  so they are consistently ordered in the same way.
+* Disable search_sort_normalization if you determine that it is
+  causing slow search performance.
+* Default: true
+
+[search_optimization::eval_merge]
+
+enabled = <bool>
+* Enables a search language optimization that combines two consecutive
+  "eval" statements into one and can potentially improve search performance.
+* There should be no side-effects to enabling this setting and need not
+  be changed unless you are troubleshooting an issue with search results.
+* Default: true
+
 
 [parallelreduce]
 maxReducersPerPhase = <positive integer>

@@ -1,4 +1,4 @@
-#   Version 6.5.7
+#   Version 6.5.8
 #
 # This file contains possible attributes and values for configuring global
 # telemetry settings. Please note that enabling these settings would enable

@@ -1,4 +1,4 @@
-#   Version 6.5.7
+#   Version 6.5.8
 
 # This file contains possible settings you can use to configure inputs,
 # distributed inputs such as forwarders, and file system monitoring in
@@ -142,6 +142,8 @@ _TCP_ROUTING = <tcpout_group_name>,<tcpout_group_name>,<tcpout_group_name>, ...
   [tcpout:<tcpout_group_name>].
 * Defaults to groups specified in "defaultGroup" in [tcpout] stanza in
   outputs.conf.
+* To forward data to all tcpout group names that have been defined in
+  outputs.conf, set to '*' (asterisk).
 * To forward data from the "_internal" index, _TCP_ROUTING must explicitly be
   set to either "*" or a specific splunktcp target group.
 

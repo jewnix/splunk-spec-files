@@ -1,4 +1,4 @@
-#   Version 6.5.9
+#   Version 6.5.10
 #
 # This file contains possible attribute/value pairs for configuring limits for
 # search commands.
@@ -81,6 +81,13 @@ DelayArchiveProcessorShutdown = <bool>
 * If set to false archive processor abandons further processing of archive file and will process again from start again.
 * If set to true archive processor will complete processing of archive file. Shutdown will be delayed. 
 * defaults to false 
+
+file_and_directory_eliminator_reaper_interval = <integer>
+* Specifies how often in seconds to run the FileAndDirectoryEliminator reaping
+  process.
+* A value of 0 disables the FileAndDirectoryEliminator.
+* Defaults to 0.
+* NOTE: Do not change unless instructed to do so by Splunk Support.
 
 [searchresults]
 * This stanza controls search results for a variety of Splunk search commands.

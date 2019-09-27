@@ -1,4 +1,4 @@
-#   Version 6.5.9
+#   Version 6.5.10
 #
 # This file contains attributes and values that you can use to configure
 # data transformations.  and event signing in transforms.conf.
@@ -361,10 +361,15 @@ CAN_OPTIMIZE = [true|false]
 
 filename = <string>
 * Name of static lookup file.
-* File should be in $SPLUNK_HOME/etc/<app_name>/lookups/ for some <app_name>, or in
-  $SPLUNK_HOME/etc/system/lookups/
+* File should be in $SPLUNK_HOME/etc/system/lookups/, or in
+  $SPLUNK_HOME/etc/<app_name>/lookups/ if the lookup belongs to a specific app.
 * If file is in multiple 'lookups' directories, no layering is done.
 * Standard conf file precedence is used to disambiguate.
+* Only file names are supported. Paths are explicitly not supported. If you
+  specify a path, the Splunk software strips the path to use the value after
+  the final path separator.
+* The Splunk software then looks for this filename in
+  $SPLUNK_HOME/etc/system/lookups/ or $SPLUNK_HOME/etc/<app_name>/lookups/.
 * Defaults to empty string.
 
 collection = <string>

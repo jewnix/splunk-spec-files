@@ -1,4 +1,4 @@
-#   Version 6.6.2
+#   Version 6.6.3
 
 # splunk-launch.conf contains values used at startup time, by the splunk
 # command and by windows services.

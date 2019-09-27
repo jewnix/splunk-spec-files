@@ -1,4 +1,4 @@
-#   Version 6.6.2
+#   Version 6.6.3
 #
 # This file contains all possible options for an indexes.conf file.  Use
 # this file to configure Splunk's indexes and their properties.
@@ -1664,6 +1664,22 @@ remote.s3.auth_region = <String>
   storage system supporting the S3 API. If unset, Splunk will attempt to automatically extract 
   the value from the endpoint URL
 * Defaults: unset
+
+remote.s3.use_delimiter = true | false
+* Optional.
+* Specifies whether a delimiter (currently "guidSplunk") should be
+  used to list the objects that are present on the remote storage.
+* A delimiter groups objects that have the same delimiter value
+  so that the listing process can be more efficient as it
+  does not need to report similar objects.
+* Defaults to: true
+
+remote.s3.supports_versioning = true | false
+* Optional.
+* Specifies whether the remote storage supports versioning.
+* Versioning is a means of keeping multiple variants of an object
+  in the same bucket on the remote storage.
+* Defaults to: true
 
 remote.s3.endpoint = <URL>
 * Optional.

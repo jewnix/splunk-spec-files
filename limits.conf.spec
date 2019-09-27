@@ -1,4 +1,4 @@
-#   Version 6.6.2
+#   Version 6.6.3
 #
 ############################################################################
 # OVERVIEW
@@ -3029,11 +3029,13 @@ enabled = <bool>
 * Default: true
 
 fields = <comma-separated-string>
-* Enables required field value optimizations.
-* Takes a list of field names to optimize.
-* When unset: required_field_values optimization is turned off.
+* Provide a comma-separated-list of field names to optimize.
+* Currently the only valid field names are eventtype and tag.
+* Optimization of event type and tag field values applies to transforming searches.
+  This optimization ensures that only the event types and tags neccesary
+  to process a search are loaded by the search processor.
+* Only change this setting if you need to troubleshoot an issue.
 * Default: eventtype, tag
-
 
 [parallelreduce]
 maxReducersPerPhase = <positive integer>

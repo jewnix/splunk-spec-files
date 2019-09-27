@@ -1,4 +1,4 @@
-#   Version 6.6.2
+#   Version 6.6.3
 #
 # This file contains possible attributes and values for configuring
 # authentication via authentication.conf.

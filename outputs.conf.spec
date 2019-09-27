@@ -1,4 +1,4 @@
-#   Version 6.6.2
+#   Version 6.6.3
 #
 # Forwarders require outputs.conf; non-forwarding Splunk instances do not
 # use it.  It determines how the forwarder sends data to receiving Splunk
@@ -543,7 +543,6 @@ defaultGroup = <target_group>, <target_group>, ...
 # For the following settings see the [syslog:<target_group>] stanza below
 type = [tcp|udp]
 priority = <priority_value> | NO_PRI
-dropEventsOnQueueFull = <integer>
 maxEventSize = <integer>
 
 [syslog:<target_group>]
@@ -655,15 +654,6 @@ timestampformat = <format>
 * Note that the string is not quoted.
 * Defaults to unset, which means that no timestamp will be inserted into the
   front of events.
-
-dropEventsOnQueueFull = <integer>
-* If set to a positive number, wait <integer> seconds before throwing out
-  all new events until the output queue has space.
-* Setting this to -1 or 0 will cause the output queue to block when it gets
-  full, causing further blocking up the processing chain.
-* If any target group's queue is blocked, no more data will reach any other
-  target group.
-* Defaults to -1 (do not drop events).
 
 maxEventSize = <integer>
 * If specified, sets the maximum size of an event that splunk will transmit.

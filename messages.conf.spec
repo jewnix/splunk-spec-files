@@ -1,4 +1,4 @@
-#   Version 7.1.2
+#   Version 7.1.3
 #
 # This file contains attribute/value pairs for configuring externalized strings
 # in messages.conf.
@@ -109,3 +109,18 @@ roles = <role list>
 help = <location string>
 * The location string to link users to specific documentation
 * Defaults to nothing
+
+target = [auto|ui|log|ui,log|none]
+* Sets the message display target.
+  * "auto" means the message display target is automatically determined by
+    context.
+  * "ui" messages are displayed by in Splunk Web and can be passed on from
+    search peers to search heads in a distributed search environment.
+  * "log" messages are displayed only in the log files for the instance, under
+    the BulletinBoard component, with log levels that respect their message
+    severity. For example, messages with severity "info" are displayed as INFO
+    log entries.
+  * "ui,log" combines the functions of the "ui" and "log" options.
+  * "none" completely hides the message (please consider using "log" and
+    reducing severity instead, using "none" may impact diagnosability).
+* Default: auto

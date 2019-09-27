@@ -1,4 +1,4 @@
-#   Version 7.1.2
+#   Version 7.1.3
 #
 # This file contains the set of attributes and values you can use to
 # configure server options in server.conf.
@@ -279,6 +279,11 @@ recreate_bucket_fetch_manifest_batch_size = <positive_integer>
   from remote storage.
 * Only valid for standalone mode.
 * Defaults to 100.
+
+splunkd_stop_timeout = <positive_integer>
+* The maximum time, in seconds, that splunkd waits for a graceful shutdown to
+  complete before splunkd forces a stop.
+* Defaults to 360.
 
 ############################################################################
 # Deployment Configuration details

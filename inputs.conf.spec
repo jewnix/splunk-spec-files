@@ -1,4 +1,4 @@
-#   Version 7.1.2
+#   Version 7.1.3
 
 # This file contains possible settings you can use to configure inputs,
 # distributed inputs such as forwarders, and file system monitoring in
@@ -1389,7 +1389,7 @@ enableSSL = [0|1]
 * Whether or not to use SSL for the event collector endpoint server.
 * HEC shares SSL settings with the Splunk management server and cannot have
   'enableSSL' set to true when the Splunk management server has SSL disabled.
-* Defaults to 0 (enabled).
+* Defaults to 1 (enabled).
 
 dedicatedIoThreads = <number>
 * Defines the number of dedicated input/output threads in the event collector
@@ -1655,6 +1655,12 @@ channel_cookie = <string>
   only provide sticky sessions on cookie values and not general header values.
 * If no value is set (the default), then no cookie will be returned.
 * Defaults to the empty string (no cookie).
+
+maxEventSize = <positive integer>[KB|MB|GB]
+* The maximum size of a single HEC (HTTP Event Collector) event.
+* HEC disregards and triggers a parsing error for events whose size is
+  greater than 'maxEventSize'.
+* Defaults to 5MB.
 
 #*******
 # HTTP Event Collector (HEC) - Local stanza for each token

@@ -1,4 +1,4 @@
-#   Version 7.1.2
+#   Version 7.1.3
 #
 # This file contains possible attributes and values you can use to configure
 # distributed search.
@@ -96,6 +96,14 @@ quarantined_servers = <comma separated list of servers>
   realtime searches started after the peer has been quarantined will not contact the peer.
 * Whenever a quarantined peer is excluded from search, appropriate warnings will be displayed
   in the search.log and Job Inspector
+
+useDisabledListAsBlacklist = <boolean>
+* Whether or not the search head treats the ‘disabled_servers’ setting as a blacklist.
+* If set to “true”, search peers that appear in both the ‘servers’ and ‘disabled_servers’
+  lists are disabled and do not participate in search.
+* If set to “false”, search peers that appear in both lists are treated as enabled, despite
+   being in the ‘disabled_servers’ list. These search peers do participate in search.
+* Default: false
  
 shareBundles = [true|false]
 * Indicates whether this server will use bundle replication to share search

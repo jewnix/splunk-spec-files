@@ -1,4 +1,4 @@
-#   Version 7.1.2
+#   Version 7.1.3
 #
 ############################################################################
 # OVERVIEW
@@ -793,6 +793,13 @@ realtime_buffer = <int>
 # Remote storage
 ############################################################################
 # This section contains settings for remote storage.
+
+bucket_localize_acquire_lock_timeout_sec = <int>
+* The maximum amount of time, in seconds, to wait when attempting to acquire a
+  lock for a localized bucket.
+* When set to 0, waits indefinitely.
+* This setting is only relevant when using remote storage.
+* Default: 60 (1 minute)
 
 bucket_localize_max_timeout_sec = <int>
 * Currently not supported. This setting is related to a feature that is

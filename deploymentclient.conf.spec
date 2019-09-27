@@ -1,4 +1,4 @@
-#   Version 7.1.2
+#   Version 7.1.3
 #
 # This file contains possible attributes and values for configuring a
 # deployment client to receive content (apps and configurations) from a
@@ -181,6 +181,21 @@ ecdhCurves = <comma separated list of ec curves>
 * Default is empty string.
 * e.g. ecdhCurves = prime256v1,secp384r1,secp521r1
 
+connect_timeout = <positive integer>
+* The amount of time, in seconds, that a deployment client can take to connect
+  to a deployment server before the server connection times out.
+* Defaults to 60.
+
+send_timeout = <positive integer>
+* The amount of time, in seconds, that a deployment client can take to send or
+  write data to a deployment server before the server connection times out.
+* Defaults to 60.
+
+recv_timeout = <positive integer>
+* The amount of time, in seconds, that a deployment client can take to receive
+  or read data from a deployment server before the server connection times out.
+* Defaults to 60.
+
 # The following stanza specifies deployment server connection information
 
 [target-broker:deploymentServer]
@@ -191,3 +206,12 @@ targetUri= <uri>
 
 phoneHomeIntervalInSecs = <nonnegative number>
 * see phoneHomeIntervalInSecs above
+
+connect_timeout = <positive integer>
+* See 'connect_timeout' in the "[deployment-client]" stanza for information on this setting.
+
+send_timeout = <positive integer>
+* See 'send_timeout' in the "[deployment-client]" stanza for information on this setting.
+
+recv_timeout = <positive integer>
+* See 'recv_timeout' in the "[deployment-client]" stanza for information on this setting.

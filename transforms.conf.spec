@@ -1,4 +1,4 @@
-#   Version 7.2.8
+#   Version 7.3.0
 #
 # This file contains settings and values that you can use to configure
 # data transformations.  
@@ -85,18 +85,14 @@ REGEX = <regular expression>
   DELIMS (see the DELIMS setting description, below).
 * REGEX is required for all index-time transforms.
 * REGEX and the FORMAT setting:
-  * FORMAT must be used in conjunction with REGEX for index-time transforms.
-    Use of FORMAT in conjunction with REGEX is optional for search-time
-    transforms.
   * Name-capturing groups in the REGEX are extracted directly to fields.
     This means that you do not need to specify the FORMAT setting for
-    simple search-time field extraction cases (see the description of FORMAT,
-    below).
+    simple field extraction cases (see the description of FORMAT, below).
   * If the REGEX extracts both the field name and its corresponding field
     value, you can use the following special capturing groups if you want to
-    skip specifying the mapping in FORMAT for search-time field extractions:
+    skip specifying the mapping in FORMAT:
       _KEY_<string>, _VAL_<string>.
-  * For example, the following are equivalent for search-time field extractions:
+  * For example, the following are equivalent:
     * Using FORMAT:
       * REGEX  = ([a-z]+)=([a-z]+)
       * FORMAT = $1::$2
@@ -108,13 +104,12 @@ REGEX = <regular expression>
 * Default: empty string
 
 FORMAT = <string>
-* NOTE: This option is valid for both index-time and search-time field
-  extraction. Index-time field extraction configurations require the FORMAT
-  setting. The FORMAT setting is optional for search-time field extraction
-  configurations.
-* This setting specifies the format of the event, including any field names or
+* NOTE: This option is valid for both index-time and search-time field 
+  extraction. However, FORMAT behaves differently depending on whether the 
+  extraction is performed at index time or search time.
+* This setting specifies the format of the event, including any field names or  
   values you want to add.
-* FORMAT is required for index-time extractions:
+* FORMAT for index-time extractions:
   * Use $n (for example $1, $2, etc) to specify the output of each REGEX
     match.
   * If REGEX does not have n groups, the matching fails.
@@ -472,7 +467,7 @@ max_matches = <integer>
   in descending time order. In other words, only <max_matches> lookup entries
   are allowed to match. If the number of lookup entries exceeds <max_matches>, 
   only the ones nearest to the lookup value are used.
-* Default = 100 matches if the time_field setting is not specified for the
+* Default: 100 matches if the time_field setting is not specified for the
   lookup. If the time_field setting is specified for the lookup, the default is
   1 match.
 
@@ -526,13 +521,14 @@ index_fields_list = <string>
 * Restricting the fields enables better lookup performance.
 * Defaults to all fields that are defined in the .csv lookup file header. 
 
-external_type = [python|executable|kvstore|geo]
+external_type = [python|executable|kvstore|geo|geo_hex]
 * This setting describes the external lookup type. 
 * Use 'python' for external lookups that use a python script.
 * Use 'executable' for external lookups that use a binary executable, such as a 
   C++ executable. 
 * Use 'kvstore' for KV store lookups.
 * Use 'geo' for geospatial lookups.
+* 'geo_hex' is reserved for the geo_hex H3 lookup.
 * Default: python
 
 time_field = <string>
@@ -657,18 +653,23 @@ REMOVE_DIMS_FROM_METRIC_NAME = <boolean>
   METRIC-SCHEMA-MEASURES-<unique_metric_name_prefix> or METRIC-SCHEMA-MEASURES. These
   settings determine how values for the metric_name and _value fields are obtained.
 
-METRIC-SCHEMA-MEASURES-<unique_metric_name_prefix> = <measure_field1>, <measure_field2>,...
+METRIC-SCHEMA-MEASURES-<unique_metric_name_prefix> = (_ALLNUMS_ | (_NUMS_EXCEPT_ )? <field1>, <field2>,... )
 * Optional.
 * <unique_metric_name_prefix> should match the value of a field extracted from
   the event.
-* <measure_field> should match the name of a field with a numeric value
-  extracted from the event.
+* If this setting is exactly equal to _ALLNUMS_, the Splunk software treats 
+  all numeric fields as measures.
+* If this setting starts with _NUMS_EXCEPT_, the Splunk software treats all
+  numerical fields except those that match the given field names as  measures.
+  * NOTE: a space is required between the '_NUMS_EXCEPT_' prefix and '<field1>'.
+* Otherwise, the Splunk software treats all fields that are listed and which 
+  have a numerical value as measures.
 * If the value of the 'metric_name' index-time extraction matches with the
   <unique_metric_name_prefix>, the Splunk platform:
-  * Creates a metric with a new metric_name for each <measure_field> where the
-    metric_name value is the <measure_field> prefixed by the
+  * Creates a metric with a new metric_name for each measure field where the
+    metric_name value is the name of the field prefixed by the
     <unique_metric_name_prefix>.
-  * Saves the corresponding numeric value for each <measure_field> as '_value'
+  * Saves the corresponding numeric value for each measure field as '_value'
     within each metric.
 * The Splunk platform saves the remaining index-time field extractions as
   dimensions in each of the created metrics.
@@ -684,16 +685,17 @@ METRIC-SCHEMA-BLACKLIST-DIMS-<unique_metric_name_prefix> = <dimension_field1>, <
 * <unique_metric_name_prefix> should match the value of a field extracted from
   the log event.
 * <dimension_field> should match the name of a field in the log event that is
-  not extracted as a <measure_field> in the corresponding METRIC-SCHEMA-
+  not extracted as a measure field in the corresponding METRIC-SCHEMA-
   MEASURES-<unique_metric_name_prefix> configuration.
 * Default: empty
 
-METRIC-SCHEMA-MEASURES = <measure_field1>, <measure_field2>,...
+METRIC-SCHEMA-MEASURES = (_ALLNUMS_ | (_NUMS_EXCEPT_ )? <field1>, <field2>,... )
 * Optional.
 * This configuration has a lower precedence over METRIC-SCHEMA-MEASURES-<unique_metric_name_prefix>
   if event has a match for unique_metric_name_prefix
 * When no prefix can be identified, this configuration is active
-  to create a new metric for each <measure_field> in the event data.
+  to create a new metric for each measure field in the event data, as defined
+  in the previous description for METRIC-SCHEMA-MEASURES-<unique_metric_name_prefix>
 * The Splunk platform saves the remaining index-time field extractions as
   dimensions in each of the created metrics.
 * Default: empty

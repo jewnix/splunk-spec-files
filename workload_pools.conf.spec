@@ -1,4 +1,4 @@
-#   Version 7.2.8
+#   Version 7.3.0
 #
 ############################################################################
 # OVERVIEW
@@ -46,22 +46,24 @@ enabled = <bool>
 
 default_pool = <string>
 * Specifies the default workload pool to be used at runtime for search workloads.
-* Admin users could specify workload pools associated with roles. If no workload
-  pool can be found, then we fall back to this default_pool that is defined in
-  the general stanza in workload.conf.
+* This setting is maintained for backward compatibility with previous releases.
+  Its value is set but is not used in the current release. This value matches the
+  default_pool value of [workload_category:search].
 * This setting is only applicable when workload management has been enabled in
   the system. If workload management has been enabled, this is a mandatory setting.
 
 ingest_pool = <string>
-* Specifies the workload pool for the splunkd process that controls ingestion
-  and other actions in the Splunk deployment.
-* Use this setting to guarantee a minimum lower-bound for resources for tasks
-  controlled and managed by splunkd.
+* Specifies the workload pool for splunkd and helper processes that control
+  data ingestion and related actions in the Splunk deployment.
+* This setting is maintained for backward compatibility with previous releases.
+  Its value is set but is not used in the current release. This value matches the
+  default_pool value of [workload_category:ingest].
 * This setting is only applicable when workload management has been enabled in
   the system. If workload management has been enabled, this is a mandatory setting.
 
 workload_pool_base_dir_name = <string>
-* Specifies the base controller directory name for Splunk cgroups on Linux to be used by a Splunk deployment.
+* Specifies the base controller directory name for Splunk cgroups on Linux that is
+  used by a Splunk deployment.
 * Workload pools created from the workload management page are all created relative
   to this base directory.
 * This setting is only applicable when workload management has been enabled in
@@ -71,20 +73,48 @@ workload_pool_base_dir_name = <string>
 [workload_pool:<pool_name>]
 cpu_weight = <number>
 * Specifies the cpu weight to be used by this workload pool.
-* This is effectively a relative ratio or fraction of the total weights assigned
-  across all the workload pools.
-* Note that this is not a percentage and instead a relative weight as a fraction
-  of the total weight calculated by summing all workload pool weights.
-* This is a mandatory parameter for the creation of a workload pool and only
-  allows positive integral values.
+* This is a percentage of the total cpu resources available to the category to
+  which the pool belongs.
 * Default is unset
 
 mem_weight = <number>
 * Specifies the memory weight to be used by this workload pool.
-* This is effectively a ratio or fraction of the total weights assigned
-  across all the workload pools.
-* Note that this is not a percentage and instead a relative weight as a fraction
-  of the total weight calculated by summing all workload pool weights.
+* This is a percentage of the total memory resources available to the category to
+  which the pool belongs.
 * This is a mandatory parameter for the creation of a workload pool and only
   allows positive integral values.
 * Default is unset
+
+category = <string>
+* Specifies the category to which this workload pool belongs.
+* Required to create a workload pool.
+* Valid categories are "search","misc" and "ingest".
+* The "ingest" and "misc" categories each contain one pool only, which is the
+  default_pool for the respective category.
+* Default is unset.
+
+default_category_pool = <boolean>
+* Specifies if this pool is the default pool for its category.
+* Admin users can specify workload pools associated with roles. If no workload
+  pool is found, the default_pool defined for this category is used.
+* The first pool that is added to a category has this value set to 1.
+* All other pools have this value set to 0.
+* Required if workload management is enabled.
+* Default: false.
+
+[workload_category:<category>]
+* Specifies the resource allocation for workload pools in this category.
+  The <category> value can be "search","ingest' or "misc".
+cpu_weight = <number>
+* Specifies the cpu weight to be used by this category.
+* This is a percentage of the total cpu resources available to all categories.
+* This parameter exists in the default configuration and is editable with values
+  that are positive integer values less than 100.
+* Default is set.
+
+mem_weight = <number>
+* Specifies the memory weight to be used by this category.
+* This is a percentage of the total memory resources available to all categories.
+* This parameter exists in the default configuration and is editable with values
+  that are positive integer values less than 100.
+* Default is set.

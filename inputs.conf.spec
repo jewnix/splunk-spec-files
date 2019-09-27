@@ -1,4 +1,4 @@
-#   Version 7.2.8
+#   Version 7.3.0
 
 # This file contains possible settings you can use to configure inputs,
 # distributed inputs such as forwarders, and file system monitoring in
@@ -6,8 +6,8 @@
 #
 # There is an inputs.conf in $SPLUNK_HOME/etc/system/default/.  To set custom
 # configurations, place an inputs.conf in $SPLUNK_HOME/etc/system/local/.  For
-# examples, see inputs.conf.example. You must restart Splunk to enable new
-# configurations.
+# examples, see inputs.conf.example. You must restart Splunk software
+# to enable new configurations.
 #
 # To learn more about configuration files (including precedence), see the
 # documentation located at
@@ -23,7 +23,7 @@
 #     multiple definitions of the same setting, the last definition in the
 #     file wins.
 #   * If an setting is defined at both the global level and in a specific
-#   stanza, the value in the specific stanza takes precedence.
+#     stanza, the value in the specific stanza takes precedence.
 
 #*******
 # GENERAL SETTINGS:
@@ -38,7 +38,7 @@
 #*******
 
 host = <string>
-* Sets the host key/field to a static value for this input stanza. 
+* Sets the host key/field to a static value for this input stanza.
 * The input uses this field during parsing and indexing. It also uses this
   field at search time.
 * As a convenience, the input prepends the chosen string with 'host::'.
@@ -75,7 +75,7 @@ source = <string>
   string to aid in problem analysis and investigation, recording the file
   from which the data was retrieved. Consider using source types, tagging,
   and search wildcards before overriding this value.
-* Do not put the <string> value in quotes: Use source=foo, 
+* Do not put the <string> value in quotes: Use source=foo,
   not source="foo".
 * Default: the input file path.
 
@@ -89,7 +89,7 @@ sourcetype = <string>
   parsing or indexing to set the source type field during
   indexing. It is also the source type field used at search time.
 * As a convenience, the chosen string is prepended with 'sourcetype::'.
-* Do not put the <string> value in quotes: Use sourcetype=foo, 
+* Do not put the <string> value in quotes: Use sourcetype=foo,
   not sourcetype="foo".
 * If not set, the indexer analyzes the data and chooses a source type.
 * No default.
@@ -129,7 +129,7 @@ _time = <value>
 # ***********
 # This section contains options for routing data using inputs.conf rather than
 # outputs.conf.
-# 
+#
 # NOTE: concerning routing via inputs.conf:
 # This is a simplified set of routing options you can use as data comes in.
 # For more flexible options or details on configuring required or optional
@@ -180,15 +180,15 @@ _INDEX_AND_FORWARD_ROUTING = <string>
 * Protects files on the file system from being indexed or previewed.
 * The input treats a file as blacklisted if the file starts with any of the
   defined blacklisted <paths>.
-* Blacklisting of a file with the specified path occurs even if a monitor 
+* Blacklisting of a file with the specified path occurs even if a monitor
   stanza defines a whitelist that matches the file path.
-* The preview endpoint will return an error when asked to preview a
+* The preview endpoint returns an error when asked to preview a
   blacklisted file.
-* The oneshot endpoint and command will also return an error.
-* When a blacklisted file is monitored (monitor:// or batch://), filestatus
-  endpoint will show an error.
+* The oneshot endpoint and command also returns an error.
+* When a blacklisted file is monitored (monitor:// or batch://),
+  the 'filestatus' endpoint shows an error.
 * For fschange with the 'sendFullEvent' option enabled, contents of
-  blacklisted files will not be indexed.
+  blacklisted files are not indexed.
 
 #*******
 # Valid input types follow, along with their input-specific settings:
@@ -221,13 +221,13 @@ host_regex = <regular expression>
 
 host_segment = <integer>
 * If set to N, Splunk software sets the Nth "/"-separated segment of the path
-  as 'host'. 
+  as 'host'.
     * For example, if host_segment=3, the third segment is used.
 * If the value is not an integer or is less than 1, the default 'host'
   setting is used.
-* On Windows machines, the drive letter and colon before the backslash count 
+* On Windows machines, the drive letter and colon before the backslash count
   as one segment.
-    * For example, if you set host_segment=3 and the monitor path is 
+    * For example, if you set host_segment=3 and the monitor path is
       D:\logs\servers\host01, Splunk software sets the host as "servers" because
       that is the third segment.
 * Default: Not set.
@@ -252,7 +252,7 @@ Note concerning wildcards and monitor:
 * You can use wildcards to specify your input path for monitored inputs. Use
   "..." for recursive directory matching and "*" for wildcard matching in a
   single directory segment.
-* "..." recurses through directories. This means that /foo/.../bar will match
+* "..." recurses through directories. This means that /foo/.../bar matches
   foo/1/bar, foo/1/2/bar, etc.
 * You can use multiple "..." specifications in a single input path. For
   example: /foo/.../bar/...
@@ -277,11 +277,11 @@ crcSalt = <string>
 * If set, <string> is added to the CRC.
 * If set to the literal string "<SOURCE>" (including the angle brackets), the
   full directory path to the source file is added to the CRC. This ensures
-  that each file being monitored has a unique CRC. When crcSalt is invoked,
+  that each file being monitored has a unique CRC. When 'crcSalt' is invoked,
   it is usually set to <SOURCE>.
 * Be cautious about using this setting with rolling log files; it could lead
   to the log file being re-indexed after it has rolled.
-* In many situations, initCrcLength can be used to achieve the same goals.
+* In many situations, 'initCrcLength' can be used to achieve the same goals.
 * Default: empty string.
 
 initCrcLength = <integer>
@@ -290,18 +290,18 @@ initCrcLength = <integer>
   adjust this if you have many files with common headers (comment headers,
   long CSV headers, etc) and recurring filenames.
 * Cannot be less than 256 or more than 1048576.
-* CAUTION: Improper use of this setting will cause data to be re-indexed. You
+* CAUTION: Improper use of this setting causes data to be re-indexed. You
   might want to consult with Splunk Support before adjusting this value - the
   default is fine for most installations.
 * Default: 256 (bytes).
 
 ignoreOlderThan = <non-negative integer>[s|m|h|d]
-* The monitor input will compare the modification time on files it encounters
+* The monitor input compares the modification time on files it encounters
   with the current time. If the time elapsed since the modification time
   is greater than the value in this setting, Splunk software puts the file
   on the ignore list.
-* Files on the ignore list will not be checked again until Splunk 
-  software restarts, or the file monitoring subsystem is reconfigured.  This
+* Files on the ignore list are not checked again until the Splunk
+  platform restarts, or the file monitoring subsystem is reconfigured.  This
   is true even if the file becomes newer again at a later time.
   * Reconfigurations occur when changes are made to monitor or batch
     inputs through Splunk Web or the command line.
@@ -333,15 +333,15 @@ followTail = [0|1]
   for a given input stanza. This lets you skip over data in files, and
   immediately begin indexing current data.
 * If you set to "1", monitoring starts at the end of the file (like
-  *nix 'tail -f'. The input does not read any data that exists in 
+  *nix 'tail -f'). The input does not read any data that exists in
   the file when it is first encountered. The input only reads data that
   arrives after the first encounter time.
 * If you set to "0", monitoring starts at the beginning of the file.
 * This is an advanced setting. Contact Splunk Support before using it.
-* Best practice for using this setting follows:
-  * Enable this setting and start the Splunk software.
+* Best practice for using this setting:
+  * Enable this setting and start the Splunk instance.
   * Wait enough time for the input to identify the related files.
-  * Disable the setting and restart.
+  * Disable the setting and restart the instance.
 * Do not leave 'followTail' enabled in an ongoing fashion.
 * Do not use 'followTail' for rolling log files (log files that get renamed as
   they age) or files whose names or paths vary.
@@ -377,23 +377,23 @@ multiline_event_extra_waittime = <boolean>
 * Default: false.
 
 recursive = <boolean>
-* Whether or not the input monitors subdirectories that it finds within a 
+* Whether or not the input monitors subdirectories that it finds within a
   monitored directory.
 * If you set this setting to "false", the input does not monitor sub-directories
 * Default: true.
 
 followSymlink = <boolean>
 * Whether or not to follow any symbolic links within a monitored directory.
-* If you set this setting to "false", the input ignores symbolic links 
+* If you set this setting to "false", the input ignores symbolic links
   that it finds within a monitored directory.
-* If you set the setting to "true", the input follows symbolic links 
+* If you set the setting to "true", the input follows symbolic links
   and monitors files at the symbolic link destination.
 * Additionally, any whitelists or blacklists that the input stanza defines
   also apply to files at the symbolic link destination.
 * Default: true.
 
 _whitelist = ...
-* DEPRECATED. 
+* DEPRECATED.
 * This setting is valid unless the 'whitelist' setting also exists.
 
 _blacklist = ...
@@ -418,7 +418,7 @@ file on disk.
 # Additional settings:
 
 move_policy = sinkhole
-* This setting is required. You *must* include "move_policy = sinkhole" 
+* This setting is required. You *must* include "move_policy = sinkhole"
   when you define batch inputs.
 * This setting causes the input to load the file destructively.
 * CAUTION: Do not use the 'batch' input type for files you do not want to
@@ -432,10 +432,15 @@ host_regex = see MONITOR, above.
 host_segment = see MONITOR, above.
 crcSalt = see MONITOR, above.
 
+log_on_completion = <boolean>
+* When set to false, this setting prevents Splunk software from logging to
+  splunkd.log when it indexes files with this input.
+* Default: true
+
 # 'batch' inputs do not use the following setting:
 # source = <string>
 
-followSymlink = [true|false]
+followSymlink = <boolean>
 * Works similarly to the same setting for monitor, but does not delete files
   after following a symbolic link out of the monitored directory.
 
@@ -444,7 +449,7 @@ followSymlink = [true|false]
 host_regex = <regular expression>
 host_segment = <integer>
 crcSalt = <string>
-recursive = [true|false]
+recursive = <boolean>
 whitelist = <regular expression>
 blacklist = <regular expression>
 initCrcLength = <integer>
@@ -469,7 +474,7 @@ connection_host = [ip|dns|none]
 * "ip" sets the host to the IP address of the system sending the data.
 * "dns" sets the host to the reverse DNS entry for the IP address of the system
   sending the data.
-* "none" leaves the host as specified in inputs.conf, typically the splunk
+* "none" leaves the host as specified in inputs.conf, typically the Splunk
   system hostname.
 * Default: "dns".
 
@@ -482,14 +487,14 @@ persistentQueueSize = <integer>[KB|MB|GB|TB]
 * Persistent queues can help prevent loss of transient data. For information on
   persistent queues and how the 'queueSize' and 'persistentQueueSize' settings
   interact, search the online documentation for "persistent queues".
-* If you set this to a value other than 0, then 'persistentQueueSize' must 
-  be larger than either the in-memory queue size (as defined by the 'queueSize' 
+* If you set this to a value other than 0, then 'persistentQueueSize' must
+  be larger than either the in-memory queue size (as defined by the 'queueSize'
   setting in inputs.conf or 'maxSize' settings in [queue] stanzas in
   server.conf).
 * Default: 0 (no persistent queue).
 
 requireHeader = <boolean>
-* Whether or not to require a header be present at the beginning of every 
+* Whether or not to require a header be present at the beginning of every
   stream.
 * This header can be used to override indexing settings.
 * Default: false.
@@ -521,7 +526,7 @@ acceptFrom = <network_acl> ...
 rawTcpDoneTimeout = <seconds>
 * The amount of time, in seconds, that a network connection can remain idle
   before Splunk software declares that the last event over that connection
-  has been received. 
+  has been received.
 * If a connection over this port remains idle for more than
   'rawTcpDoneTimeout' seconds after receiving data, it adds a Done-key. This
   declares that the last event has been completely received.
@@ -583,11 +588,11 @@ s2sHeartbeatTimeout = <seconds>
 
 inputShutdownTimeout = <seconds>
 * The amount of time, in seconds, that a receiver waits before shutting down
-  inbound TCP connections after it receives a signal to shut down. 
+  inbound TCP connections after it receives a signal to shut down.
 * Used during shutdown to minimize data loss when forwarders are connected to a
   receiver.
 * During shutdown, the TCP input processor waits for 'inputShutdownTimeout'
-  seconds and then closes any remaining open connections. 
+  seconds and then closes any remaining open connections.
 * If all connections close before the end of the timeout period,
   shutdown proceeds immediately, without waiting for the timeout.
 
@@ -603,7 +608,7 @@ stopAcceptorAfterQBlock = <seconds>
   receiver starts listening on the port again.
 * This setting should not be adjusted lightly as extreme values can interact
   poorly with other defaults.
-* Defaults to 300 (5 minutes).
+* Default: 300 (5 minutes).
 
 listenOnIPv6 = no|yes|only
 * Select whether this receiver listens on IPv4, IPv6, or both protocols.
@@ -622,21 +627,21 @@ acceptFrom = <network_acl> ...
        "myhost.example.com", "*.splunk.com")
     4. "*", which matches anything.
 * You can also prefix an entry with '!' to cause the rule to reject the
-  connection. 
-* The input applies rules in order, and uses the first one that matches. 
+  connection.
+* The input applies rules in order, and uses the first one that matches.
   For example, "!10.1/16, *" allows connections from everywhere
   except the 10.1.*.* network.
 * Default: "*" (accept from anywhere)
 
 negotiateProtocolLevel = <unsigned integer>
 * If set, lets forwarders that connect to this receiver (or specific port)
-  send data using only up to the specified feature level of the splunk
+  send data using only up to the specified feature level of the Splunk
   forwarder protocol.
-* If set to a value that is lower than the default, will deny the use 
+* If set to a value that is lower than the default, denies the use
   of newer forwarder protocol features during connection negotiation. This
   might impact indexer efficiency.
-* Default: 1 (if 'negotiateNewProtocol' is "true")
-* Default: 0 (if 'negotiateNewProtocol' is not "true")
+* Default (if 'negotiateNewProtocol' is "true"): 1
+* Default (if 'negotiateNewProtocol' is not "true"): 0
 
 negotiateNewProtocol = <boolean>
 * Controls the default configuration of the 'negotiateProtocolLevel' setting.
@@ -668,13 +673,13 @@ concurrentChannelLimit = <unsigned integer>
     which supersedes this setting.
 
 connection_host = [ip|dns|none]
-* For splunktcp, the 'host' or 'connection_host' will be used if the remote 
+* For splunktcp, the 'host' or 'connection_host' is be used if the remote
   Splunk instance does not set a host, or if the host is set to
   "<host>::<localhost>".
 * "ip" sets the host to the IP address of the system sending the data.
 * "dns" sets the host to the reverse DNS entry for IP address of the system
   sending the data.
-* "none" leaves the host as specified in inputs.conf, typically the splunk
+* "none" leaves the host as specified in inputs.conf, typically the Splunk
   system hostname.
 * Default: "ip".
 
@@ -764,12 +769,12 @@ token = <string>
   'compressed' setting from forwarders.
 
 connection_host = [ip|dns|none]
-* For splunktcp, the host or connection_host will be used if the remote Splunk
+* For splunktcp, the host or connection_host is used if the remote Splunk
   instance does not set a host, or if the host is set to "<host>::<localhost>".
 * "ip" sets the host to the IP address of the system sending the data.
 * "dns" sets the host to the reverse DNS entry for IP address of the system
   sending the data.
-* "none" leaves the host as specified in inputs.conf, typically the splunk
+* "none" leaves the host as specified in inputs.conf, typically the Splunk
   system hostname.
 * Default: "ip".
 
@@ -825,22 +830,23 @@ sslVersions = <string>
 cipherSuite = <cipher suite string>
 ecdhCurves = <comma separated list of ec curves>
 dhFile = <path>
-allowSslRenegotiation = true|false
-sslQuietShutdown = [true|false]
+allowSslRenegotiation = <boolean>
+sslQuietShutdown = <boolean>
 sslCommonNameToCheck = <commonName1>, <commonName2>, ...
 sslAltNameToCheck = <alternateName1>, <alternateName2>, ...
+useSSLCompression = <boolean>
 
 [tcp-ssl:<port>]
 * Use this stanza type if you are receiving encrypted, unparsed data from a
   forwarder or third-party system.
 * Set <port> to the port on which the forwarder/third-party system is sending
   unparsed, encrypted data.
-* To create multiple SSL inputs, you can add the following attributes to each 
-[tcp-ssl:<port>] input stanza. If you do not configure a certificate in the 
-port, the certificate information is pulled from the default [SSL] stanza: 
-  * serverCert = <path_to_cert> 
-  * sslRootCAPath = <path_to_cert> This attribute should only be added 
-    if you have not configured your sslRootPath in server.conf. 
+* To create multiple SSL inputs, you can add the following attributes to each
+[tcp-ssl:<port>] input stanza. If you do not configure a certificate in the
+port, the certificate information is pulled from the default [SSL] stanza:
+  * serverCert = <path_to_cert>
+  * sslRootCAPath = <path_to_cert> This attribute should only be added
+    if you have not configured your sslRootPath in server.conf.
   * sslPassword = <password>
 
 listenOnIPv6 = [no|yes|only]
@@ -863,7 +869,7 @@ acceptFrom = <network_acl> ...
   connection. The input applies rules in order, and uses the first one that
   matches. For example, "!10.1/16, *" allows connections from everywhere except
   the 10.1.*.* network.
-* Defaults to "*" (accept from anywhere)
+* Default: "*" (accept from anywhere)
 
 [SSL]
 * Set the following specifications for receiving Secure Sockets Layer (SSL)
@@ -889,12 +895,12 @@ rootCA = <path>
 * DEPRECATED.
 * Do not use this setting. Use 'server.conf/[sslConfig]/sslRootCAPath' instead.
 * Used only if 'sslRootCAPath' is not set.
+* The <path> must refer to a PEM format file containing one or more root CA
+  certificates concatenated together.
 
 requireClientCert = <boolean>
 * Determines whether a client must present an SSL certificate to authenticate.
 * Full path to the root CA (Certificate Authority) certificate store.
-* The <path> must refer to a PEM format file containing one or more root CA
-  certificates concatenated together.
 * Default: false (if using self-signed and third-party certificates)
 * Default: true (if using the default certificates, overrides the existing
   "false" setting)
@@ -909,7 +915,7 @@ sslVersions = <string>
   no effect.
 * When configured in Federal Information Processing Standard (FIPS) mode, the
   "ssl3" version is always disabled, regardless of this configuration.
-* The default can vary. See the 'sslVersions' setting in 
+* The default can vary. See the 'sslVersions' setting in
   $SPLUNK_HOME/etc/system/default/inputs.conf for the current default.
 
 supportSSLV3Only = <boolean>
@@ -920,7 +926,7 @@ supportSSLV3Only = <boolean>
 cipherSuite = <cipher suite string>
 * If set, uses the specified cipher string for the input processors.
 * Must specify 'dhFile' to enable any Diffie-Hellman ciphers.
-* The default can vary. See the cipherSuite setting in 
+* The default can vary. See the cipherSuite setting in
   $SPLUNK_HOME/etc/system/default/inputs.conf for the current default.
 
 ecdhCurveName = <string>
@@ -928,8 +934,8 @@ ecdhCurveName = <string>
 * Use the 'ecdhCurves' setting instead.
 * This setting specifies the Elliptic Curve Diffie-Hellman (ECDH) curve to
   use for ECDH key negotiation.
-* Splunk only supports named curves that have been specified by their 
-  SHORT name.
+* Splunk software only supports named curves that have been specified
+  by their SHORT name.
 * The list of valid named curves by their short and long names
   can be obtained by running this CLI command:
   $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
@@ -946,7 +952,7 @@ ecdhCurves = <comma-separated list>
   by running this CLI command:
   $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
 * Example setting: "ecdhCurves = prime256v1,secp384r1,secp521r1"
-* The default can vary. See the 'ecdhCurves' setting in 
+* The default can vary. See the 'ecdhCurves' setting in
   $SPLUNK_HOME/etc/system/default/inputs.conf for the current default.
 
 dhFile = <path>
@@ -969,7 +975,7 @@ allowSslRenegotiation = <boolean>
   cause connectivity problems, especially for long-lived connections.
 * Default: true.
 
-sslQuietShutdown = <boolean> 
+sslQuietShutdown = <boolean>
 * Enables quiet shutdown mode in SSL.
 * Default: false.
 
@@ -989,6 +995,10 @@ sslAltNameToCheck = <comma-separated list>
 * For this setting to work, you must also set 'requireClientCert' to "true".
 * Default: empty string (no alternate name checking).
 
+useSSLCompression = <boolean>
+* If set to "true", the server allows forwarders to negotiate
+  SSL-layer data compression.
+* Default: The value of 'server.conf/[sslConfig]/allowSslCompression'
 
 #*******
 # UDP:
@@ -1018,7 +1028,7 @@ connection_host = [ip|dns|none]
 * "none" leaves the host as specified in inputs.conf, typically the Splunk
   system hostname.
 * If the input is configured with a 'sourcetype' that has a transform that
-  overrides the 'host' field e.g. 'sourcetype=syslog', that will take
+  overrides the 'host' field e.g. 'sourcetype=syslog', that takes
   precedence over the host specified here.
 * Default: "ip"
 
@@ -1056,9 +1066,9 @@ persistentQueueSize = <integer>[KB|MB|GB|TB]
 * Persistent queues can help prevent loss of transient data. For information on
   persistent queues and how the 'queueSize' and 'persistentQueueSize' settings
   interact, search the online documentation for "persistent queues"..
-* If you set this to a value other than 0, then 'persistentQueueSize' must 
-  be larger than either the in-memory queue size (as defined by the 'queueSize' 
-  setting in inputs.conf or 'maxSize' settings in [queue] stanzas in 
+* If you set this to a value other than 0, then 'persistentQueueSize' must
+  be larger than either the in-memory queue size (as defined by the 'queueSize'
+  setting in inputs.conf or 'maxSize' settings in [queue] stanzas in
   server.conf).
 * Default: 0 (no persistent queue).
 
@@ -1093,8 +1103,8 @@ acceptFrom = <network_acl> ...
 
 connection_host = [ip|dns|none]
 _rcvbuf = <integer>
-no_priority_stripping = [true|false]
-no_appending_timestamp = [true|false]
+no_priority_stripping = <boolean>
+no_appending_timestamp = <boolean>
 queueSize = <integer>[KB|MB|GB]
 persistentQueueSize = <integer>[KB|MB|GB|TB]
 listenOnIPv6 = <no | yes | only>
@@ -1116,8 +1126,8 @@ persistentQueueSize = <integer>[KB|MB|GB|TB]
 * Persistent queues can help prevent loss of transient data. For information on
   persistent queues and how the 'queueSize' and 'persistentQueueSize' settings
   interact, search the online documentation for "persistent queues"..
-* If you set this to a value other than 0, then 'persistentQueueSize' must 
-  be larger than either the in-memory queue size (as defined by the 'queueSize' 
+* If you set this to a value other than 0, then 'persistentQueueSize' must
+  be larger than either the in-memory queue size (as defined by the 'queueSize'
   setting in inputs.conf or 'maxSize' settings in [queue] stanzas in
   server.conf).
 * Default: 0 (no persistent queue).
@@ -1160,7 +1170,7 @@ interval = [<decimal>|<cron schedule>]
   component; for example, 3.14
 * To specify a cron schedule, use the following format:
   * "<minute> <hour> <day of month> <month> <day of week>"
-  * Cron special characters are acceptable. You can use combinations of "*", 
+  * Cron special characters are acceptable. You can use combinations of "*",
   ",", "/", and "-" to specify wildcards, separate values, specify ranges
   of values, and step values.
 * The cron implementation for data inputs does not currently support names
@@ -1187,8 +1197,8 @@ persistentQueueSize = <integer>[KB|MB|GB|TB]
 * Persistent queues can help prevent loss of transient data. For information on
   persistent queues and how the 'queueSize' and 'persistentQueueSize' settings
   interact, search the online documentation for "persistent queues"..
-* If you set this to a value other than 0, then 'persistentQueueSize' must 
-  be larger than either the in-memory queue size (as defined by the 'queueSize' 
+* If you set this to a value other than 0, then 'persistentQueueSize' must
+  be larger than either the in-memory queue size (as defined by the 'queueSize'
   setting in inputs.conf or 'maxSize' settings in [queue] stanzas in
   server.conf).
 * Default: 0 (no persistent queue).
@@ -1245,7 +1255,7 @@ start_by_shell = <boolean>
 
 index = <string>
 * The index where the input sends the data.
-* Default: _audit (if you do not set 'signedaudit' or 
+* Default: _audit (if you do not set 'signedaudit' or
   set 'signedaudit' to "false")
 * Default: the default index (in all other cases)
 
@@ -1306,7 +1316,7 @@ fullEvent = <boolean>
 
 sendEventMaxSize = <integer>
 * The maximum size, in bytes, that an fschange event can be for the input to
-  send the full event to be indexed. 
+  send the full event to be indexed.
 * Limits the size of event data that the fschange input sends.
 * This limits the size of indexed file data.
 * Default: -1 (unlimited).
@@ -1319,7 +1329,7 @@ sourcetype = <string>
 
 host = <string>
 * Sets the host name for events from this input.
-* Defaults to whatever host sent the event.
+* Default: whatever host sent the event.
 
 filesPerDelay = <integer>
 * The number of files that the fschange input processes between processing
@@ -1387,7 +1397,7 @@ outputgroup = <string>
 * Default: empty string.
 
 useDeploymentServer = [0|1]
-* Whether or not the HTTP event collector input should write its 
+* Whether or not the HTTP event collector input should write its
   configuration to a deployment server repository.
 * When you enable this setting, the input writes its
   configuration to the directory that you specify with the
@@ -1395,7 +1405,7 @@ useDeploymentServer = [0|1]
 * You must copy the full contents of the splunk_httpinput app directory
   to this directory for the configuration to work.
 * When enabled, only the tokens defined in the splunk_httpinput app in this
-  repository will be viewable and editable through the API and Splunk Web.
+  repository are viewable and editable through the API and Splunk Web.
 * When disabled, the input writes its configuration to
   $SPLUNK_HOME/etc/apps by default.
 * Default: 0 (disabled).
@@ -1469,7 +1479,7 @@ busyKeepAliveIdleTimeout = <integer>
 serverCert = <path>
 * The full path to the server certificate PEM format file.
 * The same file may also contain a private key.
-* The Splunk software automatically generates certificates when it first
+* Splunk software automatically generates certificates when it first
   starts.
 * You may replace the auto-generated certificate with your own certificate.
 * Default: $SPLUNK_HOME/etc/auth/server.pem.
@@ -1504,7 +1514,7 @@ caPath = <string>
 * DEPRECATED.
 * Use absolute paths for all certificate files.
 * If certificate files given by other settings in this stanza are not absolute
-  paths, then they will be relative to this path.
+  paths, then they are relative to this path.
 * Default: $SPLUNK_HOME/etc/auth.
 
 sslVersions = <comma-separated list>
@@ -1561,7 +1571,7 @@ ecdhCurveName = <string>
 * DEPRECATED.
 * Use the 'ecdhCurves' setting instead.
 * This setting specifies the ECDH curve to use for ECDH key negotiation.
-* Splunk software only supports named curves that have been specified by their 
+* Splunk software only supports named curves that have been specified by their
   SHORT names.
 * The list of valid named curves by their short or long names
   can be obtained by executing this command:
@@ -1582,7 +1592,7 @@ ecdhCurves = <comma-separated list>
 * Default: empty string.
 
 crossOriginSharingPolicy = <origin_acl> ...
-* A list of the HTTP Origins for which to return Access-Control-Allow-* 
+* A list of the HTTP Origins for which to return Access-Control-Allow-*
   Cross-origin Resource Sharing (CORS) headers.
 * These headers tell browsers that web applications at those sites
   can be trusted to make requests to the REST interface.
@@ -1592,7 +1602,7 @@ crossOriginSharingPolicy = <origin_acl> ...
   by spaces and/or commas.
 * Each origin can also contain wildcards for any part.  Examples:
     * *://app.example.com:*  (either HTTP or HTTPS on any port)
-    * https://*.example.com  (any host under example.com, including 
+    * https://*.example.com  (any host under example.com, including
       example.com itself).
 * An address can be prefixed with a '!' to negate the match, with
   the first matching origin taking precedence. Example:
@@ -1640,11 +1650,11 @@ sslAltNameToCheck = <alternateName1>, <alternateName2>, ...
 * Items in this list are never validated against the SSL Common Name.
 * This feature does not work with the deployment server and client
   communication over SSL.
-* This setting is optional.  
+* This setting is optional.
 * Default: empty string (no alternate name checking.)
 
 sendStrictTransportSecurityHeader = <boolean>
-* Whether or not to force inbound connections to always use SSL with 
+* Whether or not to force inbound connections to always use SSL with
   the "Strict-Transport-Security" header..
 * If set to "true", the REST interface sends a "Strict-Transport-Security"
   header with all responses to requests made over SSL.
@@ -1657,7 +1667,7 @@ sendStrictTransportSecurityHeader = <boolean>
 
 allowSslCompression = <boolean>
 * Whether or not to allow data compression over SSL.
-* If set to "true", the server will allow clients to negotiate
+* If set to "true", the server allows clients to negotiate
   SSL-layer data compression.
 * Default: true.
 
@@ -1687,20 +1697,20 @@ maxIdleTime = <integer>
 
 channel_cookie = <string>
 * The name of the cookie to use when sending data with a specified channel ID.
-* The value of the cookie will be the channel sent. For example, if you have
+* The value of the cookie is the channel sent. For example, if you have
   set 'channel_cookie=foo' and sent a request with channel ID set to 'bar',
   then you will have a cookie in the response with the value 'foo=bar'.
-* If no channel ID is present in the request, then no cookie will be returned.
+* If no channel ID is present in the request, then no cookie is returned.
 * This setting is to be used for load balancers (for example, AWS ELB) that can
   only provide sticky sessions on cookie values and not general header values.
-* If no value is set (the default), then no cookie will be returned.
+* If no value is set (the default), then no cookie is returned.
 * Default: empty string (no cookie).
 
 maxEventSize = <positive integer>[KB|MB|GB]
 * The maximum size of a single HEC (HTTP Event Collector) event.
 * HEC disregards and triggers a parsing error for events whose size is
   greater than 'maxEventSize'.
-* Defaults to 5MB.
+* Default: 5MB.
 
 #*******
 # HTTP Event Collector (HEC) - Local stanza for each token
@@ -1716,7 +1726,7 @@ token = <string>
 
 disabled = [0|1]
 * Whether or not this token is active.
-* Defaults to 0 (enabled).
+* Default: 0 (enabled).
 
 description = <string>
 * A human-readable description of this token.
@@ -1749,7 +1759,7 @@ persistentQueueSize = <integer>[KB|MB|GB|TB]
 * Persistent queues can help prevent loss of transient data. For information on
   persistent queues and how the 'queueSize' and 'persistentQueueSize' settings
   interact, search the online documentation for "persistent queues"..
-* If you set this to a value other than 0, then 'persistentQueueSize' must 
+* If you set this to a value other than 0, then 'persistentQueueSize' must
   be larger than either the in-memory queue size (as defined by the
   'queueSize' setting in inputs.conf or 'maxSize' settings in [queue] stanzas
   in server.conf).
@@ -1767,8 +1777,8 @@ connection_host = [ip|dns|proxied_ip|none]
 * No default.
 
 useACK = <boolean>
-* When set to "true", acknowledgment (ACK) is enabled. Events in a request will
-  be tracked until they are indexed. An events status (indexed or not) can be
+* When set to "true", acknowledgment (ACK) is enabled. Events in a request
+  are tracked until they are indexed. An events status (indexed or not) can be
   queried from the ACK endpoint with the ID for the request.
 * When set to false, acknowledgment is not enabled.
 * This setting can be set at the stanza level.
@@ -1776,26 +1786,26 @@ useACK = <boolean>
 
 allowQueryStringAuth = <boolean>
 * Enables or disables sending authorization tokens with a query string.
-* This is a token level configuration. It may only be set for 
+* This is a token level configuration. It may only be set for
   a particular token.
 * To use this feature, set to "true" and configure the client application to
-  include the token in the query string portion of the URL they use to send data to HEC in the following format: 
-  "https://<URL>?<your=query-string>&token=<your-token>" or 
-  "https://<URL>?token=<your-token>" if the token is the first element in the 
+  include the token in the query string portion of the URL they use to send data to HEC in the following format:
+  "https://<URL>?<your=query-string>&token=<your-token>" or
+  "https://<URL>?token=<your-token>" if the token is the first element in the
   query string.
 * If a token is sent in both the query string and an HTTP header, the token in
   the query string takes precedence, even if this feature is disabled. In
   other words, if a token is present in the query string, any token in the
-  header for that request will not be used.
+  header for that request is not used.
 * NOTE: Query strings may be observed in transit and/or logged in cleartext.
-  There is no confidentiality protection for the transmitted tokens. 
+  There is no confidentiality protection for the transmitted tokens.
     * Before using this in production, consult security personnel in your
       organization to understand and plan to mitigate the risks.
     * At a minimum, always use HTTPS when you enable this feature. Check your
       client application, proxy, and logging configurations to confirm that
       the token is not logged in clear text.
     * Give minimal access permissions to the token in HEC and restrict the
-      use of the token only to trusted client applications. 
+      use of the token only to trusted client applications.
 * Default: false.
 
 #*******
@@ -1804,7 +1814,7 @@ allowQueryStringAuth = <boolean>
 
 * Windows platform specific input processor.
 # ***********
-# Splunk on Windows ships with several Windows-only inputs. They are
+# Splunk software on Windows ships with several Windows-only inputs. They are
 # defined in the default inputs.conf.
 
 * Use the "disabled=" setting to enable/disable any of them.
@@ -1835,9 +1845,9 @@ allowQueryStringAuth = <boolean>
 * Each perfmon:// stanza represents an individually configured performance
   monitoring input. If you configure the input through Splunk Web, then the
   value of "<NAME>" matches what was specified there. While you can add
-  performance monitor inputs manually, Splunk recommends that you use Splunk
+  performance monitor inputs manually, it is a best practice to use Splunk
   Web to configure them, because it is easy to mistype the values for
-  Performance Monitor objects, counters and instances.
+  Performance Monitor objects, counters, and instances.
 * NOTE: The perfmon stanza is for local systems ONLY. To define performance
   monitor inputs for remote machines, use wmi.conf.
 
@@ -1846,14 +1856,14 @@ object = <string>
   Monitor (for example, "Process," "Server," "PhysicalDisk.")
 * You can specify a single valid Performance Monitor object or use a
   regular expression (regex) to specify multiple objects.
-* This setting is required, and the input will not run if the setting is
+* This setting is required, and the input does not run if the setting is
   not present.
 * No default.
 
 counters = <semicolon-separated list>
 * This can be a single counter, or multiple valid Performance Monitor
   counters.
-* This setting is required, and the input will not run if the setting is
+* This setting is required, and the input does not run if the setting is
   not present.
 * "*" is equivalent to all available counters for a given Performance
   Monitor object.
@@ -1872,7 +1882,7 @@ instances = <semicolon-separated list>
 
 interval = <integer>
 * How often, in seconds, to poll for new data.
-* This setting is required, and the input will not run if the setting is
+* This setting is required, and the input does not run if the setting is
   not present.
 * The recommended setting depends on the Performance Monitor object,
   counter(s), and instance(s) that you define in the input, and how much
@@ -1887,7 +1897,7 @@ interval = <integer>
 mode = [single|multikv]
 * Specifies how the performance monitor input generates events.
 * Set to "single" to print each event individually.
-* Set to "multikv" to print events in multikv (formatted multiple 
+* Set to "multikv" to print events in multikv (formatted multiple
   key-value pair) format.
 * Default: "single".
 
@@ -1915,7 +1925,7 @@ stats = <average;count;dev;min;max>
 disabled = [0|1]
 * Specifies whether or not the input is enabled.
 * 1 to disable the input, 0 to enable it.
-* Defaults to 0 (enabled).
+* Default: 0 (enabled).
 
 disabled = [0|1]
 * Specifies whether or not the input is enabled.
@@ -1929,14 +1939,41 @@ showZeroValue = [0|1]
 
 useEnglishOnly = <boolean>
 * Controls which Windows Performance Monitor API the input uses.
-* If set to "true", the input uses PdhAddEnglishCounter() to add the 
-  counter string. This ensures that counters display in English 
+* If set to "true", the input uses PdhAddEnglishCounter() to add the
+  counter string. This ensures that counters display in English
   regardless of the Windows machine locale.
 * If set to "false", the input uses PdhAddCounter() to add the counter string.
 * NOTE: if you set this setting to true, the 'object' setting does not
   accept a regular expression as a value on machines that have a non-English
   locale.
 * Default: false.
+
+useWinApiProcStats = <boolean>
+* Whether or not the Performance Monitor input uses process kernel mode and
+  user mode times to calculate CPU usage for a process, rather than using
+  the standard Performance Data Helper (PDH) APIs to calculate those values.
+* A problem was found in the PDH APIs that causes Performance Monitor inputs
+  to show maximum values of 100% usage for a process on multicore Windows
+  machines, even when the process uses more than 1 core at a time.
+* When you configure this setting to "true", the input uses the
+  GetProcessTime() function in the core Windows API to calculate
+  CPU usage for a process, for the following Performance Monitor
+  counters, only:
+** Processor Time
+** User Time
+** Privileged Time
+* This means that, if a process uses 5 of 8 cores on an 8-core machine, that
+  the input should return a value of around 500, rather than the incorrect 100.
+* When you configure the setting to "false", the input uses the standard
+  PDH APIs to calculate CPU usage for a process. On multicore systems, the
+  maximum value that PDH APIs return is 100, regardless of the number of
+  cores in the machine that the process uses.
+* Performance monitor inputs use the PDH APIs for all other Performance
+  Monitor counters. Configuring this setting has no effect on those counters.
+* NOTE: If the Windows machine uses a non-English system locale, and you
+  have set 'useWinApiProcStats' to "true" for a Performance Monitor input,
+  then you must also set 'useEnglishOnly' to "true" for that input.
+* Default: false
 
 formatString = <string>
 * Controls the print format for double-precision statistic counters.
@@ -1999,7 +2036,7 @@ start_from = <string>
   in reverse, from newest to oldest. Once the input consumes the backlog of
   events, it stops.
 * If you set this setting to "newest", and at the same time set the
-  "current_only" setting to 0, the combination can result in the input 
+  "current_only" setting to 0, the combination can result in the input
   indexing duplicate events.
 * Do not set this setting to "newest" and at the same time set the
   "current_only" setting to 1. This results in the input not collecting
@@ -2018,7 +2055,7 @@ use_old_eventlog_api = <boolean>
 
 use_threads = <integer>
 * Specifies the number of threads, in addition to the default writer thread,
-  that can be created to filter events with the blacklist/whitelist 
+  that can be created to filter events with the blacklist/whitelist
   regular expression.
 * This is an advanced setting. Contact Splunk Support before you change it.
 * The maximum number of threads is 15.
@@ -2031,10 +2068,10 @@ thread_wait_time_msec = <integer>
 * Default: 5000
 
 suppress_checkpoint = <boolean>
-* Whether or not the Event Log strictly follows the 'checkpointInterval' 
-  setting when it saves a checkpoint. 
+* Whether or not the Event Log strictly follows the 'checkpointInterval'
+  setting when it saves a checkpoint.
 * This is an advanced setting. Contact Splunk Support before you change it.
-* By default, the Event Log input saves a checkpoint from between zero 
+* By default, the Event Log input saves a checkpoint from between zero
   and 'checkpointInterval' seconds, depending on incoming event volume.
   If you set this setting to "true", that does not happen.
 * Default: false
@@ -2056,7 +2093,7 @@ suppress_keywords = <boolean>
 suppress_type = <boolean>
 * Whether or not to exclude the 'type' field from events.
 * This is an advanced setting. Contact Splunk Support before you change it.
-* When set to true, the input excludes the 'type' field from events and 
+* When set to true, the input excludes the 'type' field from events and
   thruput performance (the number of events processed per second) improves.
 * Default: false
 
@@ -2069,7 +2106,8 @@ suppress_task = <boolean>
 
 suppress_opcode = <boolean>
 * Whether or not to exclude the 'opcode' field from events.
-  When set to true, the input excludes the 'opcode' field from events and thruput performance (the number of events processed per second) improves.
+  When set to true, the input excludes the 'opcode' field from events and
+  thruput performance (the number of events processed per second) improves.
 * This is an advanced setting. Contact Splunk Support before you change it.
 * Default: false
 
@@ -2087,7 +2125,7 @@ current_only = [0|1]
   events that arrive in real time.
 * If you set this setting to 0, and at the same time set the
   'start_from' setting to "newest", the combination can result in the
-  indexing of duplicate events. 
+  indexing of duplicate events.
 * Do not set this setting to 1 and at the same time set the
   'start_from' setting to "newest". This results in the input not collecting
   any events because you instructed it to read existing events from oldest
@@ -2167,7 +2205,7 @@ evt_resolve_ad_ds = [auto|PDC]
   to resolve AD objects.
 * If set to auto, the input lets Windows chose the best domain controller.
 * If you set the 'evt_dc_name' setting, the input ignores this setting.
-* Defaults to 'auto' (let Windows determine the domain controller to use.)
+* Default: 'auto' (let Windows determine the domain controller to use.)
 
 evt_ad_cache_disabled = [0|1]
 * Enables or disables the AD object cache.
@@ -2226,7 +2264,7 @@ index = <string>
 # Event Log filtering
 #
 # Filtering at the input layer is desirable to reduce the total
-# processing load in network transfer and computation on the Splunk
+# processing load in network transfer and computation on the Splunk platform
 # nodes that acquire and processing Event Log data.
 ######
 
@@ -2309,7 +2347,7 @@ blacklist9 = <list of eventIDs> | key=regex [key=regex]
   Windows XP and earlier.
 * The 'Type' key is only available on Windows Server 2008 /
   Windows Vista and later.
-* For a detailed definition of these keys, see the 
+* For a detailed definition of these keys, see the
   "Monitor Windows Event Log Data" topic in the online documentation.
 
 suppress_text = [0|1]
@@ -2342,8 +2380,8 @@ renderXml = <boolean>
 * Each admon:// stanza represents an individually configured Active
   Directory monitoring input. If you configure the input with Splunk Web,
   then the value of "<NAME>" matches what was specified there. While
-  you can add Active Directory monitor inputs manually, Splunk recommends
-  that you use Splunk Web to configure Active Directory monitor
+  you can add Active Directory monitor inputs manually, it is best practice
+  to use Splunk Web to configure Active Directory monitor
   inputs because it is easy to mistype the values for Active Directory
   monitor objects.
 
@@ -2357,7 +2395,7 @@ targetDc = <string>
 
 startingNode = <string>
 * Where in the Active Directory directory tree to start monitoring.
-* The user that you configure the Splunk software to run as at
+* The user that you configure Splunk software to run as at
   installation determines where the input starts monitoring.
 * Default: the root of the directory tree.
 
@@ -2404,7 +2442,7 @@ baseline = [0|1]
   WinRegMon monitoring input.
 * If you configure the inputs with Splunk Web, the value of "<NAME>" matches
   what was specified there. While you can add event log monitor inputs
-  manually, recommends that you use Splunk Web to configure
+  manually, it is best practice to use Splunk Web to configure
   Windows registry monitor inputs because it is easy to mistype the values
   for Registry hives and keys.
 * The WinRegMon input is for local systems only. You cannot monitor the
@@ -2448,7 +2486,7 @@ baseline_interval = <integer>
   a new baseline for the monitored hive and/or key.
 * In detail:
   * Sets the minimum time interval, in seconds, between baselines.
-  * At startup, a WinRegMon input will not generate a baseline if less time
+  * At startup, a WinRegMon input does not generate a baseline if less time
     has passed since the last checkpoint than baseline_interval chooses.
   * In normal operation, checkpoints are updated frequently as data is
     acquired, so this will cause baselines to occur only when monitoring was
@@ -2477,11 +2515,11 @@ index = <string>
 * Gathers status information from the local Windows system components as
   per the type field below.
 * Each WinHostMon:// stanza represents an WinHostMon monitoring input.
-* The "<name>" component of the stanza name will be used as the source field
+* The "<name>" component of the stanza name is used as the source field
   on generated events, unless an explicit source setting is added to the
   stanza.  It does not affect what data is collected (see type setting for
   that).
-* If you configure the input in Splunk web, the value of "<name>" matches
+* If you configure the input in Splunk Web, the value of "<name>" matches
   what was specified there.
 * NOTE: The WinHostMon input is for local Windows systems only. You
   cannot monitor Windows host information remotely.
@@ -2515,7 +2553,7 @@ index = <string>
 * Each WinPrintMon:// stanza represents an WinPrintMon monitoring input.
   The value of "<name>" matches what was specified in Splunk Web.
 * NOTE: The WinPrintMon input is for local Windows systems only.
-* The "<name>" component of the stanza name will be used as the source field
+* The "<name>" component of the stanza name is used as the source field
   on generated events, unless an explicit source setting is added to the
   stanza.  It does not affect what data is collected (see type setting for
   that).
@@ -2550,7 +2588,7 @@ index = <string>
   a Network Monitor input.
 * Each WinNetMon:// stanza represents an individually configured network
   monitoring input.  The value of "<name>" matches what was specified
-  in Splunk Web. Splunk recommends that you use Splunk Web to
+  in Splunk Web. It is best practice to use Splunk Web to
   configure Network Monitor inputs because it is easy to mistype
   the values for Network Monitor objects.
 
@@ -2585,8 +2623,8 @@ user = <regular expression>
 
 addressFamily = ipv4;ipv6
 * Determines the events to include by network address family.
-* Setting ipv4 alone will include only IPv4 packets, while ipv6 alone
-  will include only IPv6 packets.
+* Setting "ipv4" alone includes only IPv4 packets, while "ipv6" alone
+  includes only IPv6 packets.
 * To specify both families, separate them with a semicolon.
   For example: ipv4;ipv6
 * Default: Not set (including events with both address families).
@@ -2624,7 +2662,7 @@ readInterval = <integer>
 * Default: Not set, handled as 100 (ms).
 
 driverBufferSize = <integer>
-* The maximum number of packets that the network kernel driver retains 
+* The maximum number of packets that the network kernel driver retains
   for retrieval by the input.
 * Set to adjust the maximum number of network packets retained in
   the network driver buffer.
@@ -2649,7 +2687,7 @@ userBufferSize = <integer>
 mode = single|multikv
 * Specifies how the network monitor input generates events.
 * Set to "single" to generate one event per packet.
-* Set to "multikv" to generate combined events of many packets in 
+* Set to "multikv" to generate combined events of many packets in
   multikv format (many packets described in a single table as one event).
 * Default: "single".
 
@@ -2745,7 +2783,7 @@ schedule = <schedule>
 remote_queue.* = <string>
 * With remote queues, communication between the indexer and the remote queue
   system might require additional configuration, specific to the type of remote
-  queue. 
+  queue.
 * You can pass configuration information to the storage system by
   specifying the settings through the following schema:
   remote_queue.<scheme>.<config-variable> = <value>.  For example:
@@ -2787,8 +2825,8 @@ remote_queue.sqs.access_key = <string>
   still under development.
 * The access key to use when authenticating with the remote queue
   system supporting the SQS API.
-* If not specified, the indexer will look for these environment variables:
-  AWS_ACCESS_KEY_ID or AWS_ACCESS_KEY (in that order). If the environment
+* If not specified, the indexer looks for these environment variables:
+  'AWS_ACCESS_KEY_ID' or 'AWS_ACCESS_KEY' (in that order). If the environment
   variables are not set and the indexer is running on Elastic Compute Cloud
   (EC2), the indexer attempts to use the secret key from the Identity and
   Access Management (IAM) role.
@@ -2800,7 +2838,7 @@ remote_queue.sqs.secret_key = <string>
   still under development.
 * The secret key to use when authenticating with the remote queue
   system supporting the SQS API.
-* If not specified, the indexer will look for these environment variables:
+* If not specified, the indexer looks for these environment variables:
   AWS_SECRET_ACCESS_KEY or AWS_SECRET_KEY (in that order). If the environment
   variables are not set and the indexer is running on EC2, the indexer attempts to use the secret key from the IAM role.
 * This setting is optional.
@@ -2923,7 +2961,7 @@ remote_queue.sqs.timeout.visibility = <unsigned integer>
   still under development.
 * The default "visibility timeout," in seconds, to use when
   explicitly changing the visibility of specific messages in the queue.
-* NOTE: Changing the value of 'remote_queue.sqs.timeout.visibility' 
+* NOTE: Changing the value of 'remote_queue.sqs.timeout.visibility'
   does not change the implicit visibility timeout configured for
   the queue in the AWS SQS console.
 * This setting is optional.
@@ -2937,6 +2975,14 @@ remote_queue.sqs.buffer.visibility = <unsigned integer>
   specific messages in the queue needs to be changed.
 * This setting is optional.
 * Default: 15
+
+remote_queue.sqs.executor_max_workers_count = <positive integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The maximum number of worker threads that can be used by
+  indexer per pipeline set to execute SQS tasks.
+* A value of 0 is equivalent to 1.
+* Default: 8
 
 remote_queue.sqs.min_pending_messages = <unsigned integer>
 * Currently not supported. This setting is related to a feature that is
@@ -2974,12 +3020,21 @@ remote_queue.sqs.large_message_store.path = <string>
   * The "remote-location-specifier" is an external system-specific string for
     identifying a location inside the storage system.
 * These external systems are supported:
-   - Object stores that support the AWS S3 protocol. These use the scheme "s3".
-     For example, "path=s3://mybucket/some/path".
+  - Object stores that support the AWS S3 protocol. These use the scheme "s3".
+    For example, "path=s3://mybucket/some/path".
 * If not specified, messages exceeding the underlying queue's maximum message
   size are dropped.
-* This setting is optinoal.
+* This setting is optional.
 * Default: not set.
+
+remote_queue.large_message_store.supports_versioning = <boolean>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies whether or not the remote storage supports versioning.
+* Versioning is a means of keeping multiple variants of an object
+  in the same bucket on the remote storage.
+* This setting is optional.
+* Default: false.
 
 ##
 # Kinesis specific settings
@@ -3077,13 +3132,21 @@ remote_queue.kinesis.timeout.write = <unsigned integer>
 * This setting is optional.
 * Default: 60000
 
+remote_queue.kinesis.executor_max_workers_count = <positive integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The maximum number of worker threads that can be used by
+  indexer per pipeline set to execute kinesis queue tasks.
+* A value of 0 is equivalent to 1.
+* Default: 8
+
 remote_queue.kinesis.max_messages = <unsigned integer>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * The default "maximum number of messages" (that are received from
   remote_queue endpoint) to store in kinesis in-memory message queue.
 * This setting is optional.
-* Default: 1000
+* Default: 10000
 
 remote_queue.kinesis.min_pending_messages = <unsigned integer>
 * Currently not supported. This setting is related to a feature that is
@@ -3094,7 +3157,7 @@ remote_queue.kinesis.min_pending_messages = <unsigned integer>
   pending object GET (from large messages storage) count is below
   the set value.
 * This setting is optional.
-* Default: 10
+* Default: 50
 
 remote_queue.kinesis.max_checkpoints = <unsigned integer>
 * Currently not supported. This setting is related to a feature that is
@@ -3108,7 +3171,7 @@ remote_queue.kinesis.max_checkpoints = <unsigned integer>
 remote_queue.kinesis.roll_remote_buckets_interval = <unsigned integer>
 * Currently not supported. This setting is related to a feature that is
   still under development.
-* The default interval, in seconds, that the Kinesis remote queue 
+* The default interval, in seconds, that the Kinesis remote queue
   input worker waits before it rolls the remote storage enabled buckets.
 * This setting is optional.
 * Default: 30
@@ -3144,3 +3207,31 @@ remote_queue.kinesis.large_message_store.path = <string>
   size are dropped.
 * This setting is optional.
 * Default: not set.
+
+#*******
+# Modular Inputs
+#*******
+
+run_introspection = <boolean>
+* Whether or not Splunk software runs introspection on a modular input 
+  scheme when you have disabled all of its associated scripts by using 
+  the 'disabled = 1' setting.
+* This setting applies only for modular inputs. It takes effect only if you
+  specify it under a default stanza of a modular input scheme.
+* A default stanza of a modular input scheme begins with the notation 
+  [<scheme name>]
+* If set to "true", Splunk software runs introspection on a modular input 
+  scheme even when you have disabled all the input scripts for the scheme.
+* If set to "false", Splunk software does not run introspection on a modular
+  input scheme where you have disabled all scripts for the scheme.
+* If introspection does not run for a scheme, then Splunk software does not 
+  register the modular input scripts that are associated with the scheme 
+  for execution and it is disabled completely.
+* Use the 'disabled' setting to enable or disable individual modular input scripts.
+* For example, to turn introspection off for the modular input scheme "myScheme": 
+
+  [myScheme]
+  run_introspection = false
+
+* Default: true
+

@@ -1,4 +1,4 @@
-#   Version 7.2.8
+#   Version 7.3.0
 #
 # This file maintains the state of a given app in Splunk Enterprise. It may also be used
 # to customize certain aspects of an app.
@@ -155,6 +155,11 @@ install_source_checksum = <string>
 * Splunk Enterprise will automatically populate this value upon install.
 * You should *not* set this value explicitly within your app!
 
+install_source_local_checksum = <string>
+* Records a checksum of the tarball from which a given app's local configuration
+* was installed. Splunk Enterprise will automatically populate this value upon
+* install. You should *not* set this value explicitly within your app!
+
 #
 # Handle reloading of custom .conf files (4.2+ versions only)
 #
@@ -186,18 +191,64 @@ reload.<conf_file_name> = [ simple | rest_endpoints | access_endpoints <handler_
 
 * Examples:
 
-        [triggers]
-        # Do not force a restart of Splunk Enterprise for state changes of MyApp
-        # Do not run special code to tell MyApp to reload myconffile.conf
-        # Apps with custom config files will usually pick this option
-        reload.myconffile = simple
+#       [triggers]
+#       # Do not force a restart of Splunk Enterprise for state changes of MyApp
+# 		# Do not run special code to tell MyApp to reload myconffile.conf
+#       # Apps with custom config files will usually pick this option
+#       reload.myconffile = simple
+#
+# 		# Do not force a restart of Splunk Enterprise for state changes of MyApp.
+# 		# Splunk Enterprise calls the /admin/myendpoint/_reload method in my custom
+# 		# EAI handler.
+# 		# Use this advanced option only if MyApp requires custom code to reload
+# 		# its configuration when its state changes
+#       reload.myotherconffile = access_endpoints /admin/myendpoint
 
-        # Do not force a restart of Splunk Enterprise for state changes of MyApp.
-        # Splunk Enterprise calls the /admin/myendpoint/_reload method in my custom
-        # EAI handler.
-        # Use this advanced option only if MyApp requires custom code to reload
-        # its configuration when its state changes
-        reload.myotherconffile = access_endpoints /admin/myendpoint
+[shclustering]
+deployer_lookups_push_mode = preserve_lookups | always_preserve | always_overwrite
+* Determines the deployer_lookups_push_mode for the 'splunk apply
+  shcluster-bundle' command.
+* If set to preserve_lookups, the 'splunk apply shcluster-bundle' command
+  honors the '-preserve-lookups' option as it appears on the command line. If
+  '-preserve-lookups' is flagged as "true", then lookup tables for this app are
+  preserved. Otherwise, lookup tables are overwritten.
+* If set to always_preserve, the 'splunk apply shcluster-bundle' command ignores
+  the '-preserve-lookups' option as it appears on the command line and lookup
+  tables for this app are always preserved.
+* If set to always_overwrite, the 'splunk apply shcluster-bundle' command
+  ignores the '-preserve-lookups' option as it appears on the command line and
+  lookup tables for this app are always overwritten.
+* Default: preserve_lookups
+
+deployer_push_mode = full | merge_to_default | local_only | default_only
+* full: This option bundles all of the app's contents located in default/,
+  local/, users/<app>/, and other app subdirs. It then pushes the bundle to
+  the members. When applying the bundle on a member, the non-local and
+  non-user configurations from the deployer's app folder are copied to the
+  member's app folder, overwriting existing contents. Local and user
+  configurations are merged with the corresponding folders on the member,
+  such that member configuration takes precedence.  This option should not
+  be used for built-in apps, as overwriting the member's built-in apps may
+  result in adverse behavior.
+* merge_to_default: This option merges the local and default folders into
+  the default folder and pushes the merged app to the members. When
+  applying the bundle on a member, the default configuration on the member
+  is overwritten. User configurations are copied and merged with the user
+  folder on the member, such that the existing configuration on the member
+  takes precedence. In versions 7.2 and prior, this was the only behavior.
+  This is the default mode if deployer_push_mode is not specified for an
+  app, except for built-in apps, which default to local_only.
+* local_only: This option bundles the app's local directory (and its
+  metadata) and pushes it to the cluster. When applying the bundle to a
+  member, the local configuration from the deployer is merged with the
+  local configuration on the member, such that the member's existing
+  configuration takes precedence. Use this option to push the local
+  configuration of built-in apps, such as search. If used to push an app
+  that relies on non-local content (such as default/ or bin/), these
+  contents must already exist on the member.
+* default_only: This option bundles all of the configuration files except
+  for local and users/<app>/.  When applying the bundle on a member, the
+  contents in the member's default folder are overwritten.
 
 #
 # Set UI-specific settings for this app

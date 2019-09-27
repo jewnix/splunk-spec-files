@@ -1,4 +1,4 @@
-#   Version 7.2.8
+#   Version 7.3.0
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -1228,22 +1228,9 @@ appNavReportsLimit = <integer>
   available reports in the drop-down menu.
 * Default: 500
 
-[framework]
-# Put App Framework settings here
-django_enable = <boolean>
-* Specifies whether Django should be enabled or not
-* Default: True
-* Django will not start unless an app requires it
-
-django_path = <filepath>
-* Specifies the root path to the new App Framework files,
-  relative to $SPLUNK_HOME
-* Default: etc/apps/framework
-
-django_force_enable = <boolean>
-* Specifies whether to force Django to start, even if no app requires it
-* Default: False
-
+# The Django bindings component and all associated [framework] settings have been 
+# removed. Configuring these settings no longer has any effect, and Splunk Enterprise
+# ignores any existing settings that are related to the component.
 
 #
 # custom cherrypy endpoints

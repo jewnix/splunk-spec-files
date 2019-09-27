@@ -1,8 +1,8 @@
-#   Version 7.2.8
+#   Version 7.3.0
 #
-# This file contains possible attributes and values for configuring global
-# saved search actions in alert_actions.conf.  Saved searches are configured
-# in savedsearches.conf.
+# This file contains possible settings and values for configuring global
+# saved search actions in the alert_actions.conf file.  Saved searches are configured
+# in the savedsearches.conf file.
 #
 # There is an alert_actions.conf in $SPLUNK_HOME/etc/system/default/.
 # To set custom configurations, place an alert_actions.conf in
@@ -10,7 +10,7 @@
 # alert_actions.conf.example. You must restart Splunk to enable
 # configurations.
 #
-# To learn more about configuration files (including precedence) please see
+# To learn more about configuration files, including precedence, see
 # the documentation located at
 # http://docs.splunk.com/Documentation/Splunk/latest/Admin/Aboutconfigurationfiles
 
@@ -19,47 +19,46 @@
 #  * You can also define global settings outside of any stanza, at the top
 #    of the file.
 #  * Each conf file should have at most one default stanza. If there are
-#    multiple default stanzas, attributes are combined. In the case of
-#    multiple definitions of the same attribute, the last definition in the
+#    multiple default stanzas, settings are combined. In the case of
+#    multiple definitions of the same setting, the last definition in the
 #    file wins.
-#  * If an attribute is defined at both the global level and in a specific
+#  * If a setting is defined at both the global level and in a specific
 #    stanza, the value in the specific stanza takes precedence.
 
 maxresults = <integer>
-* Set the global maximum number of search results sent via alerts.
-* Defaults to 100.
+* Set the global maximum number of search results sent through alerts.
+* Default: 100
 
 hostname = [protocol]<host>[:<port>]
-* Sets the hostname used in the web link (url) sent in alerts.
-* This value accepts two forms.
+* Sets the hostname in the web link (URL) that is sent in alerts.
+* This value accepts two forms:
   * hostname
        examples: splunkserver, splunkserver.example.com
   * protocol://hostname:port
        examples: http://splunkserver:8000, https://splunkserver.example.com:443
-* When this value is a simple hostname, the protocol and port which
-  are configured within splunk are used to construct the base of
-  the url.
+* When this value is a simple hostname, the protocol and port that
+  are configured in the Splunk platform are used to construct the base of
+  the URL.
 * When this value begins with 'http://', it is used verbatim.
   NOTE: This means the correct port must be specified if it is not
   the default port for http or https.
 * This is useful in cases when the Splunk server is not aware of
-  how to construct an externally referenceable url, such as SSO
+  how to construct an externally referenceable URL, such as SSO
   environments, other proxies, or when the Splunk server hostname
   is not generally resolvable.
-* Defaults to current hostname provided by the operating system,
+* Default: The current hostname provided by the operating system,
   or if that fails, "localhost".
-* When set to empty, default behavior is used.
 
-ttl     = <integer>[p]
-* Optional argument specifying the minimum time to live (in seconds)
-  of the search artifacts, if this action is triggered.
-* If p follows integer, then integer is the number of scheduled periods.
-* If no actions are triggered, the artifacts will have their ttl determined
-  by the "dispatch.ttl" attribute in savedsearches.conf.
-* Defaults to 10p
-* Defaults to 86400 (24 hours)   for: email, rss
-* Defaults to   600 (10 minutes) for: script
-* Defaults to   120 (2 minutes)  for: summary_index, populate_lookup
+ttl = <integer>[p]
+* The minimum time to live, in seconds, of the search artifacts,
+  if this action is triggered.
+* If 'p' follows '<integer>', then '<integer>' is the number of scheduled periods.
+* If no actions are triggered, the ttl for the artifacts are determined
+  by the 'dispatch.ttl' setting in the savedsearches.conf file.
+* Default: 10p
+* Default (for email, rss)                    : 86400 (24 hours)
+* Default (for script)                        :   600 (10 minutes)
+* Default (for summary_index, populate_lookup):   120 (2 minutes)
 
 maxtime = <integer>[m|s|h|d]
 * The maximum amount of time that the execution of an action is allowed to
@@ -67,18 +66,18 @@ maxtime = <integer>[m|s|h|d]
 * Use the d, h, m and s suffixes to define the period of time:
   d = day, h = hour, m = minute and s = second.
   For example: 5d means 5 days.
-* Defaults to 5m for everything except rss.
-* Defaults to 1m for rss.
+* Default (for all stanzas except 'rss': 5m
+* Default (for the 'rss' stanza): 1m
 
 track_alert = [1|0]
 * Indicates whether the execution of this action signifies a trackable alert.
-* Defaults to 0 (false).
+* Default: 0 (false).
 
 command = <string>
-* The search command (or pipeline) which is responsible for executing
+* The search command (or pipeline) that is responsible for executing
   the action.
 * Generally the command is a template search pipeline which is realized
-  with values from the saved search - to reference saved search
+  with values from the saved search. To reference saved search
   field values wrap them in dollar signs ($).
 * For example, to reference the savedsearch name use $name$. To
   reference the search, use $search$
@@ -90,43 +89,43 @@ is_custom = [1|0]
 payload_format = [xml|json]
 * Configure the format the alert script receives the configuration via
   STDIN.
-* Defaults to "xml"
+* Default: xml
 
 label = <string>
-* For custom alert actions: Define the label shown in the UI. If not
-  specified, the stanza name will be used instead.
+* For custom alert actions, defines the label that is shown in the UI.
+  If not specified, the stanza name is used instead.
+* Default: the stanza name for the custom alert action.
 
 description = <string>
-* For custom alert actions: Define the description shown in the UI.
+* For custom alert actions, defines the description shown in the UI.
 
 icon_path = <string>
-* For custom alert actions: Define the icon shown in the UI for the alert
+* For custom alert actions, defines the icon shown in the UI for the alert
   action. The path refers to appserver/static within the app where the
   alert action is defined in.
 
-forceCsvResults = auto|<bool>
-* If set to a true boolean, any saved search that includes this action will
-  always store results in CSV format, instead of the internal SRS format.
-* If set to a false boolean, results will always be serialized using the
-  internal SRS format.
-* If set to "auto", results will be serialized as CSV if the 'command' setting
+forceCsvResults = [auto|true|false]
+* If set to "true", any saved search that includes this action
+  always stores results in CSV format, instead of the internal SRS format.
+* If set to "false", results are always serialized using the internal SRS format.
+* If set to "auto", results are serialized as CSV if the 'command' setting
   in this stanza starts with "sendalert" or contains the string
   "$results.file$".
-* Defaults to "auto".
+* Default: auto
 
 alert.execute.cmd = <string>
-* For custom alert actions: Explicitly specify the command to be executed
+* For custom alert actions, explicitly specifies the command to run
   when the alert action is triggered. This refers to a binary or script
-  in the bin folder of the app the alert action is defined in, or to a
+  in the bin folder of the app that the alert action is defined in, or to a
   path pointer file, also located in the bin folder.
 * If a path pointer file (*.path) is specified, the contents of the file
-  is read and the result is used as the command to be executed.
+  is read and the result is used as the command to run.
   Environment variables in the path pointer file are substituted.
-* If a python (*.py) script is specified it will be prefixed with the
+* If a python (*.py) script is specified, it is prefixed with the
   bundled python interpreter.
 
 alert.execute.cmd.arg.<n> = <string>
-* Provide additional arguments to the alert action execution command.
+* Provide additional arguments to the 'alert.execute.cmd'.
   Environment variables are substituted.
 
 ################################################################################
@@ -136,13 +135,13 @@ alert.execute.cmd.arg.<n> = <string>
 [email]
 * Set email notification options under this stanza name.
 * Follow this stanza name with any number of the following
-  attribute/value pairs.
-* If you do not specify an entry for each attribute, Splunk will
-  use the default value.
+  setting/value pairs.
+* If you do not specify an entry for each setting, Splunk software
+  uses the default value.
 
 from = <string>
 * Email address from which the alert originates.
-* Defaults to splunk@$LOCALHOST.
+* Default: splunk@$LOCALHOST
 
 to      = <string>
 * The To email address receiving the alert.
@@ -155,40 +154,41 @@ bcc     = <string>
 
 message.report = <string>
 * Specify a custom email message for scheduled reports.
-* Includes the ability to reference attributes from the result,
-  saved search, or job
+* Includes the ability to reference settings from the result,
+  saved search, or job.
 
 message.alert = <string>
 * Specify a custom email message for alerts.
-* Includes the ability to reference attributes from result,
-  saved search, or job
+* Includes the ability to reference settingss from result,
+  saved search, or job.
 
 subject = <string>
 * Specify an alternate email subject if useNSSubject is false.
-* Defaults to SplunkAlert-<savedsearchname>.
+* Default: SplunkAlert-<savedsearchname>
 
 subject.alert = <string>
 * Specify an alternate email subject for an alert.
-* Defaults to SplunkAlert-<savedsearchname>.
+* Default: SplunkAlert-<savedsearchname>
 
 subject.report = <string>
 * Specify an alternate email subject for a scheduled report.
-* Defaults to SplunkReport-<savedsearchname>.
+* Default: SplunkReport-<savedsearchname>
 
 useNSSubject = [1|0]
-* Specify whether to use the namespaced subject (i.e subject.report) or
+* Specify whether to use the namespaced subject, for example, subject.report or the
   subject.
 
 footer.text = <string>
 * Specify an alternate email footer.
-* Defaults to "If you believe you've received this email in error, please see your Splunk administrator.\r\n\r\nsplunk > the engine for machine data."
+* Default: "If you believe you've received this email in error,
+    please see your Splunk administrator.\r\n\r\nsplunk > the engine
+    for machine data."
 
 format = [table|raw|csv]
 * Specify the format of inline results in the email.
-* Accepted values:  table, raw, and csv.
-* Previously accepted values plain and html are no longer respected
-  and equate to table.
-* To make emails plain or html use the content_type attribute.
+* Previously accepted values "plain" and "html" are no longer respected
+  and equate to "table".
+* To make emails plain or HTML use the 'content_type' setting.
 * Default: table
 
 include.results_link = [1|0]
@@ -210,24 +210,25 @@ include.view_link = [1|0]
 
 content_type = [html|plain]
 * Specify the content type of the email.
-  * plain sends email as plain text
-  * html sends email as a multipart email that include both text and html.
+* When set to "plain", sends email as plain text.
+* When set to "html", sends email as a multipart email that includes both
+  text and HTML.
 
 sendresults = [1|0]
 * Specify whether the search results are included in the email. The
   results can be attached or inline, see inline (action.email.inline)
-* Defaults to 0 (false).
+* Default: 0 (false)
 
 inline = [1|0]
 * Specify whether the search results are contained in the body of the alert
   email.
-* If the events are not sent inline, they are attached as a csv text.
-* Defaults to 0 (false).
+* If the events are not sent inline, they are attached as a CSV text.
+* Default:  0 (false).
 
 priority = [1|2|3|4|5]
 * Set the priority of the email as it appears in the email client.
 * Value mapping: 1 highest, 2 high, 3 normal, 4 low, 5 lowest.
-* Defaults to 3.
+* Default: 3
 
 mailserver = <host>[:<port>]
 * You must have a Simple Mail Transfer Protocol (SMTP) server available
@@ -235,135 +236,137 @@ mailserver = <host>[:<port>]
 * Specifies the SMTP mail server to use when sending emails.
 * <host> can be either the hostname or the IP address.
 * Optionally, specify the SMTP <port> that Splunk should connect to.
-* When the "use_ssl" attribute (see below) is set to 1 (true), you
+* When the 'use_ssl' setting (see below) is set to 1 (true), you
   must specify both <host> and <port>.
   (Example: "example.com:465")
-* Defaults to $LOCALHOST:25.
+* Default: $LOCALHOST:25
 
 use_ssl    = [1|0]
 * Whether to use SSL when communicating with the SMTP server.
 * When set to 1 (true), you must also specify both the server name or
-  IP address and the TCP port in the "mailserver" attribute.
-* Defaults to 0 (false).
+  IP address and the TCP port in the 'mailserver' setting.
+* Default: 0 (false)
 
 use_tls    = [1|0]
 * Specify whether to use TLS (transport layer security) when
-  communicating with the SMTP server (starttls)
-* Defaults to 0 (false).
+  communicating with the SMTP server (starttls).
+* Default: 0 (false)
 
 auth_username   = <string>
 * The username to use when authenticating with the SMTP server. If this is
   not defined or is set to an empty string, no authentication is attempted.
   NOTE: your SMTP server might reject unauthenticated emails.
-* Defaults to empty string.
+* Default: an empty string
 
 auth_password   = <password>
 * The password to use when authenticating with the SMTP server.
-  Normally this value will be set when editing the email settings, however
-  you can set a clear text password here and it will be encrypted on the
-  next Splunk restart.
-* Defaults to empty string.
+  Normally this value is set when editing the email settings, however
+  you can set a clear text password here and it is encrypted on the
+  next Splunk software restart.
+* Default: an empty string
 
 sendpdf = [1|0]
 * Specify whether to create and send the results as a PDF.
-* Defaults to 0 (false).
+* Default: 0 (false)
 
 sendcsv = [1|0]
-* Specify whether to create and send the results as a csv file.
-* Defaults to 0 (false).
+* Specify whether to create and send the results as a CSV file.
+* Default: 0 (false)
 
 pdfview = <string>
-* Name of view to send as a PDF
+* The name of the view to send as a PDF.
 
 reportPaperSize = [letter|legal|ledger|a2|a3|a4|a5]
-* Default paper size for PDFs
+* Default paper size for PDFs.
 * Accepted values: letter, legal, ledger, a2, a3, a4, a5
-* Defaults to "letter".
+* Default: letter
 
 reportPaperOrientation = [portrait|landscape]
-* Paper orientation: portrait or landscape
-* Defaults to "portrait".
+* The orientation of the paper.
+* Default: portrait
 
 reportIncludeSplunkLogo = [1|0]
-* Specify whether to include a Splunk logo in Integrated PDF Rendering
-* Defaults to 1 (true)
+* Specify whether to include a Splunk logo in Integrated PDF Rendering.
+* Default: 1 (true)
 
 reportCIDFontList = <string>
 * Specify the set (and load order) of CID fonts for handling
   Simplified Chinese(gb), Traditional Chinese(cns),
   Japanese(jp), and Korean(kor) in Integrated PDF Rendering.
-* Specify in a space-separated list
+* Specify in a space-separated list.
 * If multiple fonts provide a glyph for a given character code, the glyph
-  from the first font specified in the list will be used
-* To skip loading any CID fonts, specify the empty string
-* Defaults to "gb cns jp kor"
+  from the first font specified in the list is used.
+* To skip loading any CID fonts, specify the empty string.
+* Default: gb cns jp kor
 
 reportFileName = <string>
-    * Specify the name of attached pdf or csv
-    * Defaults to "$name$-$time:%Y-%m-%d$"
+* Specify the name of attached PDF or CSV file.
+* Default: $name$-$time:%Y-%m-%d$
 
-width_sort_columns = <bool>
+width_sort_columns = <boolean>
 * Whether columns should be sorted from least wide to most wide left to right.
-* Valid only if format=text
-* Defaults to true
+* Valid only if 'format=text'.
+* Default: true
 
 preprocess_results = <search-string>
-* Supply a search string to Splunk to preprocess results before emailing
-  them. Usually the preprocessing consists of filtering out unwanted
+* Supply a search string to preprocess results before emailing the results.
+  Usually the preprocessing consists of filtering out unwanted
   internal fields.
-* Defaults to empty string (no preprocessing)
+* Default: an empty string (no preprocessing)
 
 pdf.footer_enabled = [1 or 0]
-  * Set whether or not to display footer on PDF.
-  * Defaults to 1.
+  * Set whether or not to display footer in the PDF.
+  * Default: 1
 
 pdf.header_enabled = [1 or 0]
-  * Set whether or not to display header on PDF.
-  * Defaults to 1.
+  * Set whether or not to display header in the PDF.
+  * Default: 1
 
 pdf.logo_path = <string>
-  * Define pdf logo by syntax <app>:<path-to-image>
-  * If set, PDF will be rendered with this logo instead of Splunk one.
-  * If not set, Splunk logo will be used by default
-  * Logo will be read from $SPLUNK_HOME/etc/apps/<app>/appserver/static/<path-to-image> if <app> is provided.
-  * Current app will be used if <app> is not provided.
+* Define the PDF logo using the syntax <app>:<path-to-image>.
+* If set, the PDF is rendered with this logo instead of the Splunk logo.
+* If not set, the Splunk logo is used by default.
+* The logo is read from the
+  $SPLUNK_HOME/etc/apps/<app>/appserver/static/<path-to-image>
+  path if <app> is provided.
+* The current app is used if <app> is not provided.
+* Default: the Splunk logo
 
 pdf.header_left = [logo|title|description|timestamp|pagination|none]
-  * Set which element will be displayed on the left side of header.
-  * Nothing will be display if this option is not been set or set to none
-  * Defaults to None, nothing will be displayed on this position.
+* Set which element is displayed on the left side of header.
+* Nothing is displayed if this option is not set, or set to none.
+* Default: none
 
 pdf.header_center = [logo|title|description|timestamp|pagination|none]
-  * Set which element will be displayed on the center of header.
-  * Nothing will be display if this option is not been set or set to none
-  * Defaults to description
+* Set which element is displayed on the center of header.
+* Nothing is displayed if this option is not set, or set to none.
+* Default: description
 
 pdf.header_right = [logo|title|description|timestamp|pagination|none]
-  * Set which element will be displayed on the right side of header.
-  * Nothing will be display if this option is not been set or set to none
-  * Defaults to None, nothing will be displayed on this position.
+* Set which element is displayed on the right side of header.
+* Nothing is displayed if this setting is not set, or set to none.
+* Default: none
 
 pdf.footer_left = [logo|title|description|timestamp|pagination|none]
-  * Set which element will be displayed on the left side of footer.
-  * Nothing will be display if this option is not been set or set to none
-  * Defaults to logo
+* Set which element is displayed on the left side of footer.
+* Nothing is displayed if this setting is not set, or set to none.
+* Default: logo
 
 pdf.footer_center = [logo|title|description|timestamp|pagination|none]
-  * Set which element will be displayed on the center of footer.
-  * Nothing will be display if this option is not been set or set to none
-  * Defaults to title
+* Set which element is displayed on the center of footer.
+* Nothing is displayed if this setting is not set, or set to none.
+* Default: title
 
 pdf.footer_right = [logo|title|description|timestamp|pagination|none]
-  * Set which element will be displayed on the right side of footer.
-  * Nothing will be display if this option is not been set or set to none
-  * Defaults to timestamp,pagination
+* Set which element is displayed on the right side of footer.
+* Nothing is displayed if this setting is not set, or set to none.
+* Default: timestamp,pagination
 
-pdf.html_image_rendering = <bool>
-  * Whether images in HTML should be rendered.
-  * If enabling rendering images in HTML breaks the pdf for whatever reason,
-  * it could be disabled by setting this flag to False,
-  * so the old HTML rendering will be used.
-  * Defaults to True.
+pdf.html_image_rendering = <boolean>
+* Whether images in HTML should be rendered in the PDF.
+* If rendering images in HTML breaks the PDF for whatever reason,
+  change this setting to "false". The old HTML rendering is used.
+* Default: true
 
 sslVersions = <versions_list>
 * Comma-separated list of SSL versions to support.
@@ -375,40 +378,39 @@ sslVersions = <versions_list>
 * When configured in FIPS mode, ssl3 is always disabled regardless
   of this configuration.
 * Used exclusively for the email alert action and the sendemail search command
-* The default can vary. See the sslVersions setting in 
-* $SPLUNK_HOME/etc/system/default/alert_actions.conf for the current default.
+* The default can vary. See the 'sslVersions' setting in the
+  $SPLUNK_HOME/etc/system/default/alert_actions.conf file for the current default.
 
-sslVerifyServerCert = true|false
-* If this is set to true, you should make sure that the server that is
-  being connected to is a valid one (authenticated).  Both the common
-  name and the alternate name of the server are then checked for a
-  match if they are specified in this configuration file.  A
-  certificiate is considered verified if either is matched.
-* If this is set to true, make sure 'server.conf/[sslConfig]/sslRootCAPath'
+sslVerifyServerCert = <boolean>
+* If set to "true", make sure that the server that is being connected to us
+  a valid server (authenticated). Both the common name and the alternate
+  name of the server are then checked for a match if they are specified in this
+  configuration file. A certificate is considered verified if either is matched.
+* If set to "true", make sure 'server.conf/[sslConfig]/sslRootCAPath'
   has been set correctly.
-* Used exclusively for the email alert action and the sendemail search command
-* Default is false.
+* Used exclusively for the email alert action and the sendemail search command.
+* Default: false
 
 sslCommonNameToCheck = <commonName1>, <commonName2>, ...
 * Optional. Defaults to no common name checking.
 * Check the common name of the server's certificate against this list of names.
-* 'sslVerifyServerCert' must be set to true for this setting to work.
-* Used exclusively for the email alert action and the sendemail search command
+* 'sslVerifyServerCert' must be set to "true" for this setting to work.
+* Used exclusively for the email alert action and the sendemail search command.
 
 sslAltNameToCheck =  <alternateName1>, <alternateName2>, ...
 * Optional. Defaults to no alternate name checking.
 * Check the alternate name of the server's certificate against this list of names.
 * If there is no match, assume that Splunk is not authenticated against this
   server.
-* 'sslVerifyServerCert' must be set to true for this setting to work.
-* Used exclusively for the email alert action and the sendemail search command
+* 'sslVerifyServerCert' must be set to "true" for this setting to work.
+* Used exclusively for the email alert action and the sendemail search command.
 
 cipherSuite = <cipher suite string>
-* If set, Splunk uses the specified cipher string for the communication with
+* If set, the specified cipher string is used for the communication with
   with the SMTP server.
-* Used exclusively for the email alert action and the sendemail search command
-* The default can vary. See the cipherSuite setting in 
-* $SPLUNK_HOME/etc/system/default/alert_actions.conf for the current default.
+* Used exclusively for the email alert action and the sendemail search command.
+* The default can vary. See the 'cipherSuite' setting in the
+* $SPLUNK_HOME/etc/system/default/alert_actions.conf file for the current default.
 
 ################################################################################
 # RSS: these settings are prefaced by the [rss] stanza
@@ -416,15 +418,14 @@ cipherSuite = <cipher suite string>
 
 [rss]
 * Set RSS notification options under this stanza name.
-* Follow this stanza name with any number of the following
-  attribute/value pairs.
-* If you do not specify an entry for each attribute, Splunk will
-  use the default value.
+* Follow this stanza name with any number of the following setting/value pairs.
+* If you do not specify an entry for each setting, plunk software
+  uses the default value.
 
 items_count = <number>
-* Number of saved RSS feeds.
-* Cannot be more than maxresults (in the global settings).
-* Defaults to 30.
+* The number of saved RSS feeds.
+* Cannot be more than 'maxresults' (in the global settings).
+* Default: 30
 
 ################################################################################
 # script: Used to configure any scripts that the alert triggers.
@@ -433,12 +434,12 @@ items_count = <number>
 filename = <string>
 * The filename, with no path, of the script to trigger.
 * The script should be located in: $SPLUNK_HOME/bin/scripts/
-* For system shell scripts on Unix, or .bat or .cmd on windows, there
+* For system shell scripts on UNIX, or .bat or .cmd on Windows, there
   are no further requirements.
-* For other types of scripts, the first line should begin with a #!
-  marker, followed by a path to the interpreter that will run the script.
+* For other types of scripts, the first line should begin with a '#!' marker,
+  followed by a path to the interpreter that runs the script.
   * Example: #!C:\Python27\python.exe
-* Defaults to empty string.
+* Default: an empty string
 
 ################################################################################
 # lookup: These settings are prefaced by the [lookup] stanza. They enable the
@@ -447,40 +448,41 @@ filename = <string>
 ################################################################################
 [lookup]
 filename = <string>
-* The filename, with no path, of the CSV lookup file. Filename must end with ".csv".
-* If this file does not yet exist, the Splunk software creates it on the next
-  scheduled run of the search. If the file currently exists, it is overwritten
-  on each run of the search unless append=1.
-* The file will be placed in the same path as other CSV lookup files:
+* The filename, with no path, of the CSV lookup file. Filename must end with
+  ".csv".
+* If this file does not yet exist, Splunk software creates the file on
+  the next scheduled run of the search. If the file currently exists, the
+  file is overwritten on each run of the search unless 'append=1'.
+* The file is placed in the same path as other CSV lookup files:
   $SPLUNK_HOME/etc/apps/search/lookups.
-* Defaults to empty string.
+* Default: an empty string
 
 append = [1|0]
 * Specifies whether to append results to the lookup file defined for the
-  filename attribute.
-* Defaults to 0.
+  'filename' setting.
+* Default: 0
 
 ################################################################################
 # summary_index: these settings are prefaced by the [summary_index] stanza
 ################################################################################
 [summary_index]
 inline = [1|0]
-* Specifies whether the summary index search command will run as part of the
-  scheduled search or as a follow-on action. This is useful when the results
-  of the scheduled search are expected to be large.
-* Defaults to 1 (true).
+* Specifies whether the summary index search command is run as part of the
+  scheduled search or as a follow-on action. When the results of the scheduled
+  search are expected to be large, keep the default setting 'inline=true'.
+* Default: 1 (true)
 
 _name = <string>
-* The name of the summary index where Splunk will write the events.
-* Defaults to "summary".
+* The name of the summary index where Splunk writes the events.
+* Default: summary
 
 ################################################################################
 # populate_lookup: these settings are prefaced by the [populate_lookup] stanza
 ################################################################################
 [populate_lookup]
 dest = <string>
-* Name of the lookup table to populate (stanza name in transforms.conf) or
-  the lookup file path to where you want the data written. If a path is
+* Name of the lookup table to populate (stanza name in the transforms.conf file),
+  or the lookup file path to where you want the data written. If a path is
   specified it MUST be relative to $SPLUNK_HOME and a valid lookups
   directory.
   For example: "etc/system/lookups/<file-name>" or

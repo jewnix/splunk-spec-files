@@ -1,4 +1,4 @@
-#   Version 6.6.5
+#   Version 6.6.6
 
 # This file contains possible settings you can use to configure inputs,
 # distributed inputs such as forwarders, and file system monitoring in

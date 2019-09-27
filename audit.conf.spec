@@ -1,4 +1,4 @@
-#   Version 6.5.1
+#   Version 6.5.2
 #
 # This file contains possible attributes and values you can use to configure
 # auditing and event signing in audit.conf.
@@ -28,6 +28,8 @@
 * This stanza turns on cryptographic signing for audit trail events (set in inputs.conf).
 * You must have a private key to encrypt the signatures and a public key to
   decrypt them.
+* WARNING: Enabling signing for audit trail events may increase HTTP response latency if
+           the Splunk instance is handling large numbers of concurrent requests.
 
 privateKey= <path>
 * The path to the file containing the private key.

@@ -1,4 +1,4 @@
-#   Version 6.5.1
+#   Version 6.5.2
 #
 # This file contains all possible options for an indexes.conf file.  Use
 # this file to configure Splunk's indexes and their properties.
@@ -223,6 +223,7 @@ tsidxStatsHomePath = <path on server>
 * If the directory does not exist, we attempt to create it.
 * Optional. If this is unspecified, we default to the 'tsidxstats' directory
   under $SPLUNK_DB
+* CAUTION: Path "$SPLUNK_DB" must be writable.
 
 hotBucketTimeRefreshInterval = <positive integer>
 * Controls how often each index refreshes the available hot bucket times
@@ -245,8 +246,9 @@ hotBucketTimeRefreshInterval = <positive integer>
 # PER INDEX OPTIONS
 # These options may be set under an [<index>] entry.
 #
-# Index names must consist of only numbers, letters, periods, underscores,
-# and hyphens.
+# Index names must consist of only numbers, lowercase letters, underscores, 
+# and hyphens. They cannot begin with an underscore or hyphen, or contain 
+# the word "kvstore".
 #**************************************************************************
 
 disabled = true|false
@@ -264,39 +266,77 @@ deleted = true
 
 homePath = <path on index server>
 * An absolute path that contains the hotdb and warmdb for the index.
+* It is recommended that you specify the path with the following syntax: 
+     homePath = $SPLUNK_DB/$_index_name/db
+  At runtime, Splunk expands "$_index_name" to the name of the index. For example, 
+  if the index name is "newindex", homePath becomes "$SPLUNK_DB/newindex/db".
 * Splunkd keeps a file handle open for warmdbs at all times.
-* May contain a volume reference (see volume section below).
-* CAUTION: Path MUST be writable.
+* May contain a volume reference (see volume section below) in place of $SPLUNK_DB.
+* CAUTION: The parent path "$SPLUNK_DB/$_index_name/" must be writable.
 * Required. Splunk will not start if an index lacks a valid homePath.
 * Must restart splunkd after changing this parameter; index reload will not
   suffice.
+* We strongly recommend that you avoid the use of other environment variables in
+  index paths, aside from the possible exception of SPLUNK_DB.
+  * As an exception, SPLUNK_DB is explicitly managed by the provided software,
+    so most possible downsides here do not exist.
+  * Environment variables could be different from launch to launch of the
+    software, causing severe problems with management of indexed data,
+    including:
+    * Data in the prior location will not be searchable.
+    * The indexer may not be able to write to the new location, causing outages
+      and/or data loss.
+    * Writing to a new, unexpected location could lead to disk exhaustion
+      causing additional operational problems.
+    * Recovery from such a scenario will require manual intevention and bucket
+      renaming, especially difficult in an index clustered environment.
+    * In all circumstances, Splunk Diag, the diagnostic tool we use to support
+      you, will have no way to determine the correct values for the environment
+      variables, so cannot reliably operate.  You may need to manually acquire
+      information about your index buckets in troubleshooting scenarios.
+  * Generally speaking, volumes provide a more appropriate way to control the
+    storage location for indexes in a general way.
 
 coldPath = <path on index server>
 * An absolute path that contains the colddbs for the index.
+* It is recommended that you specify the path with the following syntax: 
+     coldPath = $SPLUNK_DB/$_index_name/colddb
+  At runtime, Splunk expands "$_index_name" to the name of the index. For example, 
+  if the index name is "newindex", coldPath becomes "$SPLUNK_DB/newindex/colddb".
 * Cold databases are opened as needed when searching.
-* May contain a volume reference (see volume section below).
-* CAUTION: Path MUST be writable.
+* May contain a volume reference (see volume section below) in place of $SPLUNK_DB.
+* CAUTION: Path must be writable.
 * Required. Splunk will not start if an index lacks a valid coldPath.
 * Must restart splunkd after changing this parameter; index reload will not
   suffice.
+* We strongly recommend that you avoid the use of environment variables in
+  index paths, aside from the possible exception of SPLUNK_DB.  See homePath
+  for the complete rationale.
 
 thawedPath = <path on index server>
 * An absolute path that contains the thawed (resurrected) databases for the
   index.
 * May NOT contain a volume reference.
+* CAUTION: Path must be writable.
 * Required. Splunk will not start if an index lacks a valid thawedPath.
 * Must restart splunkd after changing this parameter; index reload will not
   suffice.
+* We strongly recommend that you avoid the use of environment variables in
+  index paths, aside from the possible exception of SPLUNK_DB.  See homePath
+  for the complete rationale.
 
 bloomHomePath = <path on index server>
 * Location where the bloomfilter files for the index are stored.
-* If specified, MUST be defined in terms of a volume definition (see volume
-  section below)
+* If specified, bloomHomePath must be defined in terms of a volume definition 
+  (see volume section below).
 * If bloomHomePath is not specified, bloomfilter files for index will be
   stored inline, inside bucket directories.
 * CAUTION: Path must be writable.
 * Must restart splunkd after changing this parameter; index reload will not
   suffice.
+* We strongly recommend that you avoid the use of environment variables in
+  index paths, aside from the possible exception of SPLUNK_DB.  See homePath
+  for the complete rationale.
 
 createBloomfilter = true|false
 * Controls whether to create bloomfilter files for the index.
@@ -307,16 +347,24 @@ summaryHomePath = <path on index server>
 * An absolute path where transparent summarization results for data in this
   index should be stored. Must be different for each index and may be on any
   disk drive.
-* May contain a volume reference (see volume section below).
+* It is recommended that you specify the path with the following syntax: 
+     summaryHomePath = $SPLUNK_DB/$_index_name/summary
+  At runtime, Splunk expands "$_index_name" to the name of the index. For example,
+  if the index name is "newindex", summaryHomePath becomes "$SPLUNK_DB/newindex/summary".
+* May contain a volume reference (see volume section below) in place of $SPLUNK_DB.
 * Volume reference must be used if data retention based on data size is
   desired.
-* If not specified, Splunk will use a directory 'summary' in the same
-  location as homePath
-  * For example, if homePath is "/opt/splunk/var/lib/splunk/index1/db",
-    then summaryHomePath would be "/opt/splunk/var/lib/splunk/index1/summary".
 * CAUTION: Path must be writable.
+* If not specified, Splunk creates a directory 'summary' in the same
+  location as homePath
+* For example, if homePath is "/opt/splunk/var/lib/splunk/index1/db",
+    then summaryHomePath would be "/opt/splunk/var/lib/splunk/index1/summary".
+* CAUTION: The parent path "/opt/splunk/var/lib/splunk/index1" must be writable.
 * Must restart splunkd after changing this parameter; index reload will not
   suffice.
+* We strongly recommend that you avoid the use of environment variables in
+  index paths, aside from the possible exception of SPLUNK_DB.  See homePath
+  for the complete rationale.
 * Defaults to unset.
 
 tstatsHomePath = <path on index server>
@@ -1073,14 +1121,6 @@ vix.splunk.setup.package.replication = true|false
   the average access time for the package across Task Nodes.
 * Optional. If not set, the default replication factor for the file-system
   will apply.
-
-vix.splunk.setup.bundle.reap.timelimit = <positive integer>
-* Specific to Splunk Analytics for Hadoop provider
-* For bundles in the working directory on each data node, this property controls
-  how old they must be before they are eligible for reaping.
-* Unit is milliseconds
-* Defaults to 24 hours, e.g. 24 * 3600 * 1000.
-* Values larger than 24 hours will be treated as if set to 24 hours.
 
 vix.splunk.setup.package.max.inactive.wait = <positive integer>
 * A positive integer represent a time interval in seconds.

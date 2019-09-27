@@ -1,4 +1,4 @@
-#   Version 6.5.1
+#   Version 6.5.2
 #
 # This file documents the syntax of default-mode.conf for comprehension and
 # troubleshooting purposes.

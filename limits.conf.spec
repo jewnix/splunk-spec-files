@@ -1,4 +1,4 @@
-#   Version 6.5.1
+#   Version 6.5.2
 #
 # This file contains possible attribute/value pairs for configuring limits for
 # search commands.
@@ -1006,6 +1006,11 @@ fetch_remote_search_log = [enabled|disabledSavedSearches|disabled]
 * The previous values:[true|false] are still supported but not recommended for use
 * The previous value of true maps to the current value of enabled
 * The previous value of false maps to the current value of disabled
+* Remote search logs are downloaded synchronously. This means that the time
+  spent downloading the logs increases the total run time of the search process.
+  This should not, however, affect user experience, because the search is
+  finalized before the logs are downloaded, so the user can start to consume
+  search results while logs are still downloading.
 
 load_remote_bundles = <bool>
 * On a search peer, allow remote (search head) bundles to be loaded in splunkd.

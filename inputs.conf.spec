@@ -1,4 +1,4 @@
-#   Version 6.5.1
+#   Version 6.5.2
 
 # This file contains possible settings you can use to configure inputs,
 # distributed inputs such as forwarders, and file system monitoring in
@@ -957,6 +957,9 @@ connection_host = [ip|dns|none]
 * "none" leaves the host as specified in inputs.conf, typically the splunk
   system hostname.
 * Defaults to "ip".
+* If the input is configured with a 'sourcetype' that has a transform that
+  overrides the 'host' field e.g. 'sourcetype=syslog', that will take
+  precedence over the host specified here.
 
 _rcvbuf = <integer>
 * Specifies the receive buffer for the UDP port (in bytes).
@@ -1861,6 +1864,59 @@ start_from = <string>
   impossible combination.)
 * Defaults to oldest.
 
+use_old_eventlog_api = <bool>
+* Whether or not to read Event Log events with the Event Logging API.
+* This is an advanced setting. Contact Splunk Support before you change it.
+  If set to true, the input uses the Event Logging API (instead of the Windows Event Log API) to read from the Event Log on Windows Server 2008, Windows Vista, and later installations.
+* Defaults to false (Use the API that is specific to the OS.)
+
+use_threads = <integer>
+* Specifies the number of threads, in addition to the default writer thread, that can be created to filter events with the blacklist/whitelist regular expression.
+  The maximum number of threads is 15.
+* This is an advanced setting. Contact Splunk Support before you change it.
+* Defaults to 0
+
+thread_wait_time_msec = <integer>
+* The interval, in milliseconds, between attempts to re-read Event Log files when a read error occurs.
+* This is an advanced setting. Contact Splunk Support before you change it.
+* Defaults to 5000
+
+suppress_checkpoint = <bool>
+* Whether or not the Event Log strictly follows the 'checkpointInterval' setting when it saves a checkpoint.
+  By default, the Event Log input saves a checkpoint from between zero and 'checkpointInterval' seconds, depending on incoming event volume.
+* This is an advanced setting. Contact Splunk Support before you change it.
+* Defaults to false
+
+suppress_sourcename = <bool>
+* Whether or not to exclude the 'sourcename' field from events.
+  When set to true, the input excludes the 'sourcename' field from events and thruput performance (the number of events processed per second) improves.
+* This is an advanced setting. Contact Splunk Support before you change it.
+* Defaults to false
+
+suppress_keywords = <bool>
+* Whether or not to exclude the 'keywords' field from events.
+  When set to true, the input excludes the 'keywords' field from events and thruput performance (the number of events processed per second) improves.
+* This is an advanced setting. Contact Splunk Support before you change it.
+* Defaults to false
+
+suppress_type = <bool>
+* Whether or not to exclude the 'type' field from events.
+  When set to true, the input excludes the 'type' field from events and thruput performance (the number of events processed per second) improves.
+* This is an advanced setting. Contact Splunk Support before you change it.
+* Defaults to false
+
+suppress_task = <bool>
+* Whether or not to exclude the 'task' field from events.
+  When set to true, the input excludes the 'task' field from events and thruput performance (the number of events processed per second) improves.
+* This is an advanced setting. Contact Splunk Support before you change it.
+* Defaults to false
+
+suppress_opcode = <bool>
+* Whether or not to exclude the 'opcode' field from events.
+  When set to true, the input excludes the 'opcode' field from events and thruput performance (the number of events processed per second) improves.
+* This is an advanced setting. Contact Splunk Support before you change it.
+* Defaults to false
+
 current_only = [0|1]
 * Whether or not to acquire only events that arrive while the instance is
   running.
@@ -1896,7 +1952,7 @@ checkpointInterval = <integer>
 * How often, in seconds, that the Windows Event Log input saves a checkpoint.
 * Checkpoints store the eventID of acquired events. This lets the input
   continue monitoring at the correct event after a shutdown or outage.
-* The default value is 5.
+* The default value is 0.
 
 disabled = [0|1]
 * Whether or not the input is enabled.

@@ -1,4 +1,4 @@
-#   Version 6.5.1
+#   Version 6.5.2
 #
 # This file contains the set of attributes and values you can use to
 # configure server options in server.conf.
@@ -2452,6 +2452,12 @@ heartbeat_timeout = <positive integer>
 * Note that this heartbeat is different from the Raft heartbeat described
   in the election_timeout_2_hb_ratio setting.
 * Defaults to 60s.
+
+raft_rpc_backoff_time_ms = <positive integer>
+* Provides a delay should a raft RPC request fail.
+* This avoids rapid connection requests being made to unreachable peers.
+* This setting should not normally be changed from the default.
+* Defaults to 5000ms or 5 seconds
 
 access_logging_for_heartbeats = <bool>
 * Only valid on captain

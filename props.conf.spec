@@ -848,6 +848,15 @@ KV_MODE = [none|auto|auto_escaped|multi|json|xml]
 * The 'xml' and 'json' modes will not extract any fields when used on data
   that isn't of the correct format (JSON or XML).
 
+MATCH_LIMIT = <integer>
+* Only set in props.conf for EXTRACT type field extractions.
+  For REPORT and TRANSFORMS field extractions, set this in transforms.conf.
+* Optional. Limits the amount of resources that will be spent by PCRE
+  when running patterns that will not match.
+* Use this to set an upper bound on how many times PCRE calls an internal
+  function, match(). If set too low, PCRE may fail to correctly match a pattern.
+* Defaults to 100000
+
 AUTO_KV_JSON = [true|false]
 * Used for search-time field extractions only.
 * Specifies whether to try json extraction automatically.

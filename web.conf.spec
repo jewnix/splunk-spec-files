@@ -1,4 +1,4 @@
-#   Version 6.5.1
+#   Version 6.5.2
 #
 # This file contains possible attributes and values you can use to configure
 # Splunk's web interface.
@@ -65,6 +65,10 @@ splunkdConnectionTimeout = <integer>
 * Values smaller than 30 will be ignored, resulting in the use of the
   default value
 * Defaults to 30
+
+enableSplunkWebClientNetloc = [True | False]
+* Control if the splunk web client can override the client network location
+* Defaults to False.
 
 enableSplunkWebSSL = [True | False]
 * Toggle between http or https.

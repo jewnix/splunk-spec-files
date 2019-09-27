@@ -55,6 +55,11 @@ search_syntax_highlighting = [light|dark|black-white]
 * Highlights different parts of a search string with different colors.
 * Defaults to light.
 
+search_use_advanced_editor = <boolean>
+* Specifies whether the search bar is run using the advanced editor or in just plain text.
+* If set to false, search_auto_format, and search_line_numbers will be false and search_assistant can only be [full|none].
+* Defaults to true.
+
 search_assistant = [full|compact|none]
 * Specifies the type of search assistant to use when constructing a search.
 * Defaults to compact.

@@ -203,7 +203,7 @@ is_visible = true | false
 * Apps require at least 1 view to be available from the UI
 
 show_in_nav = true | false
-* Indicates if this app should be shown in glabal app dropdown
+* Indicates if this app should be shown in global app dropdown
 
 is_manageable = true | false
 * Support for this setting has been removed. It no longer has any effect.

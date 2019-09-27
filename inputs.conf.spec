@@ -1,4 +1,4 @@
-#   Version 7.0.8
+#   Version 7.0.9
 
 # This file contains possible settings you can use to configure inputs,
 # distributed inputs such as forwarders, and file system monitoring in

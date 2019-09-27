@@ -65,6 +65,10 @@ splunkdConnectionTimeout = <integer>
   default value
 * Defaults to 30
 
+enableSplunkWebClientNetloc = [True | False]
+* Control if the splunk web client can override the client network location
+* Defaults to False.
+
 enableSplunkWebSSL = [True | False]
 * Toggle between http or https.
 * Set to true to enable https and SSL.

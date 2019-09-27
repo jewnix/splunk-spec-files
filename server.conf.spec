@@ -2452,6 +2452,12 @@ heartbeat_timeout = <positive integer>
   in the election_timeout_2_hb_ratio setting.
 * Defaults to 60s.
 
+raft_rpc_backoff_time_ms = <positive integer>
+* Provides a delay should a raft RPC request fail.
+* This avoids rapid connection requests being made to unreachable peers.
+* This setting should not normally be changed from the default.
+* Defaults to 5000ms or 5 seconds
+
 access_logging_for_heartbeats = <bool>
 * Only valid on captain
 * Enables/disables logging to splunkd_access.log for member heartbeats

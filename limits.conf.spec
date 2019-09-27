@@ -1,4 +1,4 @@
-#   Version 7.0.5
+#   Version 7.0.6
 #
 ############################################################################
 # OVERVIEW
@@ -142,7 +142,6 @@ tocsv_retryperiod_ms = <integer>
 * These setting control logging of error messages to the info.csv file.
   All messages will be logged to the search.log file regardless of 
   these settings.
-
 
 [search_info]
 * This stanza controls logging of messages to the info.csv file.
@@ -606,6 +605,20 @@ enable_conditional_expansion = <bool>
   sourcetype, source, and host.
 * Field extractions and field aliases are scoped by either sourcetype,
   source or host.
+  Note: if planning to change this parameter, please contact support first
+* Default: true
+
+always_include_indexedfield_lispy = <bool>
+* Determines whether or not a search must always look for a field in the 
+  lexicon that does not have "INDEXED = true" set in fields.conf using both
+  the indexed and non-indexed forms
+* If set to true, when searching for <field>=<val>, search looks for 
+  both <field>::<val> and <val> in the lexicon
+* If set to false, when searching for <field>=<val>, search looks for  
+  only <val> in the lexicon 
+* Set to true if you have fields that are sometimes indexed and sometimes
+  not indexed.  For field name that are always indexed, it is much better 
+  performance wise to set INDEXED=true in fields.conf for that field instead.
 * Default: false
 
 ############################################################################
@@ -804,6 +817,13 @@ realtime_buffer = <int>
 # Remote storage
 ############################################################################
 # This section contains settings for remote storage.
+
+bucket_localize_acquire_lock_timeout_sec = <int>
+* The maximum amount of time, in seconds, to wait when attempting to acquire a
+  lock for a localized bucket.
+* When set to 0, waits indefinitely.
+* This setting is only relevant when using remote storage.
+* Default: 60 (1 minute)
 
 bucket_localize_max_timeout_sec = <int>
 * Currently not supported. This setting is related to a feature that is
@@ -1260,6 +1280,14 @@ ttl = <integer>
   the status.csv file is constantly updated such that the reaper does not
   remove the job from underneath.
 * Default: 600 (10 minutes)
+
+srtemp_dir_ttl = <integer>
+* Time to live, in seconds, before the reaper deletes srtemp directories and files
+* for intermediate search results. These directories can be found in
+* $SPLUNK_HOME/var/run/splunk/srtemp. The duration is measured by looking
+* at the newest file modification time  within the directory.
+* When set to 0: temporary files and directories are not reaped.
+* Default: 86400 (24 hours)
 
 ############################################################################
 # Unsupported settings 

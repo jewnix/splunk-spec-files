@@ -1,4 +1,4 @@
-#   Version 7.0.5
+#   Version 7.0.6
 #
 # *** REMOVED; NO LONGER USED ***
 #

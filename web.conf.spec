@@ -1,4 +1,4 @@
-#   Version 7.2.6
+#   Version 7.2.7
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -497,9 +497,14 @@ dashboard_html_allow_iframes = <boolean>
   potential attacks.
 * Default: true
 
+splunk_dashboard_app_name = <string>
+* Please do not change.
+* Set the name for the Splunk Dashboard App.
+* Default: splunk-dashboard-app
+
 max_view_cache_size = <integer>
 * The maximum number of views to cache in the appserver.
-* Default: 300
+* Default: 1000
 
 pdfgen_is_available = [0 | 1]
 * Specifies whether Integrated PDF Generation is available on this search

@@ -1,4 +1,4 @@
-#   Version 7.2.6
+#   Version 7.2.7
 #
 # This file contains possible attribute/value pairs for creating roles in
 # authorize.conf.  You can configure roles and granular access controls by

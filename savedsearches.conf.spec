@@ -1,4 +1,4 @@
-#   Version 7.2.6
+#   Version 7.2.7
 #
 # This file contains possible attribute/value pairs for saved search entries in
 # savedsearches.conf.  You can configure saved searches by creating your own

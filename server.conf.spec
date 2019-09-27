@@ -591,6 +591,14 @@ sslServerSessionTimeout = <integer>
 * The openssl default is 300 seconds.
 * Default: 300 (5 minutes)
 
+sslServerHandshakeTimeout = <integer>
+* The timeout, in seconds, for an SSL handshake to complete between an
+  SSL client and the Splunk SSL server.
+* If the SSL server does not receive a "Client Hello" from the SSL client within
+  'sslServerHandshakeTimeout' seconds, the server terminates
+  the connection.
+* Default: 60
+
 
 #############################################################################
 # Splunkd http proxy configuration

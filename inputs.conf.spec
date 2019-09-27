@@ -868,6 +868,8 @@ requireClientCert = <bool>
 * Full path to the root CA (Certificate Authority) certificate store.
 * The <path> must refer to a PEM format file containing one or more root CA
   certificates concatenated together.
+* Certificates with the same Common Name as the CA's certificate will fail
+  this check.
 * Defaults to false for self-signed and third-party certificates. If using the 
 default certificates, this attribute defaults to true and will override an existing 
 false setting.

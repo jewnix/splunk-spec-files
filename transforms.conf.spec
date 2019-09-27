@@ -1,4 +1,4 @@
-#   Version 7.2.3
+#   Version 7.2.4.2
 #
 # This file contains settings and values that you can use to configure
 # data transformations.  
@@ -467,7 +467,9 @@ max_matches = <integer>
   in descending time order. In other words, only <max_matches> lookup entries
   are allowed to match. If the number of lookup entries exceeds <max_matches>, 
   only the ones nearest to the lookup value are used.
-* Default = 1000 if the lookup is not temporal, default = 1 if it is temporal.
+* Default = 100 matches if the time_field setting is not specified for the
+  lookup. If the time_field setting is specified for the lookup, the default is
+  1 match.
 
 min_matches = <integer>
 * Minimum number of possible matches for each input lookup value.

@@ -1,4 +1,4 @@
-#   Version 7.2.3
+#   Version 7.2.4.2
 #
 ############################################################################
 # OVERVIEW
@@ -113,6 +113,13 @@ regex_cpu_profiling = <bool>
   per_sourcetype_regex_cpu, per_index_regex_cpu.
 * Default: false
 
+
+file_and_directory_eliminator_reaper_interval = <integer>
+* Specifies how often, in seconds, to run the FileAndDirectoryEliminator reaping
+  process.
+* A value of 0 disables the FileAndDirectoryEliminator.
+* Default: 0
+* NOTE: Do not change unless instructed to do so by Splunk Support.
 
 [searchresults]
 * This stanza controls search results for a variety of Splunk search commands.
@@ -1560,9 +1567,7 @@ max_lookup_messages = <positive integer>
   search.log.
 
 max_matches = <integer>
-* Maximum matches for a lookup.
-* Valid values range from 1 - 1000.
-* Default: 1000
+* DEPRECATED: Use this setting in transforms.conf for lookup definitions.
 
 max_memtable_bytes = <integer>
 * Maximum size, in bytes, of static lookup file to use an in-memory index for.

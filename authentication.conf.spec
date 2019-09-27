@@ -1,4 +1,4 @@
-#   Version 7.2.5
+#   Version 7.2.6
 #
 # This file contains possible attributes and values for configuring
 # authentication via authentication.conf.
@@ -281,6 +281,15 @@ network_timeout = <integer>
 * Like 'timelimit', if you have a fast connection to your LDAP server, we
   recommend lowering this value
 * Defaults to 20
+
+ldap_negative_cache_timeout = <nonnegative decimal>
+* The amount of time, in seconds, that Splunk software remembers that a non-existent
+  user on an LDAP provider does not exist.
+* This setting is useful when you want to avoid frequent LDAP queries for users
+  that do not exist on the LDAP provider.
+* This setting does not prevent LDAP queries on login. Login always queries the LDAP
+  provider to confirm that a user exists.
+* Default: 86400
 
 #####################
 # Map roles

@@ -1,4 +1,4 @@
-#   Version 7.2.5
+#   Version 7.2.6
 ############################################################################
 # This file contains settings and values to configure server options 
 # in server.conf.
@@ -2469,6 +2469,15 @@ recreate_index_fetch_bucket_batch_size = <positive integer>
   The master uses the bucket IDs for re-creation of the index.
   See the 'recreate_index_attempts_from_remote_storage' setting.
 * Default: 2000 
+
+use_batch_remote_rep_changes = <boolean>
+* Only valid for 'mode=master'.
+* Specifies whether the master processes bucket copy changes (to meet
+  replication_factor and search_factor) in batch or individually.
+* This is applicable to buckets belonging to
+  remote storage enabled indexes only.
+* Do not change this setting without consulting with Splunk Support.
+* Default: true
 
 buckets_status_notification_batch_size = <positive integer>
 * Only valid for 'mode=slave'.

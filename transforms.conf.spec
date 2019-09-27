@@ -1,4 +1,4 @@
-#   Version 7.2.5
+#   Version 7.2.6
 #
 # This file contains settings and values that you can use to configure
 # data transformations.  

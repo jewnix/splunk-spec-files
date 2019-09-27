@@ -1,4 +1,4 @@
-#   Version 7.2.5
+#   Version 7.2.6
 #
 # This file contains possible attribute/value pairs for creating search
 # commands for any custom search scripts created.  Add your custom search

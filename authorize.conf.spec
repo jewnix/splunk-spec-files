@@ -1,4 +1,4 @@
-#   Version 7.2.5
+#   Version 7.2.6
 #
 # This file contains possible attribute/value pairs for creating roles in
 # authorize.conf.  You can configure roles and granular access controls by
@@ -438,7 +438,13 @@ configuration.
 * Lets a user see if they are exceeding limits or reaching the expiration 
   date of their license. 
 * License warnings are displayed on the system banner.
-  
+
+[capability::list_accelerate_search]
+* This capability is a subset of the 'accelerate_search' capability.
+* This capability grants access to the summaries that are required to run accelerated reports.
+* Users with this capability, but without the 'accelerate_search' capability, can run,
+  but not create, accelerated reports.
+
 [capability::list_deployment_client]
 * Lets a user list the deployment clients.
 

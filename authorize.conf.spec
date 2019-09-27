@@ -1,4 +1,4 @@
-#   Version 7.1.1
+#   Version 7.1.2
 #
 # This file contains possible attribute/value pairs for creating roles in
 # authorize.conf.  You can configure roles and granular access controls by
@@ -252,6 +252,10 @@ cumulativeRTSrchJobsQuota = <number>
   for SSL, backoff schemes, etc.
 * Also used by TCP and Syslog output admin handlers.
 
+[capability::edit_health]
+* Lets a user disable or enable health reporting for a feature in the splunkd 
+  health status tree through the server/health-config/{feature_name} endpoint.
+
 [capability::edit_httpauths]
 * Lets a user edit and end user sessions through the httpauth-tokens endpoint.
 
@@ -491,6 +495,12 @@ configuration.
 
 [capability::rtsearch]
 * Lets a user run realtime searches.
+
+[capability::run_collect]
+* Lets a user run the collect command.
+
+[capability::run_mcollect]
+* Lets a user run the mcollect and meventcollect commands.
 
 [capability::run_debug_commands]
 * Lets a user run debugging commands, for example "summarize".

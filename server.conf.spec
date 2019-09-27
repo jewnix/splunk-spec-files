@@ -1,4 +1,4 @@
-#   Version 7.1.1
+#   Version 7.1.2
 #
 # This file contains the set of attributes and values you can use to
 # configure server options in server.conf.
@@ -478,8 +478,22 @@ sslRootCAPath = <path>
   Criteria mode until it has been certified by NIAP. See the "Securing
   Splunk Enterprise" manual for information on the status of Common
   Criteria certification.
-* This setting is not used on Windows.
+* This setting is valid on Windows machines only if you set
+  'sslRootCAPathHonoredOnWindows' to "true".
 * Default is unset.
+
+sslRootCAPathHonoredOnWindows = <boolean>
+* DEPRECATED.
+* Whether or not the Splunk instance respects the 'sslRootCAPath' setting on
+  Windows machines.
+* If you set this setting to "true", then the instance respects the
+  'sslRootCAPath' setting on Windows machines.
+* This setting is valid only on Windows, and only if you have set
+  'sslRootCAPath'.
+* When the 'sslRootCAPath' setting is respected, the instance expects to find
+  a valid PEM file with valid root certificates that are referenced by that
+  path. If a valid file is not present, SSL communication fails.
+* Default: false.
 
 caCertFile = <filename>
 * DEPRECATED; use 'sslRootCAPath' instead.

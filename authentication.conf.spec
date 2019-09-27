@@ -1,4 +1,4 @@
-#   Version 7.1.1
+#   Version 7.1.2
 #
 # This file contains possible attributes and values for configuring
 # authentication via authentication.conf.
@@ -489,6 +489,16 @@ constantLoginTime = <number>
 * Minimum value: 0 (Disables login time guarantee)
 * Maximum value: 5.0
 * Default: 0
+
+verboseLoginFailMsg = <boolean>
+* Specifies whether or not the login failure message explains
+  the failure reason.
+* When set to true, Splunk software displays a message on login
+  along with the failure reason.
+* When set to false, Splunk software displays a generic failure
+  message without a specific failure reason.
+* This setting is optional.
+* Default: true
 
 #####################
 # SAML settings

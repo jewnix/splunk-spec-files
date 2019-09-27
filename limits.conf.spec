@@ -1,4 +1,4 @@
-#   Version 7.1.1
+#   Version 7.1.2
 #
 ############################################################################
 # OVERVIEW
@@ -142,7 +142,6 @@ tocsv_retryperiod_ms = <integer>
 * These setting control logging of error messages to the info.csv file.
   All messages will be logged to the search.log file regardless of 
   these settings.
-
 
 [search_info]
 * This stanza controls logging of messages to the info.csv file.
@@ -1265,6 +1264,14 @@ check_search_marker_sleep_interval = <integer>
   indexer, then wake up and check whether hot buckets and backfill portions
   of the search are complete.
 * Default: 1
+
+srtemp_dir_ttl = <integer>
+* Time to live, in seconds, before the reaper deletes srtemp directories and files
+* for intermediate search results. These directories can be found in
+* $SPLUNK_HOME/var/run/splunk/srtemp. The duration is measured by looking
+* at the newest file modification time  within the directory.
+* When set to 0: temporary files and directories are not reaped.
+* Default: 86400 (24 hours)
 
 ############################################################################
 # Unsupported settings 

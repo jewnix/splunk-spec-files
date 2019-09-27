@@ -1,4 +1,4 @@
-#   Version 7.1.3
+#   Version 7.1.4
 #
 # This file contains the set of attributes and values you can use to
 # configure server options in server.conf.
@@ -3525,6 +3525,16 @@ modificationsMaxReadSec = <int>
 * Maximum time interval KVStore can spend while checking for modifications
   before it produces collection dumps for distributed searches.
 * Defaults to 30.
+
+allowUnsafeRenamesDuringInitialSync = <boolean>
+* When set to true, this setting forces the Inital Sync step to proceed even
+  when you have performed a rename operation on a KV store collection. You can 
+  use this as a workaround in a busy deployment where KV Store lookup
+  operations are preventing nodes from performing the Initial Sync step on
+  startup.
+* NOTE: Change this setting only when you are advised to do so by Splunk
+  Support.
+* Default: false
 
 [indexer_discovery]
 pass4SymmKey = <password>

@@ -1,4 +1,4 @@
-#   Version 7.1.3
+#   Version 7.1.4
 #
 # This file sets the default thresholds for Splunk Enterprise's built
 # in Health Report.

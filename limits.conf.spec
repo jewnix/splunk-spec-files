@@ -1,4 +1,4 @@
-#   Version 7.1.3
+#   Version 7.1.4
 #
 ############################################################################
 # OVERVIEW
@@ -99,12 +99,12 @@ max_mem_usage_mb = <non-negative integer>
 * Default: 200
 
 min_batch_size_bytes = <integer>
-* Specifies the size, in megabytes (MB), of the file/tar after which the 
+* Specifies the size, in bytes, of the file/tar after which the 
   file is handled by the batch reader instead of the trailing processor.
 * Global parameter, cannot be configured per input.
 * NOTE: Configuring this to a very small value could lead to backing up of jobs
   at the tailing processor.
-* Default: 20
+* Default: 20,971,520 bytes
 
 regex_cpu_profiling = <bool>
 * Enable CPU time metrics for RegexProcessor. Output will be in the 
@@ -126,8 +126,7 @@ maxresultrows = <integer>
   which grow the size of your result set (such as multikv) or that create
   events. Other search commands are explicitly controlled in specific stanzas
   below.
-* This limit should not exceed 50000. Setting this limit higher than 50000
-  causes instability.
+* This limit should not exceed 50000. 
 * Default: 50000
 
 tocsv_maxretry = <integer>
@@ -606,6 +605,19 @@ auto_cancel_after_pause = <integer>
   the search is automatically cancelled.
 * If set to 0, a paused search is never automatically cancelled.
 * Default: 0
+
+always_include_indexedfield_lispy = <bool>
+* Determines whether or not a search must always look for a field in the 
+  lexicon that does not have "INDEXED = true" set in fields.conf using both
+  the indexed and non-indexed forms
+* If set to true, when searching for <field>=<val>, search looks for 
+  both <field>::<val> and <val> in the lexicon
+* If set to false, when searching for <field>=<val>, search looks for  
+  only <val> in the lexicon 
+* Set to true if you have fields that are sometimes indexed and sometimes
+  not indexed.  For field name that are always indexed, it is much better 
+  performance wise to set INDEXED=true in fields.conf for that field instead.
+* Default: false
 
 ############################################################################
 # Parsing

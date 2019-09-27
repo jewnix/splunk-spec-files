@@ -430,7 +430,7 @@ sslRootCAPath = <path>
   Splunk Enterprise" manual for information on the status of Common
   Criteria certification.
 * This setting is valid on Windows machines only if you set
-  'sslRootCAPathHonoredonWindows' to "true".
+  'sslRootCAPathHonoredOnWindows' to "true".
 * Default is unset.
 
 sslRootCAPathHonoredOnWindows = <boolean>

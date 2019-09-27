@@ -1,4 +1,4 @@
-#   Version 7.2.0
+#   Version 7.2.1
 ############################################################################
 # This file contains settings and values to configure server options 
 # in server.conf.
@@ -3786,11 +3786,11 @@ enable_eviction_priorities = <boolean>
 * Default: true
 
 eviction_padding = <positive integer>
-* Specifies the additional space, in bytes, beyond 'minFreeSpace' that the
+* Specifies the additional space, in megabytes, beyond 'minFreeSpace' that the
   cache manager uses as the threshold to start evicting data.
 * If free space on a partition falls below ('minFreeSpace' + 'eviction_padding'),
   then the cache manager tries to evict data from remote storage enabled indexes.
-* Default: 5368709120 (~5GB)
+* Default: 5120 (~5GB)
 
 max_cache_size = <positive integer>
 * Specifies the maximum space, in megabytes, per partition, that the cache can

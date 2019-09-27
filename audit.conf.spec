@@ -1,4 +1,4 @@
-#   Version 7.2.0
+#   Version 7.2.1
 #
 # This file contains possible attributes and values you can use to configure
 # auditing and event signing in audit.conf.

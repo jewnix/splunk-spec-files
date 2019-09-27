@@ -1,4 +1,4 @@
-#   Version 7.2.0
+#   Version 7.2.1
 #
 ############################################################################
 # OVERVIEW
@@ -99,12 +99,12 @@ max_mem_usage_mb = <non-negative integer>
 * Default: 200
 
 min_batch_size_bytes = <integer>
-* Specifies the size, in megabytes (MB), of the file/tar after which the 
+* Specifies the size, in bytes, of the file/tar after which the 
   file is handled by the batch reader instead of the trailing processor.
 * Global parameter, cannot be configured per input.
 * NOTE: Configuring this to a very small value could lead to backing up of jobs
   at the tailing processor.
-* Default: 20
+* Default: 20,971,520 bytes
 
 regex_cpu_profiling = <bool>
 * Enable CPU time metrics for RegexProcessor. Output will be in the 

@@ -671,7 +671,6 @@ coldToFrozenScript = <path to script interpreter> <path to script>
       valid interpreter.
 * You can also specify an explicit path to an interpreter and the script.
     * Example:  /path/to/my/installation/of/python.exe path/to/my/script.py
-* This setting must not be used on remote storage enabled indexes.
 * Splunk software ships with an example archiving script in that you SHOULD
   NOT USE $SPLUNK_HOME/bin called coldToFrozenExample.py
   * DO NOT USE the example for production use, because:
@@ -704,7 +703,6 @@ coldToFrozenDir = <path to frozen archive>
 * You must restart splunkd after changing this setting. Reloading the
   configuration does not suffice.
 * May NOT contain a volume reference.
-* This setting must not be used on remote storage enabled indexes.
 
 # Freezing and Thawing (this should move to web docs
 4.2 and later data:

@@ -1014,6 +1014,7 @@ termsOfServiceDirectory = <directory>
   * If a user hasn't accepted the current version of the TOS, they'll be required to
     the next time they try to log in.  The acceptance times will be recorded inside
     a "tos.conf" file inside an app called "tos"
+  * If the "tos" app does not exist, it must be created for acceptance times to be recorded.
   * The TOS file can either be a full HTML document or plain text, but it must have the
     ".html" suffix
   * It is not necessary to restart Splunk when adding files to the TOS directory

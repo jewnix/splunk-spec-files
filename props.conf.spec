@@ -1066,12 +1066,12 @@ SEGMENTATION-<segment selection> = <segmenter>
 #******************************************************************************
 
 CHECK_METHOD = [endpoint_md5|entire_md5|modtime]
-* Set CHECK_METHOD endpoint_md5 to have Splunk checksum of the first and
+* Set CHECK_METHOD = endpoint_md5 to have Splunk checksum of the first and
   last 256 bytes of a file. When it finds matches, Splunk lists the file as
   already indexed and indexes only new data, or ignores it if there is no
   new data.
 * Set CHECK_METHOD = entire_md5 to use the checksum of the entire file.
-* Set CHECK_METHOD = modification time to check only the modification time of the
+* Set CHECK_METHOD = modtime to check only the modification time of the
   file.
 * Settings other than endpoint_md5 cause Splunk to index the entire file for
   each detected change.

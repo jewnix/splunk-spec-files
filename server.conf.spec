@@ -106,6 +106,8 @@ pass4SymmKey = <password>
   the same stanza(s) (i.e. [general] and/or [clustering]); otherwise,
   respective communication (licensing and deployment in case of [general]
   stanza, clustering in case of [clustering] stanza) will not proceed.
+* Unencrypted passwords must not begin with "$1$", as this is used by
+  Splunk software to determine if the password is already encrypted.
 
 listenOnIPv6 = no|yes|only
 * By default, splunkd will listen for incoming connections (both REST and
@@ -259,6 +261,8 @@ pass4SymmKey = <passphrase string>
           requireAuthentication = true
     * If it is not set in the deployment stanza, the key will be looked in
       the general stanza
+    * Unencrypted passwords must not begin with "$1$", as this is used by
+      Splunk software to determine if the password is already encrypted.
 
 ############################################################################
 # SSL Configuration details
@@ -1603,6 +1607,8 @@ pass4SymmKey = <password>
 * Not set by default.
 * If it is not set in the clustering stanza, the key will be looked in the
   general stanza
+* Unencrypted passwords must not begin with "$1$", as this is used by
+  Splunk software to determine if the password is already encrypted.
 
 service_interval = <zero or positive integer>
 * Only valid for mode=master
@@ -2285,6 +2291,8 @@ pass4SymmKey = <password>
 * If it is not present here, the key in the clustering stanza will be used.
   If it is not present in the clustering stanza, the value in the general
   stanza will be used.
+* Unencrypted passwords must not begin with "$1$", as this is used by
+  Splunk software to determine if the password is already encrypted.
 
 site = <site-id>
 * Specifies the site this searchhead belongs to for this particular master
@@ -2708,6 +2716,8 @@ pass4SymmKey = <password>
   in the [general] stanza.
 * Defaults to 'changeme' from the [general] stanza in the default
   server.conf.
+* Unencrypted passwords must not begin with "$1$", as this is used by
+  Splunk software to determine if the password is already encrypted.
 
 async_replicate_on_proxy = <bool>
 * If the jobs/${sid}/results REST endpoint had to be proxied to a different
@@ -3354,6 +3364,8 @@ pass4SymmKey = <password>
 * Security key shared between master node and forwarders.
 * If specified here, the same value must also be specified on all forwarders
   connecting to this master.
+* Unencrypted passwords must not begin with "$1$", as this is used by
+  Splunk software to determine if the password is already encrypted.
 
 polling_rate = <integer>
 * A value between 1 to 10. This value affects the forwarder polling frequency to
@@ -3426,3 +3438,5 @@ replicate_search_peers = true|false
 pass4SymmKey = <password>
 * Security key shared between reducers and regular indexers.
 * The same value must also be specified on all intermediaries.
+* Unencrypted passwords must not begin with "$1$", as this is used by
+  Splunk software to determine if the password is already encrypted.

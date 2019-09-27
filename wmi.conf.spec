@@ -1,4 +1,4 @@
-#   Version 6.6.7
+#   Version 6.6.8
 #
 # This file contains possible attribute/value pairs for configuring Windows
 # Management Instrumentation (WMI) access from Splunk.

@@ -1,4 +1,4 @@
-#   Version 6.6.7
+#   Version 6.6.8
 #
 # This file contains possible attributes and values you can use to configure
 # Splunk's web interface.

@@ -1,4 +1,4 @@
-#   Version 6.6.7
+#   Version 6.6.8
 #
 # This file contains possible attribute/value pairs for saved search entries in
 # savedsearches.conf.  You can configure saved searches by creating your own
@@ -403,7 +403,8 @@ action.populate_lookup = 0 | 1
 
 action.populate_lookup.dest = <string>
 * Can be one of the following two options:
-  * A lookup name from transforms.conf. The lookup name cannot be associated with KV store.
+  * A lookup definition name from transforms.conf that references a CSV file. 
+  	The lookup name cannot be associated with KV store.
   * A path to a lookup .csv file that Splunk should copy the search results to,
     relative to $SPLUNK_HOME.
     * NOTE: This path must point to a .csv file in either of the following

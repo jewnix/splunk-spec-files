@@ -279,6 +279,11 @@ recreate_bucket_fetch_manifest_batch_size = <positive_integer>
 * Only valid for standalone mode.
 * Defaults to 100.
 
+splunkd_stop_timeout = <positive_integer>
+* The maximum time, in seconds, that splunkd waits for a graceful shutdown to
+  complete before splunkd forces a stop.
+* Defaults to 360.
+
 ############################################################################
 # Deployment Configuration details
 ############################################################################

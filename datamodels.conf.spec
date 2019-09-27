@@ -1,4 +1,4 @@
-#   Version 6.5.0
+#   Version 6.5.1
 #
 # This file contains possible attribute/value pairs for configuring
 # data models.  To configure a datamodel for an app, put your custom

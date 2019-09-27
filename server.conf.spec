@@ -1,4 +1,4 @@
-#   Version 6.5.0
+#   Version 6.5.1
 #
 # This file contains the set of attributes and values you can use to
 # configure server options in server.conf.
@@ -567,6 +567,20 @@ maxThreads = <int>
   Splunk Enterprise sets maxThreads to be equal to maxSockets.
 * If set to a negative number, no limit will be enforced.
 * Defaults to 0.
+
+keepAliveIdleTimeout = <int>
+* How long, in seconds, that the Splunkd HTTP server allows a keep-alive
+  connection to remain idle before forcibly disconnecting it.
+* If this number is less than 7200, it will be set to 7200.
+* Defaults to 7200 seconds.
+
+busyKeepAliveIdleTimeout = <int>
+* How long, in seconds, that the Splunkd HTTP server allows a keep-alive
+  connection to remain idle while in a busy state before forcibly disconnecting it.
+* Use caution when configuring this setting as a value that is too large
+  can result in file descriptor exhaustion due to idling connections.
+* If this number is less than 12, it will be set to 12.
+* Defaults to 12 seconds.
 
 forceHttp10 = auto|never|always
 * When set to "always", the REST HTTP server will not use some
@@ -1773,10 +1787,17 @@ service_jobs_msec = <positive integer>
   values.
 * Defaults to 100ms.
 
-summary_replication = true|false
-* Only valid for mode=master.
-* Turns on or off summary replication.
-* Defaults to false.
+summary_replication = true|false|disabled
+* Valid for both master and slave modes
+* Cluster Master:
+  true - summary replication is enabled.
+  false - summary replication is disabled, but can be enabled at runtime.
+  disabled - summary replication is disabled; cannot be enabled at runtime.
+* Peers:
+  true/false - no effect; the indexer will follow whatever setting is on the Cluster Master.
+  disabled - summary replication is disabled, indexer does no scanning 
+             of summaries (increased performance during peers joing the cluster for large clusters)
+* Defaults to false for both Cluster Master and Peers.
 
 rebalance_threshold = <number between 0.10 and 1.00>
 * Only valid for mode=master.
@@ -1797,6 +1818,15 @@ max_auto_service_interval = <positive integer>
   the default value of 30 is based on the default value of 60 for both
   heartbeat_timeout and restart_timeout.
  
+buckets_to_summarize = <primaries | primaries_and_hot | all>
+* Only valid for mode=master
+* Determines which buckets we send '| summarize' searches (searches that build
+  report acceleration and data models). 'primaries' applies it to only primary
+  buckets, while 'primaries_and_hot' also applies it to all hot searchable
+  buckets. 'all' applies the search to all buckets.
+* Defaults to 'primaries'. If summary_replication is enabled defaults to primaries_and_hot.
+* Do not change this setting without first consulting with Splunk Support
+
 register_replication_address = <IP address, or fully qualified machine/domain name>
 * Only valid for mode=slave
 * This is the address on which a slave will be available for accepting
@@ -2398,15 +2428,18 @@ log_heartbeat_append_entries = <bool>
 election_timeout_ms = <positive_integer>
 * The amount of time that a member will wait before trying to become the
   captain.
-* Half of this value is the heartbeat period.
+* Note that modifying this value can alter the heartbeat period (See
+  election_timeout_2_hb_ratio for further details)
 * A very low value of election_timeout_ms can lead to unnecessary captain
   elections.
 * The default is 60000ms, or 1 minute.
 
 election_timeout_2_hb_ratio = <positive_integer>
-* The ratio between the election timeout and the heartbeat time.
+* The ratio between the election timeout, set in election_timeout_ms, and
+  the raft heartbeat period.
+* Raft heartbeat period = election_timeout_ms / election_timeout_2_hb_ratio
 * A typical ratio between 5 - 20 is desirable. Default is 12 to keep the
-  heartbeat time at 5s.
+  raft heartbeat period at 5s, i.e election_timeout_ms(60000ms) / 12
 * This ratio determines the number of heartbeat attempts that would fail
   before a member starts to timeout and tries to become the captain.
 
@@ -2414,6 +2447,10 @@ heartbeat_timeout = <positive integer>
 * Determines when the captain considers a member down. Once a member
   is down, the captain will initiate fixup steps to replicate
   artifacts from the dead member to its peers.
+* This heartbeat exchanges data between the captain and members, which helps in
+  maintaining the in-memory centralized state for all the cluster members.
+* Note that this heartbeat is different from the Raft heartbeat described
+  in the election_timeout_2_hb_ratio setting.
 * Defaults to 60s.
 
 access_logging_for_heartbeats = <bool>
@@ -2479,7 +2516,13 @@ executor_workers = <positive integer>
 * Defaults to 10. A value of 0 will be interpreted as 1.
 
 heartbeat_period = <non-zero positive integer>
-* Controls the frequency with which the member attempts to send heartbeats.
+* Controls the frequency with which the member attempts to send heartbeats to
+  the captain.
+* This heartbeat exchanges data between the captain and members, which helps in
+  maintaining the in-memory centralized state for all the cluster members.
+* Note that this heartbeat period is different from the Raft heartbeat period
+  in the election_timeout_2_hb_ratio setting.
+* Defaults to 5sec.
 
 enableS2SHeartbeat = true|false
 * Splunk will monitor each replication connection for presence of heartbeat.

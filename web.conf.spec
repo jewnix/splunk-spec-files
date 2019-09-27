@@ -1,4 +1,4 @@
-#   Version 6.5.0
+#   Version 6.5.1
 #
 # This file contains possible attributes and values you can use to configure
 # Splunk's web interface.
@@ -53,7 +53,7 @@ appServerPorts = <one or more port numbers>
   this to "0" should only be done if you experience a compatibility
   problem.  The new separate application server configuration is faster
   and supports more configuration options.  Also, setting this to
-  "0" may cause problems with new functionality, such as using the 
+  "0" may cause problems with new functionality, such as using the
   Search Head Clustering feature.
   (see the [shclustering] stanza in server.conf)
 * Defaults to 8065.
@@ -154,7 +154,7 @@ sslVersions = <list of ssl versions string>
   selects all versions tls1.0 or newer
 * If a version is prefixed with "-" it is removed from the list
 * SSLv2 is always disabled; "-ssl2" is accepted in the version list but does nothing
-* When appServerPorts=0 only supported values are  "all", "ssl3, tls" 
+* When appServerPorts=0 only supported values are  "all", "ssl3, tls"
   and "tls"
 * When configured in FIPS mode ssl3 is always disabled regardless
   of this configuration
@@ -412,13 +412,8 @@ jschart_test_mode = [True | False]
   actively in use.
 
 #
-# JSChart data truncation configuration
-# To avoid negatively impacting browser performance, the JSChart library
-# places a limit on the number of points that will be plotted by an
-# individual chart.  This limit can be configured here either across all
-# browsers or specifically per-browser.  An empty or zero value will disable
-# the limit entirely.
-#
+# To avoid browser performance impacts, the JSChart library limits
+# the amount of data rendered in an individual chart.
 
 jschart_truncation_limit = <int>
 * Cross-broswer truncation limit, if defined takes precedence over the
@@ -440,8 +435,16 @@ jschart_truncation_limit.ie11 = <int>
 * Chart truncation limit for Internet Explorer 11 only
 * Defaults to 50000
 
+jschart_series_limit = <int>
+* Chart series limit for all browsers.
+* Defaults to 100
+
+jschart_results_limit = <int>
+* Chart results per series limit for all browsers.
+* Defaults to 10000
+
 dashboard_html_allow_inline_styles = <bool>
-* If this setting is set to false styles attributes from inline HTML elements 
+* If this setting is set to false styles attributes from inline HTML elements
 * in dashboards will be removed to prevent potential attacks.
 * Default is true
 
@@ -452,7 +455,7 @@ max_view_cache_size = <integer>
 pdfgen_is_available = [0 | 1]
 * Specifies whether Integrated PDF Generation is available on this search
   head
-* This is used to bypass an extra call to splunkd 
+* This is used to bypass an extra call to splunkd
 * Defaults to 1 on platforms where node is supported, defaults to 0
   otherwise
 
@@ -614,9 +617,9 @@ ssoAuthFailureRedirect = <scheme>://<URL>
 # Results export server config
 
 export_timeout = <integer>
-* When exporting results, the number of seconds the server waits before 
-* closing the connection with splunkd. If you do not set a value for 
-* export_timeout, the value in splunkdConnectionTimeout is used. 
+* When exporting results, the number of seconds the server waits before
+* closing the connection with splunkd. If you do not set a value for
+* export_timeout, the value in splunkdConnectionTimeout is used.
 * We recommend that you set export_timeout to a value greater than 30
 
 #
@@ -655,7 +658,7 @@ server.socket_timeout = <integer>
 * Defaults to 10
 
 listenOnIPv6 = <no | yes | only>
-* By default, splunkweb will listen for incoming connections using 
+* By default, splunkweb will listen for incoming connections using
   IPv4 only
 * To enable IPv6 support in splunkweb, set this to "yes".  Splunkweb
   will simultaneously listen for connections on both IPv4 and IPv6
@@ -878,6 +881,20 @@ maxSockets = <int>
   based on estimated server capacity.
 * If set to a negative number, no limit will be enforced.
 
+keepAliveIdleTimeout = <int>
+* How long, in seconds, that the SplunkWeb HTTP server allows a keep-alive
+  connection to remain idle before forcibly disconnecting it.
+* If this number is less than 7200, it will be set to 7200.
+* Defaults to 7200 seconds.
+
+busyKeepAliveIdleTimeout = <int>
+* How long, in seconds, that the SplunkWeb HTTP server allows a keep-alive
+  connection to remain idle while in a busy state before forcibly disconnecting it.
+* Use caution when configuring this setting as a value that is too large
+  can result in file descriptor exhaustion due to idling connections.
+* If this number is less than 12, it will be set to 12.
+* Defaults to 12 seconds.
+
 forceHttp10 = auto|never|always
 * NOTE: this setting only takes effect when appServerPorts is set to a
   non-zero value
@@ -981,7 +998,7 @@ enableWebDebug = true|false
 * Defaults to false
 
 allowableTemplatePaths =  <directory> [, <directory>]...
-* A comma separated list of template paths that may be added tp template lookup white list. 
+* A comma separated list of template paths that may be added tp template lookup white list.
 * Paths are relative to $SPLUNK_HOME.
 * Defaults to empty
 
@@ -1040,7 +1057,7 @@ django_enable = [True | False]
 * Django will not start unless an app requires it
 
 django_path = <filepath>
-* Specifies the root path to the new App Framework files, 
+* Specifies the root path to the new App Framework files,
   relative to $SPLUNK_HOME
 * Defaults to etc/apps/framework
 
@@ -1080,7 +1097,7 @@ pattern = <url_pattern>
   "a/elem-*/b" would match "a/elem-123/c"
 
 methods = <method_lists>
-* Comma separated list of methods to allow from the web browser 
+* Comma separated list of methods to allow from the web browser
   (example: "GET,POST,DELETE")
 * If not included, defaults to "GET"
 

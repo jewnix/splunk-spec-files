@@ -1,4 +1,4 @@
-#   Version 6.5.0
+#   Version 6.5.1
 #
 # This file contains possible attribute/value pairs for saved search entries in
 # savedsearches.conf.  You can configure saved searches by creating your own
@@ -784,6 +784,10 @@ display.page.search.patterns.sensitivity = <float>
 
 # Page options
 display.page.search.mode = [fast|smart|verbose]
+* This setting has no effect on saved search execution when dispatched by the
+  scheduler. It only comes into effect when the search is opened in the UI and
+  run manually.
+
 display.page.search.timeline.format = [hidden|compact|full]
 display.page.search.timeline.scale = [linear|log]
 display.page.search.showFields = 0 | 1

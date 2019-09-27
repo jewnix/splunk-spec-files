@@ -472,7 +472,7 @@ MAX_TIMESTAMP_LOOKAHEAD = <integer>
   effectively disabled.  This can have negative performance implications
   which scale with the length of input lines (or with event size when
   LINE_BREAKER is redefined for event splitting).
-* Defaults to 150 (characters).
+* Defaults to 128 (characters).
 
 TIME_FORMAT = <strptime-style format>
 * Specifies a strptime format string to extract the date.
@@ -904,6 +904,15 @@ MATCH_LIMIT = <integer>
 * Use this to set an upper bound on how many times PCRE calls an internal
   function, match(). If set too low, PCRE may fail to correctly match a pattern.
 * Defaults to 100000
+
+DEPTH_LIMIT = <integer>
+* Only set in props.conf for EXTRACT type field extractions.
+  For REPORT and TRANSFORMS field extractions, set this in transforms.conf.
+* Optional. Limits the amount of resources that are spent by PCRE
+  when running patterns that will not match.
+* Use this to limit the depth of nested backtracking in an internal PCRE
+  function, match(). If set too low, PCRE might fail to correctly match a pattern.
+* Default: 1000
 
 AUTO_KV_JSON = [true|false]
 * Used for search-time field extractions only.

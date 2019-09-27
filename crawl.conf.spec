@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # This file contains possible attribute/value pairs for configuring crawl.
 #
@@ -85,7 +85,7 @@ index = <$INDEX>
 * Defaults to main.
 
 max_badfiles_per_dir = <integer>
-* Specify how far to crawl into a directory for files. 
+* Specify how far to crawl into a directory for files.
 * Crawl excludes a directory if it doesn't find valid files within the
   specified max_badfiles_per_dir.
 * Defaults to 100.

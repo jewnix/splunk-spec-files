@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # This file contains possible attributes and values for configuring
 # authentication via authentication.conf.
@@ -449,6 +449,18 @@ entityId = <string>
 * REQUIRED
 * The entity id for SP connection as configured on the IDP.
 
+issuerId = <string>
+* REQUIRED
+* The unique identifier of the identity provider.
+  The value of this setting corresponds to attribute "entityID" of
+  "EntityDescriptor" node in IdP metadata document.
+* If you configure SAML using IdP metadata, this field will be extracted from
+  the metadata.
+* If you configure SAML manually, then you must configure this setting.
+* When Splunk software tries to verify the SAML response, the issuerId
+  specified here must match the 'Issuer' field in the SAML response. Otherwise,
+  validation of the SAML response will fail.
+
 signAuthnRequest = [ true | false ]
 * OPTIONAL
 * This tells Splunk whether to sign AuthNRequests.
@@ -653,13 +665,19 @@ sloBinding = <string>
 signatureAlgorithm = RSA-SHA1 | RSA-SHA256
 * OPTIONAL
 * Defaults to RSA-SHA1.
-* This setting is applicable only for redirect binding.
+* This setting is applicable for both http post and redirect binding.
 * RSA-SHA1 corresponds to 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'.
 * RSA-SHA256 corresponds to 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'.
 * Specifies the signature algorithm that will be used for a SP-initiated saml request,
 * when 'signedAuthnRequest' is set to true.
 * This will be sent as a part of 'sigAlg'.
 
+replicateCertificates = <boolean>
+* OPTIONAL
+* Enabled by default, IdP certificate files will be replicated across search head cluster setup.
+* If disabled, IdP certificate files needs to be replicated manually across SHC or else
+  verification of SAML signed assertions will fail.
+* This setting will have no effect if search head clustering is disabled.
 
 #####################
 # Map roles
@@ -687,16 +705,15 @@ signatureAlgorithm = RSA-SHA1 | RSA-SHA256
 #####################
 
 [userToRoleMap_<saml-authSettings-key>]
-* The mapping of SAML user to Splunk roles, realname and email,
-  for the SAML stanza specified by <authSettings-key>
-* Follow this stanza name with several User-to-Role::Realname::Email mappings
-  as defined below.
+* The mapping of SAML user to Splunk roles for the SAML stanza specified
+  by <authSettings-key>
+* Follow this stanza name with several User-to-Role(s) mappings as defined
+  below.
 * The stanza is used only when the IDP does not support Attribute Query Request
 
-<SAML User> = <Splunk Roles string>::<Realname>::<Email>
-* Maps a SAML user to Splunk role(from authorize.conf), Realname and Email
-* The Splunk Roles string is semicolon delimited (no spaces).
-* The Splunk Roles string, Realname and Email are :: delimited (no spaces).
+<SAML User> = <Splunk Roles string>
+* Maps a SAML user to Splunk role (from authorize.conf)
+* This Splunk Role list is semicolon delimited (no spaces).
 
 #####################
 # Authentication Response Attribute Map

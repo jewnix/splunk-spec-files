@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # This file contains possible attributes and values you can use to configure
 # distributed search.
@@ -30,7 +30,7 @@
 * Set distributed search configuration options under this stanza name.
 * Follow this stanza name with any number of the following attribute/value
   pairs.
-* If you do not set any attribute, Splunk uses the default value (if there 
+* If you do not set any attribute, Splunk uses the default value (if there
   is one listed).
 
 disabled = [true|false]
@@ -86,13 +86,13 @@ disabled_servers = <comma separated list of servers>
 quarantined_servers = <comma separated list of servers>
 * A list of quarantined search peers.
 * Each member of this list must be a valid uri in the format of scheme://hostname:port
-* The admin may quarantine peers that seem unhealthy and are degrading search 
+* The admin may quarantine peers that seem unhealthy and are degrading search
   performancce of the whole deployment.
-* Quarantined peers are monitored but not searched by default. 
-* A user may use the splunk_server arguments to target a search to qurantined peers 
-  at the risk of slowing the search. 
+* Quarantined peers are monitored but not searched by default.
+* A user may use the splunk_server arguments to target a search to qurantined peers
+  at the risk of slowing the search.
 * When a peer is quarantined, running realtime searches will NOT be restarted. Running
-  realtime searches will continue to return results from the quarantined peers. Any 
+  realtime searches will continue to return results from the quarantined peers. Any
   realtime searches started after the peer has been quarantined will not contact the peer.
 * Whenever a quarantined peer is excluded from search, appropriate warnings will be displayed
   in the search.log and Job Inspector
@@ -210,13 +210,13 @@ maxBundleSize = <int>
 * The maximum size (in MB) of the bundle for which replication can occur. If
   the bundle is larger than this  bundle replication will not occur and an
   error message will be logged.
-* Defaults to: 1024 (1GB)
+* Defaults to: 2048 (2GB)
 
 concerningReplicatedFileSize = <int>
 * Any individual file within a bundle that is larger than this value (in MB)
   will trigger a splunkd.log message.
 * Where possible, avoid replicating such files, e.g. by customizing your blacklists.
-* Defaults to: 50
+* Defaults to: 500
 
 excludeReplicatedLookupSize = <int>
 * Any lookup file larger than this value (in MB) will be excluded from the knowledge bundle that the search head replicates to its search peers.
@@ -281,15 +281,15 @@ replicate.<conf_file_name> = <bool>
   * The regex will be matched against the filename, relative to $SPLUNK_HOME/etc.
     Example: for a file "$SPLUNK_HOME/etc/apps/fancy_app/default/inputs.conf"
              this whitelist should match "apps/fancy_app/default/inputs.conf"
-  * Similarly, the etc/system files are available as system/... 
+  * Similarly, the etc/system files are available as system/...
     user-specific files are available as users/username/appname/...
-* The 'name' element is generally just descriptive, with one exception: 
+* The 'name' element is generally just descriptive, with one exception:
   if <name> begins with "refine.", files whitelisted by the given pattern will
   also go through another level of filtering configured in the
   replicationSettings:refineConf stanza.
 * The whitelist_pattern is the Splunk-style pattern matching, which is
   primarily regex-based with special local behavior for '...' and '*'.
-  * ... matches anything, while * matches anything besides directory separators.  
+  * ... matches anything, while * matches anything besides directory separators.
     See props.conf.spec for more detail on these.
   * Note '.' will match a literal dot, not any character.
 * Note that these lists are applied globally across all conf data, not to any

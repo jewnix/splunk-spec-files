@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # Forwarders require outputs.conf; non-forwarding Splunk instances do not
 # use it.  It determines how the forwarder sends data to receiving Splunk
@@ -27,6 +27,9 @@
 #     file wins.
 #   * If an attribute is defined at both the global level and in a specific
 #     stanza, the value in the specific stanza takes precedence.
+#   * Do not use the sslPassword, socksPassword, or token settings to set passwords
+#     in this stanza as they may remain readable to attackers, specify these settings
+#     in the [tcpout] stanza instead.
 
 ############
 TCP Output stanzas
@@ -87,7 +90,10 @@ indexAndForward = [true|false]
 # If more than one target group is specified, the forwarder sends all data
 # to each target group.
 # This is known as "cloning" the data.
-
+#
+# NOTE: A target group stanza name cannot have spaces or colons in them.
+#       Splunk software ignores target groups whose stanza names contain
+#       spaces or colons.
 
 [tcpout:<target_group>]
 
@@ -164,17 +170,22 @@ blockWarnThreshold = <integer>
 compressed = [true|false]
 * Applies to non-SSL forwarding only. For SSL useClientSSLCompression
   setting is used.
-* If true, forwarder sends compressed data.
-* If set to true, the receiver port must also have compression turned on (in
-  its inputs.conf file).
+* If set to true, the receiver communicates with the forwarder in compressed format.
+* If set to true, there is no longer a requirement to also set 'compressed = true'
+  in the inputs.conf file on the receiver.
 * Defaults to false.
 
-negotiateNewProtocol = [true|false]
+negotiateProtocolLevel = <unsigned integer>
 * When setting up a connection to an indexer, try to negotiate the use of
-  the new forwarder protocol.
-* If set to false, the forwarder will not query the indexer for support for
-  the new protocol, and the connection will fall back on the traditional
-  protocol.
+  the splunk forwarder protocol with the specified feature level.
+* If set to a lower value than the default will deny the use of newer
+  forwarder protocol features during connection negotiation.  This may
+  impact indexer efficiency.
+* Defaults to 1 if negotiateProtocolLevel is true, otherwise 0
+
+negotiateNewProtocol = [true|false]
+* Controls the default setting of negotiateProtocolLevel setting above
+* DEPRECATED; set 'negotiateProtocolLevel' instead.
 * Defaults to true.
 
 channelReapInterval = <integer>
@@ -338,9 +349,12 @@ dnsResolutionInterval = <integer>
 * Defaults to 300 seconds.
 
 forceTimebasedAutoLB = [true|false]
-* Will force existing streams to switch to newly elected indexer every
+* Forces existing streams to switch to newly elected indexer every
   AutoLB cycle.
-* Defaults to false
+* On universal forwarders, use the EVENT_BREAKER_ENABLE and
+  EVENT_BREAKER settings in props.conf rather than forceTimebasedAutoLB
+  for improved load balancing, line breaking, and distribution of events.
+* Defaults to false.
 
 #----Index Filter Settings.
 # These attributes are only applicable under the global [tcpout] stanza.
@@ -370,16 +384,24 @@ forwardedindex.filter.disable = [true|false]
 * Defaults to false.
 
 #----Automatic Load-Balancing 
-autoLB = true
-* Automatic load balancing is the only way to forward data. Round-robin
-  method is not supported anymore.
-* Defaults to true.
+# Automatic load balancing is the only way to forward data.
+# Round-robin method of load balancing is not supported anymore.
 
 autoLBFrequency = <seconds>
 * Every autoLBFrequency seconds, a new indexer is selected randomly from the
   list of indexers provided in the server attribute of the target group
   stanza.
 * Defaults to 30 (seconds).
+
+autoLBVolume = <bytes>
+* After the forwarder sends data of autoLBVolume to some indexer, a new indexer is selected randomly from the
+  list of indexers provided in the server attribute of the target group
+  stanza.
+* autoLBVolume is closely related to autoLBFrequency. autoLBVolume is first used to determine if the forwarder needs
+  to pick another indexer. If the autoLBVolume is not reached, but the autoLBFrequency is reached, the forwarder will
+  switch to another indexer as the forwarding target.
+* A non-zero value means the volume based forwarding is turned on, and value 0 means the volume based forwarding is turned off.
+* Defaults to 0 (bytes).
 
 #----SSL Settings----
 
@@ -402,9 +424,10 @@ sslCertPath = <path>
 
 cipherSuite = <string>
 * If set, uses the specified cipher string for the input processors.
-* If not set, the default cipher string provided by OpenSSL is used.
 * This is used to ensure that the server does not accept connections using weak
   encryption protocols.
+* The default can vary. See the cipherSuite setting in 
+* $SPLUNK_HOME/etc/system/default/outputs.conf for the current default.
 
 sslCipher = <string>
 * DEPRECATED; use 'cipherSuite' instead.
@@ -419,8 +442,9 @@ ecdhCurves = <comma separated list of ec curves>
 * The list of valid named curves by their short/long names can be obtained
   by executing this command:
   $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
-* Default is empty string.
 * e.g. ecdhCurves = prime256v1,secp384r1,secp521r1
+* The default can vary. See the ecdhCurves setting in 
+* $SPLUNK_HOME/etc/system/default/outputs.conf for the current default.
 
 sslRootCAPath = <path>
 * DEPRECATED; use 'server.conf/[sslConfig]/sslRootCAPath' instead.
@@ -431,9 +455,8 @@ sslRootCAPath = <path>
 * Default is unset.
 
 sslVerifyServerCert = <bool>
-* If true, you must make sure that the server you are connecting to has a valid
-  SSL certificate. Note that certificates with the same Common Name as the CA's
-  certificate will fail this check.
+* If true, you must make sure that the server you are connecting to is a
+  valid one (authenticated).
 * Both the common name and the alternate name of the server are then checked
   for a match.
 * Defaults to false.
@@ -473,7 +496,8 @@ sslVersions = <string>
 * SSLv2 is always disabled; "-ssl2" is accepted in the version list but does nothing
 * When configured in FIPS mode ssl3 is always disabled regardless of
   this configuration
-* Defaults to "*,-ssl2".  (anything newer than SSLv2)
+* The default can vary. See the sslVersions setting in 
+* $SPLUNK_HOME/etc/system/default/outputs.conf for the current default.
 
 #----Indexer Acknowledgment ----
 # Indexer acknowledgment ensures that forwarded data is reliably delivered

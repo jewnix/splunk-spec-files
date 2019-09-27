@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 
 # This file contains possible settings you can use to configure inputs,
 # distributed inputs such as forwarders, and file system monitoring in
@@ -52,12 +52,12 @@ host = <string>
   time, the setup logic adds the local hostname as determined by DNS to the
   $SPLUNK_HOME/etc/system/local/inputs.conf default stanza, which is the
   effective default value.
-* If you remove host conf setting from $SPLUNK_HOME/etc/system/local/inputs.conf
-  or remove $SPLUNK_HOME/etc/system/local/inputs.conf file, host config will
-  be set to '$decideOnStartup'. Apps that need resolved host value should
-  use 'host_resolved' property in REST call response, which is set to Splunk 
-  instance's local hostname. 'host_resolved' property is a read-only property 
-  and is not written to inputs.conf. 
+* If you remove the 'host' setting from $SPLUNK_HOME/etc/system/local/inputs.conf
+  or remove $SPLUNK_HOME/etc/system/local/inputs.conf, the setting changes to
+  '$decideOnStartup'. Apps that need a resolved host value should use the
+  'host_resolved' property in the response for the REST 'GET' call of the input source.
+  This property is set to the hostname of the local Splunk instance. It is a read only 
+  property that is not written to inputs.conf.
 
 index = <string>
 * Sets the index to store events from this input.
@@ -114,7 +114,7 @@ queue = [parsingQueue|indexQueue]
   are as follows:
 
 queue = <value>
-_raw  = <value>
+_raw = <value>
 _meta = <value>
 _time = <value>
 * Inputs have special support for mapping host, source, sourcetype, and index
@@ -179,7 +179,9 @@ _INDEX_AND_FORWARD_ROUTING = <string>
 * Protect files on the file system from being indexed or previewed.
 * The input treats a file as blacklisted if the file starts with any of the
   defined blacklisted <paths>.
-* The preview endpoint will return and error when asked to preview a
+* Blacklisting of a file with the specified path occurs even if a monitor 
+  stanza defines a whitelist that matches the file path.
+* The preview endpoint will return an error when asked to preview a
   blacklisted file.
 * The oneshot endpoint and command will also return an error.
 * When a blacklisted file is monitored (monitor:// or batch://), filestatus
@@ -221,6 +223,11 @@ host_segment = <integer>
   host_segment=3, for example, the third segment is used.
 * If the value is not an integer or is less than 1, the default "host ="
   setting is used.
+* On Windows machines, the drive letter and colon before the backslash count 
+  as one segment.
+    * For example, if you set host_segment=3 and the monitor path is 
+      D:\logs\servers\host01, Splunk software sets the host as "servers" because
+      that is the third segment.
 * Defaults to unset.
 
 whitelist = <regular expression>
@@ -234,6 +241,8 @@ blacklist = <regular expression>
   specified regex.
 * Takes precedence over the deprecated _blacklist setting, which functions
   the same way.
+* If a file matches the regexes in both the blacklist and whitelist settings,
+  the file is NOT monitored. Blacklists take precedence over whitelists.
 
 Note concerning wildcards and monitor:
 * You can use wildcards to specify your input path for monitored input. Use
@@ -609,11 +618,18 @@ acceptFrom = <network_acl> ...
   except the 10.1.*.* network.
 * Defaults to "*" (accept from anywhere)
 
+negotiateProtocolLevel = <unsigned integer>
+* If set, allow forwarders that connect to this indexer (or specific port)
+  to send data using only up to the specified feature level of the splunk
+  forwarder protocol.
+* If set to a lower value than the default will deny the use of newer
+  forwarder protocol features during connection negotiation.  This may
+  impact indexer efficiency.
+* Defaults to 1 if negotiateNewProtocol is true, otherwise 0
+
 negotiateNewProtocol = [true|false]
-* If set to true, lets forwarders that connect to this indexer (or
-  specific port) send data using the new forwarder protocol.
-* If set to false, denies the use of the new forwarder protocol during
-  connection negotiation.
+* Controls the default setting of negotiateProtocolLevel setting above
+* DEPRECATED; set 'negotiateProtocolLevel' instead.
 * Defaults to true.
 
 concurrentChannelLimit = <unsigned integer>
@@ -648,11 +664,11 @@ connection_host = [ip|dns|none]
 * Defaults to "ip".
 
 compressed = [true|false]
-* Specifies whether the receiver receives compressed data.
-* Applies to non-SSL receiving only. There is no compression setting required
-  for SSL.
-* If set to true, the forwarder port(s) should also have compression turned on;
-  otherwise, the receiver rejects the connection.
+* Specifies whether the receiver communicates with the forwarder in compressed format.
+* Applies to non-SSL receiving only. There is no compression setting required for SSL.
+* If set to true, the receiver communicates with the forwarder in compressed format.
+* If set to true, there is no longer a requirement to also set 'compressed = true'
+  in the outputs.conf file on the forwarder.
 * Defaults to false.
 
 enableS2SHeartbeat = [true|false]
@@ -676,6 +692,9 @@ queueSize = <integer>[KB|MB|GB]
 * The maximum size of the in-memory input queue.
 * Defaults to 500KB.
 
+negotiateProtocolLevel = <unsigned integer>
+* See comments for [splunktcp].
+
 negotiateNewProtocol = [true|false]
 * See the description for [splunktcp].
 
@@ -693,6 +712,7 @@ compressed = [true|false]
 enableS2SHeartbeat = [true|false]
 s2sHeartbeatTimeout = <seconds>
 queueSize = <integer>[KB|MB|GB]
+negotiateProtocolLevel = <unsigned integer>
 negotiateNewProtocol = [true|false]
 concurrentChannelLimit = <unsigned integer>
 
@@ -765,6 +785,9 @@ acceptFrom = <network_acl> ...
   the 10.1.*.* network.
 * Defaults to "*" (accept from anywhere)
 
+negotiateProtocolLevel = <unsigned integer>
+* See comments for [splunktcp].
+
 negotiateNewProtocol = [true|false]
 * See comments for [splunktcp].
 
@@ -778,7 +801,6 @@ concurrentChannelLimit = <unsigned integer>
 
 serverCert = <path>
 sslPassword = <password>
-rootCA = <path>
 requireClientCert = <bool>
 sslVersions = <string>
 cipherSuite = <cipher suite string>
@@ -847,8 +869,6 @@ requireClientCert = <bool>
 * Full path to the root CA (Certificate Authority) certificate store.
 * The <path> must refer to a PEM format file containing one or more root CA
   certificates concatenated together.
-* Certificates with the same Common Name as the CA's certificate will fail
-  this check.
 * Defaults to false.
 
 sslVersions = <string>
@@ -861,7 +881,8 @@ sslVersions = <string>
   doing so has no effect.
 * When configured in Federal Information Processing Standard (FIPS) mode, the
   "ssl3" version is always disabled, regardless of this configuration.
-* Defaults to "*,-ssl2".  (anything newer than SSLv2)
+* The default can vary. See the sslVersions setting in 
+* $SPLUNK_HOME/etc/system/default/inputs.conf for the current default.
 
 supportSSLV3Only = <bool>
 * This setting is DEPRECATED.
@@ -870,10 +891,9 @@ supportSSLV3Only = <bool>
 
 cipherSuite = <cipher suite string>
 * If set, uses the specified cipher string for the input processors.
-* If not set, the default cipher string is used.
-* Provided by OpenSSL. This is used to ensure that the server does not
-  accept connections using weak encryption protocols.
 * Must specify 'dhFile' to enable any Diffie-Hellman ciphers.
+* The default can vary. See the cipherSuite setting in 
+* $SPLUNK_HOME/etc/system/default/inputs.conf for the current default.
 
 ecdhCurveName = <string>
 * This setting is DEPRECATED.
@@ -896,8 +916,9 @@ ecdhCurves = <comma separated list of ec curves>
 * The list of valid named curves by their short/long names can be obtained
   by executing this command:
   $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
-* Default is empty string.
 * Example setting: ecdhCurves = prime256v1,secp384r1,secp521r1
+* The default can vary. See the ecdhCurves setting in 
+* $SPLUNK_HOME/etc/system/default/inputs.conf for the current default.
 
 dhFile = <path>
 * Full path to the Diffie-Hellman parameter file.
@@ -1243,7 +1264,7 @@ fullEvent = [true|false]
 * Further qualified by the 'sendEventMaxSize' setting.
 * Defaults to false.
 
-sendEventMaxSize  = <integer>
+sendEventMaxSize = <integer>
 * Limits the size of event data that the fschange input sends.
 * Only send the full event if the size of the event is less than or equal to
   <integer> bytes.
@@ -1333,6 +1354,9 @@ useDeploymentServer = [0|1]
   'repositoryLocation' setting in serverclass.conf.
 * You must copy the full contents of the splunk_httpinput app directory
   to this directory for the configuration to work.
+* When enabled, only the tokens defined in the splunk_httpinput app in this
+  repository will be viewable and editable via the API and the Data Inputs
+  page in Splunk Web.
 * When disabled, the input writes its configuration to
   $SPLUNK_HOME/etc/apps by default.
 * Defaults to 0 (disabled).
@@ -1356,6 +1380,12 @@ dedicatedIoThreads = <number>
 * Defines the number of dedicated input/output threads in the event collector
   input.
 * Defaults to 0 (The input uses a single thread).
+
+replyHeader.<name> = <string>
+* Add a static header to all HTTP responses this server generates
+* For example, "replyHeader.My-Header = value" will cause the
+  response header "My-Header: value" to be included in the reply to
+  every HTTP request made to the event collector endpoint server
 
 maxSockets = <int>
 * The number of simultaneous HTTP connections that the event collector input
@@ -1675,6 +1705,28 @@ useACK = [true|false]
   queried from the ACK endpoint with the ID for the request.
 * When set to false, acknowledgment is not enabled.
 * This setting can be set at the stanza level.
+* Defaults to false.
+
+allowQueryStringAuth = [true|false]
+* Enable or disable sending authorization token with query string.
+* This is a token level config, it may only be set for a particular token.
+* To use this feature, set to true and configure client application to include 
+  the token in the query string portion of the URL they use to send data to 
+  splunk in the format of "https://<URL>?<your=query-string>&token=<your-token>" 
+  or "https://<URL>?token=<your-token>" if the token is the first element in the 
+  query string.
+* If a token is sent in both the query string and an HTTP header, the one in the 
+  query string takes precedence, even if this feature is disabled. In other words, 
+  if a token is present in the query string, any token in the header for that 
+  request will not be used."
+* Note: Query string may be observed in transit and/or logged in cleartext; it 
+  provides no confidentiality protection for the transmitted tokens. Before use 
+  in production, consult security personnel of your organization to understand 
+  and plan to mitigate the risks. At a minimum, always use HTTPS on when this 
+  feature os enabled, check your client application, proxy and logging configurations 
+  to make sure token is not logged in clear text, give minimal access permissions 
+  to the token in Splunk and restrict the use of the token only to trusted client 
+  applications. 
 * Defaults to false.
 
 #*******
@@ -2010,7 +2062,7 @@ evt_dns_name = <string>
   AD object resolution.
 * This setting is optional.
 
-evt_resolve_ad_ds =[auto|PDC]
+evt_resolve_ad_ds = [auto|PDC]
 * How the input should choose the domain controller to bind for
   AD resolution.
 * This setting is optional.
@@ -2158,8 +2210,8 @@ blacklist9 = <list of eventIDs> | key=regex [key=regex]
   Windows XP and earlier.
 * The 'Type' key is only available on Windows Server 2008 /
   Windows Vista and later.
-* For a detailed definition of these keys, see the online documentation:
-  http://docs.splunk.com/Documentation/Splunk/latest/Data/MonitorWindowsdata#Create_advanced_filters_with_.27whitelist.27_and_.27blacklist.27
+* For a detailed definition of these keys, see the 
+  "Monitor Windows Event Log Data" topic in the online documentation.
 
 suppress_text = [0|1]
 * Whether or not to include the description of the event text for a
@@ -2170,7 +2222,7 @@ suppress_text = [0|1]
 * Set this value to 0 to include the event text description.
 * Defaults to 0.
 
-renderXml= [true|false]
+renderXml = [true|false]
 * Whether or not the input returns the event data in XML (eXtensible Markup
   Language) format or in plain text.
 * Set this to true to render events in XML.

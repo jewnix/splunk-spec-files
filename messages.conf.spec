@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # This file contains attribute/value pairs for configuring externalized strings
 # in messages.conf.
@@ -81,6 +81,11 @@ message = <string>
 * The message string describing what and why something happened
 * Required
 
+message_alternate = <string>
+* An alternative static string for this message
+* Any arguments will be ignored
+* Defaults to nothing
+
 action = <string>
 * The action string describing the next steps in reaction to the message
 * Defaults to nothing
@@ -92,6 +97,14 @@ severity = critical|error|warn|info|debug
 capabilities = <capability list>
 * The capabilities required to view the message, comma separated
 * Defaults to nothing
+
+roles = <role list>
+* The roles required to view the message, comma separated. If a user
+  belongs to any of these roles, the message will be visible to them.
+* If a role scope is specified with this setting, it takes precedence over the
+  "capabilities" setting, which is ignored for the message.
+* Always unset by default in Splunk Enterprise. This settings should be manually
+  configured with any system or user-created roles.
 
 help = <location string>
 * The location string to link users to specific documentation

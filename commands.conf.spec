@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # This file contains possible attribute/value pairs for creating search
 # commands for any custom search scripts created.  Add your custom search
@@ -210,7 +210,7 @@ stderr_dest = [log|message|none]
 * What do to with the stderr output from the script
 * 'log' means to write the output to the job's search.log.
 * 'message' means to write each line as an search info message.  The message
-  level can be set to adding that level (in ALL CAPS) to the start of the 
+  level can be set to adding that level (in ALL CAPS) to the start of the
   line, e.g. "WARN my warning message."
 * 'none' means to discard the stderr output
 * Defaults to log

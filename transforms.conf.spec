@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # This file contains attributes and values that you can use to configure
 # data transformations.  and event signing in transforms.conf.
@@ -93,10 +93,10 @@ REGEX = <regular expression>
       _KEY_<string>, _VAL_<string>.
   * For example, the following are equivalent:
     * Using FORMAT:
-            * REGEX  = ([a-z]+)=([a-z]+)
-            * FORMAT = $1::$2
+      * REGEX  = ([a-z]+)=([a-z]+)
+      * FORMAT = $1::$2
     * Without using FORMAT
-            * REGEX  = (?<_KEY_1>[a-z]+)=(?<_VAL_1>[a-z]+)
+      * REGEX  = (?<_KEY_1>[a-z]+)=(?<_VAL_1>[a-z]+)
     * When using either of the above formats, in a search-time extraction,
       the regex will continue to match against the source text, extracting
       as many fields as can be identified in the source text.
@@ -144,7 +144,9 @@ FORMAT = <string>
   * At search-time, FORMAT defaults to an empty string.
 
 MATCH_LIMIT = <integer>
-* Optional. Limits the amount of resources that will be spent by PCRE
+* Only set in transforms.conf for REPORT and TRANSFORMS field extractions.
+   For EXTRACT type field extractions, set this in props.conf.
+* Optional. Limits the amount of resources that are spent by PCRE
   when running patterns that will not match.
 * Use this to set an upper bound on how many times PCRE calls an internal
   function, match(). If set too low, PCRE may fail to correctly match a pattern.
@@ -153,7 +155,6 @@ MATCH_LIMIT = <integer>
 CLONE_SOURCETYPE = <string>
 * This name is wrong; a transform with this setting actually clones and
   modifies events, and assigns the new events the specified sourcetype.
-
 * If CLONE_SOURCETYPE is used as part of a transform, the transform will
   create a modified duplicate event, for all events that the transform is
   applied to via normal props.conf rules.
@@ -361,15 +362,10 @@ CAN_OPTIMIZE = [true|false]
 
 filename = <string>
 * Name of static lookup file.
-* File should be in $SPLUNK_HOME/etc/system/lookups/, or in
-  $SPLUNK_HOME/etc/<app_name>/lookups/ if the lookup belongs to a specific app.
+* File should be in $SPLUNK_HOME/etc/<app_name>/lookups/ for some <app_name>, or in
+  $SPLUNK_HOME/etc/system/lookups/
 * If file is in multiple 'lookups' directories, no layering is done.
 * Standard conf file precedence is used to disambiguate.
-* Only file names are supported. Paths are explicitly not supported. If you
-  specify a path, the Splunk software strips the path to use the value after
-  the final path separator.
-* The Splunk software then looks for this filename in
-  $SPLUNK_HOME/etc/system/lookups/ or $SPLUNK_HOME/etc/<app_name>/lookups/.
 * Defaults to empty string.
 
 collection = <string>
@@ -407,7 +403,10 @@ default_match = <string>
 * Defaults to empty string.
 
 case_sensitive_match = <bool>
-* NOTE: This attribute is not valid for KV Store-based lookups.
+* NOTE: To disable case-sensitive matching with input fields and
+  values from events, the KV Store lookup data must be entirely
+  in lower case. The input data can be of any case, but the KV Store
+  data must be lower case.
 * If set to false, case insensitive matching will be performed for all
   fields in a lookup table
 * Defaults to true (case sensitive matching)
@@ -434,8 +433,15 @@ fields_list = <string>
 * A comma- and space-delimited list of all fields that are supported by the
   external command.
 
+index_fields_list = <string>
+* A comma- and space-delimited list of fields that need to be indexed
+  for a static .csv lookup file.
+* The other fields are not indexed and not searchable. 
+* Restricting the fields enables better lookup performance.
+* Defaults to all fields that are defined in the .csv lookup file header. 
+
 external_type = [python|executable|kvstore|geo]
-* Type of external command.  
+* Type of external command.
 * "python" a python script
 * "executable" a binary executable
 * "geo" a point-in-polygon lookup
@@ -491,6 +497,28 @@ feature_id_element = <string>
 * Default = /Placemark/name
 * ONLY for Kmz files
 
+check_permission = <bool>
+* Specifies whether the system can verify that a user has write permission to a lookup 
+  file when that user uses the outputlookup command to modify that file. If the user does 
+  not have write permissions, the system prevents the modification.
+* The check_permission setting is only respected when output_check_permission
+  is set to "true" in limits.conf. 
+* You can set lookup table file permissions in the .meta file for each lookup file, or 
+  through the Lookup Table Files page in Settings. By default, only users who have the 
+  admin or power role can write to a shared CSV lookup file.
+* Default: false
+* This setting applies only to CSV lookup configurations.
+
+replicate = true|false
+* Indicates whether to replicate CSV lookups to indexers.
+* When false, the CSV lookup is replicated only to search heads in a search head cluster
+  so that input lookup commands can use this lookup on the search heads.
+* When true, the CSV lookup is replicated to both indexers and search heads.
+* Only for CSV lookup files.
+* Note that replicate=true works only if it is included in replication whitelist,
+  See distSearch.conf/[replicationWhitelist] option.
+* Defaults to true.
+
 #*******
 # KEYS:
 #*******
@@ -524,7 +552,6 @@ _SYSLOG_ROUTING     : Comma separated list of syslog-stanza  names (from outputs
                       Defaults to groups present in 'defaultGroup' for [syslog].
 
 * NOTE: Any KEY (field name) prefixed by '_' is not indexed by Splunk, in general.
-
 
 [accepted_keys]
 

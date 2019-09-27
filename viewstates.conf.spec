@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # This file explains how to format viewstates.
 #
@@ -28,9 +28,9 @@
 * if <view_name> = "*", then this viewstate is considered to be 'global'
 * The <viewstate_id> is the unique identifier assigned to this set of
   parameters
-* <viewstate_id> = '_current' is a reserved name for normal view 
+* <viewstate_id> = '_current' is a reserved name for normal view
   'sticky state'
-* <viewstate_id> = '_empty' is a reserved name for no persistence, 
+* <viewstate_id> = '_empty' is a reserved name for no persistence,
   i.e., all defaults
 
 <module_id>.<setting_name> = <string>

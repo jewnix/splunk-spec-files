@@ -1,6 +1,6 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
-# This file contains definitions for visualizations an app makes avialable
+# This file contains definitions for visualizations an app makes available
 # to the system. An app intending to share visualizations with the system
 # should include a visualizations.conf in $SPLUNK_HOME/etc/apps/<appname>/default
 #
@@ -25,6 +25,16 @@ allow_user_selection = <bool>
 * Optional.
 * Whether the visualization should be available for users to select
 * Defaults to true
+
+supports_drilldown = <bool>
+* Optional.
+* Indicates whether drilldown is available for this visualization
+* Defaults to false
+
+supports_trellis = <bool>
+* Optional.
+* Indicates whether trellis layout is available for this visualization
+* Defaults to false
 
 default_height = <int>
 * Optional.

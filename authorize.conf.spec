@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # This file contains possible attribute/value pairs for creating roles in
 # authorize.conf.  You can configure roles and granular access controls by
@@ -26,7 +26,7 @@
 
 [default]
 srchFilterSelecting = <boolean>
-* Determine's whether roles' search filters will be used for selecting or
+* Determines whether a role's search filters will be used for selecting or
   eliminating during role inheritance.
 * Selecting will join the search filters with an OR when combining the
   filters.
@@ -46,6 +46,10 @@ srchFilterSelecting = <boolean>
 * Splunk adds all of its capabilities this way
 * For the default list of capabilities and assignments, see authorize.conf
   under the 'default' directory
+* Only alphanumeric characters and "_" (underscore) are allowed in capability names.
+  Examples: 
+  edit_visualizations 
+  view_license1
 * Descriptions of specific capabilities are listed below.
 
 [role_<roleName>]
@@ -97,14 +101,8 @@ srchTimeWin = <number>
 srchDiskQuota = <number>
 * Maximum amount of disk space (MB) that can be used by search jobs of a
   user that belongs to this role
-* The dispatch manager checks the quota at the dispatch time of a search
-  and additionally the search process will check at intervals that are defined
-  in the 'disk_usage_update_period' setting in limits.conf as long as the
-  search is active.
-* The quota can be exceeded at times, since the search process does not check
-  the quota constantly.
-* Exceeding this quota causes the search to be auto-finalized immediately,
-  even if there are results that have not yet been returned.
+* In search head clustering environments, this setting takes effect on a per-member basis.
+  There is no cluster-wide accounting.
 * Defaults to '100', for 100 MB.
 
 srchJobsQuota = <number>
@@ -130,25 +128,19 @@ srchMaxTime = <number><unit>
 * Defaults to 100days
 
 srchIndexesDefault = <string>
-* A semicolon-delimited list of indexes to search when no index is specified.
-* These indexes can be wild-carded ("*"), with the exception that '*' does not
-  match internal indexes.
+* Semicolon delimited list of indexes to search when no index is specified
+* These indexes can be wildcarded, with the exception that '*' does not
+  match internal indexes
 * To match internal indexes, start with '_'. All internal indexes are
-  represented by '_*'.
-* The wildcard character '*' is limited to match either all the non-internal indexes
-  or all the internal indexes, but not both at once.
-* If you make any changes in the "Indexes searched by default" Settings panel
-  for a role in Splunk Web, those values take precedence, and any wildcards
-  you specify in this setting are lost.
-* Defaults to none.
+  represented by '_*'
+* Defaults to none, but the UI will automatically populate this with 'main'
+  in manager
 
 srchIndexesAllowed = <string>
 * Semicolon delimited list of indexes this role is allowed to search
 * Follows the same wildcarding semantics as srchIndexesDefault
-* If you make any changes in the "Indexes" Settings panel
-  for a role in Splunk Web, those values take precedence, and any wildcards
-  you specify in this setting are lost.
-* Defaults to none.
+* Defaults to none, but the UI will automatically populate this with '*' in
+  manager
 
 deleteIndexesAllowed = <string>
 * Semicolon delimited list of indexes this role is allowed to delete
@@ -177,284 +169,297 @@ cumulativeRTSrchJobsQuota = <number>
 * In search head clustering environments, this setting takes effect on a per-member basis.
   There is no cluster-wide accounting.
 
-### Descriptions of Splunk system capabilities
+### Descriptions of Splunk system capabilities. Capabilities are added to roles, to which users are then assigned.
+ When a user is assigned a role, they acquire the capabilities added to that role.
+
 [capability::accelerate_datamodel]
-* Required to accelerate a datamodel.
+* Lets a user enable or disable datamodel acceleration.
+
+[capability::accelerate_search]
+* Lets a user enable or disable acceleration for reports. 
+* The assigned role must also be granted the schedule_search capability.
 
 [capability::admin_all_objects]
-* A role with this capability has access to objects in the system (user
-  objects, search jobs, etc.)
-* This bypasses any ACL restrictions (similar to root access in a *nix
-  environment)
-* We check this capability when accessing manager pages and objects
+* Lets a user access all objects in the system, such as user
+  objects and knowledge objects.
+* Lets a user bypasses any ACL restrictions, much the way root access in a *nix
+  environment does.
+* Splunk checks this capability when accessing manager pages and objects.
 
 [capability::change_authentication]
-* Required to change authentication settings through the various
-  authentication endpoints.
-* Also controls whether authentication can be reloaded
+* Lets a user change authentication settings through the
+  authentication endpoints. 
+* Lets the user reload authentication.
 
 [capability::change_own_password]
-* Self explanatory. Some auth systems prefer to have passwords be immutable
-  for some users.
-
-[capability::list_storage_passwords]
-* Controls access to the /storage/passwords endpoint. Users with this capability
-  can perform GETs. Note that the admin_all_objects capability is required to
-  perform POSTs to the /storage/passwords endpoint.
+* Lets a user change their own password. You can remove this capability to control the password for a user.
 
 [capability::delete_by_keyword]
-* Required to use the 'delete' search operator. Note that this does not
-  actually delete the raw data on disk.
-* Delete merely masks the data (via the index) from showing up in search
+* Lets a user use the "delete" search operator. Note that this does not
+  actually delete the raw data on disk, instead it masks the data (via the index) from showing up in search
   results.
 
-[capability::edit_deployment_client]
-* Self explanatory. The deployment client admin endpoint requires this cap
-  for edit.
+[capability::dispatch_rest_to_indexers]
+* Lets a user dispatch the REST search command to indexers.
 
-[capability::list_deployment_client]
-* Self explanatory.
+[capability::edit_deployment_client]
+* Lets a user edit the deployment client. 
+* Lets a user edit a deployment client admin endpoint.
 
 [capability::edit_deployment_server]
-* Self explanatory. The deployment server admin endpoint requires this cap
-  for edit.
-* Required to change/create remote inputs that get pushed to the forwarders.
-
-[capability::list_deployment_server]
-* Self explanatory.
+* Lets a user edit the deployment server. 
+* Lets a user edit a deployment server admin endpoint.
+* Lets a user change or create remote inputs that are pushed to the forwarders and other deployment clients.
 
 [capability::edit_dist_peer]
-* Required to add and edit peers for distributed search.
+* Lets a user add and edit peers for distributed search.
+
+[capability::edit_encryption_key_provider]
+* Lets a user view and edit keyprovider properties when using
+  the Server-Side Encryption (SSE) feature for a remote storage volume.
 
 [capability::edit_forwarders]
-* Required to edit settings for forwarding data.
-* Used by TCP and Syslog output admin handlers
-* Includes settings for SSL, backoff schemes, etc.
+* Lets a user edit settings for forwarding data, including settings for SSL, backoff schemes, etc.
+* Also used by TCP and Syslog output admin handlers.
 
 [capability::edit_httpauths]
-* Required to edit and end user sessions through the httpauth-tokens endpoint
+* Lets a user edit and end user sessions through the httpauth-tokens endpoint.
 
 [capability::edit_indexer_cluster]
-* Required to edit or manage indexer cluster.
+* Lets a user edit or manage indexer clusters.
+
+[capability::edit_indexerdiscovery]
+* Lets a user edit settings for indexer discovery, including settings for master_uri, pass4SymmKey, etc.
+* Also used by Indexer Discovery admin handlers.
  
 [capability::edit_input_defaults]
-* Required to change the default hostname for input data in the server
+* Lets a user change the default hostname for input data through the server
   settings endpoint.
 
 [capability::edit_monitor]
-* Required to add inputs and edit settings for monitoring files.
-* Used by the standard inputs endpoint as well as the one-shot input
+* Lets a user add inputs and edit settings for monitoring files.
+* Also used by the standard inputs endpoint as well as the one-shot input
   endpoint.
 
 [capability::edit_modinput_winhostmon]
-* Required to add and edit inputs for monitoring Windows host data.
+* Lets a user add and edit inputs for monitoring Windows host data.
 
 [capability::edit_modinput_winnetmon]
-* Required to add and edit inputs for monitoring Windows network data.
+* Lets a user add and edit inputs for monitoring Windows network data.
 
 [capability::edit_modinput_winprintmon]
-* Required to add and edit inputs for monitoring Windows printer data.
+* Lets a user add and edit inputs for monitoring Windows printer data.
 
 [capability::edit_modinput_perfmon]
-* Required to add and edit inputs for monitoring Windows performance.
+* Lets a user add and edit inputs for monitoring Windows performance.
 
 [capability::edit_modinput_admon]
-* Required to add and edit inputs for monitoring Splunk's Active Directory.
+* Lets a user add and edit inputs for monitoring Splunk's Active Directory.
 
 [capability::edit_roles]
-* Required to edit roles as well as change the mappings from users to roles.
-* Used by both the users and roles endpoint.
+* Lets a user edit roles.
+* Lets a user change the mappings from users to roles.
+* Used by both the user and role endpoint.
 
 [capability::edit_roles_grantable]
-* Restrictive version of the edit_roles capability. Only allows creation of 
-    roles with subset of the capabilities that the current user has as part of 
-    its grantable_roles. only works in conjunction with edit_user and grantableRoles
+* Lets the user edit roles and change user-to-role mapings for a limited set of roles. 
+* To limit this ability, also assign the edit_roles_grantable capability
+and configure grantableRoles in authorize.conf. For example:
+grantableRoles = role1;role2;role3. This lets user create roles using the
+subset of capabilities that the user has in their grantable_roles
+configuration. 
 
 [capability::edit_scripted]
-* Required to create and edit scripted inputs.
-
-[capability::edit_search_server]
-* Required to edit general distributed search settings like timeouts,
-  heartbeats, and blacklists
-
-[capability::list_introspection]
-* Required to read introspection settings and statistics for indexers, search,
-  processors, queues, etc.
-* Does not permit editing introspection settings.
-
-[capability::list_settings]
-* Required to list general server and introspection settings such as the server
-  name, log levels, etc.
-
-[capability::edit_server]
-* Required to edit general server and introspection settings such as the server 
-  name, log levels, etc.
-* Inherits ability to read general server and introspection settings.
+* Lets a user create and edit scripted inputs.
 
 [capability::edit_search_head_clustering]
-* Required to edit and manage search head clustering.
-
+* Lets a user edit and manage search head clustering.
+  
 [capability::edit_search_scheduler]
-* Required to disable/enable the search scheduler.
+* Lets the user disable and enable the search scheduler.
 
 [capability::edit_search_schedule_priority]
-* Required to give a search a higher-than-normal schedule priority.
+* Lets a user assign a search a higher-than-normal schedule priority.
 
 [capability::edit_search_schedule_window]
-* Required to give a search a non-automatic (or no) schedule window.
+* Lets a user edit a search schedule window.
 
-[capability::list_search_scheduler]
-* Required to display search scheduler settings.
+[capability::edit_search_server]
+* Lets a user edit general distributed search settings like timeouts,
+  heartbeats, and blacklists.
+
+[capability::edit_server]
+* Lets the user edit general server and introspection settings, such as the server 
+  name, log levels, etc.
+* This capability also inherits the ability to read general server and introspection settings.
+
+[capability::edit_server_crl]
+* Lets a user reload Certificate Revocation List within Splunk.
 
 [capability::edit_sourcetypes]
-    * Required to create and edit sourcetypes.
+* Lets a user create and edit sourcetypes.
 
 [capability::edit_splunktcp]
-* Required to change settings for receiving TCP input from another Splunk
+* Lets a user change settings for receiving TCP input from another Splunk
   instance.
 
 [capability::edit_splunktcp_ssl]
-* Required to list or edit any SSL specific settings for Splunk TCP input.
+* Lets a user view and edit SSL-specific settings for Splunk TCP input.
 
 [capability::edit_splunktcp_token]
-* Required to list or edit splunktcptokens which can be used on a receiving
+* Lets a user view or edit splunktcptokens. The tokens can be used on a receiving
   system to only accept data from forwarders that have been configured with
-  same token.
+  the same token.
 
 [capability::edit_tcp]
-* Required to change settings for receiving general TCP inputs.
-
-[capability::edit_udp]
-* Required to change settings for UDP inputs.
+* Lets a user change settings for receiving general TCP inputs.
 
 [capability::edit_telemetry_settings]
-* Required to change settings to opt-in and send telemetry data.
+* Lets a user change settings to opt-in and send telemetry data.
 
 [capability::edit_token_http]
-* Required to create, edit, display and remove settings for HTTP token input.
+* Lets a user create, edit, display, and remove settings for HTTP token input.
+* Enables the HTTP Events Collector feature.
+
+[capability::edit_udp]
+* Lets a user change settings for UDP inputs.
 
 [capability::edit_user]
-* Required to create, edit, or remove users.
-* Note that Splunk users may edit certain aspects of their information
-  without this capability.
-* Also required to manage certificates for distributed search.
-
+* Lets a user create, edit, or remove other users. To limit this ability, assign
+  the edit_roles_grantable capability and configure grantableRoles in authorize.conf.
+  For example: grantableRoles = role1;role2;role3.
+* Also lets a user manage certificates for distributed search.
+ 
 [capability::edit_view_html]
-* Required to create, edit, or otherwise modify HTML-based views.
+* Lets a user create, edit, or otherwise modify HTML-based views.
 
 [capability::edit_web_settings]
-* Required to change the settings for web.conf through the system settings
+* Lets a user change the settings for web.conf through the system settings
   endpoint.
 
+[capability::export_results_is_visible]
+* Lets a user show or hide the Export button in Splunk Web.
+* Disable this setting to hide the Export button and prevent users with 
+  this role from exporting search results.
+
 [capability::get_diag]
-* Required to use the /streams/diag endpoint to get remote diag from an
-  instance
+* Lets the user get remote diag from an
+  instance through the /streams/diag endpoint.
 
 [capability::get_metadata]
-* Required to use the 'metadata' search processor.
+* Lets a user use the "metadata" search processor.
 
 [capability::get_typeahead]
-* Required for typeahead. This includes the typeahead endpoint and the
+* Enables typeahead for a user, both the typeahead endpoint and the
   'typeahead' search processor.
 
-[capability::input_file]
-* Required for inputcsv (except for dispatch=t mode) and inputlookup
-
 [capability::indexes_edit]
-* Required to change any index settings like file size and memory limits.
+* Lets a user change any index settings such as file size and memory limits.
+
+[capability::input_file]
+* Lets a user add a file as an input through inputcsv (except for dispatch=t mode) and inputlookup.
 
 [capability::license_tab]
-* Required to access and change the license.(Deprecated)
+* (Deprecated) Lets a user access and change the license.
 
 [capability::license_edit]
-* Required to access and change the license.
+* Lets a user access and change the license.
 
 [capability::license_view_warnings]
-* Required to view license warnings on the system banner
+* Lets a user see if they are exceeding limits or reaching the expiration date of their license. 
+* License warnings are displayed on the system banner.
+  
+[capability::list_deployment_client]
+* Lets a user list the deployment clients.
 
+[capability::list_deployment_server]
+* Lets a user list the deployment servers.
+  
 [capability::list_forwarders]
-* Required to show settings for forwarding data.
+* Lets a user list settings for data forwarding.
 * Used by TCP and Syslog output admin handlers.
 
 [capability::list_httpauths]
-* Required to list user sessions through the httpauth-tokens endpoint.
+* Lets a user list user sessions through the httpauth-tokens endpoint.
 
 [capability::list_indexer_cluster]
-* Required to list indexer cluster objects like buckets, peers etc.
+* Lets a user list indexer cluster objects such as buckets, peers, etc.
+
+[capability::list_indexerdiscovery]
+* Lets a user view settings for indexer discovery.
+* Used by Indexer Discovery handlers.
  
 [capability::list_inputs]
-* Required to view the list of various inputs.
-* This includes input from files, TCP, UDP, Scripts, etc.
+* Lets a user view the list of various inputs including files, TCP, UDP, Scripts, etc.
+
+[capability::list_introspection]
+* Lets a user read introspection settings and statistics for indexers, search,
+  processors, queues, etc.
 
 [capability::list_search_head_clustering]
-* Required to list search head clustering objects like artifacts, delegated
+* Lets a user list search head clustering objects such as artifacts, delegated
   jobs, members, captain, etc.
 
+[capability::list_search_scheduler]
+* Lets a user list search scheduler settings.
+
+[capability::list_settings]
+* Lets a user list general server and introspection settings such as the server
+  name, log levels, etc.
+
+[capability::list_storage_passwords]
+* Lets a user access the /storage/passwords endpoint. 
+* Lets the user perform GETs. 
+* The admin_all_objects capability must added to the role in order for the user to
+  perform POSTs to the /storage/passwords endpoint.
+  
 [capability::output_file]
-* Required for outputcsv (except for dispatch=t mode) and outputlookup
+* Lets a user create file outputs, including outputcsv (except for dispatch=t mode) and outputlookup.
 
 [capability::request_remote_tok]
-* Required to get a remote authentication token.
+* Lets a user get a remote authentication token.
 * Used for distributing search to old 4.0.x Splunk instances.
 * Also used for some distributed peer management and bundle replication.
 
 [capability::rest_apps_management]
-* Required to edit settings for entries and categories in the python remote
+* Lets a user edit settings for entries and categories in the python remote
   apps handler.
-* See restmap.conf for more information
+* See restmap.conf for more information.
 
 [capability::rest_apps_view]
-* Required to list various properties in the python remote apps handler.
+* Lets a user list various properties in the python remote apps handler.
 * See restmap.conf for more info
 
 [capability::rest_properties_get]
-* Required to get information from the services/properties endpoint.
+* Lets a user get information from the services/properties endpoint.
 
 [capability::rest_properties_set]
-* Required to edit the services/properties endpoint.
+* Lets a user edit the services/properties endpoint.
 
 [capability::restart_splunkd]
-* Required to restart Splunk through the server control handler.
+* Lets a user restart Splunk through the server control handler.
 
 [capability::rtsearch]
-* Required to run a realtime search.
+* Lets a user run realtime searches.
 
 [capability::run_debug_commands]
-* Required to run debugging commands like 'summarize'
-
-[capability::schedule_search]
-* Required to schedule saved searches.
+* Lets a user run debugging commands, for example "summarize".
 
 [capability::schedule_rtsearch]
-* Required to schedule real time saved searches. Note that scheduled_search
-  capability is also required to be enabled
+* Lets a user schedule real time saved searches. The scheduled_search
+  capability must also be enabled for the user.
+
+[capability::schedule_search]
+* Lets a user schedule saved searches, create and update alerts, and review triggered alert information.
 
 [capability::search]
-* Self explanatory - required to run a search.
-
-[capability::use_file_operator]
-* Required to use the 'file' search operator.
-
-[capability::accelerate_search]
-* Required to save an accelerated search
-* All users have this capability by default
-
-[capability::list_accelerate_search]
-* This capability is a subset of the 'accelerate_search' capability.
-* This capability grants access to the summaries that are required to run accelerated searches.
-* Users with this capability, but without the 'accelerate_search' capability, can run,
-  but not create, accelerated searches.
-
-[capability::web_debug]
-* Required to access /_bump and /debug/** web debug endpoints
-
-[capability::edit_server_crl]
-* Required to reload CRL information within Splunk
+* Lets a user run a search.
 
 [capability::search_process_config_refresh]
-* Required to use the "refresh search-process-config" CLI command, which
-  manually flushes idle search processes.
+* Lets a user manually flush idle search processes through the "refresh search-process-config" CLI command.
 
-[capability::extra_x509_validation]
-* Required to perform additional X509 validation through
-  the /server/security/extra-x509-validation.
+[capability::use_file_operator]
+* Lets a user use the "file" search operator.
+
+[capability::web_debug]
+* Lets a user access /_bump and /debug/** web debug endpoints.

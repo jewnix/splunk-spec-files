@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # This file contains possible attribute/value pairs for saved search entries in
 # savedsearches.conf.  You can configure saved searches by creating your own
@@ -36,7 +36,7 @@
 disabled = [0|1]
 * Disable your search by setting to 1.
 * A disabled search cannot run until it is enabled.
-* This setting is typically used to keep a scheduled search from running on 
+* This setting is typically used to keep a scheduled search from running on
   its schedule without deleting the search definition.
 * Defaults to 0.
 
@@ -93,6 +93,34 @@ schedule = <cron-style string>
 * For more information, see the pre-4.0 spec file.
 * Use cron_schedule to define your scheduled search interval.
 
+allow_skew = <percentage>|<duration-specifier>
+* Allows the search scheduler to randomly distribute scheduled searches more
+  evenly over their periods.
+* When set to non-zero for searches with the following cron_schedule values,
+  the search scheduler randomly "skews" the second, minute, and hour that the
+  search actually runs on:
+    * * * * *     Every minute.
+    */M * * * *   Every M minutes (M > 0).
+    0 * * * *     Every hour.
+    0 */H * * *   Every H hours (H > 0).
+    0 0 * * *     Every day (at midnight).
+* When set to non-zero for a search that has any other cron_schedule setting,
+  the search scheduler can only randomly "skew" the second that the search runs
+  on.
+* The amount of skew for a specific search remains constant between edits of
+  the search.
+* An integer value followed by '%' (percent) specifies the maximum amount of
+  time to skew as a percentage of the scheduled search period.
+* Otherwise, use <int><unit> to specify a maximum duration.  Relevant units
+  are: m, min, minute, mins, minutes, h, hr, hour, hrs, hours, d, day, days.
+  (The <unit> may be omitted only when <int> is 0.)
+* Examples:
+    100% (for an every-5-minute search) = 5 minutes maximum
+    50% (for an every-minute search) = 30 seconds maximum
+    5m = 5 minutes maximum
+    1h = 1 hour maximum
+* A value of 0 disallows skew.
+* Default is 0.
 
 max_concurrent = <unsigned int>
 * The maximum number of concurrent instances of this search the scheduler is
@@ -234,8 +262,8 @@ action.email.to = <email list>
 * Set a comma-delimited list of recipient email addresses.
 * Defaults to empty string.
 
-* When configured in Splunk Web, the following email settings 
-  are written to this conf file only if their values differ 
+* When configured in Splunk Web, the following email settings
+  are written to this conf file only if their values differ
   from settings in alert_actions.conf.
 
 action.email.from = <email address>
@@ -244,7 +272,7 @@ action.email.from = <email address>
 
 action.email.subject = <string>
 * Set the subject of the email delivered to recipients.
-* Defaults to SplunkAlert-<savedsearchname> (or whatever is set 
+* Defaults to SplunkAlert-<savedsearchname> (or whatever is set
   in alert_actions.conf).
 
 action.email.mailserver = <string>
@@ -262,7 +290,7 @@ action.email.maxresults = <integer>
 * Defaults to 10000
 
 action.email.include.results_link = [1|0]
-* Specify whether to include a link to search results in the 
+* Specify whether to include a link to search results in the
   alert notification email.
 * Defaults to 1 (or whatever is set in alert_actions.conf).
 
@@ -279,12 +307,12 @@ action.email.include.trigger_time = [1|0]
 * Defaults to 0 (or whatever is set in alert_actions.conf).
 
 action.email.include.view_link = [1|0]
-* Specify whether to include saved search title and a link for editing 
+* Specify whether to include saved search title and a link for editing
   the saved search.
 * Defaults to 1 (or whatever is set in alert_actions.conf).
 
 action.email.inline = [1|0]
-* Specify whether to include search results in the body of the 
+* Specify whether to include search results in the body of the
   alert notification email.
 * Defaults to 0 (or whatever is set in alert_actions.conf).
 
@@ -297,7 +325,7 @@ action.email.sendpdf = [1|0]
 * Defaults to 0 (or whatever is set in alert_actions.conf).
 
 action.email.sendresults = [1|0]
-* Specify whether to include search results in the 
+* Specify whether to include search results in the
   alert notification email.
 * Defaults to 0 (or whatever is set in alert_actions.conf).
 
@@ -312,7 +340,7 @@ action.script = 0 | 1
 * Defaults to 0
 
 action.script.filename = <script filename>
-* The filename, with no path, of the shell script to execute. 
+* The filename, with no path, of the shell script to execute.
 * The script should be located in: $SPLUNK_HOME/bin/scripts/
 * For system shell scripts on Unix, or .bat or .cmd on windows, there
   are no further requirements.
@@ -322,6 +350,22 @@ action.script.filename = <script filename>
   * Example: #!C:\Python27\python.exe
 * Defaults to empty string.
 
+#******
+# Settings for lookup action
+#******
+
+action.lookup = 0 | 1
+* Enables or disables the lookup action.
+* 1 to enable, 0 to disable.
+* Defaults to 0
+
+action.lookup.filename = <lookup filename>
+* Provide the name of the CSV lookup file to write search results to. Do not provide a filepath.
+* Lookup actions can only be applied to CSV lookups.
+
+action.lookup.append = 0 | 1
+* Specify whether to append results to the lookup file defined for the action.lookup.filename attribute.
+* Defaults to 0.
 
 #*******
 # Settings for summary index action
@@ -359,8 +403,7 @@ action.populate_lookup = 0 | 1
 
 action.populate_lookup.dest = <string>
 * Can be one of the following two options:
-  * A lookup definition name from transforms.conf that references a CSV file. 
-  	The lookup name cannot be associated with KV store.
+  * A lookup name from transforms.conf.
   * A path to a lookup .csv file that Splunk should copy the search results to,
     relative to $SPLUNK_HOME.
     * NOTE: This path must point to a .csv file in either of the following
@@ -483,19 +526,37 @@ dispatch.rt_backfill = <bool>
 
 dispatch.indexedRealtime = <bool>
 * Specifies whether to use indexed-realtime mode when doing realtime searches.
-* Default for saved searches is "unset" falling back to limits.conf setting [realtime] indexed_realtime_use_by_default 
+* Overrides the setting in the limits.conf file for the indexed_realtime_use_by_default 
+  attribute in the [realtime] stanza.
+* This setting applies to each job.
+* See the [realtime] stanza in the limits.conf.spec file for more information.
+* Defaults to the value in the limits.conf file.
 
 dispatch.indexedRealtimeOffset = <int>
-* Allows for a per-job override of limits.conf settting [realtime] indexed_realtime_disk_sync_delay
-* Default for saved searches is "unset" falling back to limits.conf setting.
+* Controls the number of seconds to wait for disk flushes to finish.
+* Overrides the setting in the limits.conf file for the indexed_realtime_disk_sync_delay
+  attribute in the [realtime] stanza.
+* This setting applies to each job.
+* See the [realtime] stanza in the limits.conf.spec file for more information.
+* Defaults to the value in the limits.conf file.
 
 dispatch.indexedRealtimeMinSpan = <int>
-* Allows for a per-job override of limits.conf settting [realtime] indexed_realtime_default_span
-* Default for saved searches is "unset" falling back to limits.conf setting.
+* Minimum seconds to wait between component index searches.
+* Overrides the setting in the limits.conf file for the indexed_realtime_default_span
+  attribute in the [realtime] stanza.
+* This setting applies to each job.
+* See the [realtime] stanza in the limits.conf.spec file for more information.
+* Defaults to the value in the limits.conf file.
 
 dispatch.rt_maximum_span = <int>
-* Allows for a per-job override of limits.conf settting [realtime] indexed_realtime_maximum_span
-* Default for saved searches is "unset" falling back to limits.conf setting.
+* The max seconds allowed to search data which falls behind realtime.
+* Use this setting to set a limit, after which events are not longer considered for the result set.  
+  The search catches back up to the specified delay from realtime and uses the default span.
+* Overrides the setting in the limits.conf file for the indexed_realtime_maximum_span
+  attribute in the [realtime] stanza.
+* This setting applies to each job.
+* See the [realtime] stanza in the limits.conf.spec file for more information.
+* Defaults to the value in the limits.conf file.
 
 dispatch.sample_ratio = <int>
 * The integer value used to calculate the sample ratio. The formula is 1 / <int>.
@@ -551,7 +612,7 @@ auto_summarize.max_summary_size     = <unsigned int>
 auto_summarize.max_summary_ratio    = <positive float>
 * The maximum ratio of summary_size/bucket_size when to stop summarization and
   deem it unhelpful for a bucket
-* NOTE: the test is only performed if the summary size is larger 
+* NOTE: the test is only performed if the summary size is larger
   than auto_summarize.max_summary_size
 * Defaults to: 0.1
 
@@ -601,11 +662,11 @@ alert.severity = <int>
 * Defaults to 3.
 
 alert.expires = <time-specifier>
-* Sets the period of time to show the alert in the dashboard. Use [number][time-unit] 
+* Sets the period of time to show the alert in the dashboard. Use [number][time-unit]
   to specify a time.
 * For example: 60 = 60 seconds, 1m = 1 minute, 1h = 60 minutes = 1 hour etc
 * Defaults to 24h.
-* This property is valid until splunkd restarts. Restart clears the listing of 
+* This property is valid until splunkd restarts. Restart clears the listing of
   triggered alerts.
 
 alert.digest_mode = true | false
@@ -692,6 +753,10 @@ display.statistics.percentagesRow = 0 | 1
 display.statistics.show = 0 | 1
 
 # Visualization options
+display.visualizations.trellis.enabled = 0 | 1
+display.visualizations.trellis.scales.shared = 0 | 1
+display.visualizations.trellis.size = [small|medium|large]
+display.visualizations.trellis.splitBy = <string>
 display.visualizations.show = 0 | 1
 display.visualizations.type = [charting|singlevalue|mapping|custom]
 display.visualizations.chartHeight = <int>
@@ -733,8 +798,9 @@ display.visualizations.charting.chart.rangeValues = [<string>(, <string>)*]
 display.visualizations.charting.chart.bubbleMaximumSize = <int>
 display.visualizations.charting.chart.bubbleMinimumSize = <int>
 display.visualizations.charting.chart.bubbleSizeBy = [area|diameter]
-display.visualizations.custom.type = <string>
+display.visualizations.custom.drilldown = [all|none]
 display.visualizations.custom.height = <int>
+display.visualizations.custom.type = <string>
 display.visualizations.singlevalueHeight = <int>
 display.visualizations.singlevalue.beforeLabel = <string>
 display.visualizations.singlevalue.afterLabel = <string>
@@ -771,6 +837,7 @@ display.visualizations.mapping.choroplethLayer.showBorder = 0 | 1
 display.visualizations.mapping.markerLayer.markerOpacity = <float>
 display.visualizations.mapping.markerLayer.markerMinSize = <int>
 display.visualizations.mapping.markerLayer.markerMaxSize = <int>
+display.visualizations.mapping.legend.placement = [bottomright|none]
 display.visualizations.mapping.data.maxClusters = <int>
 display.visualizations.mapping.showTiles = 0 | 1
 display.visualizations.mapping.tileLayer.tileOpacity = <float>

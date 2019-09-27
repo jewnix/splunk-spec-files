@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # This file contains possible attribute and value pairs for creating new
 # Representational State Transfer (REST) endpoints.
@@ -91,6 +91,8 @@ capability.<post|delete|get|put>=<capabilityName>
   checked against the authenticated user's role.
 * If you just use 'capability,' then all calls get checked against this
   capability (regardless of the HTTP method).
+* Capabilities can also be expressed as a boolean expression. Supported operators 
+  include: or, and, ()
 
 acceptFrom=<network_acl> ...
 * Lists a set of networks or addresses to allow this endpoint to be accessed
@@ -111,7 +113,7 @@ acceptFrom=<network_acl> ...
 * Defaults to "*" (accept from anywhere)
 
 includeInAccessLog=[true|false]
-* If this is set to false, requests to this endpoint will not appear 
+* If this is set to false, requests to this endpoint will not appear
   in splunkd_access.log
 * Defaults to 'true'.
 

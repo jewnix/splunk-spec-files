@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # This file contains possible attribute/value pairs for configuring
 # segmentation of events in segementers.conf.

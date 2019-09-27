@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # This file maintains the state of a given app in Splunk Enterprise. It may also be used
 # to customize certain aspects of an app.
@@ -15,6 +15,15 @@
 #
 # Settings for how an app appears in Launcher (and online on Splunkbase)
 #
+
+[author=<name>]
+email = <e-mail>
+company = <company-name>
+
+[id]
+group = <group-name>
+name = <app-name>
+version = <version-number>
 
 [launcher]
 
@@ -158,13 +167,13 @@ reload.<conf_file_name> = [ simple | rest_endpoints | access_endpoints <handler_
   the [triggers] stanza.
 * If you don't include [triggers] settings and your app uses a custom
   config file, a Splunk Enterprise restart will be required after every state change.
-* Specifying "simple" implies that Splunk Enterprise will take no special action to 
+* Specifying "simple" implies that Splunk Enterprise will take no special action to
   reload your custom conf file.
-* Specify "access_endpoints" and a URL to a REST endpoint, and Splunk Enterprise will 
+* Specify "access_endpoints" and a URL to a REST endpoint, and Splunk Enterprise will
   call its _reload() method at every app state change.
-* Specify "http_get" and a URL to a REST endpoint, and Splunk Enterprise will simulate 
+* Specify "http_get" and a URL to a REST endpoint, and Splunk Enterprise will simulate
   an HTTP GET request against this URL at every app state change.
-* Specify "http_post" and a URL to a REST endpoint, and Splunk Enterprise will simulate 
+* Specify "http_post" and a URL to a REST endpoint, and Splunk Enterprise will simulate
   an HTTP POST request against this URL at every app state change.
 * "rest_endpoints" is reserved for Splunk Enterprise internal use for reloading
   restmap.conf.
@@ -172,14 +181,16 @@ reload.<conf_file_name> = [ simple | rest_endpoints | access_endpoints <handler_
 * Examples:
 
         [triggers]
-        * Do not force a restart of Splunk Enterprise for state changes of MyApp
-        * Do not run special code to tell MyApp to reload myconffile.conf
-        * Apps with custom config files will usually pick this option
+        # Do not force a restart of Splunk Enterprise for state changes of MyApp
+        # Do not run special code to tell MyApp to reload myconffile.conf
+        # Apps with custom config files will usually pick this option
         reload.myconffile = simple
 
-        * Do not force a restart of Splunk Enterprise for state changes of MyApp.
-        * Splunk Enterprise calls the /admin/myendpoint/_reload method in my custom EAI handler.
-        * Use this advanced option only if MyApp requires custom code to reload its configuration when its state changes
+        # Do not force a restart of Splunk Enterprise for state changes of MyApp.
+        # Splunk Enterprise calls the /admin/myendpoint/_reload method in my custom
+        # EAI handler.
+        # Use this advanced option only if MyApp requires custom code to reload
+        # its configuration when its state changes
         reload.myotherconffile = access_endpoints /admin/myendpoint
 
 #

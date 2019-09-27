@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # This file contains all possible options for an indexes.conf file.  Use
 # this file to configure Splunk's indexes and their properties.
@@ -187,7 +187,16 @@ inPlaceUpdates = true|false
   Support
 * Defaults to true
 
+serviceInactiveIndexesPeriod = <positive integer>
+* Defines how frequently inactive indexes are serviced, in seconds.
+* An inactive index is an index that has not been written to for a period
+  greater than the value of serviceMetaPeriod.  The inactive state is not
+  affected by whether the index is being read from.
+* Defaults to 60 (seconds).
+* Highest legal value is 4294967295
+
 serviceOnlyAsNeeded = true|false
+* DEPRECATED; use 'serviceInactiveIndexesPeriod'.
 * Causes index service (housekeeping tasks) overhead to be incurred only
   after index activity.
 * Indexer module problems may be easier to diagnose when this optimization
@@ -378,6 +387,24 @@ tstatsHomePath = <path on index server>
 * Defaults to volume:_splunk_summaries/$_index_name/datamodel_summary,
   where $_index_name is runtime-expanded to the name of the index
 
+remotePath = <root path for remote volume, prefixed by a URI-like scheme>
+* Optional.
+* Presence of this parameter means that this index uses remote storage, instead
+  of the local file system, as the main repository for bucket storage. The
+  index processor works with a cache manager to fetch buckets locally, as
+  necessary, for searching and to evict them from local storage as space fills
+  up and they are no longer needed for searching.
+* This setting must be defined in terms of a storageType=remote volume
+  definition. See the volume section below.
+* The path portion that follows the volume reference is relative to the path
+  specified for the volume.  For example, if the path for a volume "v1" is
+  "s3://bucket/path" and "remotePath" is "volume:v1/idx1",   then the fully
+  qualified path will be "s3://bucket/path/idx1".  The rules for resolving the
+  relative path with the absolute path specified in the volume can vary
+  depending on the underlying storage type.
+* If "remotePath" is specified, the "coldPath" and "thawedPath" attributes are
+  ignored.  However, they still must be specified.
+
 maxBloomBackfillBucketAge = <nonnegative integer>[smhd]|infinite
 * If a (warm or cold) bloomfilter-less bucket is older than this, Splunk
   will not create a bloomfilter for that bucket.
@@ -403,10 +430,6 @@ enableDataIntegrityControl = true|false
 * If set to false, no hashes are computed on the rawdata slices
 * It has a global default value of false
 
-# The following options can be set either per index or globally (as defaults
-# for all indexes).  Defaults set globally are overridden if set on a
-# per-index basis.
-
 maxWarmDBCount = <nonnegative integer>
 * The maximum number of warm buckets.
 * Warm buckets are located in the <homePath> for the index.
@@ -422,6 +445,23 @@ maxTotalDataSizeMB = <nonnegative integer>
   apply to thawed buckets.
 * Highest legal value is 4294967295
 * Defaults to 500000.
+
+maxGlobalDataSizeMB = <nonnegative integer>
+* The maximum amount of local disk space (in MB) that a remote storage 
+  enabled index can occupy, shared across all peers in the cluster.
+* This attribute controls the disk space that the index occupies on the peers 
+  only. It does not control the space that the index occupies on remote storage.
+* If the size that an index occupies across all peers exceeds the maximum size, 
+  the oldest data is frozen.
+* For example, assume that the attribute is set to 500 for a four-peer cluster, 
+  and each peer holds a 100 MB bucket for the index. If a new bucket of size 
+  200 MB is then added to one of the peers, the cluster freezes the oldest bucket 
+  in the cluster, no matter which peer the bucket resides on.
+* This value applies to hot, warm and cold buckets. It does not apply to
+  thawed buckets.
+* The maximum allowable value is 4294967295
+* Defaults to 0, which means that it does not limit the space that the index 
+  can occupy on the peers.
 
 rotatePeriodInSecs = <positive integer>
 * Controls the service period (in seconds): how often splunkd performs
@@ -629,17 +669,13 @@ maxHotSpanSecs = <positive integer>
 * Upper bound of timespan of hot/warm buckets in seconds.
 * NOTE: If you set this too small, you can get an explosion of hot/warm
   buckets in the filesystem.
-* NOTE: If maxHotBuckets is set to 1, Splunk will attempt to send all
+* NOTE: If you set maxHotBuckets to 1, Splunk attempts to send all
   events to the single hot bucket and maxHotSpanSeconds will not be
   enforced.
 * If you set this parameter to less than 3600, it will be automatically
-  reset to 3600, which will then activate snapping behavior (see below).
+  reset to 3600.
 * This is an advanced parameter that should be set
   with care and understanding of the characteristics of your data.
-* If set to 3600 (1 hour), or 86400 (1 day), becomes also the lower bound
-  of hot bucket timespans.  Further, snapping behavior (i.e. ohSnap)
-  is activated, whereby hot bucket boundaries will be set at exactly the
-  hour or day mark, relative to local midnight.
 * Highest legal value is 4294967295
 * Defaults to 7776000 seconds (90 days).
 * Note that this limit will be applied per ingestion pipeline. For more
@@ -649,6 +685,8 @@ maxHotSpanSecs = <positive integer>
   and manage its own set of hot buckets, without taking into account the state
   of hot buckets managed by other ingestion pipelines.  Each ingestion pipeline
   will independently apply this setting only to its own set of hot buckets.
+* NOTE: the bucket timespan snapping behavior is removed from this setting. 
+  See the 6.5 spec file for details of this behavior.
 
 maxHotIdleSecs = <nonnegative integer>
 * Provides a ceiling for buckets to stay in hot status without receiving any
@@ -858,13 +896,12 @@ disableGlobalMetadata = true|false
 * It used to disable writing to the global metadata.  In 5.0 global metadata
   was removed.
 
-repFactor = <nonnegative integer>|auto
-* Only relevant if this instance is a clustering slave (but see note about
-  "auto" below).
-* See server.conf spec for details on clustering configuration.
+repFactor = 0|auto
+* Valid only for indexer cluster peer nodes.
+* Determines whether an index gets replicated.
 * Value of 0 turns off replication for this index.
-* If set to "auto", slave will use whatever value the master has.
-* Highest legal value is 4294967295
+* Value of "auto" turns on replication for this index.
+* This attribute must be set to the same value on all peer nodes.
 * Defaults to 0.
 
 minStreamGroupQueueSize = <nonnegative integer>
@@ -1035,6 +1072,7 @@ vix.splunk.search.splitter = <class name>
 * Set to override the class used to generate splits for MR jobs.
 * Classes must implement com.splunk.mr.input.SplitGenerator.
 * Unqualified classes will be assumed to be in the package com.splunk.mr.input.
+* May be specified in either the provider stanza, or the virtual index stanza.
 * To search Parquet files, use ParquetSplitGenerator.
 * To search Hive files, use HiveSplitGenerator.
 
@@ -1125,26 +1163,6 @@ vix.splunk.setup.package.replication = true|false
 * Optional. If not set, the default replication factor for the file-system
   will apply.
 
-vix.splunk.setup.bundle.reap.timelimit = <positive integer>
-* Specific to Splunk Analytics for Hadoop provider
-* For bundles in the working directory on each data node, this attribute controls
-  how old they must be before they are eligible for reaping.
-* Unit is milliseconds
-* Defaults to 24 hours, e.g. 24 * 3600 * 1000.
-* Values larger than 24 hours will be treated as if set to 24 hours.
-
-vix.splunk.setup.bundle.reap.limit = <positive integer>
-* Specific to Splunk Analytics for Hadoop provider
-* For bundles stored in the hdfs, this attribute controls
-  how old they must be before they are eligible for reaping.
-* Any bundle younger than 24 hours is not deleted
-* Also any bundle used by search process is not deleted.
-* Any bundle  older than 24 hours are considered for deletion,
-  of these latest 4(default (5)-1) are skipped and rest deleted.
-* Unit is positive value.
-* Defaults to 5
-* Values less than 5 will be treated as if set to default value of 5.
-
 vix.splunk.setup.package.max.inactive.wait = <positive integer>
 * A positive integer represent a time interval in seconds.
 * Defaults to 5.
@@ -1163,6 +1181,14 @@ vix.splunk.setup.package.setup.timelimit = <positive integer>
 * A positive number, representing a time duration in milliseconds.
 * Defaults to 20,000 (i.e. 20 seconds).
 * A task will wait this long for a Splunk package to be installed before it quits.
+
+vix.splunk.setup.bundle.reap.timelimit = <positive integer>
+* Specific to Hunk provider
+* For bundles in the working directory on each data node, this property controls
+  how old they must be before they are eligible for reaping.
+* Unit is milliseconds
+* Defaults to 24 hours, e.g. 24 * 3600 * 1000.
+* Values larger than 24 hours will be treated as if set to 24 hours.
 
 vix.splunk.search.column.filter = true|false
 * Enables/disables column filtering. When enabled, Hunk will trim columns that
@@ -1243,6 +1269,7 @@ vix.splunk.search.splitter.parquet.simplifyresult = true|false
 * If enabled, field names for map and list type fields will be simplified by
   dropping intermediate "map" or "element" subfield names. Otherwise, a field
   name will match parquet schema completely.
+* May be specified in either the provider stanza or in the virutal index stanza.
 * Defaults to true.
 
 #
@@ -1254,57 +1281,71 @@ vix.splunk.search.splitter.hive.ppd = true|false
 * If enabled, ORC PPD will be applied whenever possible to prune unnecessary
   data as early as possible to optimize the search.
 * If not set, defaults to true.
+* May be specified in either the provider stanza or in the virutal index stanza.
 
 vix.splunk.search.splitter.hive.fileformat = textfile|sequencefile|rcfile|orc
 * Format of the Hive data files in this provider.
 * If not set, defaults to "textfile".
+* May be specified in either the provider stanza or in the virutal index stanza.
 
 vix.splunk.search.splitter.hive.dbname = <DB name>
 * Name of Hive database to be accessed by this provider.
 * Optional. If not set, defaults to "default".
+* May be specified in either the provider stanza or in the virutal index stanza.
 
 vix.splunk.search.splitter.hive.tablename = <table name>
 * Table accessed by this provider.
 * Required property.
+* May be specified in either the provider stanza or in the virutal index stanza.
 
 vix.splunk.search.splitter.hive.columnnames = <list of column names>
 * Comma-separated list of file names.
 * Required if using Hive, not using metastore.
+* May be specified in either the provider stanza or in the virutal index stanza.
 
 vix.splunk.search.splitter.hive.columntypes = string:float:int # COLON separated list of column types, required
 * Colon-separated list of column- types.
 * Required if using Hive, not using metastore.
+* May be specified in either the provider stanza or in the virutal index stanza.
 
 vix.splunk.search.splitter.hive.serde = <SerDe class>
 * Fully-qualified class name of SerDe.
 * Required if using Hive, not using metastore, and if specified in creation of Hive table.
+* May be specified in either the provider stanza or in the virutal index stanza.
 
 vix.splunk.search.splitter.hive.serde.properties = <list of key-value pairs>
 * Comma-separated list of "key=value" pairs.
 * Required if using Hive, not using metastore, and if specified in creation of Hive table.
+* May be specified in either the provider stanza or in the virutal index stanza.
 
 vix.splunk.search.splitter.hive.fileformat.inputformat = <InputFormat class>
 * Fully-qualified class name of an InputFormat to be used with Hive table data.
+* May be specified in either the provider stanza or in the virutal index stanza.
 
 vix.splunk.search.splitter.hive.rowformat.fields.terminated = <delimiter>
 * Will be set as the Hive SerDe property "field.delim".
 * Optional.
+* May be specified in either the provider stanza or in the virutal index stanza.
 
 vix.splunk.search.splitter.hive.rowformat.escaped = <escape char>
 * Will be set as the Hive SerDe property "escape.delim".
 * Optional.
+* May be specified in either the provider stanza or in the virutal index stanza.
 
 vix.splunk.search.splitter.hive.rowformat.lines.terminated = <delimiter>
 * Will be set as the Hive SerDe property "line.delim".
 * Optional.
+* May be specified in either the provider stanza or in the virutal index stanza.
 
 vix.splunk.search.splitter.hive.rowformat.mapkeys.terminated  = <delimiter>
 * Will be set as the Hive SerDe property "mapkey.delim".
 * Optional.
+* May be specified in either the provider stanza or in the virutal index stanza.
 
 vix.splunk.search.splitter.hive.rowformat.collectionitems.terminated = <delimiter>
 * Will be set as the Hive SerDe property "colelction.delim".
 * Optional.
+* May be specified in either the provider stanza or in the virutal index stanza.
 
 #
 # Archiving
@@ -1473,6 +1514,10 @@ recordreader.csv.dialect = default|excel|excel-tab|tsv
 
 splitter.<name>.<conf_key> = <conf_value>
 * Sets a configuration key for a split generator with <name> to <conf_value>
+* See comment above under "PER VIRTUAL INDEX OR PROVIDER OPTIONS". This means that the full format is:
+   vix.input.N.splitter.<name>.<conf_key> (in a vix stanza)
+   vix.splunk.search.splitter.<name>.<conf_key> (in a provider stanza)
+
 
 splitter.file.split.minsize = <bytes>
 * Minimum size in bytes for file splits.
@@ -1501,20 +1546,52 @@ splitter.file.split.maxsize = <bytes>
 # (e.g.  "coldPath=volume:volume_name"), then the cold path would be
 # composed by appending the index name to the volume name ("/foo/bar/hiro").
 #
+# If "path" is specified with a URI-like value (e.g., "s3://bucket/path"),
+# this is a remote storage volume.  A remote storage volume can only be
+# referenced by a remotePath parameter, as described above.  An Amazon S3
+# remote path might look like "s3://bucket/path", whereas an NFS remote path
+# might look like "file:///mnt/nfs".  The name of the scheme ("s3" or "file"
+# from these examples) is important, because it can indicate some necessary
+# configuration specific to the type of remote storage.  To specify a
+# configuration under the remote storage volume stanza, you use parameters
+# with the pattern "remote.<scheme>.<param name>". These parameters vary
+# according to the type of remote storage.  For example, remote storage of
+# type S3 might require that you specify an access key and a secret key.
+# You would do this through the "remote.s3.access_key" and
+# "remote.s3.secret_key" parameters.
+#
 # Note: thawedPath may not be defined in terms of a volume.
 # Thawed allocations are manually controlled by Splunk administrators,
 # typically in recovery or archival/review scenarios, and should not
 # trigger changes in space automatically used by normal index activity.
 #**************************************************************************
 
+storageType = local | remote
+* Optional.
+* Specifies whether the volume definition is for indexer local storage or remote 
+  storage. Only the remotePath attribute references a remote volume. 
+* Defaults to: local.
+
 path = <path on server>
 * Required.
-* Points to the location on the file system where all databases that use
-  this volume will reside.  You must make sure that this location does not
-  overlap with that of any other volume or index database.
+* If storageType = local:
+  * The path attribute points to the location on the file system where all indexes
+   that will use this volume reside.  
+   * This location must not overlap with the location for any other volume or index.
+* If storageType = remote:
+  * The path attribute points to the remote storage location where indexes reside. 
+  * The format for this attribute is: <scheme>://<remote-location-specifier>
+    * The "scheme" identifies a supported external storage system type.  
+    * The "remote-location-specifier" is an external system-specific string for 
+       identifying a location inside the storage system. 
+  * These external systems are supported: 
+     - Object stores that support AWS's S3 protocol. These use the scheme "s3". 
+       For example, "path=s3://mybucket/some/path".
+     - POSIX file system, potentially a remote filesystem mounted over NFS. These
+       use the scheme "file". For example, "path=file:///mnt/cheap-storage/some/path".
 
 maxVolumeDataSizeMB = <positive integer>
-* Optional.
+* Optional, ignored for storageType=remote
 * If set, this attribute limits the total size of all databases that reside
   on this volume to the maximum size specified, in MB.  Note that this it
   will act only on those indexes which reference this volume, not on the
@@ -1528,7 +1605,228 @@ maxVolumeDataSizeMB = <positive integer>
 * Highest legal value is 4294967295, lowest legal value is 1.
 
 rotatePeriodInSecs = <nonnegative integer>
-* Optional.
+* Optional, ignored for storageType=remote
 * Specifies period of trim operation for this volume.
 * If not set, the value of global rotatePeriodInSecs attribute is inherited.
 * Highest legal value is 4294967295
+
+remote.* = <String>
+* Optional.
+* With remote volumes, communication between the indexer and the external 
+  storage system may require additional configuration, specific to the type of 
+  storage system. You can pass configuration information to the storage 
+  system by specifying the settings through the following schema: 
+  remote.<scheme>.<config-variable> = <value>. 
+  For example: remote.s3.access_key = ACCESS_KEY
+
+################################################################
+##### S3 specific settings
+################################################################
+
+remote.s3.header.<http-method-name>.<header-field-name> = <String>
+* Optional.
+* Enable server-specific features, such as reduced redundancy, encryption, and so on,
+  by passing extra HTTP headers with the REST requests.
+  The <http-method-name> can be any valid HTTP method. For example, GET, PUT, or ALL,
+  for setting the header field for all HTTP methods.
+* Example: remote.s3.header.PUT.x-amz-storage-class = REDUCED_REDUNDANCY
+
+remote.s3.access_key = <String>
+* Optional.
+* Specifies the access key to use when authenticating with the remote storage 
+  system supporting the S3 API. 
+* If not specified, the indexer will look for these environment variables: 
+  AWS_ACCESS_KEY_ID or AWS_ACCESS_KEY (in that order).
+* If the environment variables are not set and the indexer is running on EC2, 
+  the indexer attempts to use the access key from the IAM role.
+* Default: unset
+
+remote.s3.secret_key = <String>
+* Optional.
+* Specifies the secret key to use when authenticating with the remote storage 
+  system supporting the S3 API. 
+* If not specified, the indexer will look for these environment variables:
+  AWS_SECRET_ACCESS_KEY or AWS_SECRET_KEY (in that order). 
+* If the environment variables are not set and the indexer is running on EC2, 
+  the indexer attempts to use the secret key from the IAM role.
+* Default: unset
+  
+remote.s3.signature_version = v2|v4
+* Optional.
+* The signature version to use when authenticating with the remote storage 
+  system supporting the S3 API. 
+* If not specified, it defaults to v2.
+* For 'sse-kms' server-side encryption scheme, you must use signature_version=v4.
+
+remote.s3.auth_region = <String>
+* Optional
+* The authentication region to use when signing the requests when interacting with the remote 
+  storage system supporting the S3 API. If unset, Splunk will attempt to automatically extract 
+  the value from the endpoint URL
+* Defaults: unset
+
+remote.s3.endpoint = <URL>
+* Optional.
+* The URL of the remote storage system supporting the S3 API. 
+* The scheme, http or https, can be used to enable or disable SSL connectivity 
+  with the endpoint. 
+* If not specified and the indexer is running on EC2, the endpoint will be 
+  constructed automatically based on the EC2 region of the instance where the
+  indexer is running, as follows: https://s3-<region>.amazonaws.com
+* Example: https://s3-us-west-2.amazonaws.com
+
+remote.s3.multipart_upload.part_size = <unsigned int>
+* Optional.
+* Sets the upload size of parts during a multipart upload.
+* Minimum value: 5242880 (5 MB)
+* Defaults: 134217728 (128 MB)
+
+remote.s3.timeout.connect = <unsigned int>
+* Optional 
+* Set the connection timeout, in milliseconds, to use when interacting with S3 for this volume
+* Defaults: 5000
+
+remote.s3.timeout.read = <unsigned int>
+* Optional 
+* Set the read timeout, in milliseconds, to use when interacting with S3 for this volume
+* Defaults: 60000
+
+remote.s3.timeout.write = <unsigned int>
+* Optional 
+* Set the write timeout, in milliseconds, to use when interacting with S3 for this volume
+* Defaults: 60000
+
+remote.s3.sslVerifyServerCert = <bool>
+* Optional
+* If this is set to true, Splunk verifies certificate presented by S3 server and checks
+  that the common name/alternate name matches the ones specified in
+  'remote.s3.sslCommonNameToCheck' and 'remote.s3.sslAltNameToCheck'.
+* Defaults: false
+
+remote.s3.sslVersions = <versions_list>
+* Optional
+* Comma-separated list of SSL versions to connect to 'remote.s3.endpoint'.
+* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
+* The special version "*" selects all supported versions.  The version "tls"
+  selects all versions tls1.0 or newer.
+* If a version is prefixed with "-" it is removed from the list.
+* SSLv2 is always disabled; "-ssl2" is accepted in the version list but does nothing.
+* When configured in FIPS mode, ssl3 is always disabled regardless
+  of this configuration.
+* Defaults: tls1.2
+
+remote.s3.sslCommonNameToCheck = <commonName1>, <commonName2>, ..
+* If this value is set, and 'remote.s3.sslVerifyServerCert' is set to true,
+  splunkd checks the common name of the certificate presented by
+  the remote server (specified in 'remote.s3.endpoint') against this list of common names.
+* Defaults: unset
+
+remote.s3.sslAltNameToCheck = <alternateName1>, <alternateName2>, ..
+* If this value is set, and 'remote.s3.sslVerifyServerCert' is set to true,
+  splunkd checks the alternate name(s) of the certificate presented by
+  the remote server (specified in 'remote.s3.endpoint') against this list of subject alternate names.
+* Defaults: unset
+
+remote.s3.sslRootCAPath = <path>
+* Optional
+* Full path to the Certificate Authrity (CA) certificate PEM format file
+  containing one or more certificates concatenated together. S3 certificate
+  will be validated against the CAs present in this file.
+* Defaults: [sslConfig/caCertFile] in server.conf
+
+remote.s3.cipherSuite = <cipher suite string>
+* Optional
+* If set, uses the specified cipher string for the SSL connection.
+* If not set, uses the default cipher string.
+* Must specify 'dhFile' to enable any Diffie-Hellman ciphers.
+* Defaults: TLSv1+HIGH:TLSv1.2+HIGH:@STRENGTH
+
+remote.s3.ecdhCurves = <comma separated list of ec curves>
+* Optional
+* ECDH curves to use for ECDH key negotiation.
+* The curves should be specified in the order of preference.
+* The client sends these curves as a part of Client Hello.
+* We only support named curves specified by their SHORT names.
+  (see struct ASN1_OBJECT in asn1.h)
+* The list of valid named curves by their short/long names can be obtained
+  by executing this command:
+  $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
+* e.g. ecdhCurves = prime256v1,secp384r1,secp521r1
+* Defaults: unset
+
+remote.s3.dhFile = <path>
+* Optional
+* PEM format Diffie-Hellman parameter file name.
+* DH group size should be no less than 2048bits.
+* This file is required in order to enable any Diffie-Hellman ciphers.
+* Defaults:unset.
+
+remote.s3.encryption = sse-s3 | sse-kms | sse-c | none
+* Optional
+* Specifies the scheme to use for Server-side Encryption (SSE) for data-at-rest.
+* sse-s3: Check http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html
+* sse-kms: Check http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingKMSEncryption.html
+* sse-c: Check http://docs.aws.amazon.com/AmazonS3/latest/dev/ServerSideEncryptionCustomerKeys.html
+* none: no Server-side encryption enabled. Data is stored unencrypted on the remote storage.
+* Defaults: none
+
+remote.s3.encryption.sse-c.key_type = kms
+* Optional
+* Determines the mechanism Splunk uses to generate the key for sending over to
+  S3 for SSE-C.
+* The only valid value is 'kms', indicating AWS KMS service.
+* One must specify required KMS settings: e.g. remote.s3.kms.key_id
+  for Splunk to start up while using SSE-C.
+* Defaults: kms.
+
+remote.s3.encryption.sse-c.key_refresh_interval = <unsigned int>
+* Optional
+* Specifies period in seconds at which a new key will be generated and used
+  for encrypting any new data being uploaded to S3.
+* Defaults: 86400
+
+remote.s3.kms.key_id = <String>
+* Required if remote.s3.encryption = sse-c | sse-kms
+* Specifies the identifier for Customer Master Key (CMK) on KMS. It can be the
+  unique key ID or the Amazon Resource Name (ARN) of the CMK or the alias
+  name or ARN of an alias that refers to the CMK.
+* Examples:
+  Unique key ID: 1234abcd-12ab-34cd-56ef-1234567890ab
+  CMK ARN: arn:aws:kms:us-east-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
+  Alias name: alias/ExampleAlias
+  Alias ARN: arn:aws:kms:us-east-2:111122223333:alias/ExampleAlias
+* Defaults: unset
+
+remote.s3.kms.access_key = <String>
+* Optional.
+* Similar to 'remote.s3.access_key'.
+* If not specified, KMS access uses 'remote.s3.access_key'.
+* Default: unset
+
+remote.s3.kms.secret_key = <String>
+* Optional.
+* Similar to 'remote.s3.secret_key'.
+* If not specified, KMS access uses 'remote.s3.secret_key'.
+* Default: unset
+
+remote.s3.kms.auth_region = <String>
+* Required if 'remote.s3.auth_region' is unset and Splunk can not
+  automatically extract this information.
+* Similar to 'remote.s3.auth_region'.
+* If not specified, KMS access uses 'remote.s3.auth_region'.
+* Defaults: unset
+
+remote.s3.kms.max_concurrent_requests = <unsigned int>
+* Optional.
+* Limits maximum concurrent requests to KMS from this Splunk instance.
+* NOTE: Can severely affect search performance if set to very low value.
+* Defaults: 10
+
+remote.s3.kms.<ssl_settings> = <...>
+* Optional.
+* Check the descriptions of the SSL settings for remote.s3.<ssl_settings>
+  above. e.g. remote.s3.sslVerifyServerCert.
+* Valid ssl_settings are sslVerifyServerCert, sslVersions, sslRootCAPath, sslAltNameToCheck,
+  sslCommonNameToCheck, cipherSuite, ecdhCurves and dhFile.
+* All of these are optional and fall back to same defaults as
+  remote.s3.<ssl_settings>.

@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 #
 # This file contain descriptions of stanzas and attribute/value pairs for
@@ -49,12 +49,12 @@
 #******************************************************************************
 
 
-SYNTAX = <string>
+syntax = <string>
 * Describes the syntax of the search command.  See the head of
   searchbnf.conf for details.
 * Required
 
-SIMPLESYNTAX = <string>
+simplesyntax = <string>
 
 * Optional simpler version of the syntax to make it easier to
   understand at the expense of completeness.  Typically it removes
@@ -64,23 +64,23 @@ SIMPLESYNTAX = <string>
   clutter the syntax description for the user.  In this can, the
   simplesyntax can just pick the one (e.g., "minute").
 
-ALIAS = <commands list>
+alias = <commands list>
 * Alternative names for the search command.  This further cleans
   up the syntax so the user does not have to know that
   'savedsearch' can also be called by 'macro' or 'savedsplunk'.
 
-DESCRIPTION = <string>
+description = <string>
 * Detailed text description of search command.  Description can continue on
   the next line if the line ends in "\"
 * Required
 
-SHORTDESC = <string>
+shortdesc = <string>
 * A short description of the search command.  The full DESCRIPTION
   may take up too much screen real-estate for the search assistant.
 * Required
 
-EXAMPLE = <string>
-COMMENT = <string>
+example<index> = <string>
+comment<index> = <string>
 * 'example' should list out a helpful example of using the search
   command, and 'comment' should describe that example.
 * 'example' and 'comment' can be appended with matching indexes to
@@ -91,16 +91,16 @@ COMMENT = <string>
     example3 = geocode maxcount=-1
     comment3 = run geocode on all values
 
-USAGE = public|private|deprecated
+usage = public|private|deprecated
 * Determines if a command is public, private, depreciated.  The
   search assistant only operates on public commands.
 * Required
 
-TAGS = <tags list>
+tags = <tags list>
 * List of tags that describe this search command.  Used to find
   commands when the use enters a synonym (e.g. "graph" -> "chart")
 
-RELATED = <commands list>
+related = <commands list>
 * List of related commands to help user when using one command to
   learn about others.
 
@@ -109,6 +109,9 @@ RELATED = <commands list>
 # Optional attributes primarily used internally at Splunk
 #******************************************************************************
 
-maintainer, appears-in, note, supports-multivalue, optout-in
-
-
+appears-in = <string>
+category = <string>
+maintainer = <string>
+note = <string>
+optout-in = <string>
+supports-multivalue = <string>

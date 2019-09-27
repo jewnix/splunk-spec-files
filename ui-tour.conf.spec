@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # This file contains the tours available for Splunk Onboarding
 #
@@ -45,6 +45,11 @@ label = <string>
 
 tourPage = <string>
 * The Splunk view this tour is associated with (only necessary if it is linked to).
+* Optional
+
+managerPage = <boolean>
+* Used to signifiy that the tourPage is a manager page. This will change the url of
+* when the tourPage is rendered to "/manager/{app}/{view}" rather than "/app/{app}/{view}"
 * Optional
 
 viewed = <boolean>

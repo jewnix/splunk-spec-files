@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # This file contains possible attribute/value pairs for creating custom time
 # ranges.
@@ -26,7 +26,7 @@
 [<timerange_name>]
 * The token to be used when accessing time ranges via the API or command
   line
-* A times.conf file can contain multiple stanzas. 
+* A times.conf file can contain multiple stanzas.
 
 label = <string>
 * The textual description used by the UI to reference this time range

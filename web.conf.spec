@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # This file contains possible attributes and values you can use to configure
 # Splunk's web interface.
@@ -93,6 +93,13 @@ serverCert = <path>
 * Default is $SPLUNK_HOME/etc/auth/splunkweb/cert.pem.
 * See also 'enableSplunkWebSSL' and 'privKeyPath'.
 
+sslPassword = <password>
+* Password protecting the private key specified by 'privKeyPath'.
+* Optional. Defaults to unencrypted private key.
+* If encrypted private key is used, do not enable client-authentication
+  on splunkd server. In [sslConfig] stanza of server.conf,
+  'requireClientCert' must be 'false'.
+
 caCertPath = <path>
 * DEPRECATED; use 'serverCert' instead.
 * A relative path is interpreted relative to $SPLUNK_HOME and may not refer
@@ -162,7 +169,7 @@ sslVersions = <list of ssl versions string>
   and "tls"
 * When configured in FIPS mode ssl3 is always disabled regardless
   of this configuration
-* Defaults to "ssl3, tls".  (anything newer than SSLv2)
+* For default look in $SPLUNK_HOME/etc/system/default/web.conf.
 * NOTE: this setting only takes effect when appServerPorts is set to a
   non-zero value
 
@@ -180,6 +187,8 @@ cipherSuite = <cipher suite string>
   used to ensure that the server does not accept connections using weak
   encryption protocols.
 * Must specify 'dhFile' to enable any Diffie-Hellman ciphers.
+* The default can vary. See the cipherSuite setting in 
+* $SPLUNK_HOME/etc/system/default/web.conf for the current default.
 
 ecdhCurves = <comma separated list of ec curves>
 * ECDH curves to use for ECDH key negotiation.
@@ -191,8 +200,9 @@ ecdhCurves = <comma separated list of ec curves>
 * The list of valid named curves by their short/long names can be obtained
   by executing this command:
   $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
-* Default is empty string.
 * e.g. ecdhCurves = prime256v1,secp384r1,secp521r1
+* The default can vary. See the ecdhCurves setting in 
+* $SPLUNK_HOME/etc/system/default/web.conf for the current default.
 
 ecdhCurveName = <string>
 * DEPRECATED; use 'ecdhCurves' instead.
@@ -445,6 +455,10 @@ jschart_series_limit = <int>
 
 jschart_results_limit = <int>
 * Chart results per series limit for all browsers.
+* Defaults to 10000
+
+choropleth_shape_limit = <int>
+* Choropleth map shape limit for all browsers.
 * Defaults to 10000
 
 dashboard_html_allow_inline_styles = <bool>
@@ -755,6 +769,14 @@ tools.sessions.secure = [True | False]
   the session cookie over HTTPS connections, increasing session security
 * Defaults to True
 
+tools.sessions.forceSecure = [True | False]
+* NOTE: this setting only takes effect when appServerPorts is set to a
+        non-zero value
+* If the client connects with HTTPS to a proxy server and the back end
+  connects to Splunk via HTTP, set this attribute to "True" so that
+  session cookie sent over HTTPS to the client has the secure bit set
+* Defaults to False
+
 response.timeout = <integer>
 * Specifies the number of seconds to wait for the server to complete a
   response
@@ -790,7 +812,7 @@ tools.encode.encoding = <codec>
   this if you know a particular browser installation must receive some other
   character encoding (Latin-1 iso-8859-1, etc)
 * WARNING: Change this at your own risk.
-* Defaults to utf08
+* Defaults to utf-8
 
 tools.proxy.on = [True | False]
 * Used for running Apache as a proxy for Splunk UI, typically for SSO
@@ -975,6 +997,14 @@ dedicatedIoThreads = <int>
 * NOTE: this setting only takes effect when appServerPorts is set to a
   non-zero value
 
+replyHeader.<name> = <string>
+* Add a static header to all HTTP responses this server generates
+* For example, "replyHeader.My-Header = value" will cause the
+  response header "My-Header: value" to be included in the reply to
+  every HTTP request to the UI HTTP server
+* NOTE: this setting only takes effect when appServerPorts is set to a
+  non-zero value
+
 termsOfServiceDirectory = <directory>
   * If set, we will look in this directory for a "Terms Of Service" document
     which each user must accept before logging into the UI
@@ -985,7 +1015,6 @@ termsOfServiceDirectory = <directory>
   * If a user hasn't accepted the current version of the TOS, they'll be required to
     the next time they try to log in.  The acceptance times will be recorded inside
     a "tos.conf" file inside an app called "tos"
-  * If the "tos" app does not exist, it must be created for acceptance times to be recorded.
   * The TOS file can either be a full HTML document or plain text, but it must have the
     ".html" suffix
   * It is not necessary to restart Splunk when adding files to the TOS directory
@@ -1054,12 +1083,41 @@ loginCustomBackgroundImage = <pathToMyFile or myApp:pathToMyFile>
     * The login page background image updates automatically.
   * If no custom image is used, the default Splunk background image displays.
 
-appNavReportsLimit = <integer>
-* Maximum number of reports to fetch to populate the navigation drop-down menu of an app.
-* An app must be configured to list reports in its navigation XML configuration before it can list any reports.
-* Set to -1 to display all the available reports in the navigation menu.
-* NOTE: Setting to either -1 or a value that is higher than the default might result in decreased browser performance due to listing large numbers of available reports in the drop-down menu.
-* Defaults to 500.
+loginFooterOption = [default | custom | none]
+* Controls display of the footer message of the login page.
+* Defaults to "default".
+  * "default" displays the Splunk copyright text.
+  * "custom" uses the footer text defined by the loginFooterText setting.
+  * "none" removes any footer text on the login page.
+* NOTE: This option is made available only to OEM customers participating in Splunk’s OEM Partner Program
+* and subject to the relevant terms of the Master OEM Agreement. All other customers or partners are prohibited
+* from removing or altering any copyright, trademark, and/or other intellectual property or proprietary rights
+* notices of Splunk placed on or embedded in any Splunk materials.
+
+loginFooterText = <footer_text>
+* Text to display in the footer of the login page.
+* Supports any text including html.
+* To display, the parameter loginFooterOption must be set to "custom".
+
+loginDocumentTitleOption = [default | custom | none]
+* Controls display of the document title of the login page.
+* Defaults to "default".
+  * "default" displays: "<page_title> | Splunk".
+  * "none" removes the branding on the document title of the login page: "<page_title>". 
+  * "custom" uses the document title text defined by the loginDocumentTitleText setting.
+* NOTE: This option is made available only to OEM customers participating in Splunk’s OEM Partner Program
+* and subject to the relevant terms of the Master OEM Agreement. All other customers or partners are prohibited
+* from removing or altering any copyright, trademark, and/or other intellectual property or proprietary rights
+* notices of Splunk placed on or embedded in any Splunk materials.
+
+loginDocumentTitleText = <document_title_text>
+* Text to display in the document title of the login page.
+* Text only.
+* To display, the parameter loginDocumentTitleOption must be set to "custom".
+
+loginPasswordHint = <default_password_hint>
+* Text to display password hint at first time login on the login page.
+* Text only. Default is "changeme".
 
 [framework]
 # Put App Framework settings here

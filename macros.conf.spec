@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # This file contains possible attribute/value pairs for search language macros.
 
@@ -30,7 +30,7 @@ args = <string>,<string>,...
 definition = <string>
 * The string that the macro will expand to, with the argument substitutions
   made. (The exception is when iseval = true, see below.)
-* Arguments to be substituted must be wrapped by dollar signs ($), for example: 
+* Arguments to be substituted must be wrapped by dollar signs ($), for example:
   "the last part of this string will be replaced by the value of argument foo $foo$".
 * Splunk replaces the $<arg>$ pattern globally in the string, even inside of
   quotes.

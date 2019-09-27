@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # This file contains possible attribute/value pairs for configuring Windows
 # Management Instrumentation (WMI) access from Splunk.
@@ -50,7 +50,7 @@ checkpoint_sync_interval = <integer>
 #----INPUT-SPECIFIC SETTINGS-----
 ###################################################################
 
-[WMI:$NAME]
+[WMI:<name>]
 * There are two types of WMI stanzas:
   * Event log: for pulling event logs. You must set the
     event_log_file attribute.
@@ -157,7 +157,7 @@ suppress_opcode = <bool>
 * Defaults to false
 
 batch_size = <integer>
-*  Number of events to fetch on each query.
+* Number of events to fetch on each query.
 * Defaults to 10.
 
 checkpointInterval = <integer>
@@ -206,7 +206,7 @@ wql = <string>
 * For example,
   SELECT * FROM Win32_PerfFormattedData_PerfProc_Process WHERE Name = "splunkd".
 * If you wish to use event notification queries, you must also set the
-  "current_only" attribute to 1 within the stanza, and your query must be 
+  "current_only" attribute to 1 within the stanza, and your query must be
   appropriately structured for event notification (meaning it must contain
   one or more of the GROUP, WITHIN or HAVING clauses.)
 * For example,

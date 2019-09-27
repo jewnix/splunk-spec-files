@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # This file contains possible attribute and value pairs for creating multikv
 # rules.  Multikv is the process of extracting events from table-like events,
@@ -107,5 +107,5 @@ OR
 
 <token_list> = _token_list_ <comma-separated list>
 * Defines a list of static tokens in a section.
-* This is useful for tables with no header, for example: the output of 'ls -lah' 
+* This is useful for tables with no header, for example: the output of 'ls -lah'
   which misses a header altogether.

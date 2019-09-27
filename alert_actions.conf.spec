@@ -1,4 +1,4 @@
-#   Version 6.5.10
+#   Version 6.6.0
 #
 # This file contains possible attributes and values for configuring global
 # saved search actions in alert_actions.conf.  Saved searches are configured
@@ -84,7 +84,7 @@ command = <string>
   reference the search, use $search$
 
 is_custom = [1|0]
-* Specifies whether the alert action is based on the custom alert 
+* Specifies whether the alert action is based on the custom alert
   actions framework and is supposed to be listed in the search UI.
 
 payload_format = [xml|json]
@@ -93,11 +93,11 @@ payload_format = [xml|json]
 * Defaults to "xml"
 
 label = <string>
-* For custom alert actions: Define the label shown in the UI. If not 
+* For custom alert actions: Define the label shown in the UI. If not
   specified, the stanza name will be used instead.
 
 description = <string>
-* For custom alert actions: Define the description shown in the UI. 
+* For custom alert actions: Define the description shown in the UI.
 
 icon_path = <string>
 * For custom alert actions: Define the icon shown in the UI for the alert
@@ -107,12 +107,12 @@ icon_path = <string>
 alert.execute.cmd = <string>
 * For custom alert actions: Explicitly specify the command to be executed
   when the alert action is triggered. This refers to a binary or script
-  in the bin folder of the app the alert action is defined in, or to a 
+  in the bin folder of the app the alert action is defined in, or to a
   path pointer file, also located in the bin folder.
 * If a path pointer file (*.path) is specified, the contents of the file
-  is read and the result is used as the command to be executed. 
+  is read and the result is used as the command to be executed.
   Environment variables in the path pointer file are substituted.
-* If a python (*.py) script is specified it will be prefixed with the 
+* If a python (*.py) script is specified it will be prefixed with the
   bundled python interpreter.
 
 alert.execute.cmd.arg.<n> = <string>
@@ -179,6 +179,7 @@ format = [table|raw|csv]
 * Previously accepted values plain and html are no longer respected
   and equate to table.
 * To make emails plain or html use the content_type attribute.
+* Default: table
 
 include.results_link = [1|0]
 * Specify whether to include a link to the results.
@@ -363,7 +364,9 @@ sslVersions = <versions_list>
 * SSLv2 is always disabled; "-ssl2" is accepted in the version list but does nothing.
 * When configured in FIPS mode, ssl3 is always disabled regardless
   of this configuration.
-* Defaults to "*,-ssl2" (anything newer than SSLv2).
+* Used exclusively for the email alert action and the sendemail search command
+* The default can vary. See the sslVersions setting in 
+* $SPLUNK_HOME/etc/system/default/alert_actions.conf for the current default.
 
 sslVerifyServerCert = true|false
 * If this is set to true, you should make sure that the server that is
@@ -373,12 +376,14 @@ sslVerifyServerCert = true|false
   certificiate is considered verified if either is matched.
 * If this is set to true, make sure 'server.conf/[sslConfig]/sslRootCAPath'
   has been set correctly.
+* Used exclusively for the email alert action and the sendemail search command
 * Default is false.
 
 sslCommonNameToCheck = <commonName1>, <commonName2>, ...
 * Optional. Defaults to no common name checking.
 * Check the common name of the server's certificate against this list of names.
 * 'sslVerifyServerCert' must be set to true for this setting to work.
+* Used exclusively for the email alert action and the sendemail search command
 
 sslAltNameToCheck =  <alternateName1>, <alternateName2>, ...
 * Optional. Defaults to no alternate name checking.
@@ -386,14 +391,14 @@ sslAltNameToCheck =  <alternateName1>, <alternateName2>, ...
 * If there is no match, assume that Splunk is not authenticated against this
   server.
 * 'sslVerifyServerCert' must be set to true for this setting to work.
+* Used exclusively for the email alert action and the sendemail search command
 
 cipherSuite = <cipher suite string>
 * If set, Splunk uses the specified cipher string for the communication with
   with the SMTP server.
-* If not set, Splunk uses the default cipher string provided by OpenSSL.
-* This is used to ensure that the client does not make connections using
-  weak encryption protocols.
-* Default is 'TLSv1+HIGH:TLSv1.2+HIGH:@STRENGTH'.
+* Used exclusively for the email alert action and the sendemail search command
+* The default can vary. See the cipherSuite setting in 
+* $SPLUNK_HOME/etc/system/default/alert_actions.conf for the current default.
 
 ################################################################################
 # RSS: these settings are prefaced by the [rss] stanza
@@ -426,6 +431,26 @@ filename = <string>
 * Defaults to empty string.
 
 ################################################################################
+# lookup: These settings are prefaced by the [lookup] stanza. They enable the
+          Splunk software to write scheduled search results to a new or existing
+          CSV lookup file.
+################################################################################
+[lookup]
+filename = <string>
+* The filename, with no path, of the CSV lookup file. Filename must end with ".csv".
+* If this file does not yet exist, the Splunk software creates it on the next
+  scheduled run of the search. If the file currently exists, it is overwritten
+  on each run of the search unless append=1.
+* The file will be placed in the same path as other CSV lookup files:
+  $SPLUNK_HOME/etc/apps/search/lookups.
+* Defaults to empty string.
+
+append = [1|0]
+* Specifies whether to append results to the lookup file defined for the
+  filename attribute.
+* Defaults to 0.
+
+################################################################################
 # summary_index: these settings are prefaced by the [summary_index] stanza
 ################################################################################
 [summary_index]
@@ -452,3 +477,5 @@ dest = <string>
   "etc/apps/<app>/lookups/<file-name>"
 * The user executing this action MUST have write permissions to the app for
   this action to work properly.
+
+[<custom_alert_action>]

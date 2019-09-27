@@ -1,3 +1,5 @@
+#   Version 6.6.0
+#
 # This file describes some of the settings that are used, and
 # can be configured on a per-user basis for use by the Splunk Web UI.
 
@@ -39,7 +41,7 @@ lang = <language>
 * Specifies the per-user language preference for non-webui operations, where
   multiple tags are separated by commas.
 * If unset, English "en-US" will be used when required.
-* Only tags used in the "Accept-Language" HTTP header will be allowed, such as 
+* Only tags used in the "Accept-Language" HTTP header will be allowed, such as
   "en-US" or "fr-FR".
 * Fuzzy matching is supported, where "en" will match "en-US".
 * Optional quality settings is supported, such as "en-US,en;q=0.8,fr;q=0.6"
@@ -50,25 +52,21 @@ install_source_checksum = <string>
   configurations was installed.
 * Analogous to <install_source_checksum> in app.conf.
 
-search_syntax_highlighting = <boolean>
+search_syntax_highlighting = [light|dark|black-white]
 * Highlights different parts of a search string with different colors.
-* Defaults to true.
+* Defaults to light.
 
 search_assistant = [full|compact|none]
 * Specifies the type of search assistant to use when constructing a search.
 * Defaults to compact.
 
-infodelivery_enabled = <boolean>
-* Enables the info delivery app
-* Defaults to true
+search_auto_format = <boolean>
+* Specifies if auto-format is enabled in the search input.
+* Default to false.
 
-infodelivery_show_ad_modal = <boolean>
-* Flag to disable/enable the ad modal for info delivery app
-* Defaults to true
-
-infodelivery_show_configure_modal = <boolean>
-* Flag to disable/enable the configure modal for info delivery
-* Defaults to true
+search_line_numbers = <boolean>
+* Display the line numbers with the search.
+* Defaults to false.
 
 datasets:showInstallDialog = <boolean>
 * Flag to enable/disable the install dialog for the datasets addon
@@ -83,3 +81,6 @@ default_earliest_time = <string>
 default_latest_time = <string>
 * Sets the global default time range across all apps, users, and roles on the search page.
 
+[role_<name>]
+
+<name> = <value>

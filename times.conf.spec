@@ -1,4 +1,4 @@
-#   Version 7.0.11
+#   Version 7.1.0
 #
 # This file contains possible attribute/value pairs for creating custom time
 # ranges.
@@ -58,14 +58,7 @@ order = <integer>
 * Optional.  Default value is 0.
 
 sub_menu = <submenu name>
-* If present, the time range is to be shown in the given submenu instead
-  of in the main menu.
-* The value for this key must be the label key of an existing stanza name,
-  and that stanza name must have an is_sub_menu = True key
-* Optional. If omitted the given time option will display in the main menu.
+* REMOVED.  This setting is no longer used.
 
 is_sub_menu = <boolean>
-* If True, the given item is only the 'opener' element for a submenu.
-* Stanzas containing this key can still be assigned an order value to set
-  the placement within the main menu, but can not themselves have
-  latest_time nor earliest_time keys.
+* REMOVED.  This setting is no longer used.

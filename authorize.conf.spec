@@ -1,4 +1,4 @@
-#   Version 7.0.11
+#   Version 7.1.0
 #
 # This file contains possible attribute/value pairs for creating roles in
 # authorize.conf.  You can configure roles and granular access controls by
@@ -38,7 +38,8 @@ srchFilterSelecting = <boolean>
   * role2 srchFilter = sourcetype=ex2 with selecting = false
   * role3 srchFilter = sourcetype!=ex3 AND index=main with selecting = true
   * role3 inherits from role2 and role 2 inherits from role1
-  * Resulting srchFilter = ((sourcetype!=ex1) OR (sourcetype!=ex3 AND index=main)) AND ((sourcetype=ex2))
+  * Resulting srchFilter = ((sourcetype!=ex1) OR 
+    (sourcetype!=ex3 AND index=main)) AND ((sourcetype=ex2))
 
 [capability::<capability>]
 * DO NOT edit, remove, or add capability stanzas. The existing capabilities
@@ -46,10 +47,11 @@ srchFilterSelecting = <boolean>
 * Splunk adds all of its capabilities this way
 * For the default list of capabilities and assignments, see authorize.conf
   under the 'default' directory
-* Only alphanumeric characters and "_" (underscore) are allowed in capability names.
+* Only alphanumeric characters and "_" (underscore) are allowed in 
+  capability names.
   Examples: 
-  edit_visualizations 
-  view_license1
+  * edit_visualizations 
+  * view_license1
 * Descriptions of specific capabilities are listed below.
 
 [role_<roleName>]
@@ -86,7 +88,6 @@ srchFilter = <string>
 * To override any search filters from imported roles, set this to '*', as
   the 'admin' role does.
 
-
 srchTimeWin = <number>
 * Maximum time span of a search, in seconds.
     * This time window limit is applied backwards from the latest time
@@ -94,15 +95,16 @@ srchTimeWin = <number>
 * By default, searches are not limited to any specific time window.
 * To override any search time windows from imported roles, set this to '0'
   (infinite), as the 'admin' role does.
-* -1 is a special value that implies no search window has been set for this role
+* -1 is a special value that implies no search window has been set for 
+  this role
     * This is equivalent to not setting srchTimeWin at all, which means it
       can be easily overridden by an imported role
 
 srchDiskQuota = <number>
 * Maximum amount of disk space (MB) that can be used by search jobs of a
   user that belongs to this role
-* In search head clustering environments, this setting takes effect on a per-member basis.
-  There is no cluster-wide accounting.
+* In search head clustering environments, this setting takes effect on a 
+  per-member basis. There is no cluster-wide accounting.
 * The dispatch manager checks the quota at the dispatch time of a search
   and additionally the search process will check at intervals that are defined
   in the 'disk_usage_update_period' setting in limits.conf as long as the
@@ -141,8 +143,8 @@ srchIndexesDefault = <string>
   match internal indexes.
 * To match internal indexes, start with '_'. All internal indexes are
   represented by '_*'.
-* The wildcard character '*' is limited to match either all the non-internal indexes
-  or all the internal indexes, but not both at once.
+* The wildcard character '*' is limited to match either all the non-internal 
+  indexes or all the internal indexes, but not both at once.
 * If you make any changes in the "Indexes searched by default" Settings panel
   for a role in Splunk Web, those values take precedence, and any wildcards
   you specify in this setting are lost.
@@ -167,24 +169,27 @@ cumulativeSrchJobsQuota = <number>
 * Maximum number of concurrently running historical searches in total
   across all members of this role
 * Requires enable_cumulative_quota = true in limits.conf to take effect.
-* If a user belongs to multiple roles, the user's searches count against the role with
-  the largest cumulative search quota. Once the quota for that role is consumed, the
-  user's searches count against the role with the next largest quota, and so on.
-* In search head clustering environments, this setting takes effect on a per-member basis.
-  There is no cluster-wide accounting.
+* If a user belongs to multiple roles, the user's searches count against 
+  the role with the largest cumulative search quota. Once the quota for 
+  that role is consumed, the user's searches count against the role with 
+  the next largest quota, and so on.
+* In search head clustering environments, this setting takes effect on a 
+  per-member basis. There is no cluster-wide accounting.
 
 cumulativeRTSrchJobsQuota = <number>
 * Maximum number of concurrently running real-time searches in total
   across all members of this role
 * Requires enable_cumulative_quota = true in limits.conf to take effect.
-* If a user belongs to multiple roles, the user's searches count against the role with
-  the largest cumulative search quota. Once the quota for that role is consumed, the
-  user's searches count against the role with the next largest quota, and so on.
-* In search head clustering environments, this setting takes effect on a per-member basis.
-  There is no cluster-wide accounting.
+* If a user belongs to multiple roles, the user's searches count against 
+  the role with the largest cumulative search quota. Once the quota for 
+  that role is consumed, the user's searches count against the role with 
+  the next largest quota, and so on.
+* In search head clustering environments, this setting takes effect 
+  on a per-member basis. There is no cluster-wide accounting.
 
-### Descriptions of Splunk system capabilities. Capabilities are added to roles, to which users are then assigned.
- When a user is assigned a role, they acquire the capabilities added to that role.
+### Descriptions of Splunk system capabilities. Capabilities are added to roles, 
+ to which users are then assigned. When a user is assigned a role, they acquire 
+ the capabilities added to that role.
 
 [capability::accelerate_datamodel]
 * Lets a user enable or disable datamodel acceleration.
@@ -193,11 +198,19 @@ cumulativeRTSrchJobsQuota = <number>
 * Lets a user enable or disable acceleration for reports. 
 * The assigned role must also be granted the schedule_search capability.
 
+[capability::run_multi_phased_searches]
+* Lets a user in a distributed search environment run searches with 
+  three or more map-reduce phases
+* Allows users to take advantage of the search performance gains 
+  related to parallel reduce functionality. 
+* Multiphased searches can lead to higher resource utilization on 
+  indexers, but they can also reduce resource utilization on search heads. 
+
 [capability::admin_all_objects]
 * Lets a user access all objects in the system, such as user
   objects and knowledge objects.
-* Lets a user bypasses any ACL restrictions, much the way root access in a *nix
-  environment does.
+* Lets a user bypasses any ACL restrictions, much the way root access in 
+  a *nix environment does.
 * Splunk checks this capability when accessing manager pages and objects.
 
 [capability::change_authentication]
@@ -206,12 +219,13 @@ cumulativeRTSrchJobsQuota = <number>
 * Lets the user reload authentication.
 
 [capability::change_own_password]
-* Lets a user change their own password. You can remove this capability to control the password for a user.
+* Lets a user change their own password. You can remove this capability 
+  to control the password for a user.
 
 [capability::delete_by_keyword]
 * Lets a user use the "delete" search operator. Note that this does not
-  actually delete the raw data on disk, instead it masks the data (via the index) from showing up in search
-  results.
+  actually delete the raw data on disk, instead it masks the data 
+  (via the index) from showing up in search results.
 
 [capability::dispatch_rest_to_indexers]
 * Lets a user dispatch the REST search command to indexers.
@@ -223,7 +237,8 @@ cumulativeRTSrchJobsQuota = <number>
 [capability::edit_deployment_server]
 * Lets a user edit the deployment server. 
 * Lets a user edit a deployment server admin endpoint.
-* Lets a user change or create remote inputs that are pushed to the forwarders and other deployment clients.
+* Lets a user change or create remote inputs that are pushed to the 
+  forwarders and other deployment clients.
 
 [capability::edit_dist_peer]
 * Lets a user add and edit peers for distributed search.
@@ -233,7 +248,8 @@ cumulativeRTSrchJobsQuota = <number>
   the Server-Side Encryption (SSE) feature for a remote storage volume.
 
 [capability::edit_forwarders]
-* Lets a user edit settings for forwarding data, including settings for SSL, backoff schemes, etc.
+* Lets a user edit settings for forwarding data, including settings 
+  for SSL, backoff schemes, etc.
 * Also used by TCP and Syslog output admin handlers.
 
 [capability::edit_httpauths]
@@ -243,7 +259,8 @@ cumulativeRTSrchJobsQuota = <number>
 * Lets a user edit or manage indexer clusters.
 
 [capability::edit_indexerdiscovery]
-* Lets a user edit settings for indexer discovery, including settings for master_uri, pass4SymmKey, etc.
+* Lets a user edit settings for indexer discovery, including settings 
+  for master_uri, pass4SymmKey, etc.
 * Also used by Indexer Discovery admin handlers.
  
 [capability::edit_input_defaults]
@@ -276,7 +293,8 @@ cumulativeRTSrchJobsQuota = <number>
 * Used by both the user and role endpoint.
 
 [capability::edit_roles_grantable]
-* Lets the user edit roles and change user-to-role mapings for a limited set of roles. 
+* Lets the user edit roles and change user-to-role mapings for a limited 
+  set of roles. 
 * To limit this ability, also assign the edit_roles_grantable capability
 and configure grantableRoles in authorize.conf. For example:
 grantableRoles = role1;role2;role3. This lets user create roles using the
@@ -303,9 +321,10 @@ configuration.
   heartbeats, and blacklists.
 
 [capability::edit_server]
-* Lets the user edit general server and introspection settings, such as the server 
-  name, log levels, etc.
-* This capability also inherits the ability to read general server and introspection settings.
+* Lets the user edit general server and introspection settings, such 
+  as the server name, log levels, etc.
+* This capability also inherits the ability to read general server 
+  and introspection settings.
 
 [capability::edit_server_crl]
 * Lets a user reload Certificate Revocation List within Splunk.
@@ -321,9 +340,9 @@ configuration.
 * Lets a user view and edit SSL-specific settings for Splunk TCP input.
 
 [capability::edit_splunktcp_token]
-* Lets a user view or edit splunktcptokens. The tokens can be used on a receiving
-  system to only accept data from forwarders that have been configured with
-  the same token.
+* Lets a user view or edit splunktcptokens. The tokens can be used on a 
+  receiving system to only accept data from forwarders that have been 
+  configured with the same token.
 
 [capability::edit_tcp]
 * Lets a user change settings for receiving general TCP inputs.
@@ -339,9 +358,9 @@ configuration.
 * Lets a user change settings for UDP inputs.
 
 [capability::edit_user]
-* Lets a user create, edit, or remove other users. To limit this ability, assign
-  the edit_roles_grantable capability and configure grantableRoles in authorize.conf.
-  For example: grantableRoles = role1;role2;role3.
+* Lets a user create, edit, or remove other users. To limit this ability, 
+  assign the edit_roles_grantable capability and configure grantableRoles 
+  in authorize.conf. For example: grantableRoles = role1;role2;role3.
 * Also lets a user manage certificates for distributed search.
  
 [capability::edit_view_html]
@@ -371,7 +390,8 @@ configuration.
 * Lets a user change any index settings such as file size and memory limits.
 
 [capability::input_file]
-* Lets a user add a file as an input through inputcsv (except for dispatch=t mode) and inputlookup.
+* Lets a user add a file as an input through inputcsv (except for 
+  dispatch=t mode) and inputlookup.
 
 [capability::license_tab]
 * (Deprecated) Lets a user access and change the license.
@@ -380,7 +400,8 @@ configuration.
 * Lets a user access and change the license.
 
 [capability::license_view_warnings]
-* Lets a user see if they are exceeding limits or reaching the expiration date of their license. 
+* Lets a user see if they are exceeding limits or reaching the expiration 
+  date of their license. 
 * License warnings are displayed on the system banner.
   
 [capability::list_deployment_client]
@@ -393,6 +414,10 @@ configuration.
 * Lets a user list settings for data forwarding.
 * Used by TCP and Syslog output admin handlers.
 
+[capability::list_health]
+* Lets a user monitor the health of various Splunk features
+  (such as inputs, outputs, clustering, etc) through REST endpoints.
+
 [capability::list_httpauths]
 * Lets a user list user sessions through the httpauth-tokens endpoint.
 
@@ -404,7 +429,7 @@ configuration.
 * Used by Indexer Discovery handlers.
  
 [capability::list_inputs]
-* Lets a user view the list of various inputs including files, TCP, UDP, Scripts, etc.
+* Lets a user view the list of inputs, including files, TCP, UDP, Scripts, etc.
 
 [capability::list_introspection]
 * Lets a user read introspection settings and statistics for indexers, search,
@@ -421,14 +446,25 @@ configuration.
 * Lets a user list general server and introspection settings such as the server
   name, log levels, etc.
 
+[capability::list_metrics_catalog]
+* Lets a user list metrics catalog information such as the metric names,
+  dimensions, and dimension values.
+
 [capability::list_storage_passwords]
 * Lets a user access the /storage/passwords endpoint. 
 * Lets the user perform GETs. 
 * The admin_all_objects capability must added to the role in order for the user to
   perform POSTs to the /storage/passwords endpoint.
   
+[capability::never_lockout]
+* Lets a user account never lockout.
+
+[capability::never_expire]
+* Lets a user account never expire.
+
 [capability::output_file]
-* Lets a user create file outputs, including outputcsv (except for dispatch=t mode) and outputlookup.
+* Lets a user create file outputs, including outputcsv (except for 
+  dispatch=t mode) and outputlookup.
 
 [capability::request_remote_tok]
 * Lets a user get a remote authentication token.
@@ -464,16 +500,18 @@ configuration.
 scheduled_search and rtsearch capabilities must be enabled for the role.
 
 [capability::schedule_search]
-* Lets a user schedule saved searches, create and update alerts, and review triggered alert information.
+* Lets a user schedule saved searches, create and update alerts, and 
+  review triggered alert information.
 
 [capability::search]
 * Lets a user run a search.
 
 [capability::search_process_config_refresh]
-* Lets a user manually flush idle search processes through the "refresh search-process-config" CLI command.
+* Lets a user manually flush idle search processes through the 
+  "refresh search-process-config"CLI command.
 
 [capability::use_file_operator]
-* Lets a user use the "file" search operator.
+* Lets a user use the "file" search operator. The "file" search operator is DEPRECATED.
 
 [capability::web_debug]
 * Lets a user access /_bump and /debug/** web debug endpoints.

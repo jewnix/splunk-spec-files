@@ -1,4 +1,4 @@
-#   Version 7.0.11
+#   Version 7.1.0
 
 # splunk-launch.conf contains values used at startup time, by the splunk
 # command and by windows services.
@@ -141,3 +141,62 @@ SPLUNK_SERVER_NAME=<name>
 SPLUNK_WEB_NAME=<name>
 * Names the Python app server / web server/service.
 * Defaults to splunkweb (UNIX), or Splunkweb (Windows).
+
+#*******
+# File system check enable/disable
+#
+# CAUTION !!! CAUTION !!! CAUTION !!! CAUTION !!! CAUTION !!! CAUTION !!!
+# USE OF THIS ADVANCED SETTING IS NOT SUPPORTED. IRREVOCABLE DATA LOSS 
+# CAN OCCUR. YOU USE THE SETTING SOLELY AT YOUR OWN RISK.
+# CAUTION !!! CAUTION !!! CAUTION !!! CAUTION !!! CAUTION !!! CAUTION !!!
+#
+# When Splunk software encounters a file system that it does not recognize,
+# it runs a utility called 'locktest' to confirm that it can write to the
+# file system correctly. If 'locktest' fails for any reason, splunkd
+# cannot start.
+#
+# The following setting lets you temporarily bypass the 'locktest'  
+# check (for example, when a software vendor introduces a new default
+# file system on a popular operating system.) When it is active, splunkd
+# starts regardless of its ability to interact with the file system.
+#
+# Use this setting if and only if:
+#
+# * You are a skilled Splunk administrator and know what you are doing.
+# * You use Splunk software in a development environment.
+# * You want to recover from a situation where the default
+#   filesystem has been changed outside of your control (such as 
+#   during an operating system upgrade.)
+# * You want to recover from a situation where a Splunk bug
+#   has invalidated a previously functional file system after an upgrade.
+# * You want to evaluate the performance of a file system for which
+#   Splunk has not yet offered support. 
+# * You have been given explicit instruction from Splunk Support to use
+#   the setting to solve a problem where Splunk software does not start
+#   because of a failed file system check.
+# * You understand and accept all of the risks of using the setting, 
+#   up to and including LOSING ALL YOUR DATA WITH NO CHANCE OF RECOVERY
+*   while the setting is active.
+#
+# If none of these scenarios applies to you, then DO NOT USE THE SETTING.
+#
+# REPEAT:
+# USE OF THIS ADVANCED SETTING IS NOT SUPPORTED. IRREVOCABLE DATA LOSS
+# CAN OCCUR. YOU USE THIS SETTING SOLELY AT YOUR OWN RISK. BY USING THE
+# SETTING, YOU ARE ACTIVELY BYPASSING FILE SYSTEM CHECKS THAT ARE
+# DESIGNED TO CONFIRM THAT SPLUNK SOFTWARE CAN WORK ON YOUR MACHINE
+# FILE SYSTEM. DO NOT USE THE SETTING AS A LONG-TERM SOLUTION TO A FILE
+# SYSTEM PROBLEM. WHEN USING THE SETTING UNDER GUIDANCE OF SPLUNK
+# SUPPORT, REPORT ANY PROBLEMS YOU ENCOUNTER WITH INDEXING OR
+# SEARCH IMMEDIATELY.
+#
+#*******
+
+OPTIMISTIC_ABOUT_FILE_LOCKING = [0|1]
+* Whether or not Splunk software skips the file system lock check on 
+  unrecognized file systems.
+* CAUTION: USE THIS SETTING AT YOUR OWN RISK. YOU CAN LOSE ANY DATA
+  THAT HAS BEEN INDEXED AS LONG AS THE SETTING IS ACTIVE.
+* When set to 1, Splunk software skips the file system check, and
+  splunkd starts whether or not it can recognize the file system.
+* Defaults to 0 (Run the file system check.)

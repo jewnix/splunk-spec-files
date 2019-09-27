@@ -1,4 +1,4 @@
-#   Version 7.0.11
+#   Version 7.1.0
 #
 # This file contains possible attributes and values for configuring
 # authentication via authentication.conf.
@@ -102,7 +102,7 @@ host = <string>
 SSLEnabled = [0|1]
 * OPTIONAL
 * Defaults to disabled (0)
-* See the file $SPLUNK_HOME/etc/openldap/openldap.conf for SSL LDAP settings
+* See the file $SPLUNK_HOME/etc/openldap/ldap.conf for SSL LDAP settings
 
 port = <integer>
 * OPTIONAL
@@ -357,12 +357,138 @@ getUsersTTL = <time range string>
 
 minPasswordLength = <positive integer>
 * Specifies the minimum permitted password length in characters when
-  passwords are set or modified.
+  passwords are set or modified. 
+* Defaults to 8. Any value less than 1 will be ignored.
 * This setting is optional.
-* If 0, there is no required minimum.  In other words there is no constraint.
 * Password modification attempts which do not meet this requirement will be
-* explicitly rejected.  Defaults to 0 (disabled).
+* explicitly rejected.
 
+minPasswordUppercase = <positive integer>
+* Specifies the minimum permitted uppercase characters when passwords are set or modified.
+* Defaults to 0.
+* Splunk software ignores negative values.
+* This setting is optional.
+* Password modification attempts which do not meet this requirement will be
+* explicitly rejected.
+
+minPasswordLowercase = <positive integer>
+* Specifies the minimum permitted lowercase characters when passwords are set or modified.
+* Defaults to 0.
+* Splunk software ignores negative values.
+* This setting is optional.
+* Password modification attempts which do not meet this requirement will be
+* explicitly rejected.
+
+minPasswordDigit = <positive integer>
+* Specifies the minimum permitted digit or number characters when passwords are set or modified.
+* Defaults to 0.
+* Splunk software ignores negative values.
+* This setting is optional.
+* Password modification attempts which do not meet this requirement will be
+* explicitly rejected.
+
+minPasswordSpecial = <positive integer>
+* Specifies the minimum permitted special characters when passwords are set or modified.
+* The semicolon character ':' is not allowed.
+* Defaults to 0.
+* Splunk software ignores negative values.
+* This setting is optional.
+* Password modification attempts which do not meet this requirement will be
+* explicitly rejected.
+
+expirePasswordDays = <positive integer>
+* Specifies the number of days before the password expires after a reset.
+* Minimum value: 0
+* Maximum value: 3650
+* Default: 90
+* Splunk software ignores negative values.
+* This setting is optional.
+
+expireAlertDays = <positive integer>
+* Specifies the number of days to issue alerts before password expires.
+* Minimum value: 0
+* Maximum value: 120
+* Default: 15
+* Splunk software ignores negative values.
+* This setting is optional.
+* Alert appears in splunkd.log.
+
+expireUserAccounts = <boolean>
+* Specifies whether password expiration is enabled.
+* Defaults to false (user passwords do not expire).
+* This setting is optional.
+
+forceWeakPasswordChange = <boolean>
+* Specifies whether users must change a weak password.
+* Defaults to false (users can keep weak password).
+* This setting is optional.
+
+lockoutUsers = <boolean>
+* Specifies whether locking out users is enabled.
+* Defaults to true (users will be locked out on incorrect logins).
+* This setting is optional.
+* If you enable this setting on members of a search head cluster, user lockout 
+  state applies only per SHC member, not to the entire cluster.
+
+lockoutMins = <positive integer>
+* The number of minutes that a user is locked out after entering an incorrect 
+  password more than 'lockoutAttempts' times in 'lockoutThresholdMins' minutes.
+* Any value less than 1 will be ignored.
+* Minimum value: 1
+* Maximum value: 1440
+* Default: 30
+* This setting is optional.
+* If you enable this setting on members of a search head cluster, user lockout 
+  state applies only per SHC member, not to the entire cluster.
+
+lockoutAttempts = <positive integer>
+* The number of unsuccessful login attempts that can occur before a user is locked out.
+* The unsuccessful login attempts must occur within 'lockoutThresholdMins' minutes.
+* Any value less than 1 will be ignored.
+* Minimum value: 1
+* Maximum value: 64
+* Default: 5
+* This setting is optional.
+* If you enable this setting on members of a search head cluster, user lockout 
+  state applies only per SHC member, not to the entire cluster.
+
+lockoutThresholdMins = <positive integer>
+* Specifies the number of minutes that must pass from the time of the first failed 
+  login before the failed login attempt counter resets.
+* Any value less than 1 will be ignored.
+* Minimum value: 1
+* Maximum value: 120
+* Default: 5
+* This setting is optional.
+* If you enable this setting on members of a search head cluster, user lockout 
+  state applies only per SHC member, not to the entire cluster.
+
+enablePasswordHistory = <boolean>
+* Specifies whether password history is enabled.
+* Defaults to false.
+* When set to true, Splunk software maintains a history of passwords
+  that have been used previously.
+* This setting is optional.
+
+passwordHistoryCount = <positive integer>
+* The number of passwords that are stored in history. If password
+  history is enabled, on password change, user is not allowed to pick an
+  old password.
+* Minimum value: 1
+* Maximum value: 128
+* Default: 24
+* This setting is optional.
+
+constantLoginTime = <number>
+* The amount of time, in seconds, that the authentication manager
+* waits before returning any kind of response to a login request.
+* When you set this setting, login will be guaranteed to take the
+* amount of time you specify. If necessary, the authentication manager
+* adds a delay to the actual response time to keep this guarantee.
+* This setting is optional.
+* Minimum value: 0 (Disables login time guarantee)
+* Maximum value: 5.0
+* Default: 0
 
 #####################
 # SAML settings
@@ -428,7 +554,7 @@ idpCertPath = <Pathname>
   ex. cert_1.pem has the root, cert_2.pem has the first intermediate cert, cert_3.pem has the second
       intermediate certificate and cert_4.pem has the end certificate.
 
-idpSLOUrl = = <url>
+idpSLOUrl = <url>
 * OPTIONAL
 * The protocol endpoint on the IDP (Identity Provider) where a SP
   (Service Provider) initiated Single logout request should be sent.
@@ -666,12 +792,25 @@ sloBinding = <string>
 signatureAlgorithm = RSA-SHA1 | RSA-SHA256
 * OPTIONAL
 * Defaults to RSA-SHA1.
-* This setting is applicable for both http post and redirect binding.
+* Specifies the signature algorithm that will be used for outbound SAML messages,
+  for example, SP-initiated SAML request.
+* This setting only used when 'signAuthnRequest' is set to 'true'.
+* This setting is applicable for both HTTP POST and HTTP Redirect binding.
 * RSA-SHA1 corresponds to 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'.
 * RSA-SHA256 corresponds to 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'.
-* Specifies the signature algorithm that will be used for a SP-initiated saml request,
-* when 'signedAuthnRequest' is set to true.
 * This will be sent as a part of 'sigAlg'.
+* For improved security, set it to 'RSA-SHA256'.
+
+inboundSignatureAlgorithm = RSA-SHA1;RSA-SHA256
+* Allows only SAML responses that are signed using any one of the specified
+  algorithms.
+* This setting is applicable for both HTTP POST and HTTP Redirect binding.
+* Provide a semicolon-separated list of signature algorithms for the SAML responses
+  that you want Splunk Web to accept. Splunk software rejects any SAML responses
+  that are not signed by the specified algorithms.
+* For improved security, set it to 'RSA-SHA256'.
+* OPTIONAL
+* Defaults to 'RSA-SHA1;RSA-SHA256'.
 
 replicateCertificates = <boolean>
 * OPTIONAL
@@ -920,4 +1059,5 @@ useClientSSLCompression = <bool>
 * If set to true on client side, compression is enabled between the server and client
   as long as the server also supports it.
 * If not set, Splunk uses the client SSL compression setting provided in server.conf
+
 

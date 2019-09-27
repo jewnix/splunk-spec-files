@@ -1,4 +1,4 @@
-#   Version 7.0.11
+#   Version 7.1.0
 #
 # This file contains possible attributes and values you can use to configure
 # Splunk's web interface.
@@ -187,7 +187,7 @@ cipherSuite = <cipher suite string>
   used to ensure that the server does not accept connections using weak
   encryption protocols.
 * Must specify 'dhFile' to enable any Diffie-Hellman ciphers.
-* The default can vary. See the cipherSuite setting in 
+* The default can vary. See the cipherSuite setting in
 * $SPLUNK_HOME/etc/system/default/web.conf for the current default.
 
 ecdhCurves = <comma separated list of ec curves>
@@ -201,7 +201,7 @@ ecdhCurves = <comma separated list of ec curves>
   by executing this command:
   $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
 * e.g. ecdhCurves = prime256v1,secp384r1,secp521r1
-* The default can vary. See the ecdhCurves setting in 
+* The default can vary. See the ecdhCurves setting in
 * $SPLUNK_HOME/etc/system/default/web.conf for the current default.
 
 ecdhCurveName = <string>
@@ -466,6 +466,11 @@ choropleth_shape_limit = <int>
 
 dashboard_html_allow_inline_styles = <bool>
 * If this setting is set to false styles attributes from inline HTML elements
+* in dashboards will be removed to prevent potential attacks.
+* Default is true
+
+dashboard_html_allow_iframes = <bool>
+* If this setting is set to false, iframes from HTML elements
 * in dashboards will be removed to prevent potential attacks.
 * Default is true
 
@@ -1106,7 +1111,7 @@ loginDocumentTitleOption = [default | custom | none]
 * Controls display of the document title of the login page.
 * Defaults to "default".
   * "default" displays: "<page_title> | Splunk".
-  * "none" removes the branding on the document title of the login page: "<page_title>". 
+  * "none" removes the branding on the document title of the login page: "<page_title>".
   * "custom" uses the document title text defined by the loginDocumentTitleText setting.
 * NOTE: This option is made available only to OEM customers participating in Splunk’s OEM Partner Program
 * and subject to the relevant terms of the Master OEM Agreement. All other customers or partners are prohibited

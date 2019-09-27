@@ -1,4 +1,4 @@
-#   Version 7.0.11
+#   Version 7.1.0
 #
 # This file contains attributes and values that you can use to configure
 # data transformations.  and event signing in transforms.conf.
@@ -136,9 +136,13 @@ FORMAT = <string>
   * Search-time extraction examples:
       * 1. FORMAT = first::$1 second::$2 third::other-value
       * 2. FORMAT = $1::$2
-  * If the key-name of a FORMAT setting is varying, for example $1 in the
-    example 2 just above, then the regex will continue to match against the
-    source key to extract as many matches as are present in the text.
+  * If you configure FORMAT with a variable <field-name>, such as in the second
+    example above, the regular expression is repeatedly applied to the source key
+    to match and extract all field/value pairs in the event.
+  * When you use FORMAT to set both the field and the value (such as FORMAT =
+    third::other-value), and the value is not an indexed token, you must set the
+    field to INDEXED_VALUE = false in fields.conf. Not doing so can cause 
+    inconsistent search results.
   * NOTE: You cannot create concatenated fields with FORMAT at search time.
     That functionality is only available at index time.
   * At search-time, FORMAT defaults to an empty string.
@@ -400,9 +404,8 @@ max_matches = <integer>
   descending time order.  In other words, up <max_matches> lookup entries
   will be allowed to match, and if more than this many the ones nearest to
   the lookup value will be used.
-* Default = 100 matches if the time_field setting is not specified for the
-  lookup. If the time_field setting is specified for the lookup, the default is
-  1 match.
+* Default = 1000 if the lookup is not temporal, default = 1 if it is
+  temporal.
 
 min_matches = <integer>
 * Minimum number of possible matches for each input lookup value.

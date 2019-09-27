@@ -1,4 +1,4 @@
-#   Version 7.0.11
+#   Version 7.1.0
 
 # This file contains possible settings you can use to configure inputs,
 # distributed inputs such as forwarders, and file system monitoring in
@@ -32,6 +32,9 @@
 # You must first enter a stanza header in square brackets, specifying the input
 # type. See further down in this file for examples.
 # Then, use any of the following settings.
+#
+# To specify global settings for Windows Event Log inputs, place them in
+# the [WinEventLog] global stanza as well as the [default] stanza.
 #*******
 
 host = <string>
@@ -249,12 +252,13 @@ Note concerning wildcards and monitor:
   "..." for recursive directory matching and "*" for wildcard matching in a
   single directory segment.
 * "..." recurses through directories. This means that /foo/.../bar will match
-  foo/bar, foo/1/bar, foo/1/2/bar, etc.
+  foo/1/bar, foo/1/2/bar, etc.
 * You can use multiple "..." specifications in a single input path. For
   example: /foo/.../bar/...
 * The asterisk (*) matches anything in a single path segment; unlike "...", it
-  does not recurse. For example, /foo/*/bar matches the files /foo/bar,
-  /foo/1/bar, /foo/2/bar, etc. However, it does not match /foo/1/2/bar.
+  does not recurse. For example, /foo/*/bar matches the files
+  /foo/1/bar, /foo/2/bar, etc. However, it does not match
+  /foo/bar or /foo/1/2/bar.
   A second example: /foo/m*r/bar matches /foo/mr/bar, /foo/mir/bar,
   /foo/moor/bar, etc.
 * You can combine "*" and "..." as needed: foo/.../bar/* matches any file in
@@ -816,6 +820,13 @@ sslAltNameToCheck = <alternateName1>, <alternateName2>, ...
   forwarder or third-party system.
 * Set <port> to the port on which the forwarder/third-party system is sending
   unparsed, encrypted data.
+* To create multiple SSL inputs, you can add the following attributes to each 
+[tcp-ssl:<port>] input stanza. If you do not configure a certificate in the 
+port, the certificate information is pulled from the default [SSL] stanza: 
+  * serverCert = <path_to_cert> 
+  * sslRootCAPath = <path_to_cert> This attribute should only be added 
+    if you have not configured your sslRootPath in server.conf. 
+  * sslPassword = <password>
 
 listenOnIPv6 = <no | yes | only>
 * Select whether the receiver listens on IPv4, IPv6, or both protocols.
@@ -1627,7 +1638,7 @@ allowSslRenegotiation = true|false
 ackIdleCleanup = true|false
 * If set to true, the server removes the ACK channels that are idle
   for 'maxIdleTime' seconds.
-* Default to false.
+* Default to true.
 
 maxIdleTime = <int>
 * The maximum number of seconds the ACK channels are idle before they are
@@ -1644,12 +1655,6 @@ channel_cookie = <string>
   only provide sticky sessions on cookie values and not general header values.
 * If no value is set (the default), then no cookie will be returned.
 * Defaults to the empty string (no cookie).
-
-maxEventSize = <positive integer>[KB|MB|GB]
-* The maximum size of a single HEC (HTTP Event Collector) event.
-* HEC disregards and triggers a parsing error for events whose size is
-  greater than 'maxEventSize'.
-* Defaults to 5MB.
 
 #*******
 # HTTP Event Collector (HEC) - Local stanza for each token
@@ -1921,6 +1926,9 @@ index = <string>
   easy to mistype the values for event log channels.
 * Note: The WinEventLog stanza is for local systems only. To define event log
   monitor inputs for remote machines, use wmi.conf.
+* To specify settings that should apply to all Windows Event Log inputs 
+  (for example, 'index', 'source', etc.), create a WinEventLog] stanza
+   and put the settings there.
 
 start_from = <string>
 * How the input should chronologically read the Event Log channels.
@@ -1929,6 +1937,9 @@ start_from = <string>
 * If you set this setting to 'newest' the input reads Windows event logs
   in reverse, from newest to oldest. Once the input consumes the backlog of
   events, it stops.
+* If you set this setting to 'newest', and at the same time set the
+  'current_only' setting to 0, the combination can result in the input 
+  indexing duplicate events.
 * Do not set this setting to 'newest' and at the same time set the
   'current_only' setting to 1. This results in the input not collecting
   any events because you instructed it to read existing events from oldest
@@ -2001,6 +2012,9 @@ current_only = [0|1]
   already stored in the log that have higher event IDs (have arrived more
   recently) than the most recent events acquired. The input then monitors
   events that arrive in real time.
+* If you set this setting to 0, and at the same time set the
+  'start_from' setting to 'newest', the combination can result in the
+  indexing of duplicate events. 
 * Do not set this setting to 1 and at the same time set the
   'start_from' setting to 'newest'. This results in the input not collecting
   any events because you instructed it to read existing events from oldest
@@ -2236,6 +2250,9 @@ renderXml = [true|false]
 * Whether or not the input returns the event data in XML (eXtensible Markup
   Language) format or in plain text.
 * Set this to true to render events in XML.
+* If you set this setting to true, you should also set the 'suppress_text',
+  'suppress_sourcename', 'suppress_keywords', 'suppress_task', and 'suppress_opcode'
+  settings to true to improve thruput performance.
 * Set this to false to output events in plain text.
 * Defaults to false.
 
@@ -2298,6 +2315,235 @@ baseline = [0|1]
 * Set this to 1 to query baseline objects, and 0 to not query
   baseline objects.
 * Defaults to 0 (do not query baseline objects).
+
+##
+# Remote Queue Monitor
+##
+
+[remote_queue:<name>]
+
+* This section explains possible settings for configuring a remote queue.
+* Each remote_queue: stanza represents an individually configured remote
+  queue monitoring input.
+
+remote_queue.* = <string>
+* Optional.
+* With remote queues, communication between the indexer and the remote queue
+  system may require additional configuration, specific to the type of remote
+  queue.  You can pass configuration information to the storage system by
+  specifying the settings through the following schema:
+  remote_queue.<scheme>.<config-variable> = <value>.  For example:
+  remote_queue.sqs.access_key = ACCESS_KEY
+
+##
+# SQS specific settings
+##
+
+remote_queue.sqs.access_key = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Specifies the access key to use when authenticating with the remote queue
+  system supporting the SQS API.
+* If not specified, the indexer will look for these environment variables:
+  AWS_ACCESS_KEY_ID or AWS_ACCESS_KEY (in that order). If the environment
+  variables are not set and the indexer is running on EC2, the indexer
+  attempts to use the secret key from the IAM role.
+* Default: unset
+
+remote_queue.sqs.secret_key = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Specifies the secret key to use when authenticating with the remote queue
+  system supporting the SQS API.
+* If not specified, the indexer will look for these environment variables:
+  AWS_SECRET_ACCESS_KEY or AWS_SECRET_KEY (in that order). If the environment
+  variables are not set and the indexer is running on EC2, the indexer
+  attempts to use the secret key from the IAM role.
+* Default: unset
+
+remote_queue.sqs.auth_region = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* The authentication region to use when signing the requests when interacting
+  with the remote queue system supporting the SQS API.
+* If not specified and the indexer is running on EC2, the auth_region will be
+  constructed automatically based on the EC2 region of the instance where the
+  the indexer is running.
+* Default: unset
+
+remote_queue.sqs.endpoint = <URL>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* The URL of the remote queue system supporting the SQS API.
+* The scheme, http or https, can be used to enable or disable SSL connectivity
+  with the endpoint.
+* If not specified, the endpoint will be constructed automatically based on the
+  auth_region as follows: https://sqs.<auth_region>.amazonaws.com
+* Example: https://sqs.us-west-2.amazonaws.com/
+
+remote_queue.sqs.max_connections = <unsigned int>
+* Currently not supported. This setting is related to a feature that is still
+  under development.
+* Specifies the maximum number of HTTP connections to have in progress for
+  certain queue operations.
+* A value of 0 means unlimited.
+* Default: 8
+
+remote_queue.sqs.message_group_id = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies the Message Group ID for Amazon Web Services Simple Queue Service
+  (SQS) First-In, First-Out (FIFO) queues.
+* Setting a Message Group ID controls how messages within an AWS SQS queue are
+  processed.
+* For information on SQS FIFO queues and how messages in those queues are
+  processed, see "Recommendations for FIFO queues" in the AWS SQS Developer
+  Guide.
+* This setting is optional.
+* If you configure this setting, Splunk software assumes that the SQS queue is
+  a FIFO queue, and that messages in the queue should be processed first-in,
+  first-out.
+* Otherwise, Splunk software assumes that the SQS queue is a standard queue.
+* Can be between 1-128 alphanumeric or punctuation characters.
+* Note: FIFO queues must have Content-Based Deduplication enabled.
+* Defaults to unset.
+
+remote_queue.sqs.retry_policy = max_count|none
+* Currently not supported. This setting is related to a feature that is still
+  under development.
+* Optional.
+* Sets the retry policy to use for remote queue operations.
+* A retry policy specifies whether and how to retry file operations that fail
+  for those failures that might be intermittent.
+* Retry policies:
+  + "max_count": Imposes a maximum number of times a queue operation will be
+    retried upon intermittent failure.
+  + "none": Do not retry file operations upon failure.
+* Defaults: max_count
+
+remote_queue.sqs.max_count.max_retries_per_part = <unsigned int>
+* Currently not supported. This setting is related to a feature that is still
+  under development.
+* Optional.
+* When the remote_queue.sqs.retry_policy setting is max_count, sets the maximum
+  number of times a queue operation will be retried upon intermittent failure.
+* Defaults: 9
+
+remote_queue.sqs.timeout.connect = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Sets the connection timeout, in seconds, to use when interacting with
+  SQS for this queue.
+* Default: 5
+
+remote_queue.sqs.timeout.read = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Sets the read timeout, in seconds, to use when interacting with SQS for
+  this queue.
+* Default: 60
+
+remote_queue.sqs.timeout.write = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Sets the write timeout, in seconds, to use when interacting with SQS for
+  this queue.
+* Default: 60
+
+remote_queue.sqs.timeout.receive_message = <unsigned int>
+* Optional.
+* Sets the receive message wait time in seconds.
+* When greater than 0, enables "long polling," that is if there are no messages
+  immediately available, will wait at most this amount of time for a message to
+  become available.
+* When 0, disables long polling.
+* When unset, uses the value configured for the queue via the AWS SQS console.
+* Maximum value: 20
+* Default: 20
+
+remote_queue.sqs.timeout.visibility = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Sets the default "visibility timeout," in seconds, to use when
+  explicitly changing the visibility of specific messages in the queue.
+* Note that this does not change the implicit visibility timeout configured for
+  the queue via the AWS SQS console.
+* Default: 60
+
+remote_queue.sqs.buffer.visibility = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Sets the default time in seconds before
+  remote_queue.sqs.timeout.visibility at which visibility of
+  specific messages in the queue needs to be changed.
+* Default: 15
+
+remote_queue.sqs.min_pending_messages = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Sets the default "minimum number of pending messages" to use before
+  receiving messages off remote queue.
+  Messages are only received when sum of internal queue message count and
+  pending object GET (from large messages storage) count is below
+  the set value.
+* Default: 10
+
+remote_queue.sqs.large_message_store.endpoint = <URL>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* The URL of the remote storage system supporting the S3 API.
+* The scheme, http or https, can be used to enable or disable SSL connectivity
+  with the endpoint.
+* If not specified, the endpoint will be constructed automatically based on the
+  auth_region as follows: https://s3-<auth_region>.amazonaws.com
+* Example: https://s3-us-west-2.amazonaws.com/
+* Defaults to unset.
+
+remote_queue.sqs.large_message_store.path = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Points to the remote storage location where messages larger than the
+  underlying queue's maximum message size will reside.
+* The format for this attribute is: <scheme>://<remote-location-specifier>
+  * The "scheme" identifies a supported external storage system type.
+  * The "remote-location-specifier" is an external system-specific string for
+    identifying a location inside the storage system.
+* These external systems are supported:
+   - Object stores that support AWS's S3 protocol. These use the scheme "s3".
+     For example, "path=s3://mybucket/some/path".
+* If not specified, messages exceeding the underlying queue's maximum message
+  size are dropped.
+* Defaults to unset.
+
+compressed = [true|false]
+* See the description for TCPOUT ATTRIBUTES in outputs.conf.spec.
+
+negotiateProtocolLevel = <unsigned integer>
+* See the description for TCPOUT ATTRIBUTES in outputs.conf.spec.
+
+channelReapInterval = <integer>
+* See the description for TCPOUT ATTRIBUTES in outputs.conf.spec.
+
+channelTTL = <integer>
+* See the description for TCPOUT ATTRIBUTES in outputs.conf.spec.
+
+channelReapLowater = <integer>
+* See the description for TCPOUT ATTRIBUTES in outputs.conf.spec.
+
+concurrentChannelLimit = <unsigned integer>
+* See the description for [splunktcp].
 
 ###
 # Windows Registry Monitor

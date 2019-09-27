@@ -1,4 +1,4 @@
-#   Version 7.0.11
+#   Version 7.1.0
 #
 ############################################################################
 # OVERVIEW
@@ -99,12 +99,12 @@ max_mem_usage_mb = <non-negative integer>
 * Default: 200
 
 min_batch_size_bytes = <integer>
-* Specifies the size, in bytes, of the file/tar after which the 
+* Specifies the size, in megabytes (MB), of the file/tar after which the 
   file is handled by the batch reader instead of the trailing processor.
 * Global parameter, cannot be configured per input.
 * NOTE: Configuring this to a very small value could lead to backing up of jobs
   at the tailing processor.
-* Default: 20,971,520 bytes
+* Default: 20
 
 regex_cpu_profiling = <bool>
 * Enable CPU time metrics for RegexProcessor. Output will be in the 
@@ -113,13 +113,6 @@ regex_cpu_profiling = <bool>
   per_sourcetype_regex_cpu, per_index_regex_cpu.
 * Default: false
 
-
-file_and_directory_eliminator_reaper_interval = <integer>
-* Specifies how often, in seconds, to run the FileAndDirectoryEliminator reaping
-  process.
-* A value of 0 disables the FileAndDirectoryEliminator.
-* Default: 0
-* NOTE: Do not change unless instructed to do so by Splunk Support.
 
 [searchresults]
 * This stanza controls search results for a variety of Splunk search commands.
@@ -149,6 +142,7 @@ tocsv_retryperiod_ms = <integer>
 * These setting control logging of error messages to the info.csv file.
   All messages will be logged to the search.log file regardless of 
   these settings.
+
 
 [search_info]
 * This stanza controls logging of messages to the info.csv file.
@@ -395,13 +389,15 @@ result_queue_max_size = <integer>
   “result_queue_max_size” value. 
 * Default: 100
 
-batch_wait_after_end = <int>
+results_queue_read_timeout_sec = <integer>
 * The amount of time, in seconds, to wait when the search executing on the
   search head has not received new results from any of the peers.
 * Cannot be less than the 'receiveTimeout' setting in the distsearch.conf
   file.
-* The setting is for all types of searches, not only batch mode.
 * Default: 900
+
+batch_wait_after_end = <int>
+* DEPRECATED: Use the 'results_queue_read_timeout_sec' setting instead. 
 
 ############################################################################
 # Field stats 
@@ -560,6 +556,24 @@ search_keepalive_max = <int>
 * This counter is reset if the search returns results. 
 * Default: 100
 
+search_retry = <bool>
+* Specifies whether the Splunk software retries parts of a search within a
+  currently-running search processs when there are indexer failures in the
+  indexer clustering environment.
+* Indexers can fail during rolling restart or indexer upgrade when indexer
+  clustering is enabled. Indexer reboots can also result in failures.
+* This setting applies only to historical search in batch mode, real-time
+  search, and indexed real-time search.
+* When set to true, the Splunk software attempts to rerun searches on indexer
+  cluster nodes that go down and come back up again. The search process on the
+  search head maintains state information about the indexers and buckets.
+* NOTE: Search retry is on a best-effort basis, and it is possible
+  for Splunk software to return partial results for searches
+  without warning when you enable this setting.
+* When set to false, the search process will stop returning results from a specific
+  indexer when that indexer undergoes a failure.
+* Default: false
+
 stack_size = <int>
 * The stack size, in bytes, of the thread that executes the search.
 * Default: 4194304 (4MB)
@@ -586,47 +600,13 @@ use_metadata_elimination = <bool>
 * Default: true
 
 use_dispatchtmp_dir = <bool>
-* Specifies if the dispatchtmp directory should be used for temporary search 
-  time files, to write temporary files to a different directory from the 
-  dispatch directory for the job.
-* Temp files are written to $SPLUNK_HOME/var/run/splunk/dispatchtmp/<sid>/ 
-  directory.
-* In search head pooling, performance can be improved by mounting dispatchtmp 
-  to the local file system.
-* Default: true, if search head pooling is enabled. Otherwise false.
+* DEPRECATED. This setting has been deprecated and has no effect.
 
 auto_cancel_after_pause = <integer>
 * Specifies the amount of time, in seconds, that a search must be paused before
   the search is automatically cancelled.
 * If set to 0, a paused search is never automatically cancelled.
 * Default: 0
-
-enable_conditional_expansion = <bool>
-* Controls whether to enable scoped(by sourcetype, source or host)
-  conditional expansion of knowledge objects during search string
-  expansion.
-* When set to true, Report Acceleration avoids full expansion of tags,
-  event types, aliases and reverse lookups, and instead uses any scope
-  information available either as part of the knowledge object definition
-  or any predicates available on default, non-multivalued fields, such as
-  sourcetype, source, and host.
-* Field extractions and field aliases are scoped by either sourcetype,
-  source or host.
-  Note: if planning to change this parameter, please contact support first
-* Default: true
-
-always_include_indexedfield_lispy = <bool>
-* Determines whether or not a search must always look for a field in the 
-  lexicon that does not have "INDEXED = true" set in fields.conf using both
-  the indexed and non-indexed forms
-* If set to true, when searching for <field>=<val>, search looks for 
-  both <field>::<val> and <val> in the lexicon
-* If set to false, when searching for <field>=<val>, search looks for  
-  only <val> in the lexicon 
-* Set to true if you have fields that are sometimes indexed and sometimes
-  not indexed.  For field name that are always indexed, it is much better 
-  performance wise to set INDEXED=true in fields.conf for that field instead.
-* Default: false
 
 ############################################################################
 # Parsing
@@ -666,33 +646,23 @@ use_directives = <bool>
 # This section contains settings for multi-phased execution
 
 phased_execution = <bool>
-* This controls whether a search runs in a single phased (current) mode,
-  or multi-phased (two or three phased) mode.
-* If set to "true": The search can run in multi-phased mode.
-* If set to "false": The search can only run in single phased mode.
-* If a search needs to run in multi-phased mode, you also need to add noop
-  the command as the last command in the search string.
-* When you add the noop command, you must specify the "phased_mode"
-  argument. The "phased_mode" argument is used to limit the phased execution
-  for a particular search.
-* The value specified for the phased_mode argument determines the number of 
-  phases.
-  For example, if phased_mode=2, the search execution uses the 2-phased
-  mode. If phased_mode=3, the search execution uses the 3-phased mode, which
-  includes shuffling.
-  If you specify anything other than 2 or 3 for phased_mode, or if
-  phased_execution is set to "false", the search execution uses the single
-  phased mode.
-* Do not enable this system-level setting to turn on the phased execution of
-  Splunk Search without consulting Splunk personnel. The phased execution is
-  targeted to improve specific search use cases pertaining to: 
-  (1) high cardinality group by keys
-  (2) transaction processing
-  If not carefully applied, the phased execution can cause certain searches
-  to slow down.
-* Explicitly set to true for the phased_execution to be operational.
-* More related settings in the [parallelreduce] stanza.  
-* Default: false
+DEPRECATED This setting has been deprecated.
+
+phased_execution_mode = [multithreaded|auto|singlethreaded]
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support!
+* Controls whether searches use the multiple-phase method of search execution, 
+  which is required for parallel reduce functionality as of Splunk Enterprise 
+  7.1.0. 
+* When set to 'multithreaded' the Splunk platform uses the multiple-phase  
+  search execution method. Allows usage of the 'redistribute' command. 
+* When set to 'auto', the Splunk platform uses the multiple-phase search 
+  execution method when the 'redistribute' command is used in the search 
+  string. If the 'redistribute' command is not present in the search string, 
+  the single-phase search execution method is used.
+* When set to 'singlethreaded' the Splunk platform uses the single-threaded 
+  search execution method, which does not allow usage of the 'redistribute' 
+  command.
+* Default: multithreaded
 
 ############################################################################
 # Preview
@@ -825,13 +795,6 @@ realtime_buffer = <int>
 ############################################################################
 # This section contains settings for remote storage.
 
-bucket_localize_acquire_lock_timeout_sec = <int>
-* The maximum amount of time, in seconds, to wait when attempting to acquire a
-  lock for a localized bucket.
-* When set to 0, waits indefinitely.
-* This setting is only relevant when using remote storage.
-* Default: 60 (1 minute)
-
 bucket_localize_max_timeout_sec = <int>
 * Currently not supported. This setting is related to a feature that is
   still under development.
@@ -853,7 +816,7 @@ bucket_localize_status_check_period_ms = <int>
   specified value falls outside this range, it is effectively set to the
   nearest value within the range.  For example, if you set the value to
   70000, the effective value will be 60000.
-* Default: 50 (.05 seconds)
+* Default: 500 (.5 seconds)
 
 bucket_localize_max_lookahead = <int>
 * Currently not supported. This setting is related to a feature that is
@@ -1288,13 +1251,20 @@ ttl = <integer>
   remove the job from underneath.
 * Default: 600 (10 minutes)
 
-srtemp_dir_ttl = <integer>
-* Time to live, in seconds, before the reaper deletes srtemp directories and files
-* for intermediate search results. These directories can be found in
-* $SPLUNK_HOME/var/run/splunk/srtemp. The duration is measured by looking
-* at the newest file modification time  within the directory.
-* When set to 0: temporary files and directories are not reaped.
-* Default: 86400 (24 hours)
+check_search_marker_done_interval = <integer>
+* The amount of time, in seconds, that elapses between checks of search marker
+  files, such as hot bucket markers and backfill complete markers.
+* This setting is used to identify when the remote search process on the
+  indexer completes processing all hot bucket and backfill portions of the search.
+* Default: 60
+
+check_search_marker_sleep_interval = <integer>
+* The amount of time, in seconds, that the process will sleep between
+  subsequent search marker file checks.
+* This setting is used to put the process into sleep mode periodically on the
+  indexer, then wake up and check whether hot buckets and backfill portions
+  of the search are complete.
+* Default: 1
 
 ############################################################################
 # Unsupported settings 
@@ -1551,7 +1521,9 @@ max_lookup_messages = <positive integer>
   search.log.
 
 max_matches = <integer>
-* DEPRECATED: Use this setting in transforms.conf for lookup definitions.
+* Maximum matches for a lookup.
+* Valid values range from 1 - 1000.
+* Default: 1000
 
 max_memtable_bytes = <integer>
 * Maximum size, in bytes, of static lookup file to use an in-memory index for.
@@ -2010,8 +1982,8 @@ allow_event_summarization = <bool>
 * Default: false
 
 cache_timeout = <integer>
-* The amount of time, in seconds, to cache auto summary details and search hash
-  codes
+* The minimum amount of time, in seconds, to cache auto summary details and search hash codes.
+* The cached entry expires randomly between cache_timeout and 2*cache_timeout value.
 * Default: 600 (10 minutes)
 
 detailed_dashboard = <bool>
@@ -2109,9 +2081,9 @@ max_number_of_tokens = <unsigned int>
 * Default: 10000
 
 max_content_length = <integer>
-* The maximum length, in bytes, of HTTP request content that is
+* The maximum length, in bytes, of HTTP request content that is 
   accepted by the HTTP Event Collector server.
-* Default: 838860800 (~ 800MB)
+* Default: 838860800 (~ 800 MB)
 
 max_number_of_ack_channel = <integer>
 * The maximum number of ACK channels accepted by HTTP Event Collector 
@@ -2193,7 +2165,7 @@ max_fd = <integer>
 monitornohandle_max_heap_mb = <integer>
 * Controls the maximum memory used by the Windows-specific modular input
   MonitorNoHandle in user mode.
-* The amount of memory that this input uses grows in size when the data produced
+* The memory of this input grows in size when the data being produced
   by applications writing to monitored files comes in faster than the Splunk
   system can accept it.
 * When set to 0, the heap size (memory allocated in the modular input) can grow
@@ -2206,30 +2178,24 @@ tailing_proc_speed = <integer>
 * REMOVED.  This setting is no longer used.
 
 monitornohandle_max_driver_mem_mb = <integer>
-* The maximum amount of non-paged memory, in megabytes, that the MonitorNoHandle
-  kernel driver can use.
-* The MonitorNoHandle input is specific to Windows, and this setting determines
-  how much guaranteed physical memory that the input driver can use.
-* The amount of memory that this input uses increases when data that
-  applications write to monitored files arrives faster than the 
-  MonitorNoHandle input can process it.
-* If you set this setting to 0, the input kernel driver allocates non-paged 
-  memory as needed up and until all available memory has been exhausted.
-* Otherwise, when the specified amount of allocated non-paged memory has been
-  reached, the input drops events to remain under that amount.
+* Controls the maximum NonPaged memory used by the Windows-specific kernel driver of modular input
+  MonitorNoHandle.
+* The memory of this input grows in size when the data being produced
+  by applications writing to monitored files comes in faster than the Splunk
+  system can accept it.
+* When set to 0, the NonPaged memory size (memory allocated in the kernel driver of modular input) can grow
+  without limit.
+* If this size is limited, and the limit is encountered, the input will drop
+  some data to stay within the limit.
 * Default: 0
 
 monitornohandle_max_driver_records = <integer>
-* The number of records that the MonitorNoHandle input kernel driver holds in 
-  memory at a time.
-* This setting helps control memory usage by the MonitorNoHandle input kernel
-  driver.
-* This setting and the 'monitornohandle_max_driver_mem_mb' setting are mutually
-  exclusive. If you set 'monitornohandle_max_driver_mem_mb' to > 0, the input
-  ignores this setting.
-* If the input driver currently holds 'monitornohandle_max_driver_records'
-  records in memory, it drops some data to remain below that amount.
-* Default: 500.
+* Controls memory growth by limiting the maximum in-memory records stored
+  by the kernel module of Windows-specific modular input MonitorNoHandle.
+* When monitornohandle_max_driver_mem_mb is set to > 0, this config is ignored.
+* monitornohandle_max_driver_mem_mb and monitornohandle_max_driver_records are mutually exclusive.
+* If the limit is encountered, the input will drop some data to stay within the limit.
+* Defaults to 500.
 
 time_before_close = <integer>
 * MOVED.  This setting is now configured per-input in inputs.conf.
@@ -3093,8 +3059,8 @@ maxKBps = <integer>
   * For more information about multiple ingestion pipelines, see 
     the 'parallelIngestionPipelines' setting in the 
     server.conf.spec file.
-* Default: 0 (unlimited)
-
+* Default (Splunk Enterprise): 0 (unlimited)
+* Default (Splunk Universal Forwarder): 256
 
 [viewstates]
 
@@ -3149,6 +3115,14 @@ reaper_freq = <integer>
 
 enabled = <bool>
 * Enables search optimizations
+* Default: true
+
+
+[search_optimization::search_expansion]
+
+enabled = <bool>
+* Enables optimizer-based search expansion.
+* This enables the optimizer to work on pre-expanded searches.
 * Default: true
 
 
@@ -3261,40 +3235,75 @@ enabled = <bool>
   be changed unless you are troubleshooting an issue with search results.
 * Default: true
 
+[directives]
+required_tags = enabled|disabled
+* Enables the use of the required tags directive, which allows the search
+  processor to load only the required tags from the conf system.
+* Disable this setting only to troubleshoot issues with search results.
+* Default: true
+
+required_eventtypes = enabled|disabled
+* Enables the use of the required eventtypes directive, which allows the search
+  processor to load only the required event types from the conf system.
+* Disable this setting only to troubleshoot issues with search results.
+* Default: true
+
+read_summary = enabled|disabled
+* Enables the use of the read summary directive, which allows the search
+  processor to leverage existing data model acceleration summary data when it
+  performs event searches.
+* Disable this setting only to troubleshoot issues with search results.
+* Default: true
 
 [parallelreduce]
 maxReducersPerPhase = <positive integer>
-* The maximum number of indexers that can be used as reducers
-  in the reducing phase.
-* If a number greater than 200 or an invalid value is specified,
-  the search uses the 2-phased mode.
+* The maximum number of valid indexers that can be used as intermediate
+  reducers in the reducing phase of a parallel reduce operation. Only healthy
+  search peers are valid indexers.
+* If you specify a number greater than 200 or an invalid value, parallel
+  reduction does not take place. All reduction processing moves to the search
+  head.
 * Default: 4
 
 maxRunningPrdSearches = <unsigned int>
-* The maximum number of parallel reduce searches that can run on
-  an indexer.
-* Default: 4
+* DEPRECATED. Use the 'maxPrdSearchesPerCpu' setting instead.
+
+maxPrdSearchesPerCpu = <unsigned int>
+* The maximum number of parallel reduce searches that can run, per CPU core,
+  on an indexer that has been configured as an intermediate reducer.
+* If you specify 0, there is no limit. The indexer runs as many parallel 
+  reduce searches as the indexer hardware permits.
+* Default: 1
 
 reducers = <string>
-* Used to configure an indexer pool that is serving parallel reduce
-  searches. For <string>, specify the host and port using this format
-  - host:port. Separate each host:port pair with a comma to specify a
-  list of reducers.
-* For the reducing phase in parallel reduce search, a sub-set of
-  indexers are selected from this pool and perform this phase.
-* If not configured, the search head selects the indexers from the
-  search head peer list.
+* Use this setting to configure one or more valid indexers as dedicated
+  intermediate reducers for parallel reduce search operations. Only healthy
+  search peers are valid indexers.
+* For <string>, specify the indexer host and port using the following format -
+  host:port. Separate each host:port pair with a comma to specify a list of
+  intermediate reducers.
+* If the 'reducers' list includes one or more valid indexers, all of those
+  indexers (and only these indexers) are used as intermediate reducers when you
+  run a parallel reduce search. If the number of valid indexers in the
+  'reducers' list exceeds 'maxReducersPerPhase', the Splunk software randomly
+  selects the set of indexers that are used as intermediate reducers.
+* If all of the indexers in the 'reducers' list are invalid, the search runs
+  without parallel reduction. All reduce operations for the search are
+  processed on the search head.
+* If 'reducers' is empty or not configured, all valid indexers are potential
+  intermediate reducer candidates. The Splunk software randomly selects valid
+  indexers as intermediate reducers with limits determined by the 'winningRate'
+  and 'maxReducersPerPhase' settings.
 * Default: ""
 
 winningRate = <positive integer>
-* The percentage of indexers that can be selected from the indexer
-  pool for reducing phase of the parallel reduce.
-* The default is 50%.
-* If 100 is specified, the search head attempts to use all of the
-  indexers.
-* If 1 is specified, the search head attempts to use 1% of the
-  indexers.
-* The minimum number of indexers used in the reducing phase is 1.
-  The maximum number of indexers used is the value of
-  "maxReducersPerPhase.  
+* The percentage of valid indexers that can be selected from the search peers
+  as intermediate reducers for a parallel reduce search operation.
+* This setting is only respected when the 'reducers' setting is empty or not
+  configured.
+* If 100 is specified, the search head attempts to use all of the indexers.
+* If 1 is specified, the search head attempts to use 1% of the indexers.
+* The minimum number of indexers used as intermediate reducers is 1.
+* The maximum number of indexers used as intermediate reducers is the value of
+  'maxReducersPerPhase'.
 * Default: 50

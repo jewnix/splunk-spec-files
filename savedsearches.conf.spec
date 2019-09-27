@@ -1,4 +1,4 @@
-#   Version 7.0.11
+#   Version 7.1.0
 #
 # This file contains possible attribute/value pairs for saved search entries in
 # savedsearches.conf.  You can configure saved searches by creating your own
@@ -403,8 +403,7 @@ action.populate_lookup = 0 | 1
 
 action.populate_lookup.dest = <string>
 * Can be one of the following two options:
-  * A lookup definition name from transforms.conf that references a CSV file. 
-  	The lookup name cannot be associated with KV store.
+  * A lookup name from transforms.conf. The lookup name cannot be associated with KV store.
   * A path to a lookup .csv file that Splunk should copy the search results to,
     relative to $SPLUNK_HOME.
     * NOTE: This path must point to a .csv file in either of the following
@@ -710,9 +709,7 @@ vsid = <string>
 
 is_visible = true | false
 * Specifies whether this saved search should be listed in the visible saved
-  search list within apps.
-* Saved searches are still visible when accessing the "Searches, reports,
-  and alerts" page in Splunk Web.
+  search list.
 * Defaults to true.
 
 description = <string>
@@ -940,6 +937,11 @@ embed.enabled = 0 | 1
     Only artifacts are available via guestpass: we never dispatch a search.
   * The save search is not disabled, it is scheduled, it is not real-time,
     and it is not an alert.
+
+defer_scheduled_searchable_idxc = <bool>
+* Specifies whether to defer a continuous saved search during a searchable rolling restart or searchable rolling upgrade of an indexer cluster.
+* Note: When disabled, a continuous saved search might return partial results.
+* Defaults: true (enabled).
 
 #*******
 # deprecated settings

@@ -1,4 +1,4 @@
-#   Version 7.0.11
+#   Version 7.1.0
 #
 # This file contains all possible options for an indexes.conf file.  Use
 # this file to configure Splunk's indexes and their properties.
@@ -110,6 +110,13 @@ rtRouterQueueSize = <positive integer>
 * This setting is only relevant if rtRouterThreads != 0
 * This queue sits between the indexer pipeline set thread (producer) and the rtRouterThread
 * Changing the size of this queue may impact real time search performance
+
+selfStorageThreads = <positive integer>
+* Specifies the number of threads used to transfer data to customer-owned remote
+  storage.
+* Defaults to 2
+* The threads are created on demand when any index is configured with
+  self storage options.
 
 assureUTF8 = true|false
 * Verifies that all data retrieved from the index is proper by validating
@@ -340,17 +347,21 @@ bloomHomePath = <path on index server>
   (see volume section below).
 * If bloomHomePath is not specified, bloomfilter files for index will be
   stored inline, inside bucket directories.
-* CAUTION: Path must be writable.
+* Path must be writable.
 * Must restart splunkd after changing this parameter; index reload will not
   suffice.
 * We strongly recommend that you avoid the use of environment variables in
   index paths, aside from the possible exception of SPLUNK_DB.  See homePath
   for the complete rationale.
+* CAUTION: Do not set this parameter on indexes that have been
+  configured to use remote storage with the "remotePath" parameter.
 
 createBloomfilter = true|false
 * Controls whether to create bloomfilter files for the index.
 * TRUE: bloomfilter files will be created. FALSE: not created.
 * Defaults to true.
+* CAUTION: Do not set this parameter to "false" on indexes that have been
+  configured to use remote storage with the "remotePath" parameter.
 
 summaryHomePath = <path on index server>
 * An absolute path where transparent summarization results for data in this
@@ -442,11 +453,20 @@ maxWarmDBCount = <nonnegative integer>
 
 maxTotalDataSizeMB = <nonnegative integer>
 * The maximum size of an index (in MB).
-* If an index grows larger than the maximum size, the oldest data is frozen.
-* This parameter only applies to hot, warm, and cold buckets.  It does not
-  apply to thawed buckets.
+* If an index grows larger than the maximum size, the oldest data is 
+  frozen.
+* This parameter only applies to hot, warm, and cold buckets.  It does 
+  not apply to thawed buckets.
+* CAUTION: This setting takes precedence over other settings like 
+  'frozenTimePeriodInSecs' with regard to data retention. If the index 
+  grows beyond 'maxTotalDataSizeMB' megabytes before 
+  'frozenTimePeriodInSecs' seconds have passed, data could prematurely
+  roll to frozen. As the default policy for rolling data to frozen is 
+  deletion, unintended data loss could occur.
 * Highest legal value is 4294967295
 * Defaults to 500000.
+
+
 
 maxGlobalDataSizeMB = <nonnegative integer>
 * Currently not supported. This setting is related to a feature that is
@@ -870,7 +890,7 @@ maxTimeUnreplicatedNoAcks = <nonnegative decimal>
 * Highest legal value is 2147483647
 * To disable this, you can set to 0; please be careful and understand the
   consequences before changing this parameter
-* Defaults to 60 (seconds)
+* Defaults to 300 (seconds)
 
 isReadOnly = true|false
 * Set to true to make an index read-only.
@@ -944,6 +964,8 @@ enableTsidxReduction = true|false
 * By enabling this setting, you turn on the tsidx reduction capability. This causes the
   indexer to reduce the tsidx files of buckets, when the buckets reach the age specified
   by timePeriodInSecBeforeTsidxReduction.
+* CAUTION: Do not set this parameter to "true" on indexes that have been
+  configured to use remote storage with the "remotePath" parameter.
 * Defaults to false.
 
 suspendHotRollByDeleteQuery = true|false
@@ -1687,7 +1709,7 @@ remote.s3.signature_version = v2|v4
 * Optional.
 * The signature version to use when authenticating with the remote storage
   system supporting the S3 API.
-* If not specified, it defaults to v2.
+* If not specified, it defaults to v4.
 * For 'sse-kms' server-side encryption scheme, you must use signature_version=v4.
 
 remote.s3.auth_region = <String>
@@ -1769,6 +1791,32 @@ remote.s3.enable_signed_payloads  = <bool>
 * If set to true, Splunk signs the payload during upload operation to S3.
 * Valid only for remote.s3.signature_version = v4
 * Default: true
+
+remote.s3.retry_policy = max_count
+* Optional.
+* Sets the retry policy to use for remote file operations.
+* A retry policy specifies whether and how to retry file operations that fail
+  for those failures that might be intermittent.
+* Retry policies:
+  + "max_count": Imposes a maximum number of times a file operation will be
+    retried upon intermittent failure both for individual parts of a multipart
+    download or upload and for files as a whole.
+* Defaults: max_count
+
+remote.s3.max_count.max_retries_per_part = <unsigned int>
+* Optional.
+* When the remote.s3.retry_policy setting is max_count, sets the maximum number
+  of times a file operation will be retried upon intermittent failure.
+* The count is maintained separately for each file part in a multipart download
+  or upload.
+* Defaults: 9
+
+remote.s3.max_count.max_retries_in_total = <unsigned int>
+* Optional.
+* When the remote.s3.retry_policy setting is max_count, sets the maximum number
+  of times a file operation will be retried upon intermittent failure.
+* The count is maintained for each file as a whole.
+* Defaults: 128
 
 remote.s3.timeout.connect = <unsigned int>
 * Currently not supported. This setting is related to a feature that is
@@ -1957,3 +2005,33 @@ remote.s3.kms.<ssl_settings> = <...>
   sslCommonNameToCheck, cipherSuite, ecdhCurves and dhFile.
 * All of these are optional and fall back to same defaults as
   remote.s3.<ssl_settings>.
+
+#**************************************************************************
+# Archiver settings.  This section describes settings that affect the archiver-
+# optional and archiver-mandatory parameters only.
+#
+# As the first step in the Archiver feature, Self Storage allows users to move
+# their data from Splunk indexes to customer-owned external storage in AWS S3
+# when the data reaches the end of the retention period. Note that only the
+# raw data and delete marker files are transferred to the external storage.
+# Future development may include the support for storage hierarchies and the
+# automation of data rehydration.
+#
+# For example, use the following settings to configure Self Storage.
+#   archiver.selfStorageProvider     = S3
+#   archiver.selfStorageBucket       = mybucket
+#   archiver.selfStorageBucketFolder = folderXYZ
+#**************************************************************************
+archiver.selfStorageProvider = <string>
+* Specifies the storage provider for Self Storage.
+* Optional. Only required when using Self Storage.
+* The only supported provider is S3. More providers will be added in the future
+  for other cloud vendors and other storage options.
+
+archiver.selfStorageBucket = <string>
+* Specifies the destination bucket for Self Storage.
+* Optional. Only required when using Self Storage.
+
+archiver.selfStorageBucketFolder = <string>
+* Specifies the folder on the destination bucket for Self Storage.
+* Optional. If not specified, data is uploaded to the root path in the destination bucket.

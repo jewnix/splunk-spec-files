@@ -1,4 +1,4 @@
-#   Version 7.0.11
+#   Version 7.1.0
 #
 # This file contains possible attribute/value pairs for configuring
 # data models.  To configure a datamodel for an app, put your custom
@@ -109,6 +109,35 @@ acceleration.max_concurrent = <unsigned int>
 * The maximum number of concurrent acceleration instances for this data
   model that the scheduler is allowed to run.
 * Defaults to: 3
+
+acceleration.allow_skew = <percentage>|<duration-specifier>
+* Allows the search scheduler to randomly distribute scheduled searches more
+  evenly over their periods.
+* When set to non-zero for searches with the following cron_schedule values,
+  the search scheduler randomly "skews" the second, minute, and hour that the
+  search actually runs on:
+    * * * * *     Every minute.
+    */M * * * *   Every M minutes (M > 0).
+    0 * * * *     Every hour.
+    0 */H * * *   Every H hours (H > 0).
+    0 0 * * *     Every day (at midnight).
+* When set to non-zero for a search that has any other cron_schedule setting,
+  the search scheduler can only randomly "skew" the second that the search runs
+  on.
+* The amount of skew for a specific search remains constant between edits of
+  the search.
+* An integer value followed by '%' (percent) specifies the maximum amount of
+  time to skew as a percentage of the scheduled search period.
+* Otherwise, use <int><unit> to specify a maximum duration.  Relevant units
+  are: m, min, minute, mins, minutes, h, hr, hour, hrs, hours, d, day, days.
+  (The <unit> may be omitted only when <int> is 0.)
+* Examples:
+    100% (for an every-5-minute search) = 5 minutes maximum
+    50% (for an every-minute search) = 30 seconds maximum
+    5m = 5 minutes maximum
+    1h = 1 hour maximum
+* A value of 0 disallows skew.
+* Default is 0.
 
 acceleration.schedule_priority = default | higher | highest
 * Raises the scheduling priority of a search:

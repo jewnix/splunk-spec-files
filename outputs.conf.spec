@@ -1,4 +1,4 @@
-#   Version 7.0.11
+#   Version 7.1.0
 #
 # Forwarders require outputs.conf; non-forwarding Splunk instances do not
 # use it.  It determines how the forwarder sends data to receiving Splunk
@@ -409,18 +409,6 @@ autoLBVolume = <bytes>
 # If you want to use SSL for authentication, add a stanza for each receiver
 # that must be certified.
 
-useSSL = <true | false | legacy>
-* Whether or not the forwarder uses SSL to connect to the receiver, or relies 
-  on the 'clientCert' setting to be active for SSL connections.
-* If set to 'true', then the forwarder uses SSL to connect to the receiver.
-  You do not need to set 'clientCert' if 'requireClientCert' is set to 
-  'false' on the receiver.
-* If set to 'false', then the forwarder does not use SSL to connect to the 
-  receiver.
-* If set to 'legacy', then the forwarder uses the 'clientCert' property to
-  determine whether or not to use SSL to connect.
-* Defaults to 'legacy'.
-
 sslPassword = <password>
 * The password associated with the CAcert.
 * The default Splunk CAcert uses the password "password".
@@ -428,8 +416,7 @@ sslPassword = <password>
 
 clientCert = <path>
 * The full path to the client SSL certificate in PEM format.
-* If you have not set 'useSSL', then this connection uses SSL if and only if
-  you specify this setting with a valid client SSL certificate file.
+* If (and only if) specified, this connection will use SSL.
 * There is no default value.
 
 sslCertPath = <path>
@@ -769,3 +756,217 @@ cxn_timeout = <seconds>
 master_uri = <uri>
 * URI and management port of the cluster master used in indexer discovery.
 * Example: https://SplunkMaster01.example.com:8089
+
+##
+# Remote Queue Output
+##
+
+[remote_queue:<name>]
+
+* This section explains possible settings for configuring a remote queue.
+* Each remote_queue: stanza represents an individually configured remote
+  queue output.
+
+remote_queue.* = <string>
+* Optional.
+* With remote queues, communication between the forwarder and the remote queue
+  system may require additional configuration, specific to the type of remote
+  queue.  You can pass configuration information to the storage system by
+  specifying the settings through the following schema:
+  remote_queue.<scheme>.<config-variable> = <value>.  For example:
+  remote_queue.sqs.access_key = ACCESS_KEY
+
+##
+# SQS specific settings
+##
+
+remote_queue.sqs.access_key = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Specifies the access key to use when authenticating with the remote queue
+  system supporting the SQS API.
+* If not specified, the forwarder will look for these environment variables:
+  AWS_ACCESS_KEY_ID or AWS_ACCESS_KEY (in that order). If the environment
+  variables are not set and the forwarder is running on EC2, the forwarder
+  attempts to use the secret key from the IAM role.
+* Default: unset
+
+remote_queue.sqs.secret_key = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Specifies the secret key to use when authenticating with the remote queue
+  system supporting the SQS API.
+* If not specified, the forwarder will look for these environment variables:
+  AWS_SECRET_ACCESS_KEY or AWS_SECRET_KEY (in that order). If the environment
+  variables are not set and the forwarder is running on EC2, the forwarder
+  attempts to use the secret key from the IAM role.
+* Default: unset
+
+remote_queue.sqs.auth_region = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* The authentication region to use when signing the requests when interacting
+  with the remote queue system supporting the SQS API.
+* If not specified and the forwarder is running on EC2, the auth_region will be
+  constructed automatically based on the EC2 region of the instance where the
+  the forwarder is running.
+* Default: unset
+
+remote_queue.sqs.endpoint = <URL>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* The URL of the remote queue system supporting the SQS API.
+* The scheme, http or https, can be used to enable or disable SSL connectivity
+  with the endpoint.
+* If not specified, the endpoint will be constructed automatically based on the
+  auth_region as follows: https://sqs.<auth_region>.amazonaws.com
+* Example: https://sqs.us-west-2.amazonaws.com/
+
+remote_queue.sqs.message_group_id = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies the Message Group ID for Amazon Web Services Simple Queue Service
+  (SQS) First-In, First-Out (FIFO) queues.
+* Setting a Message Group ID controls how messages within an AWS SQS queue are
+  processed.
+* For information on SQS FIFO queues and how messages in those queues are
+  processed, see "Recommendations for FIFO queues" in the AWS SQS Developer
+  Guide.
+* This setting is optional.
+* If you configure this setting, Splunk software assumes that the SQS queue is
+  a FIFO queue, and that messages in the queue should be processed first-in,
+  first-out.
+* Otherwise, Splunk software assumes that the SQS queue is a standard queue.
+* Can be between 1-128 alphanumeric or punctuation characters.
+* Note: FIFO queues must have Content-Based Deduplication enabled.
+* Defaults to unset.
+
+remote_queue.sqs.retry_policy = max_count|none
+* Optional.
+* Sets the retry policy to use for remote queue operations.
+* A retry policy specifies whether and how to retry file operations that fail
+  for those failures that might be intermittent.
+* Retry policies:
+  + "max_count": Imposes a maximum number of times a queue operation will be
+    retried upon intermittent failure.
+  + "none": Do not retry file operations upon failure.
+* Default: max_count
+
+remote_queue.sqs.max_count.max_retries_per_part = <unsigned int>
+* Optional.
+* When the remote_queue.sqs.retry_policy setting is max_count, sets the maximum
+  number of times a queue operation will be retried upon intermittent failure.
+* Default: 9
+
+remote_queue.sqs.timeout.connect = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Sets the connection timeout, in milliseconds, to use when interacting with
+  SQS for this queue.
+* Default: 5000
+
+remote_queue.sqs.timeout.read = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Sets the read timeout, in milliseconds, to use when interacting with SQS for
+  this queue.
+* Default: 60000
+
+remote_queue.sqs.timeout.write = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Sets the write timeout, in milliseconds, to use when interacting with SQS for
+  this queue.
+* Default: 60000
+
+remote_queue.sqs.large_message_store.endpoint = <URL>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* The URL of the remote storage system supporting the S3 API.
+* The scheme, http or https, can be used to enable or disable SSL connectivity
+  with the endpoint.
+* If not specified, the endpoint will be constructed automatically based on the
+  auth_region as follows: https://s3-<auth_region>.amazonaws.com
+* Example: https://s3-us-west-2.amazonaws.com/
+* Defaults to unset.
+
+remote_queue.sqs.large_message_store.path = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Points to the remote storage location where messages larger than the
+  underlying queue's maximum message size will reside.
+* The format for this attribute is: <scheme>://<remote-location-specifier>
+  * The "scheme" identifies a supported external storage system type.
+  * The "remote-location-specifier" is an external system-specific string for
+    identifying a location inside the storage system.
+* These external systems are supported:
+   - Object stores that support AWS's S3 protocol. These use the scheme "s3".
+     For example, "path=s3://mybucket/some/path".
+* If not specified, messages exceeding the underlying queue's maximum message
+  size are dropped.
+* Defaults to unset.
+
+remote_queue.sqs.send_interval = <number><unit>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Interval that the remote queue output processor waits for data to
+  arrive before sending a partial batch to the remote queue.
+* Examples: 30s, 1m
+* Default: 30s
+
+remote_queue.sqs.max_queue_message_size = <integer>[KB|MB|GB]
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Maximum message size to which events are batched for upload to
+  the remote queue.
+* If specified as an integer followed by KB, MB, or GB (for example,
+  10MB is 10 megabytes)
+* Queue messages are sent to the remote queue when the next event processed
+  would otherwise result in the message exceeding the maximum size.
+* The maximum value for this setting is 5GB.
+* Default: 10MB
+
+remote_queue.sqs.enable_data_integrity_checks = <bool>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* If set to true, Splunk sets the data checksum in the metadata field of
+  the HTTP header during upload operation to S3.
+* The checksum is used to verify the integrity of the data on uploads.
+* Default: false
+
+remote_queue.sqs.enable_signed_payloads  = <bool>
+* Currently not supported. This setting is related to a feature that is 
+  still under development.
+* If set to true, Splunk signs the payload during upload operation to S3.
+* Valid only for remote.s3.signature_version = v4
+* Default: true
+
+compressed = [true|false]
+* See the description for TCPOUT ATTRIBUTES.
+
+negotiateProtocolLevel = <unsigned integer>
+* See the description for TCPOUT ATTRIBUTES.
+
+channelReapInterval = <integer>
+* See the description for TCPOUT ATTRIBUTES.
+
+channelTTL = <integer>
+* See the description for TCPOUT ATTRIBUTES.
+
+channelReapLowater = <integer>
+* See the description for TCPOUT ATTRIBUTES.
+
+concurrentChannelLimit = <unsigned integer>
+* See the description for [splunktcp] in inputs.conf.spec.
+

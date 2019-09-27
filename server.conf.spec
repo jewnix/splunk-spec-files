@@ -1,4 +1,4 @@
-#   Version 7.0.11
+#   Version 7.1.0
 #
 # This file contains the set of attributes and values you can use to
 # configure server options in server.conf.
@@ -69,6 +69,9 @@ allowRemoteLogin = always|never|requireSetPassword
   * In the free license, remote login is disabled.
   * In the pro license, remote login is only disabled for "admin" user if
     default password of "admin" has not been changed.
+* As of version 7.1, Splunk software does not support the use of default 
+ passwords.
+
 
 tar_format = gnutar|ustar
 * Sets the default tar format.
@@ -255,18 +258,28 @@ remoteStorageRecreateIndexesInStandalone = <bool>
 * Controls re-creation of remote storage enabled indexes in standalone mode.
 * Defaults to true.
 
-remoteStorageRecreateObjectCountPerSecondInStandalone = <unsigned integer>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* The maximum number of remote storage transactions that can be run
-  against the remote storage per second.
-* Defaults to no limit
-
 cleanRemoteStorageByDefault = <bool>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Allows 'splunk clean eventdata' to clean the remote indexes when set to true.
 * Defaults to false.
+
+recreate_index_fetch_bucket_batch_size = <positive_integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Controls the maximum number of bucket IDs to fetch from remote storage
+  as part of a single transaction for a remote storage enabled index.
+* Only valid for standalone mode.
+* Defaults to 500.
+
+recreate_bucket_fetch_manifest_batch_size = <positive_integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Controls the maximum number of bucket manifests to fetch in parallel
+  from remote storage.
+* Only valid for standalone mode.
+* Defaults to 100.
+
 ############################################################################
 # Deployment Configuration details
 ############################################################################
@@ -465,22 +478,8 @@ sslRootCAPath = <path>
   Criteria mode until it has been certified by NIAP. See the "Securing
   Splunk Enterprise" manual for information on the status of Common
   Criteria certification.
-* This setting is valid on Windows machines only if you set
-  'sslRootCAPathHonoredOnWindows' to "true".
+* This setting is not used on Windows.
 * Default is unset.
-
-sslRootCAPathHonoredOnWindows = <boolean>
-* DEPRECATED.
-* Whether or not the Splunk instance respects the 'sslRootCAPath' setting on
-  Windows machines.
-* If you set this setting to "true", then the instance respects the
-  'sslRootCAPath' setting on Windows machines.
-* This setting is valid only on Windows, and only if you have set
-  'sslRootCAPath'.
-* When the 'sslRootCAPath' setting is respected, the instance expects to find
-  a valid PEM file with valid root certificates that are referenced by that
-  path. If a valid file is not present, SSL communication fails.
-* Default: false.
 
 caCertFile = <filename>
 * DEPRECATED; use 'sslRootCAPath' instead.
@@ -547,14 +546,6 @@ sslServerSessionTimeout = <integer>
 * Timeout for newly created session in seconds.
 * If set 0, disables Server side session cache.
 * Defaults to openssl default (300).
-
-sslServerHandshakeTimeout = <integer>
-* The timeout, in seconds, for an SSL handshake to complete between an
-  SSL client and the Splunk SSL server.
-* If the SSL server does not receive a "Client Hello" from the SSL client within
-  'sslServerHandshakeTimeout' seconds, the server terminates
-  the connection.
-* Default: 60
 
 #############################################################################
 # Splunkd http proxy configuration
@@ -1757,7 +1748,54 @@ decommission_force_finish_idle_time = <zero or positive integer>
 * A value of zero (0) means that the master does not forcibly finish 
   decommissioning.
 * Defaults to zero.
- 
+
+rolling_restart = restart|shutdown|searchable|searchable_force
+* Only valid for mode=master.
+* Determines whether indexer peers restart or shutdown during a rolling
+  restart.
+* If set to restart, each peer will automatically restart during a rolling
+  restart.
+* If set to shutdown, each peer will be stopped during a rolling restart,
+  and the customer must manually restart each peer.
+* If set to searchable, the cluster will attempt a best effort to maintain
+  a searchable state during the rolling restart by reassigning primaries
+  from peers that are about to restart to other searchable peers, and
+  performing a health check to ensure that a searchable rolling restart is
+  possible.
+* If set to searchable_force, the cluster will perform a searchable
+  rolling restart, but overrides the health check and enforces
+  'decommission_force_timeout' and 'restart_inactivity_timeout'.
+* Default: restart.
+
+site_by_site = true|false
+* Only valid for mode=master and multisite=true.
+* If set to true, the master restarts peers from one site at a time,
+  waiting for all peers from a site to restart before moving on to another
+  site, during a rolling restart.
+* If set to false, the master randomly selects peers to restart, from
+  across all sites, during a rolling restart.
+* Default: true.
+
+decommission_force_timeout = <zero or positive integer>
+* Only valid for rolling_restart=searchable_force
+* The amount of time, in seconds, the cluster master will wait for a
+  peer in primary decommission status to finish primary reassignment
+  and restart, during a searchable rolling restart with timeouts.
+* Differs from decommission_force_finish_idle_time in its default value
+  and its presence only during a searchable rolling restart with timeouts.
+* If you set this parameter to 0, it will be automatically reset to default value.
+* Maximum accepted value is 1800.
+* Default: 180.
+
+restart_inactivity_timeout = <zero or positive integer>
+* Only valid for rolling_restart=searchable_force
+* The amount of time, in seconds, that the master waits for a peer to
+  restart and rejoin the cluster before it considers the restart a failure
+  and proceeds to restart other peers.
+* A value of zero (0) means that the master waits indefinitely for a peer
+  to restart.
+* Default: 600.
+
 rep_max_send_timeout = <seconds>
 * Maximum send timeout for sending replication slice data between cluster
   nodes.
@@ -1765,14 +1803,14 @@ rep_max_send_timeout = <seconds>
   exceeded rep_max_send_timeout. If so, replication fails.
 * If cumulative rep_send_timeout exceeds rep_max_send_timeout, replication
   fails.
-* Defaults to 600s.
+* Defaults to 180s.
 
 rep_max_rcv_timeout = <seconds>
 * Maximum cumulative receive timeout for receiving acknowledgement data from
   peers.
 * On rep_rcv_timeout source peer determines if total receive timeout has
   exceeded rep_max_rcv_timeout. If so, replication fails.
-* Defaults to 600s.
+* Defaults to 180s.
 
 multisite = [true|false]
 * Turns on the multisite feature for this master.
@@ -1884,20 +1922,6 @@ site_mappings = <comma-separated string>
   The above cluster must include site5 in available_sites.
   The origin bucket copies for any decommissioned sites will be mapped onto site5
 
-constrain_singlesite_buckets = <bool>
-* Only valid for mode=master and is only used if multisite is true.
-* Specifies whether the cluster keeps single-site buckets within one site
-  in multisite clustering.
-* When this setting is "true", buckets in a single site cluster do not
-  replicate outside of their site. The buckets follow 'replication_factor'
-  'search factor' policies rather than 'site_replication_factor'
-  'site_search_factor' policies. This is to mimic the behavior of
-  single-site clustering.
-* When this setting is "false", buckets in non-multisite clusters can
-  replicate across sites, and must meet the specified
-  'site_replication_factor' and 'site_search_factor' policies.
-* Defaults to true.
-
 heartbeat_timeout = <positive integer>
 * Only valid for mode=master
 * Determines when the master considers a slave down.  Once a slave
@@ -1932,6 +1956,14 @@ quiet_period = <positive integer>
   its view of the cluster based on the registered information and
   starts normal processing.
 * Defaults to 60s.
+
+reporting_delay_period = <positive integer>
+* Only valid for mode=master
+* The acceptable amount of delay, in seconds, for reporting both unmet
+  search and unmet replication factors for newly created buckets.
+* This setting helps provide more reliable cluster status reporting
+  by limiting updates to the specified granularity.
+* Defaults to 30s.
 
 generation_poll_interval = <positive integer>
 * How often, in seconds, the search head polls the master for generation information.
@@ -2031,18 +2063,6 @@ auto_rebalance_primaries = <bool>
   registers, the master redistributes the bucket primaries so the
   cluster can make use of any copies in the incoming peer.
 * Defaults to true.
-
-rebalance_primaries_execution_limit = <non-negative integer>
-* Only valid for 'mode=master'.
-* Specifies, in milliseconds, the maximum period for one execution
-  of the rebalance primary operation.
-* This setting is useful for large clusters with large numbers of
-  buckets, to prevent the primary rebalance operation from blocking
-  other operations for significant amounts of time.
-* The default value of 0 signifies auto mode.  In auto mode, the cluster
-  master uses the value of the 'service_interval' setting to determine the
-  maximum time for the operation.
-* Default: 0
 
 idle_connections_pool_size = <int>
 * Only valid for mode=master
@@ -2213,18 +2233,7 @@ remote_storage_upload_timeout = <non-zero positive integer>
 * For a remote storage enabled index, this attribute specifies the interval
   after which target peers assume responsibility for uploading a bucket to
   the remote storage, if they do not hear from the source peer.
-* Defaults to 60 seconds
-
-report_remote_storage_bucket_upload_to_targets = <boolean>
-* Only valid for 'mode=slave'.
-* For a remote storage enabled index, this attribute specifies whether
-  the source peer reports the successful bucket upload to target peers.
-  This notification is used by target peers to cancel their upload timers
-  and synchronize their bucket state with the uploaded bucket on remote
-  storage.
-* Do not change the value from the default unless instructed by
-  Splunk Support.
-* Default: false
+* Defaults to 300 seconds
 
 remote_storage_retention_period = <non-zero positive integer>
 * Currently not supported. This setting is related to a feature that is
@@ -2306,15 +2315,6 @@ recreate_index_fetch_bucket_batch_size = <positive integer>
   See recreate_index_attempts_from_remote_storage.
 * Defaults to 2000 bucket IDs
 
-use_batch_remote_rep_changes = <boolean>
-* Only valid for 'mode=master'.
-* Specifies whether the master processes bucket copy changes (to meet
-  replication_factor and search_factor) in batch or individually.
-* This is applicable to buckets belonging to
-  remote storage enabled indexes only.
-* Do not change this setting without consulting with Splunk Support.
-* Default: true
-
 buckets_status_notification_batch_size = <positive integer>
 * Only valid for mode=slave
 * Controls the number of existing buckets that the slave
@@ -2322,15 +2322,6 @@ buckets_status_notification_batch_size = <positive integer>
   The master will then initiate fix-ups for these buckets.
 * Caution: Do not modify this setting without guidance from Splunk personnel
 * Defaults to 10 bucket IDs
-
-local_executor_evict_deletes_enabled = <boolean>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* If true, enables jobs that invalidate delete files by marking them as stale,
-  to be enqueued on bucket primary changes.
-* Otherwise, these jobs are not enqueued on bucket primary changes and
-  the files of these buckets are considered to be up-to-date.
-* Default: true
 
 notify_scan_period = <non-zero positive integer>
 * Only valid for mode=slave
@@ -2392,16 +2383,6 @@ throwOnBucketBuildReadError = true|false
 
 cluster_label = <string>
 * This specifies the label of the indexer cluster
-
-warm_bucket_replication_pre_upload = <boolean>
-* Valid only for 'mode=slave'.
-* This setting applies to remote storage enabled indexes only.
-* If set to true, the target peers replicate all warm bucket contents when necessary for
-  bucket-fixing if the source peer has not yet uploaded the bucket to remote storage.
-* If set to false, the target peers never replicate warm bucket contents.
-* In either case the target peers replicate metadata only, once the source peer uploads
-  the bucket to remote storage.
-* Default: false
 
 [clustermaster:<stanza>]
 * Only valid for mode=searchhead when the searchhead is a part of multiple
@@ -2846,8 +2827,7 @@ pass4SymmKey = <password>
 * If set in the [shclustering] stanza, it takes precedence over any setting
   in the [general] stanza.
 * Defaults to 'changeme' from the [general] stanza in the default
-  server.conf. This default value is going to be removed in future versions of 
-  Splunk software.
+  server.conf.
 * Unencrypted passwords must not begin with "$1$", as this is used by
   Splunk software to determine if the password is already encrypted.
 
@@ -3024,6 +3004,13 @@ target_wait_time = <positive integer>
   schedules another fixup.
 * Defaults to 150s.
 
+manual_detention = on|off
+* This property toggles manual detention on member.
+* When a node is in manual detention, it does not accept new search jobs,
+  including both scheduled and ad-hoc searches. It also does not receive
+  replicated search artifacts from other nodes.
+* Defaults to "off".
+
 percent_peers_to_restart = <integer between 0-100>
 * The percentage of members to restart at one time during rolling restarts.
 * Actual percentage may vary due to lack of granularity for smaller peer
@@ -3038,6 +3025,25 @@ rolling_restart_with_captaincy_exchange = <bool>
 * Default = true
 * if you change it to false, captain will restart and captaincy will transfer to
 * some other node
+
+rolling_restart = restart|searchable
+* Determines the rolling restart mode for a search head cluster.
+* If set to restart, a rolling restart runs in classic mode.
+* If set to searchable, a rolling restart runs in searchable (minimal search disruption) mode.
+* Note: You do not have to restart any search head members to set this parameter.
+  Run this CLI command from any member:
+  % splunk edit shcluster-config -rolling_restart restart|searchable
+* Default: restart (runs in classic rolling-restart mode).
+
+decommission_search_jobs_wait_secs = <positive integer>
+* The amount of time, in seconds, that a search head cluster member waits for
+  existing searches to complete before restarting.
+* Applies only when rolling restart is triggered in searchable mode
+  (i.e.'rolling_restart' is set to "searchable").
+* Note: You do not have to restart search head members to set this parameter.
+  Run this CLI command from any member:
+  % splunk edit shcluster-config -decommission_search_jobs_wait_secs <positive integer>
+* Default: 180.
 
 register_replication_address = <IP address, or fully qualified machine/domain name>
 * This is the address on which a member will be available for accepting
@@ -3181,6 +3187,16 @@ conf_replication_purge.eligibile_age = <timespan>
 conf_replication_purge.period = <timespan>
 * Controls how often configuration changes are purged.
 * Defaults to '1h' (1 hour).
+
+conf_replication_find_baseline.use_bloomfilter_only = <bool>
+* Controls whether or not a search head cluster only uses bloom filters to
+  determine a baseline, when it replicates configurations.
+* Set to true to only use bloom filters in baseline determination during
+  configuration replication.
+* Set to false to first attempt a standard method, where the search head
+  cluster captain interacts with members to determine the baseline, before
+  falling back to using bloom filters.
+* Defaults to false.
 
 conf_deploy_repository = <path>
 * Full path to directory containing configurations to deploy to cluster
@@ -3539,9 +3555,9 @@ eviction_policy = <string>
   still under development.
 * The name of the eviction policy to use.
 * Current options: lru, clock, random, lrlt, noevict
-* Do not change the value from the default of "clock" unless instructed by
+* Do not change the value from the default unless instructed by
   Splunk Support.
-* Defaults to clock
+* Defaults to lru
 
 eviction_padding = <positive integer>
 * Currently not supported. This setting is related to a feature that is
@@ -3552,34 +3568,13 @@ eviction_padding = <positive integer>
   then the cache manager tries to evict data from remote storage enabled indexes.
 * Defaults to 5368709120 (~5GB)
 
-persist_pending_upload_from_external = <boolean>
+max_size_kb = <positive integer>
 * Currently not supported. This setting is related to a feature that is
   still under development.
-* Specifies whether the information of the buckets that have been uploaded
-  to remote storage can be serialized to disk or not.
-* When set to true, this information is serialized to disk and
-  the bucket is deemed to be on remote storage.
-* Otherwise, the bucket is deemed to be not on remote storage and
-  bucket is then uploaded to remote storage.
-* Default: true
-
-persistent_id_set_remove_min_sync_secs = <unsigned integer>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* Cache manager persists the set of objects that are
-  no longer pending upload to the remote storage based
-  on when the previous set of changes were persisted to disk.
-* This setting controls the interval from the last persist time that
-  cache manager waits to persist the current set of changes to disk.
-* Default: 5
-
-enable_open_on_stale_object = <boolean>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* Specifies whether the buckets with stale files can be opened for search.
-* When set to true, these buckets can be opened for search.
-  Otherwise, searches are not allowed to open these buckets.
-* Default: true
+* Specifies the maximum space, in kilobytes, per partition, that the cache can
+  occupy on disk. If this value is exceeded, the cache manager starts evicting buckets.
+* A value of 0 means this feature will not be used, and has no maximum size.
+* Defaults to 0.
 
 hotlist_recency_secs = <unsigned integer>
 * Currently not supported. This setting is related to a feature that is
@@ -3595,14 +3590,6 @@ hotlist_bloom_filter_recency_hours = <unsigned integer>
   bucket files, such as the bloomfilter file, until the interval between the
   bucket's latest time and the current time exceeds this setting.
 * Defaults to 360 (15 days)
-
-evict_on_stable = <boolean>
-* When the source peer completes upload of a bucket to remote storage, it notifies the
-  target peers so that they can evict any local copies of the bucket.
-* When set to true, each target peer evicts its local copy, if any, upon such notification.
-* When set to false, each target peer continues to store its local copy, if any, until its
-  cache manager eventually evicts the bucket according to its cache eviction policy.
-* Default: false
 
 # Raft Statemachine configuration
 ############################################################################

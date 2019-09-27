@@ -1,4 +1,4 @@
-#   Version 6.6.6
+#   Version 6.6.7
 #
 # This file contains possible attribute and value pairs for:
 #  * Telling Splunk how to handle multi-value fields.

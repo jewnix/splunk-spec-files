@@ -1,4 +1,4 @@
-#   Version 7.1.8
+#   Version 7.2.0
 
 # splunk-launch.conf contains values used at startup time, by the splunk
 # command and by windows services.
@@ -123,9 +123,14 @@ SPLUNK_OS_USER = <string> | <nonnegative integer>
 # These settings are considered internal, and altering them is not
 # supported.
 #
-# Under Windows, they influence the expected name of the service; on UNIX
-# they influence the reported name of the appropriate server or daemon
-# process.
+# Under Windows, they influence the expected name of the service;
+# on UNIX they influence the reported name of the appropriate 
+# server or daemon process.
+#
+# On Linux distributions that run systemd, this is the name of the
+# unit file for the service that Splunk Enterprise runs as.
+# For example, if you set 'SPLUNK_SERVER_NAME' to 'splunk'
+# then the corresponding unit file should be named 'splunk.service'.
 #
 # If you want to run multiple instances of Splunk as *services* under
 # Windows, you will need to change the names below for 2nd, 3rd, ...,

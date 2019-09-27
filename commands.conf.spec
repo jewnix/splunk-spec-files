@@ -1,4 +1,4 @@
-#   Version 7.1.8
+#   Version 7.2.0
 #
 # This file contains possible attribute/value pairs for creating search
 # commands for any custom search scripts created.  Add your custom search
@@ -233,8 +233,7 @@ chunked = [true|false]
 * If true, this command supports the new "chunked" custom
   search command protocol.
 * If true, the only other commands.conf attributes supported are
-  is_risky, maxwait, maxchunksize, filename, command.arg.<N>, and
-  run_in_preview.
+  is_risky, maxwait, maxchunksize, filename, and command.arg.<N>.
 * If false, this command uses the legacy custom search command
   protocol supported by Intersplunk.py.
 * Default is false

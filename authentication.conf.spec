@@ -1,4 +1,4 @@
-#   Version 7.1.8
+#   Version 7.2.0
 #
 # This file contains possible attributes and values for configuring
 # authentication via authentication.conf.
@@ -70,16 +70,22 @@ passwordHashAlgorithm = [SHA512-crypt|SHA256-crypt|SHA512-crypt-<num_rounds>|SHA
   to work but retain their previous hashing algorithm.
 * The default is "SHA512-crypt".
 
+defaultRoleIfMissing = <splunk role>
+* OPTIONAL
+* Applicable for LDAP authType, if the LDAP server does not return any groups or
+  groups cannot be mapped to Splunk roles, we will use this value if provided.
+* Default is empty string.
+
 externalTwoFactorAuthVendor = <string>
 * OPTIONAL.
-* A valid Multifactor vendor string will enable Multifactor authentication
+* A valid multifactor vendor string will enable multifactor authentication
   and loads support for the corresponding vendor if supported by Splunk.
-* Empty string will disable Multifactor authentication in splunk.
-* Currently splunk supports duo as a Multifactor authentication vendor.
+* Empty string will disable multifactor authentication in Splunk.
+* Currently Splunk supports Duo and RSA as multifactor authentication vendors.
 
 externalTwoFactorAuthSettings = <externalTwoFactorAuthSettings-key>
 * OPTIONAL.
-* Key to look up the specific configuration of chosen Multifactor
+* Key to look up the specific configuration of chosen multifactor
   authentication vendor.
 
 #####################
@@ -980,13 +986,13 @@ namespace = <string>
 * <duo-externalTwoFactorAuthSettings-key> must be the value listed in the
   externalTwoFactorAuthSettings attribute, specified above in the [authentication]
   stanza.
-* This stanza contains Duo specific Multifactor authentication settings and will be
+* This stanza contains Duo specific multifactor authentication settings and will be
   activated only when externalTwoFactorAuthVendor is Duo.
 * All the below attributes except appSecretKey would be provided by Duo.
 
 apiHostname = <string>
 * REQUIRED
-* Duo's API endpoint which performs the actual Multifactor authentication.
+* Duo's API endpoint which performs the actual multifactor authentication.
 * e.g. apiHostname = api-xyz.duosecurity.com
 
 integrationKey = <string>
@@ -1009,7 +1015,7 @@ appSecretKey = <string>
 failOpen = <bool>
 * OPTIONAL
 * Defaults to false if not set.
-* If set to true, Splunk will bypass Duo Multifactor Authentication when the service is
+* If set to true, Splunk will bypass Duo multifactor authentication when the service is
   unavailable.
 
 timeout = <int>
@@ -1070,4 +1076,117 @@ useClientSSLCompression = <bool>
   as long as the server also supports it.
 * If not set, Splunk uses the client SSL compression setting provided in server.conf
 
+#####################
+# RSA MFA vendor settings
+#####################
+[<rsa-externalTwoFactorAuthSettings-key>]
+* <rsa-externalTwoFactorAuthSettings-key> must be the value listed in the
+  externalTwoFactorAuthSettings attribute, specified above in the [authentication]
+  stanza.
+* This stanza contains RSA specific multifactor authentication settings and will be
+  activated only when externalTwoFactorAuthVendor is RSA.
+* All the below attributes can be obtained from RSA Authentication Manager 8.2 SP1.
 
+
+authManagerUrl = <string>
+* REQUIRED
+* URL of REST endpoint of RSA Authentication Manager
+* Splunk will send authentication requests to this URL. 
+* URL should be https based. Splunk will not support communication over http.
+
+accessKey = <string>
+* REQUIRED
+* Access key needed by Splunk to communicate with RSA Authentication Manager. 
+
+clientId = <string>
+* REQUIRED
+* Agent name created on RSA Authentication Manager is clientId.
+
+failOpen = <bool>
+* OPTIONAL
+* If true, allow login in case authentication server is unavailable.
+* Default: false.
+
+timeout = <int>
+* OPTIONAL
+* It determines the connection timeout in seconds for the outbound HTTPS connection.
+* Default: 5.
+
+messageOnError = <string>
+* OPTIONAL
+* Message that will be shown to user in case of login failure.
+* You can specify contact of admin or link to diagnostic page.
+
+sslVersions = <versions_list>
+* OPTIONAL
+* Comma-separated list of SSL versions to support for incoming connections.
+* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
+* If not set, Splunk uses the 'sslVersions' specified in server.conf
+* Default: tls1.2
+
+cipherSuite = <cipher suite string>
+* OPTIONAL
+* If set, Splunk uses the specified cipher string for the HTTP server.
+* If not set, Splunk uses the 'cipherSuite' specified in server.conf
+
+ecdhCurves = <comma separated list of ec curves>
+* OPTIONAL
+* ECDH curves to use for ECDH key negotiation.
+* If not set, Splunk uses the 'ecdhCurves' specified in server.conf
+
+sslVerifyServerCert = <bool>
+* OPTIONAL
+* If this is set to true, you should make sure that the server that is
+  being connected to is a valid one (authenticated). Both the common
+  name and the alternate name of the server are then checked for a
+  match if they are specified in this configuration file.  A
+  certificiate is considered verified if either is matched.
+* Default: true.
+
+sslCommonNameToCheck = <commonName1>, <commonName2>, ...
+* OPTIONAL
+* Not set by default.
+* If this value is set, Splunk will limit outbound RSA HTTPS connections
+  to host which use a cert with one of the listed common names.
+* 'sslVerifyServerCert' must be set to true for this setting to work.
+
+sslAltNameToCheck =  <alternateName1>, <alternateName2>, ...
+* OPTIONAL
+* Not set by default.
+* If this value is set, Splunk will limit outbound RSA HTTPS connections
+  to host which use a cert with one of the listed alternate names.
+* 'sslVerifyServerCert' must be set to true for this setting to work.
+
+sslRootCAPath = <path>
+* REQUIRED
+* Not set by default.
+* The <path> must refer to full path of a PEM format file containing one or more
+  root CA certificates concatenated together.
+* This Root CA must match the CA in the certificate chain of the SSL certificate
+  returned by RSA server.
+
+sslVersionsForClient = <versions_list>
+* OPTIONAL
+* Comma-separated list of SSL versions to support for outgoing HTTP connections.
+* If not set, Splunk uses the 'sslVersionsForClient' specified in server.conf
+* Default: tls1.2
+
+replicateCertificates = <boolean>
+* OPTIONAL
+* If enabled, RSA certificate files will be replicated across search head cluster setup.
+* If disabled, RSA certificate files need to be replicated manually across SHC or else
+  2FA verification will fail.
+* This setting will have no effect if search head clustering is disabled.
+* Default: true
+
+enableMfaAuthRest = <boolean>
+* Determines whether or not splunkd requires RSA two-factor authentication
+  against REST endpoints.
+* When two-factor authentication is enabled for REST endpoints, either you
+  must log in to the Splunk instance with a valid RSA passcode, or requests
+  to those endpoints must include a valid token in the following format,
+  for example: "curl -k -u <username>:<password>:<token> -X GET <resource>"
+* If set to "true", splunkd requires RSA REST two-factor authentication.
+* If set to "false", splunkd does not require REST two-factor authentication.
+* Optional.
+* Default: false

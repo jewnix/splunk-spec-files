@@ -1,84 +1,84 @@
-#   Version 7.1.8
+#   Version 7.2.0
 #
-# Forwarders require outputs.conf; non-forwarding Splunk instances do not
-# use it.  It determines how the forwarder sends data to receiving Splunk
-# instances, either indexers or other forwarders.
+# Forwarders require outputs.conf. Splunk instances that do not forward 
+# do not use it. Outputs.conf determines how the forwarder sends data to 
+# receiving Splunk instances, either indexers or other forwarders.
 #
 # To configure forwarding, create an outputs.conf file in
-# $SPLUNK_HOME/etc/system/local/.  For examples of its use, see
+# $SPLUNK_HOME/etc/system/local/. For examples of its use, see
 # outputs.conf.example.
 #
-# You must restart Splunk to enable configurations.
+# You must restart Splunk software to enable configurations.
 #
-# To learn more about configuration files (including precedence) please see
-# the documentation located at
-# http://docs.splunk.com/Documentation/Splunk/latest/Admin/Aboutconfigurationfiles
+# To learn more about configuration files (including precedence) see the topic
+# "About Configuration Files" in the Splunk Documentation set.
 #
-# NOTE: To learn more about forwarding, see the documentation at
-# http://docs.splunk.com/Documentation/Splunk/latest/Deploy/Aboutforwardingandreceivingdata
+# To learn more about forwarding, see the topic "About forwarding and
+# receiving data" in the Splunk Enterprise Forwarding manual.
 
 # GLOBAL SETTINGS
 # Use the [default] stanza to define any global settings.
 #   * You can also define global settings outside of any stanza, at the top
 #     of the file.
 #   * Each conf file should have at most one default stanza. If there are
-#     multiple default stanzas, attributes are combined. In the case of
-#     multiple definitions of the same attribute, the last definition in the
+#     multiple default stanzas, settings are combined. In the case of
+#     multiple definitions of the same setting, the last definition in the
 #     file wins.
-#   * If an attribute is defined at both the global level and in a specific
+#   * If an setting is defined at both the global level and in a specific
 #     stanza, the value in the specific stanza takes precedence.
-#   * Do not use the sslPassword, socksPassword, or token settings to set passwords
-#     in this stanza as they may remain readable to attackers, specify these settings
-#     in the [tcpout] stanza instead.
+#   * Do not use the 'sslPassword', 'socksPassword', or 'token' settings
+#     to set passwords in this stanza as they may remain readable to
+#     attackers, specify these settings in the [tcpout] stanza instead.
 
-############
-TCP Output stanzas
-############
+####
+# TCP Output stanzas
+####
+
 # There are three levels of TCP Output stanzas:
 # * Global: [tcpout]
 # * Target group: [tcpout:<target_group>]
 # * Single server: [tcpout-server://<ip address>:<port>]
 #
 # Settings at more specific levels override settings at higher levels. For
-# example, an attribute set for a single server overrides the value of that
-# attribute, if any, set at that server's target group stanza. See the
+# example, an setting set for a single server overrides the value of that
+# setting, if any, set at that server's target group stanza. See the
 # online documentation on configuring forwarders for details.
 #
 # This spec file first describes the three levels of stanzas (and any
-# attributes unique to a particular level).  It then describes the optional
-# attributes, which can be set at any  of the three levels.
+# settings unique to a particular level). It then describes the optional
+# settings, which you can set at any of the three levels.
 
 
 #----TCP Output Global Configuration -----
-# The global configurations specified here in the [tcpout] stanza can be
-# overwritten in stanzas for specific target groups, as described later.
-# Note that the defaultGroup and indexAndForward attributes can only be set
+# You can overwrite the global configurations specified here in the
+# [tcpout] stanza in stanzas for specific target groups, as described later.
+# You can only set the 'defaultGroup' and 'indexAndForward' settings
 # here, at the global level.
 #
-# Starting with 4.2, the [tcpout] stanza is no longer required.
+# Starting with version 4.2, the [tcpout] stanza is no longer required.
 
 [tcpout]
 
 defaultGroup = <target_group>, <target_group>, ...
-* Comma-separated list of one or more target group names, specified later 
+* A comma-separated list of one or more target group names, specified later 
   in [tcpout:<target_group>] stanzas.
 * The forwarder sends all data to the specified groups.
-* If you don't want to forward data automatically, don't set this attribute.
-* Can be overridden by an inputs.conf _TCP_ROUTING setting, which in turn
-  can be overridden by a props.conf/transforms.conf modifier.
-* Starting with 4.2, this attribute is no longer required.
+* If you don't want to forward data automatically, don't set this setting.
+* Can be overridden by an inputs.conf '_TCP_ROUTING' setting, which in turn
+  can be overridden by a props.conf or transforms.conf modifier.
+* Starting with version 4.2, this setting is no longer required.
 
-indexAndForward = [true|false]
-* Index all data locally, in addition to forwarding it.
+indexAndForward = <boolean>
+* Set to "true" to index all data locally, in addition to forwarding it.
 * This is known as an "index-and-forward" configuration.
-* This attribute is only available for heavy forwarders.
-* This attribute is available only at the top level [tcpout] stanza. It
+* This setting is only available for heavy forwarders.
+* This setting is only available at the top level [tcpout] stanza. It
   cannot be overridden in a target group.
-* Defaults to false.
+* Default: false
 
 #----Target Group Configuration -----
 
-# If multiple servers are specified in a target group, the forwarder
+# If you specify multiple servers in a target group, the forwarder
 # performs auto load-balancing, sending data alternately to each available
 # server in the group. For example, assuming you have three servers
 # (server1, server2, server3) and autoLBFrequency=30, the forwarder sends
@@ -87,284 +87,349 @@ indexAndForward = [true|false]
 # finally cycling back to server1.
 #
 # You can have as many target groups as you want.
-# If more than one target group is specified, the forwarder sends all data
-# to each target group.
-# This is known as "cloning" the data.
+# If you specify more than one target group, the forwarder sends all data
+# to each target group. This is known as "cloning" the data.
 #
-# NOTE: A target group stanza name cannot have spaces or colons in them.
-#       Splunk software ignores target groups whose stanza names contain
-#       spaces or colons.
+# NOTE: A target group stanza name cannot contain spaces or colons.
+# Splunk software ignores target groups whose stanza names contain
+# spaces or colons.
 
 [tcpout:<target_group>]
 
 server = [<ip>|<servername>]:<port>, [<ip>|<servername>]:<port>, ...
-* Required if indexerDiscovery is not set.
-* Takes a comma separated list of one or more systems to send data to over a
-  tcp socket.
-* Typically used to specify receiving splunk systems, although it can be
-  used to send data to non-splunk systems (see sendCookedData setting).
-* For each mentioned system, the following are required:
-  * IP or servername where one or system is listening.
-  * Port on which syslog server is listening.
+* A comma-separated list of one or more systems to send data to over a
+  TCP socket.
+* Required if the 'indexerDiscovery' setting is not set.
+* Typically used to specify receiving Splunk systems, although you can use
+  it to send data to non-Splunk systems (see the 'sendCookedData' setting).
+* For each system you list, the following information is required:
+  * The IP address or server name where one or more systems are listening.
+  * The port on which the syslog server is listening.
 
 blockWarnThreshold = <integer>
-* Optional
-* Default value is 100
-* Sets the output pipleline send failure count threshold after which a
-  failure message will be displayed as banner on UI
-* To disable any warnings to be sent to UI on blocked output queue
-  condition, set this to a large value (2 million for example)
+* The output pipeline send failure count threshold after which a
+  failure message appears as a banner in Splunk Web.
+* Optional.
+* To disable Splunk Web warnings on blocked output queue conditions, set this 
+  to a large value (for example, 2000000).
+* Default: 100
 
 indexerDiscovery = <name>
+* The name of the master node to use for indexer discovery.
 * Instructs the forwarder to fetch the list of indexers from the master node
   specified in the corresponding [indexer_discovery:<name>] stanza.
+* No default.
 
 token = <string>
-* Optional
-* If an access token is configured for receiving Splunk system, that token
-  is populated here. Note that if receiver is configured with an access token
-  and that token is not specified here, then data sent to it will be
-  rejected.
-#----Single server configuration -----
+* The access token for receiving data.
+* Optional.
+* If you configured an access token for receiving data from a forwarder, 
+  Splunk software populates that token here.
+* If you configured a receiver with an access token and that token is not
+  specified here, the receiver rejects all data sent to it.
+* No default.
+
+#----Single server configuration-----
 
 # You can define specific configurations for individual indexers on a
-# server-by-server basis.  However, each server must also be part of a
+# server-by-server basis. However, each server must also be part of a
 # target group.
 
 [tcpout-server://<ip address>:<port>]
-* Optional.  There is no requirement to have any tcpout-server stanzas.
+* Optional. There is no requirement to have a [tcpout-server] stanzas.
 
-############
-#----TCPOUT ATTRIBUTES----
-############
-# These attributes are optional and can appear in any of the three stanza levels.
+#####
+#TCPOUT SETTINGS
+#####
+
+# These settings are optional and can appear in any of the three stanza levels.
 
 [tcpout<any of above>]
 
 #----General Settings----
 
-sendCookedData = [true|false]
-* If true, events are cooked (have been processed by Splunk).
-* If false, events are raw and untouched prior to sending.
-* Set to false if you are sending to a third-party system.
-* Defaults to true.
+sendCookedData = <boolean>
+* Whether to send processed or unprocessed data to the receiving server.
+* If "true", events are cooked (have been processed by Splunk software).
+* If "false", events are raw and untouched prior to sending.
+* Set to "false" if you are sending events to a third-party system.
+* Default: false
 
 heartbeatFrequency = <integer>
 * How often (in seconds) to send a heartbeat packet to the receiving server.
-* Heartbeats are only sent if sendCookedData=true.
-* Defaults to 30 (seconds).
+* This setting is a mechanism for the forwarder to know that the receiver 
+  (indexer) is alive. If the indexer does not send a return packet to the 
+  forwarder, the forwarder declares the receiver unreachable and does not 
+  forward data to it.
+* The forwarder only sends heartbeats if the 'sendCookedData' setting 
+  is set to "true".
+* Default: 30
 
-blockOnCloning = [true|false]
-* If true, TcpOutputProcessor blocks till at least one of the cloned group
-  gets events. This will not drop events when all the cloned groups are
-  down.
-* If false, TcpOutputProcessor will drop events when all the cloned groups
-  are down and queues for the cloned groups are full. When at least one of
+blockOnCloning = <boolean>
+* Whether or not the TcpOutputProcessor should wait until at least one
+  of the cloned output groups receives events before attempting to send
+  more events.
+* If "true", the TcpOutputProcessor blocks until at least one of the 
+  cloned groups receives events. It does not drop events when all the
+  cloned groups are down.
+* If "false", the TcpOutputProcessor drops events when all the cloned groups
+  are down and all queues for the cloned groups are full. When at least one of
   the cloned groups is up and queues are not full, the events are not
   dropped.
-* Defaults to true.
+* Default: true 
 
-# For the following setting see the [tcpout:<target_group>] stanza
 blockWarnThreshold = <integer>
+* The output pipeline send failure count threshold, after which a
+  failure message appears as a banner in Splunk Web.
+* Optional.
+* To disable Splunk Web warnings on blocked output queue conditions, set this 
+  to a large value (for example, 2000000).
+* Default: 100
 
-compressed = [true|false]
-* Applies to non-SSL forwarding only. For SSL useClientSSLCompression
-  setting is used.
-* If set to true, the receiver communicates with the forwarder in compressed format.
-* If set to true, there is no longer a requirement to also set 'compressed = true'
-  in the inputs.conf file on the receiver.
-* Defaults to false.
+compressed = <boolean>
+* If "true", the receiver communicates with the forwarder in compressed format.
+* If "true", you do not need to set the 'compressed' setting to "true"
+  in the inputs.conf file on the receiver.
+* This setting applies to non-SSL forwarding only. For SSL forwarding,
+  Splunk software uses the 'useClientSSLCompression' setting.
+* Default: false
 
 negotiateProtocolLevel = <unsigned integer>
-* When setting up a connection to an indexer, try to negotiate the use of
-  the splunk forwarder protocol with the specified feature level.
-* If set to a lower value than the default will deny the use of newer
-  forwarder protocol features during connection negotiation.  This may
-  impact indexer efficiency.
-* Defaults to 1 if negotiateProtocolLevel is true, otherwise 0
+* When setting up a connection to an indexer, this setting tries to 
+  negotiate the use of the Splunk software forwarder protocol with the 
+  specified feature level.
+* If set to a lower value than the default, this setting denies the
+  use of newer forwarder protocol features when it negotiates a connection.
+  This might impact indexer efficiency.
+* Default (if 'negotiateNewProtocol' is "true"): 1 
+* Default (if 'negotiateNewProtocol' is not "true"): 0
 
-negotiateNewProtocol = [true|false]
-* Controls the default setting of negotiateProtocolLevel setting above
-* DEPRECATED; set 'negotiateProtocolLevel' instead.
-* Defaults to true.
+negotiateNewProtocol = <boolean>
+* Sets the default value of the 'negotiateProtocolLevel' setting.
+* DEPRECATED. Set 'negotiateProtocolLevel' instead.
+* Default: true
 
 channelReapInterval = <integer>
-* Controls how often, in milliseconds, channel codes are reaped, i.e. made
-  available for re-use.
-* This value sets the minimum time between reapings; in practice,
-  consecutive reapings may be separated by greater
-  than <channelReapInterval> milliseconds.
-* Defaults to 60000 (1 minute)
+* How often, in milliseconds, channel codes are reaped, or made
+  available for re-use. 
+* This value sets the minimum time between reapings. In practice,
+  consecutive reapings might be separated by greater than the number of 
+  milliseconds specified here.
+* Default: 60000 (1 minute)
 
 channelTTL = <integer>
-* Controls how long, in milliseconds, a channel may remain "inactive" before
-  it is reaped, i.e. before its code is made available for re-use by a
+* How long, in milliseconds, a channel can remain "inactive" before
+  it is reaped, or before its code is made available for reuse by a
   different channel.
-* Defaults to 300000 (5 minutes)
+* Default: 300000 (5 minutes)
 
 channelReapLowater = <integer>
-* If the number of active channels is above <channelReapLowater>, we reap
-  old channels in order to make their channel codes available for re-use.
-* If the number of active channels is below <channelReapLowater>, we do not
-  reap channels, no matter how old they are.
-* This value essentially determines how many active-but-old channels we keep
-  "pinned" in memory on both sides of a splunk-to-splunk connection.
-* A non-zero value helps ensure that we do not waste network resources by
-  "thrashing" channels in the case of a forwarder sending a trickle of data.
-* Defaults to 10.
+* If the number of active channels is greater than 'channelReapLowater', 
+  Splunk software reaps old channels to make their channel codes available 
+  for reuse.
+* If the number of active channels is less than 'channelReapLowater', 
+  Splunk software does not reap channels, no matter how old they are.
+* This value essentially determines how many active-but-old channels Splunk 
+  software keeps "pinned" in memory on both sides of a Splunk-to-Splunk connection.
+* A non-zero value helps ensure that Splunk software does not waste network 
+  resources by "thrashing" channels in the case of a forwarder sending 
+  a trickle of data.
+* Default: 10
 
 socksServer = [<ip>|<servername>]:<port>
-* IP or servername of Socks5 server.
-* Port on which socks server is listening on. You must specify the port.
-* Note: Only Socks5 is supported.
+* The IP address or servername of the Socket Secure version 5 (SOCKS5) server.
+* Required.
+* This setting specifies the port on which the SOCKS5 server is listening.
+* After you configure and restart the forwarder, it connects to the SOCKS5
+  proxy host, and optionally authenticates to the server on demand if 
+  you provide credentials.
+* NOTE: Only SOCKS5 servers are supported.
+* No default.
 
 socksUsername = <username>
-* Optional
-* Socks username to use when authenticating against socks server
+* The SOCKS5 username to use when authenticating against the SOCKS5 server.
+* Optional.
 
 socksPassword = <password>
-* Optional
-* Socks password to use when authenticating against socks server
+* The SOCKS5 password to use when authenticating against the SOCKS5 server.
+* Optional.
 
-socksResolveDNS = <bool>
-* Optional
-* If set to true, forwarder will not attempt to resolve indexer's DNS, and
-* will forward the indexer's DNS as is to let socks server resolve it.
+socksResolveDNS = <boolean>
+* Whether or not the forwarder should rely on the SOCKS5 proxy server Domain
+  Name Server (DNS) to resolve hostnames of indexers in the output group it is
+  forwarding data to.
+* If "true", the forwarder sends the hostnames of the indexers to the
+  SOCKS5 server, and lets the SOCKS5 server do the name resolution. It 
+  does not attempt to resolve the hostnames on its own.
+* If "false", the forwarder attempts to resolve the hostnames of the
+  indexers through DNS on its own.
+* Optional.
+* Default: false
 
 #----Queue Settings----
 
 maxQueueSize = [<integer>|<integer>[KB|MB|GB]|auto]
-* This attribute sets the maximum size of the forwarder's output queue.
+* The maximum size of the forwarder output queue.
 * The size can be limited based on the number of entries, or on the total
   memory used by the items in the queue.
-* If specified as a lone integer (for example, maxQueueSize=100),
-  maxQueueSize indicates the maximum count of queued items.
+* If specified as a lone integer (for example, "maxQueueSize=100"),
+  the 'maxQueueSize' setting indicates the maximum count of queued items.
 * If specified as an integer followed by KB, MB, or GB
-  (for example, maxQueueSize=100MB), maxQueueSize indicates the maximum RAM
-  size of all the items in the queue.
-* If set to auto, chooses a value depending on whether useACK is enabled.
-  * If useACK=false, uses 500KB
-  * If useACK=true, uses 7MB
-* If the useACK setting is enabled, the maximum size of the wait queue is
-  set to to 3x this value.
+  (for example, maxQueueSize=100MB), the 'maxQueueSize' setting indicates 
+  the maximum random access memory (RAM) size of all the items in the queue.
+* If set to "auto", this setting configures a value for the output queue
+  depending on the value of the 'useACK' setting:
+  * If 'useACK' is set to "false", the output queue uses 500KB.
+  * If 'useACK' is set to "true", the output queue uses 7MB.
+* If you enable indexer acknowledgment by configuring the 'useACK'
+  setting to "true", the forwarder creates a wait queue where it temporarily
+  stores data blocks while it waits for indexers to acknowledge the receipt
+  of data it previously sent.
+  * The forwarder sets the wait queue size to triple the value of what
+    you set for 'maxQueueSize.'
+  * For example, if you set "maxQueueSize=1024KB" and "useACK=true",
+    then the output queue is 1024KB and the wait queue is 3072KB.
   * Although the wait queue and the output queue sizes are both controlled
-    by this attribute, they are separate.
-* Limiting the queue sizes by quantity is largely historical.  However,
-  should you choose to configure queues based on quantity, keep the
-  following in mind:
+    by this setting, they are separate.
+  * The wait queue only exists if 'useACK' is set to "true".
+* Limiting the queue sizes by quantity is historical. However,
+  if you configure queues based on quantity, keep the following in mind:
   * Queued items can be events or blocks of data.
-    * Non-parsing forwarders, such as universal forwarders, will send
-      blocks, which may be up to 64KB.
-    * Parsing forwarders, such as heavy forwarders, will send events, which
-      will be the size of the events.  For some events these are as small as
-      a few hundred bytes.  In unusual cases (data dependent), customers may
+    * Non-parsing forwarders, such as universal forwarders, send
+      blocks, which can be up to 64KB.
+    * Parsing forwarders, such as heavy forwarders, send events, which
+      are the size of the events. Some events are as small as
+      a few hundred bytes. In unusual cases (data dependent), you might
       arrange to produce events that are multiple megabytes.
-* Defaults to auto
-  * If useACK is enabled, effectively defaults the wait queue to 21MB
+* Default: auto
+  * if 'useACK' is set to "true" and this setting is set to "auto", then
+    the output queue is 7MB and the wait queue is 21MB.
 
 dropEventsOnQueueFull = <integer>
-* If set to a positive number, wait <integer> seconds before throwing out
-  all new events until the output queue has space.
-* Setting this to -1 or 0 will cause the output queue to block when it gets
-  full, causing further blocking up the processing chain.
-* If any target group's queue is blocked, no more data will reach any other
+* The number of seconds to wait before the output queue throws out all 
+  new events until it has space.
+* If set to a positive number, the queue waits 'dropEventsonQueueFull' 
+  seconds before throwing out all new events.
+* If set to -1 or 0, the output queue blocks when it is full. This further 
+  blocks events up the processing chain.
+* If any target group queue is blocked, no more data reaches any other
   target group.
-* Using auto load-balancing is the best way to minimize this condition,
-  because, in that case, multiple receivers must be down (or jammed up)
-  before queue blocking can occur.
-* Defaults to -1 (do not drop events).
-* DO NOT SET THIS VALUE TO A POSITIVE INTEGER IF YOU ARE MONITORING FILES!
+* Using auto load-balancing is the best way to minimize this condition. 
+  In this case, multiple receivers must be down (or jammed up) before 
+  queue blocking can occur.
+* CAUTION: DO NOT SET THIS VALUE TO A POSITIVE INTEGER IF YOU ARE MONITORING FILES.
+* Default: -1
 
 dropClonedEventsOnQueueFull = <integer>
-* If set to a positive number, do not block completely, but wait up to
-  <integer> seconds to queue events to a group. If it cannot enqueue to a
-  group for more than <integer> seconds, begin dropping events for the
-  group. It makes sure that at least one group in the cloning configuration
-  will get events. It blocks if event cannot be delivered to any of the
-  cloned groups.
-* If set to -1, the TcpOutputProcessor will make sure that each group will
-  get all of the events.  If one of the groups is down, then Splunk will
-  block everything.
-* Defaults to 5.
+* The amount of time, in seconds, to wait before dropping events from 
+  the group.
+* If set to a positive number, the queue does not block completely, but
+  waits up to 'dropClonedEventsOnQueueFull' seconds to queue events to a
+  group. 
+  * If it cannot queue to a group for more than 'dropClonedEventsOnQueueFull'
+    seconds, it begins dropping events from the group. It makes sure that at
+    least one group in the cloning configuration can receive events. 
+  * The queue blocks if it cannot deliver events to any of the cloned groups.
+* If set to -1, the TcpOutputProcessor ensures that each group
+  receives all of the events. If one of the groups is down, the
+  TcpOutputProcessor blocks everything.
+* Default: 5
 
-#----Backoff Settings When Unable To Send Events to Indexer----
+#######
+# Backoff Settings When Unable To Send Events to Indexer
 # The settings in this section determine forwarding behavior when there are
 # repeated failures in sending events to an indexer ("sending failures").
+#######
 
 maxFailuresPerInterval = <integer>
-* Specifies the maximum number failures allowed per interval before backoff
-  takes place. The interval is defined below.
-* Defaults to 2.
+* The maximum number of failures allowed per interval before a forwarder
+  applies backoff (stops sending events to the indexer for a specified
+  number of seconds). The interval is defined in the 'secsInFailureInterval' 
+  setting below.
+* Default: 2
 
 secsInFailureInterval = <integer>
-* Number of seconds in an interval. If the number of write failures exceeds
-  maxFailuresPerInterval in the specified secsInFailureInterval seconds, the
-  forwarder applies backoff. The backoff time period range is
-  1-10 * autoLBFrequency.
-* Defaults to 1.
+* The number of seconds contained in a failure interval. 
+* If the number of write failures to the indexer exceeds
+  'maxFailuresPerInterval' in the specified 'secsInFailureInterval' seconds,
+  the forwarder applies backoff. 
+* The backoff time period range is 1-10 * 'autoLBFrequency'.
+* Default: 1
 
 backoffOnFailure = <positive integer>
-* Number of seconds a forwarder will wait before attempting another
-  connection attempt.
-* Defaults to 30
+* The number of seconds a forwarder backs off, or stops sending events,
+  before attempting to make another connection with the indexer.
+* Default: 30
 
 maxConnectionsPerIndexer = <integer>
-* Maximum number of allowed connections per indexer. In presence of
-  failures, the max number of connection attempt per indexer at any point in
-  time.
-* Defaults to 2.
+* The maximum number of allowed connections per indexer. 
+* In the presence of failures, the maximum number of connection attempts 
+  per indexer at any point in time.
+* Default: 2
 
 connectionTimeout = <integer>
-* Time out period if connection establishment does not finish in <integer>
-  seconds.
-* Defaults to 20 seconds.
+* The time to wait, in seconds, for a forwarder to establish a connection
+  with an indexer.
+* The connection times out if an attempt to establish a connection 
+  with an indexer does not complete in 'connectionTimeout' seconds.
+* Default: 20 
 
 readTimeout = <integer>
-* Time out period if read from socket does not finish in <integer> seconds.
+* The time to wait, in seconds, for a forwarder to read from a socket it has
+  created with an indexer.
+* The connection times out if a read from a socket does not complete in
+  'readTimeout' seconds.
 * This timeout is used to read acknowledgment when indexer acknowledgment is
-  used (useACK=true).
-* Defaults to 300 seconds.
+  enabled (when you set 'useACK' to "true").
+* Default: 300 seconds (5 minutes)
 
 writeTimeout = <integer>
-* Time out period if write on socket does not finish in <integer> seconds.
-* Defaults to 300 seconds.
+* The time to wait, in seconds, for a forwarder to complete a write to a
+  socket it has created with an indexer.
+* The connection times out if a write to a socket does not finish in
+  'writeTimeout' seconds.
+* Default: 300 seconds (5 minutes)
 
 tcpSendBufSz = <integer>
-* TCP send buffer size in <integer> bytes.
-* Useful to improve thruput with small size events like windows events.
-* Only set this value if you are a TCP/IP expert.
-* Defaults to system default.
+* The size of the TCP send buffer, in bytes.
+* Only use this setting if you are a TCP/IP expert.
+* Useful to improve throughput with small events, like Windows events.
+* Default: the system default
 
 ackTimeoutOnShutdown = <integer>
-* Time out period if ACKs not received in <integer> seconds during forwarder shutdown.
-* Defaults to 30 seconds.
+* The time to wait, in seconds, for the forwarder to receive indexer
+  acknowledgments during a forwarder shutdown.
+* The connection times out if the forwarder does not receive indexer 
+  acknowledgements (ACKs) in 'ackTimeoutOnShutdown' seconds during forwarder shutdown.
+* Default: 30 seconds
 
 dnsResolutionInterval = <integer>
-* Specifies base time interval in seconds at which indexer dns names will be
-  resolved to ip address.  This is used to compute runtime
-  dnsResolutionInterval as follows:
-  runtime interval = dnsResolutionInterval + (number of indexers in server settings - 1)*30.
-  DNS resolution interval is extended by 30 second for each additional
-  indexer in server setting.
-* Defaults to 300 seconds.
+* The base time interval, in seconds, at which indexer Domain Name Server 
+  (DNS) names are resolved to IP addresses.  
+* This is used to compute runtime dnsResolutionInterval as follows:
+  Runtime interval = 'dnsResolutionInterval' + (number of indexers in server settings - 1) * 30.
+* The DNS resolution interval is extended by 30 seconds for each additional
+  indexer in the server setting.
+* Default: 300 seconds (5 minutes)
 
-forceTimebasedAutoLB = [true|false]
-* Forces existing streams to switch to newly elected indexer every
-  AutoLB cycle.
-* On universal forwarders, use the EVENT_BREAKER_ENABLE and
-  EVENT_BREAKER settings in props.conf rather than forceTimebasedAutoLB
+forceTimebasedAutoLB = <boolean>
+* Forces existing data streams to switch to a newly elected indexer every
+  auto load balancing cycle.
+* On universal forwarders, use the 'EVENT_BREAKER_ENABLE' and
+  'EVENT_BREAKER' settings in props.conf rather than 'forceTimebasedAutoLB'
   for improved load balancing, line breaking, and distribution of events.
-* Defaults to false.
+* Default: false
 
 #----Index Filter Settings.
-# These attributes are only applicable under the global [tcpout] stanza.
+# These settings are only applicable under the global [tcpout] stanza.
 # This filter does not work if it is created under any other stanza.
+
 forwardedindex.<n>.whitelist = <regex>
 forwardedindex.<n>.blacklist = <regex>
-* These filters determine which events get forwarded, based on the indexes
-  the events belong are targetting.
-* This is an ordered list of whitelists and blacklists, which together
-  decide if events should be forwarded to an index.
+* These filters determine which events get forwarded to the index,
+  based on the indexes the events are targeted to.
+* An ordered list of whitelists and blacklists, which together
+  decide if events are forwarded to an index.
 * The order is determined by <n>. <n> must start at 0 and continue with
   positive integers, in sequence. There cannot be any gaps in the sequence.
   * For example:
@@ -374,174 +439,201 @@ forwardedindex.<n>.blacklist = <regex>
 * If both forwardedindex.<n>.whitelist and forwardedindex.<n>.blacklist are
   present for the same value of n, then forwardedindex.<n>.whitelist is
   honored. forwardedindex.<n>.blacklist is ignored in this case.
-* You should not normally need to change these filters from their default
+* In general, you do not need to change these filters from their default
   settings in $SPLUNK_HOME/system/default/outputs.conf.
-* Filtered out events are not indexed if local indexing is not enabled.
+* Filtered out events are not indexed if you do not enable local indexing.
 
-forwardedindex.filter.disable = [true|false]
-* If true, disables index filtering. Events for all indexes are then
+forwardedindex.filter.disable = <boolean>
+* Whether or not index filtering is active.
+* If "true", disables index filtering. Events for all indexes are then
   forwarded.
-* Defaults to false.
+* Default: false
 
 #----Automatic Load-Balancing 
 # Automatic load balancing is the only way to forward data.
-# Round-robin method of load balancing is not supported anymore.
+# Round-robin method of load balancing is no longer supported.
 
-autoLBFrequency = <seconds>
-* Every autoLBFrequency seconds, a new indexer is selected randomly from the
-  list of indexers provided in the server attribute of the target group
+autoLBFrequency = <integer>
+* The amount of time, in seconds, that a forwarder sends data to an indexer
+  before redirecting outputs to another indexer in the pool.
+* Use this setting when you are using automatic load balancing of outputs  
+  from universal forwarders (UFs).
+* Every 'autoLBFrequency' seconds, a new indexer is selected randomly from the
+  list of indexers provided in the server setting of the target group
   stanza.
-* Defaults to 30 (seconds).
+* Default: 30
 
-autoLBVolume = <bytes>
-* After the forwarder sends data of autoLBVolume to some indexer, a new indexer is selected randomly from the
-  list of indexers provided in the server attribute of the target group
-  stanza.
-* autoLBVolume is closely related to autoLBFrequency. autoLBVolume is first used to determine if the forwarder needs
-  to pick another indexer. If the autoLBVolume is not reached, but the autoLBFrequency is reached, the forwarder will
-  switch to another indexer as the forwarding target.
-* A non-zero value means the volume based forwarding is turned on, and value 0 means the volume based forwarding is turned off.
-* Defaults to 0 (bytes).
+autoLBVolume = <integer>
+* The volume of data, in bytes, to send to an indexer before a new indexer 
+  is randomly selected from the list of indexers provided in the server
+  setting of the target group stanza.
+* This setting is closely related to the 'autoLBFrequency' setting. 
+  The forwarder first uses 'autoLBVolume' to determine if it needs to switch to another indexer. If the 'autoLBVolume' is not reached,
+  but the 'autoLBFrequency' is, the forwarder switches to another indexer as the forwarding target.
+* A non-zero value means that volume-based forwarding is active. 
+* 0 means the volume-based forwarding is not active.
+* Default: 0
 
-#----SSL Settings----
+#----Secure Sockets Layer (SSL) Settings----
 
-# To set up SSL on the forwarder, set the following attribute/value pairs.
+# To set up SSL on the forwarder, set the following setting/value pairs.
 # If you want to use SSL for authentication, add a stanza for each receiver
 # that must be certified.
 
-useSSL = <true | false | legacy>
+useSSL = <true|false|legacy>
 * Whether or not the forwarder uses SSL to connect to the receiver, or relies 
   on the 'clientCert' setting to be active for SSL connections.
-* If set to 'true', then the forwarder uses SSL to connect to the receiver.
-  You do not need to set 'clientCert' if 'requireClientCert' is set to 
-  'false' on the receiver.
-* If set to 'false', then the forwarder does not use SSL to connect to the 
+* You do not need to set 'clientCert' if 'requireClientCert' is set to 
+  "false" on the receiver.
+* If "true", then the forwarder uses SSL to connect to the receiver.
+* If "false", then the forwarder does not use SSL to connect to the 
   receiver.
-* If set to 'legacy', then the forwarder uses the 'clientCert' property to
+* If "legacy", then the forwarder uses the 'clientCert' property to
   determine whether or not to use SSL to connect.
-* Defaults to 'legacy'.
+* Default: legacy
 
 sslPassword = <password>
 * The password associated with the CAcert.
 * The default Splunk CAcert uses the password "password".
-* There is no default value.
+* No default.
 
 clientCert = <path>
-* The full path to the client SSL certificate in PEM format.
+* The full path to the client SSL certificate in Privacy Enhanced Mail (PEM)
+  format. 
 * If you have not set 'useSSL', then this connection uses SSL if and only if
   you specify this setting with a valid client SSL certificate file.
-* There is no default value.
+* No default.
 
 sslCertPath = <path>
-* DEPRECATED; use 'clientCert' instead.
+* The full path to the client SSL certificate. 
+* DEPRECATED. 
+* Use the 'clientCert' setting instead.
 
 cipherSuite = <string>
-* If set, uses the specified cipher string for the input processors.
-* This is used to ensure that the server does not accept connections using weak
+* The specified cipher string for the input processors.
+* This setting ensures that the server does not accept connections using weak
   encryption protocols.
-* The default can vary. See the cipherSuite setting in 
-* $SPLUNK_HOME/etc/system/default/outputs.conf for the current default.
+* The default can vary. See the 'cipherSuite' setting in 
+  $SPLUNK_HOME/etc/system/default/outputs.conf for the current default.
 
 sslCipher = <string>
-* DEPRECATED; use 'cipherSuite' instead.
+* The specified cipher string for the input processors.
+* DEPRECATED. 
+* Use the 'cipherSuite' setting instead.
 
-ecdhCurves = <comma separated list of ec curves>
-* ECDH curves to use for ECDH key negotiation.
+ecdhCurves = <comma-separated list>
+* A list of Elliptic Curve-Diffie-Hellmann curves to use for ECDH 
+  key negotiation.
 * The curves should be specified in the order of preference.
-* The client sends these curves as a part of Client Hello.
+* The client sends these curves as a part of an SSL Client Hello.
 * The server supports only the curves specified in the list.
-* We only support named curves specified by their SHORT names.
-  (see struct ASN1_OBJECT in asn1.h)
-* The list of valid named curves by their short/long names can be obtained
-  by executing this command:
+* Splunk software only supports named curves that have been specified
+  by their SHORT names.
+* The list of valid named curves by their short and long names can be obtained
+  by running this CLI command:
   $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
-* e.g. ecdhCurves = prime256v1,secp384r1,secp521r1
-* The default can vary. See the ecdhCurves setting in 
-* $SPLUNK_HOME/etc/system/default/outputs.conf for the current default.
+* Example setting: "ecdhCurves = prime256v1,secp384r1,secp521r1"
+* The default can vary. See the 'ecdhCurves' setting in 
+  $SPLUNK_HOME/etc/system/default/outputs.conf for the current default.
 
 sslRootCAPath = <path>
-* DEPRECATED; use 'server.conf/[sslConfig]/sslRootCAPath' instead.
-* Used only if server.conf's 'sslRootCAPath' is unset.
-* Full path to the root CA (Certificate Authority) certificate store.
-* The <path> must refer to a PEM format file containing one or more root CA
-  certificates concatenated together.
-* Default is unset.
+* The full path to the root Certificate Authority (CA) certificate store.
+* DEPRECATED. 
+* Use the 'server.conf/[sslConfig]/sslRootCAPath' setting instead.
+* Used only if 'sslRootCAPath' in server.conf is not set.
+* The <path> must refer to a Privacy Enhanced Mail (PEM) format file 
+  containing one or more root CA certificates concatenated together.
+* No default.
 
-sslVerifyServerCert = <bool>
-* If true, you must make sure that the server you are connecting to has a valid
-  SSL certificate. Note that certificates with the same Common Name as the CA's
-  certificate will fail this check.
+sslVerifyServerCert = <boolean>
+* Serves as an additional step for authenticating your indexers.
+* If "true", ensure that the server you are connecting to has a valid
+  SSL certificate. Note that certificates with the same Common Name as
+  the CA's certificate will fail this check.
 * Both the common name and the alternate name of the server are then checked
   for a match.
-* Defaults to false.
+* Default: false
 
 tlsHostname = <string>
-* TLS extension that allows sending an identifier with SSL Client Hello
-* Defaults to empty string
+* A Transport Security Layer (TSL) extension that allows sending an identifier
+  with SSL Client Hello.
+* Default: empty string
 
 sslCommonNameToCheck = <commonName1>, <commonName2>, ... 
-* Optional. Defaults to no common name checking.
-* Check the common name of the server's certificate against this name.
-* If there is no match, assume that Splunk is not authenticated against this
-  server.
-* 'sslVerifyServerCert' must be set to true for this setting to work.
+* Checks the Common Name of the server's certificate against the names listed here.
+* Optional.
+* The Common Name identifies the host name associated with the certificate.
+  For example, example www.example.com or example.com
+* If there is no match, assume that Splunk software is not authenticated
+  against this server.
+* You must set the 'sslVerifyServerCert' setting to "true" for this setting
+  to work.
+* Default: empty string (no common name checking).
 
 sslAltNameToCheck = <alternateName1>, <alternateName2>, ...
-* Optional. Defaults to no alternate name checking.
-* Check the alternate name of the server's certificate against this list of names.
-* If there is no match, assume that Splunk is not authenticated against this
-  server.
-* 'sslVerifyServerCert' must be set to true for this setting to work.
+* Checks the alternate name of the server's certificate against the names listed here.
+* Optional. 
+* If there is no match, assume that Splunk software is not authenticated 
+  against this server.
+* You must set the 'sslVerifyServerCert' setting to "true" for this setting to work.
+* Default: no alternate name checking
 
-useClientSSLCompression = <bool>
+useClientSSLCompression = <boolean>
 * Enables compression on SSL.
-* Defaults to value of 'server.conf/[sslConfig]/useClientSSLCompression'.
+* Default: The value of 'server.conf/[sslConfig]/useClientSSLCompression'
 
-sslQuietShutdown = <bool>
-* Enables quiet shutdown mode in SSL
-* Defaults to false
+sslQuietShutdown = <boolean>
+* Enables quiet shutdown mode in SSL.
+* Default: false
 
-sslVersions = <string>
-* Comma-separated list of SSL versions to support
+sslVersions = <comma-separated list>
+* A comma-separated list of SSL versions to support.
 * The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2"
-* The special version "*" selects all supported versions.  The version "tls"
+* The special version "*" selects all supported versions. The version "tls"
   selects all versions tls1.0 or newer
-* If a version is prefixed with "-" it is removed from the list
-* SSLv2 is always disabled; "-ssl2" is accepted in the version list but does nothing
-* When configured in FIPS mode ssl3 is always disabled regardless of
-  this configuration
-* The default can vary. See the sslVersions setting in 
-* $SPLUNK_HOME/etc/system/default/outputs.conf for the current default.
+* If you prefix a version with "-", it is removed from the list.
+* SSLv2 is always disabled; "-ssl2" is accepted in the version list, but
+  does nothing.
+* When 'appServerPorts'="0" only supported values are "all", "ssl3, tls"
+  and "tls"
+* When configured in FIPS mode, "ssl3" is always disabled regardless
+  of this configuration.
+* The default can vary. See the 'sslVersions' setting in 
+  $SPLUNK_HOME/etc/system/default/outputs.conf for the current default.
 
 #----Indexer Acknowledgment ----
 # Indexer acknowledgment ensures that forwarded data is reliably delivered
 # to the receiver.
+#
 # If the receiver is an indexer, it indicates that the indexer has received
 # the data, indexed it, and written it to the file system. If the receiver
 # is an intermediate forwarder, it indicates that the intermediate forwarder
 # has successfully forwarded the data to the terminating indexer and has
-# received acknowledgment from  that indexer.
-
-# Important: Indexer acknowledgment is a complex feature that requires
+# received acknowledgment from that indexer.
+#
+# Indexer acknowledgment is a complex feature that requires
 # careful planning. Before using it, read the online topic describing it in
-# the Distributed Deployment manual.
+# the Splunk Enterprise Distributed Deployment manual.
 
-useACK = [true|false]
-* When set to true, the forwarder will retain a copy of each sent event,
-  until the receiving system sends an acknowledgement.
-  * The receiver will send an acknowledgement when it has fully handled it
-    (typically written it to disk in indexing)
-  * In the event of receiver misbehavior (acknowledgement is not received),
-    the data will be re-sent to an alternate receiver.
-  * Note: the maximum memory used for the outbound data queues will increase
-    significantly by default (500KB ->  28MB) when useACK is enabled. This
-    is intended for correctness and performance.
-* When set to false, the forwarder will consider the data fully processed
+useACK = <boolean>
+* Whether or not to use indexer acknowledgment. 
+* Indexer acknowledgment is an optional capability on forwarders that helps 
+  prevent loss of data when sending data to an indexer. 
+* When set to "true", the forwarder retains a copy of each sent event
+  until the receiving system sends an acknowledgment.
+  * The receiver sends an acknowledgment when it has fully handled the event
+    (typically when it has written it to disk in indexing).
+  * If the forwarder does not receive an acknowledgment, it resends the data
+    to an alternative receiver.
+  * NOTE: The maximum memory used for the outbound data queues increases
+    significantly by default (500KB -> 28MB) when the 'useACK' setting is 
+    enabled. This is intended for correctness and performance.
+* When set to "false", the forwarder considers the data fully processed
   when it finishes writing it to the network socket.
-* This attribute can be set at the [tcpout] or [tcpout:<target_group>]
+* You can configure this setting at the [tcpout] or [tcpout:<target_group>]
   stanza levels. You cannot set it for individual servers at the
   [tcpout-server: ...] stanza level.
-* Defaults to false.
+* Default: false
 
 ############
 #----Syslog output----
@@ -549,52 +641,55 @@ useACK = [true|false]
 # The syslog output processor is not available for universal or light
 # forwarders.
 
-# The following configuration is used to send output using syslog:
+# The following configuration is used to send output using syslog.
 
 [syslog]
+
 defaultGroup = <target_group>, <target_group>, ...
 
-# For the following settings see the [syslog:<target_group>] stanza below
+# For the following settings, see the [syslog:<target_group>] stanza.
+
 type = [tcp|udp]
-priority = <priority_value> | NO_PRI
+priority = <<integer>> | NO_PRI
 maxEventSize = <integer>
 
 [syslog:<target_group>]
 
 #----REQUIRED SETTINGS----
-# Required settings for a syslog output group:
+# The following settings are required for a syslog output group.
 
 server = [<ip>|<servername>]:<port>
-* IP or servername where syslog server is running.
-* Port on which server is listening. You must specify the port. Syslog, by
-  default, uses 514.
+* The IP address or servername where the syslog server is running.
+* Required. 
+* This setting specifies the port on which the syslog server listens. 
+* Default: 514
 
 #----OPTIONAL SETTINGS----
 
-# Optional settings for syslog output:
+# The following are optional settings for syslog output:
 
 type = [tcp|udp]
-* Protocol used.
-* Default is udp.
+* The network protocol to use.
+* Default: udp
 
-priority = <priority_value> | NO_PRI
-* The priority_value should specified as "<integer>" (an integer surrounded
-  by angle brackets). For example, specify  a priority of 34 like this: <34>
+priority = <<integer>>|NO_PRI
+* The priority value included at the beginning of each syslog message. 
+* The priority value ranges from 0 to 191 and is made up of a Facility
+  value and a Level value. 
+* Enclose the priority value in "<>" delimeters. For example, specify a 
+  priority of 34 as follows: <34>
 * The integer must be one to three digits in length.
-* The value you enter will appear in the syslog header.
-* Mimics the number passed via syslog interface call, documented via man
-  syslog.
-* The integer can be computed as (<facility> * 8) + <severity>. For example,
-  if <facility> is 4 (security/authorization messages) and <severity> is 2
-  (critical conditions), the priority will be 34 = (4 * 8) + 2. Set the
-  attribute to: <34>
-* The table of facility and severity (and their values) can be referenced in
-  RFC3164, eg http://www.ietf.org/rfc/rfc3164.txt section 4.1.1
-* Defaults to <13>, or a facility of "user" or typically unspecified
-  application, and severity of "Notice".
-* If you do not wish to add priority, set 'NO_PRI' as priority value.
-    * Example: priority = NO_PRI
-* The table is reproduced briefly here, some of these are archaic.
+* The value you enter appears in the syslog header.
+* The value mimics the number passed by a syslog interface call. See the
+  *nix man page for syslog for more information.
+* Calculate the priority value as follows: Facility * 8 + Severity
+  For example, if Facility is 4 (security/authorization messages) 
+  and Severity is 2 (critical conditions), the priority will be 
+  (4 * 8) + 2 = 34. Set the setting to <34>.
+* If you do not want to add a priority value, set the priority to "<NO_PRI>".
+* The table of facility and severity (and their values) is located in
+  RFC3164. For example, http://www.ietf.org/rfc/rfc3164.txt section 4.1.1
+* The table is reproduced briefly below. Some values are outdated.
   Facility:
      0 kernel messages
      1 user-level messages
@@ -629,34 +724,35 @@ priority = <priority_value> | NO_PRI
     5  Notice: normal but significant condition
     6  Informational: informational messages
     7  Debug: debug-level messages
+* Default: <13> (Facility of "user" and Severity of "Notice")
 
 syslogSourceType = <string>
 * Specifies an additional rule for handling data, in addition to that 
   provided by the 'syslog' source type.
-* This string is used as a substring match against the sourcetype key.  For
-  example, if the string is set to 'syslog', then all source types
-  containing the string 'syslog' will receive this special treatment.
-* To match a source type explicitly, use the pattern
+* This string is used as a substring match against the sourcetype key. For
+  example, if the string is set to "syslog", then all sourcetypes
+  containing the string 'syslog' receive this special treatment.
+* To match a sourcetype explicitly, use the pattern
   "sourcetype::sourcetype_name".
     * Example: syslogSourceType = sourcetype::apache_common
-* Data which is 'syslog' or matches this setting is assumed to already be in 
+* Data that is "syslog" or matches this setting is assumed to already be in 
   syslog format. 
-* Data which does not match the rules has a header, optionally a timestamp 
+* Data that does not match the rules has a header, optionally a timestamp 
   (if defined in 'timestampformat'), and a hostname added to the front of 
-  the event. This is how Splunk causes arbitrary log data to match syslog 
-  expectations.
-* Defaults to unset.
+  the event. This is how Splunk software causes arbitrary log data to match syslog expectations.
+* No default.
 
 timestampformat = <format>
-* If specified, the formatted timestamps are added to the start of events 
+* If specified, Splunk software prepends formatted timestamps to events 
   forwarded to syslog.
 * As above, this logic is only applied when the data is not syslog, or the 
-  syslogSourceType.
-* If the data is not in syslog-compliant format and timestampformat is 
-  not specified, the output produced will not be RFC3164-compliant.
-* The format is a strftime-style timestamp formatting string. This is the 
-  same implementation used in the 'eval' search command, splunk logging, and 
-  other places in splunkd.
+  type specified in the 'syslogSourceType' setting, because it is assumed 
+  to already be in syslog format. 
+* If the data is not in syslog-compliant format and you do not specify a 
+ 'timestampformat', the output will not be RFC3164-compliant.
+* The format is a strftime (string format time)-style timestamp formatting
+  string. This is the same implementation used in the 'eval' search command,
+  Splunk logging, and other places in splunkd.
   * For example: %b %e %H:%M:%S for RFC3164-compliant output
     * %b - Abbreviated month name (Jan, Feb, ...)
     * %e - Day of month
@@ -665,23 +761,23 @@ timestampformat = <format>
     * %s - Second
 * For a more exhaustive list of the formatting specifiers, refer to the
   online documentation.
-* Note that the string is not quoted.
-* Defaults to unset, which means that no timestamp will be inserted into the
-  front of events.
+* Do not put the string in quotes.
+* No default. No timestamp is added to the front of events.
 
 maxEventSize = <integer>
-* If specified, sets the maximum size of an event that splunk will transmit.
-* All events excedding this size will be truncated.
-* Defaults to 1024 bytes.
+* The maximum size of an event, in bytes, that Splunk software will transmit.
+* All events exceeding this size are truncated.
+* Optional.
+* Default: 1024
 
 #---- Routing Data to Syslog Server -----
-# To route data to syslog server:
+# To route data to syslog servers:
 # 1) Decide which events to route to which servers.
 # 2) Edit the props.conf, transforms.conf, and outputs.conf files on the
 #    forwarders.
 
 # Edit $SPLUNK_HOME/etc/system/local/props.conf and set a TRANSFORMS-routing
-# attribute as shown here:
+# setting as shown below.
 #
 # [<spec>]
 # TRANSFORMS-routing=<unique_stanza_name>
@@ -693,117 +789,151 @@ maxEventSize = <integer>
 
 * Use the <unique_stanza_name> when creating your entry in transforms.conf.
 
-# Edit $SPLUNK_HOME/etc/system/local/transforms.conf and set rules to match your props.conf stanza: 
+# Edit $SPLUNK_HOME/etc/system/local/transforms.conf and set rules to match
+# your props.conf stanza: 
 #
 #  [<unique_stanza_name>]
-#  REGEX=<your_regex>
-#  DEST_KEY=_SYSLOG_ROUTING
-#  FORMAT=<unique_group_name>
+#  REGEX = <your_regex>
+#  DEST_KEY = _SYSLOG_ROUTING
+#  FORMAT = <unique_group_name>
 
-* <unique_stanza_name> must match the name you created in props.conf.
-* Enter the regex rules in <your_regex> to determine which events get
+* Set <unique_stanza_name> to match the name you created in props.conf.
+* Enter the regex rules in 'REGEX' to determine which events get
   conditionally routed.
-* DEST_KEY should be set to _SYSLOG_ROUTING to send events via SYSLOG.
-* Set FORMAT to <unique_group_name>. This should match the syslog group name
-  you create in outputs.conf.
+* Set 'DEST_KEY' to "_SYSLOG_ROUTING" to send events via syslog.
+* Set 'FORMAT' to match the syslog group name you create in outputs.conf.
 
-############
+####
 #----IndexAndForward Processor-----
-############
+####
+
 # The IndexAndForward processor determines the default behavior for indexing
-# data on full Splunk. It has the "index" property, which determines whether
-# indexing occurs.
-#
-# When Splunk is not configured as a forwarder, "index" is set to "true".
+# data on a Splunk instance. It has the "index" property, which determines
+# whether indexing occurs.
+# 
+# When Splunk is not configured as a forwarder, 'index' is set to "true".
 # That is, the Splunk instance indexes data by default.
 #
-# When Splunk is configured as a forwarder, the processor turns "index" to
+# When Splunk is configured as a forwarder, the processor sets 'index' to
 # "false". That is, the Splunk instance does not index data by default.
 #
 # The IndexAndForward processor has no effect on the universal forwarder,
 # which can never index data.
 #
-# If the [tcpout] stanza configures the indexAndForward attribute, the value
-# of that attribute overrides the default value of "index". However, if you
-# set "index" in the [indexAndForward] stanza, described below, it
+# If the [tcpout] stanza configures the indexAndForward setting, the value
+# of that setting overrides the default value of 'index'. However, if you
+# set 'index' in the [indexAndForward] stanza described below, it
 # supersedes any value set in [tcpout].
 
 [indexAndForward]
-index = [true|false]
-* If set to true, data is indexed.
-* If set to false, data is not indexed.
-* Default depends on whether the Splunk instance is configured as a
-  forwarder, modified by any value configured for the indexAndForward
-  attribute in [tcpout].
 
-selectiveIndexing = [true|false]
-* When index is 'true', all events are indexed. Setting selectiveIndexing to
-  'true' allows you to index only specific events that has key
-  '_INDEX_AND_FORWARD_ROUTING' set.
-* '_INDEX_AND_FORWARD_ROUTING' can be set in inputs.conf as:
+index = <boolean>
+* Turns indexing on or off on a Splunk instance.
+* If "true", the Splunk instance indexes data.
+* If "false", the Splunk instance does not index data.
+* The default can vary. It depends on whether the Splunk 
+  instance is configured as a forwarder, and whether it is
+  modified by any value configured for the indexAndForward 
+  setting in [tcpout].
+
+selectiveIndexing = <boolean>
+* If "true", you can choose to index only specific events that have 
+  the '_INDEX_AND_FORWARD_ROUTING' setting configured.
+* Configure the '_INDEX_AND_FORWARD_ROUTING' setting in inputs.conf as:
   [<input_stanza>]
   _INDEX_AND_FORWARD_ROUTING = local
-* Defaults to false.
+* Default: false
 
 [indexer_discovery:<name>]
 
-pass4SymmKey = <password>
-* Security key shared between indexer_discovery and forwarders.
-* If specified here, the same value must also be specified on the master node identified by master_uri.
+pass4SymmKey = <string>
+* The security key used to communicate between the cluster master
+  and the forwarders.
+* This value must be the same for all forwarders and the master node. 
+* You must explicitly set this value for each forwarder.
+* If you specify a password here, you must also specify the same password
+  on the master node identified by the 'master_uri' setting.
 
 send_timeout = <seconds>
 * Low-level timeout for sending messages to the master node.
-* Fractional seconds are allowed.
-* Default is 30.
+* Fractional seconds are allowed (for example, 60.95 seconds).
+* Default: 30
 
 rcv_timeout = <seconds>
 * Low-level timeout for receiving messages from the master node.
-* Fractional seconds are allowed.
-* Default is 30.
+* Fractional seconds are allowed (for example, 60.95 seconds).
+* Default: 30
 
 cxn_timeout = <seconds>
 * Low-level timeout for connecting to the master node.
-* Fractional seconds are allowed.
-* Default is 30.
+* Fractional seconds are allowed (for example, 60.95 seconds).
+* Default: 30
 
 master_uri = <uri>
-* URI and management port of the cluster master used in indexer discovery.
-* Example: https://SplunkMaster01.example.com:8089
+* The URI and management port of the cluster master used in indexer discovery.
+* For example, https://SplunkMaster01.example.com:8089
 
-##
+####
 # Remote Queue Output
-##
+####
 
 [remote_queue:<name>]
 
 * This section explains possible settings for configuring a remote queue.
-* Each remote_queue: stanza represents an individually configured remote
+* Each remote_queue stanza represents an individually configured remote
   queue output.
 
 remote_queue.* = <string>
+* A way to pass configuration information to a remote storage system.
 * Optional.
 * With remote queues, communication between the forwarder and the remote queue
-  system may require additional configuration, specific to the type of remote
-  queue.  You can pass configuration information to the storage system by
-  specifying the settings through the following schema:
-  remote_queue.<scheme>.<config-variable> = <value>.  For example:
+  system might require additional configuration, specific to the type of remote
+  queue. You can pass configuration information to the storage system by
+  specifying this settings through the following schema:
+  remote_queue.<scheme>.<config-variable> = <value>.  
+  For example:
   remote_queue.sqs.access_key = ACCESS_KEY
 
-##
-# SQS specific settings
-##
+remote_queue.type = sqs|kinesis
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Required.
+* Specifies the remote queue type, either SQS or Kinesis.
+
+compressed = <boolean>
+* See the description for TCPOUT SETTINGS in outputs.conf.spec.
+
+negotiateProtocolLevel = <unsigned integer>
+* See the description for TCPOUT SETTINGS in outputs.conf.spec.
+
+channelReapInterval = <integer>
+* See the description for TCPOUT SETTINGS in outputs.conf.spec.
+
+channelTTL = <integer>
+* See the description for TCPOUT SETTINGS in outputs.conf.spec.
+
+channelReapLowater = <integer>
+* See the description for TCPOUT SETTINGS in outputs.conf.spec.
+
+concurrentChannelLimit = <unsigned integer>
+* See the description for [splunktcp] in inputs.conf.spec.
+
+####
+# Simple Queue Service (SQS) specific settings
+####
 
 remote_queue.sqs.access_key = <string>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Optional.
-* Specifies the access key to use when authenticating with the remote queue
-  system supporting the SQS API.
-* If not specified, the forwarder will look for these environment variables:
+* The access key to use when authenticating with the remote queue
+  system that supports the SQS API.
+* If not specified, the forwarder looks for the environment variables
   AWS_ACCESS_KEY_ID or AWS_ACCESS_KEY (in that order). If the environment
   variables are not set and the forwarder is running on EC2, the forwarder
-  attempts to use the secret key from the IAM role.
-* Default: unset
+  attempts to use the secret key from the IAM (Identity and Access 
+  Management) role.
+* Default: not set
 
 remote_queue.sqs.secret_key = <string>
 * Currently not supported. This setting is related to a feature that is
@@ -811,37 +941,43 @@ remote_queue.sqs.secret_key = <string>
 * Optional.
 * Specifies the secret key to use when authenticating with the remote queue
   system supporting the SQS API.
-* If not specified, the forwarder will look for these environment variables:
+* If not specified, the forwarder looks for the environment variables
   AWS_SECRET_ACCESS_KEY or AWS_SECRET_KEY (in that order). If the environment
   variables are not set and the forwarder is running on EC2, the forwarder
-  attempts to use the secret key from the IAM role.
-* Default: unset
+  attempts to use the secret key from the IAM (Identity and Access 
+  Management) role.
+* Default: not set
 
 remote_queue.sqs.auth_region = <string>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Optional.
-* The authentication region to use when signing the requests when interacting
-  with the remote queue system supporting the SQS API.
-* If not specified and the forwarder is running on EC2, the auth_region will be
+* The authentication region to use when signing the requests while interacting
+  with the remote queue system supporting the Simple Queue Service (SQS) API.
+* If not specified and the forwarder is running on EC2, the auth_region is
   constructed automatically based on the EC2 region of the instance where the
   the forwarder is running.
-* Default: unset
+* Default: not set
 
 remote_queue.sqs.endpoint = <URL>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Optional.
-* The URL of the remote queue system supporting the SQS API.
-* The scheme, http or https, can be used to enable or disable SSL connectivity
+* The URL of the remote queue system supporting the Simple Queue Service (SQS) API.
+* Use the scheme, either http or https, to enable or disable SSL connectivity
   with the endpoint.
-* If not specified, the endpoint will be constructed automatically based on the
+* If not specified, the endpoint is constructed automatically based on the
   auth_region as follows: https://sqs.<auth_region>.amazonaws.com
+* If specified, the endpoint must match the effective auth_region, which is
+  either a value specified via the 'remote_queue.sqs.auth_region' setting 
+  or a value constructed automatically based on the EC2 region of the 
+  running instance.
 * Example: https://sqs.us-west-2.amazonaws.com/
 
 remote_queue.sqs.message_group_id = <string>
 * Currently not supported. This setting is related to a feature that is
   still under development.
+* Optional.
 * Specifies the Message Group ID for Amazon Web Services Simple Queue Service
   (SQS) First-In, First-Out (FIFO) queues.
 * Setting a Message Group ID controls how messages within an AWS SQS queue are
@@ -849,54 +985,55 @@ remote_queue.sqs.message_group_id = <string>
 * For information on SQS FIFO queues and how messages in those queues are
   processed, see "Recommendations for FIFO queues" in the AWS SQS Developer
   Guide.
-* This setting is optional.
 * If you configure this setting, Splunk software assumes that the SQS queue is
   a FIFO queue, and that messages in the queue should be processed first-in,
   first-out.
 * Otherwise, Splunk software assumes that the SQS queue is a standard queue.
 * Can be between 1-128 alphanumeric or punctuation characters.
-* Note: FIFO queues must have Content-Based Deduplication enabled.
-* Defaults to unset.
+* NOTE: FIFO queues must have Content-Based De-duplication enabled.
+* Default: not set
 
 remote_queue.sqs.retry_policy = max_count|none
-* Optional.
 * Sets the retry policy to use for remote queue operations.
+* Optional.
 * A retry policy specifies whether and how to retry file operations that fail
   for those failures that might be intermittent.
 * Retry policies:
-  + "max_count": Imposes a maximum number of times a queue operation will be
-    retried upon intermittent failure.
+  + "max_count": Imposes a maximum number of times a queue operation is
+    retried upon intermittent failure. Set max_count with the
+    'max_count.max_retries_per_part' setting.
   + "none": Do not retry file operations upon failure.
 * Default: max_count
 
-remote_queue.sqs.max_count.max_retries_per_part = <unsigned int>
+remote_queue.sqs.max_count.max_retries_per_part = <unsigned integer>
+* When the 'remote_queue.sqs.retry_policy' setting is "max_count", sets the
+  maximum number of times a queue operation will be retried upon intermittent
+  failure.
 * Optional.
-* When the remote_queue.sqs.retry_policy setting is max_count, sets the maximum
-  number of times a queue operation will be retried upon intermittent failure.
 * Default: 9
 
-remote_queue.sqs.timeout.connect = <unsigned int>
+remote_queue.sqs.timeout.connect = <unsigned integer>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Optional.
 * Sets the connection timeout, in milliseconds, to use when interacting with
-  SQS for this queue.
+  the SQS for this queue.
 * Default: 5000
 
-remote_queue.sqs.timeout.read = <unsigned int>
+remote_queue.sqs.timeout.read = <unsigned integer>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Optional.
-* Sets the read timeout, in milliseconds, to use when interacting with SQS for
-  this queue.
+* Sets the read timeout, in milliseconds, to use when interacting with the 
+  SQS for this queue.
 * Default: 60000
 
-remote_queue.sqs.timeout.write = <unsigned int>
+remote_queue.sqs.timeout.write = <unsigned integer>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Optional.
-* Sets the write timeout, in milliseconds, to use when interacting with SQS for
-  this queue.
+* Sets the write timeout, in milliseconds, to use when interacting with 
+  the SQS for this queue.
 * Default: 60000
 
 remote_queue.sqs.large_message_store.endpoint = <URL>
@@ -904,35 +1041,38 @@ remote_queue.sqs.large_message_store.endpoint = <URL>
   still under development.
 * Optional.
 * The URL of the remote storage system supporting the S3 API.
-* The scheme, http or https, can be used to enable or disable SSL connectivity
+* Use the scheme, either http or https, to enable or disable SSL connectivity
   with the endpoint.
-* If not specified, the endpoint will be constructed automatically based on the
+* If not specified, the endpoint is constructed automatically based on the
   auth_region as follows: https://s3-<auth_region>.amazonaws.com
+* If specified, the endpoint must match the effective auth_region, which is
+  either a value specified via 'remote_queue.sqs.auth_region' or a value
+  constructed automatically based on the EC2 region of the running instance.
 * Example: https://s3-us-west-2.amazonaws.com/
-* Defaults to unset.
+* Default: not set
 
 remote_queue.sqs.large_message_store.path = <string>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Optional.
-* Points to the remote storage location where messages larger than the
-  underlying queue's maximum message size will reside.
-* The format for this attribute is: <scheme>://<remote-location-specifier>
+* The remote storage location where messages larger than the underlying 
+  queue's maximum message size will reside.
+* The format for this value is: <scheme>://<remote-location-specifier>
   * The "scheme" identifies a supported external storage system type.
   * The "remote-location-specifier" is an external system-specific string for
     identifying a location inside the storage system.
-* These external systems are supported:
-   - Object stores that support AWS's S3 protocol. These use the scheme "s3".
-     For example, "path=s3://mybucket/some/path".
-* If not specified, messages exceeding the underlying queue's maximum message
-  size are dropped.
-* Defaults to unset.
+* The following external systems are supported:
+  * Object stores that support AWS's S3 protocol. These stores use the scheme
+    "s3". For example, "path=s3://mybucket/some/path".
+* If not specified, the queue drops messages exceeding the underlying queue's 
+  maximum message size.
+* Default: not set
 
 remote_queue.sqs.send_interval = <number><unit>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Optional.
-* Interval that the remote queue output processor waits for data to
+* The interval that the remote queue output processor waits for data to
   arrive before sending a partial batch to the remote queue.
 * Examples: 30s, 1m
 * Default: 30s
@@ -941,45 +1081,184 @@ remote_queue.sqs.max_queue_message_size = <integer>[KB|MB|GB]
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Optional.
-* Maximum message size to which events are batched for upload to
+* The maximum message size to which events are batched for upload to
   the remote queue.
-* If specified as an integer followed by KB, MB, or GB (for example,
+* Specify this value as an integer followed by KB, MB, or GB (for example,
   10MB is 10 megabytes)
 * Queue messages are sent to the remote queue when the next event processed
-  would otherwise result in the message exceeding the maximum size.
+  would otherwise result in a message exceeding the maximum message size.
 * The maximum value for this setting is 5GB.
 * Default: 10MB
 
-remote_queue.sqs.enable_data_integrity_checks = <bool>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* If set to true, Splunk sets the data checksum in the metadata field of
+remote_queue.sqs.enable_data_integrity_checks = <boolean>
+* If "true", Splunk software sets the data checksum in the metadata field of 
   the HTTP header during upload operation to S3.
 * The checksum is used to verify the integrity of the data on uploads.
 * Default: false
 
-remote_queue.sqs.enable_signed_payloads  = <bool>
-* Currently not supported. This setting is related to a feature that is 
-  still under development.
-* If set to true, Splunk signs the payload during upload operation to S3.
-* Valid only for remote.s3.signature_version = v4
+remote_queue.sqs.enable_signed_payloads  = <boolean>
+* If "true", Splunk software signs the payload during upload operation to S3.
+* This setting is valid only for remote.s3.signature_version = v4
 * Default: true
 
-compressed = [true|false]
-* See the description for TCPOUT ATTRIBUTES.
+####
+# Kinesis specific settings
+####
 
-negotiateProtocolLevel = <unsigned integer>
-* See the description for TCPOUT ATTRIBUTES.
+remote_queue.kinesis.access_key = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Specifies the access key to use when authenticating with the remote queue
+  system supporting the Kinesis API.
+* If not specified, the forwarder looks for the environment variables
+  AWS_ACCESS_KEY_ID or AWS_ACCESS_KEY (in that order). If the environment
+  variables are not set and the forwarder is running on EC2, the forwarder
+  attempts to use the secret key from the IAM role.
+* Default: not set
 
-channelReapInterval = <integer>
-* See the description for TCPOUT ATTRIBUTES.
+remote_queue.kinesis.secret_key = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Specifies the secret key to use when authenticating with the remote queue
+  system supporting the Kinesis API.
+* If not specified, the forwarder looks for the environment variables
+  AWS_SECRET_ACCESS_KEY or AWS_SECRET_KEY (in that order). If the environment
+  variables are not set and the forwarder is running on EC2, the forwarder
+  attempts to use the secret key from the IAM role.
+* Default: not set
 
-channelTTL = <integer>
-* See the description for TCPOUT ATTRIBUTES.
+remote_queue.kinesis.auth_region = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* The authentication region to use when signing the requests when interacting
+  with the remote queue system supporting the Kinesis API.
+* If not specified and the forwarder is running on EC2, the auth_region is
+  constructed automatically based on the EC2 region of the instance where the
+  the forwarder is running.
+* Default: not set
 
-channelReapLowater = <integer>
-* See the description for TCPOUT ATTRIBUTES.
+remote_queue.kinesis.endpoint = <URL>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* The URL of the remote queue system supporting the Kinesis API.
+* Use the scheme, either http or https, to enable or disable SSL connectivity
+  with the endpoint.
+* If not specified, the endpoint is constructed automatically based on the
+  auth_region as follows: https://kinesis.<auth_region>.amazonaws.com
+* If specified, the endpoint must match the effective auth_region, which is
+  either a value specified via the 'remote_queue.kinesis.auth_region' setting
+  or a value constructed automatically based on the EC2 region of the running instance.
+* Example: https://kinesis.us-west-2.amazonaws.com/
 
-concurrentChannelLimit = <unsigned integer>
-* See the description for [splunktcp] in inputs.conf.spec.
+remote_queue.kinesis.enable_data_integrity_checks = <boolean>
+* If "true", Splunk software sets the data checksum in the metadata field 
+  of the HTTP header during upload operation to S3.
+* The checksum is used to verify the integrity of the data on uploads.
+* Default: false
 
+remote_queue.kinesis.enable_signed_payloads  = <boolean>
+* If "true", Splunk software signs the payload during upload operation to S3.
+* This setting is valid only for remote.s3.signature_version = v4
+* Default: true
+
+remote_queue.kinesis.retry_policy = max_count|none
+* Sets the retry policy to use for remote queue operations.
+* Optional.
+* A retry policy specifies whether and how to retry file operations that fail
+  for those failures that might be intermittent.
+* Retry policies:
+  + "max_count": Imposes a maximum number of times a queue operation is
+    retried upon intermittent failure. Specify the max_count with the 
+    'max_count.max_retries_per_part' setting.
+  + "none": Do not retry file operations upon failure.
+* Default: max_count
+
+remote_queue.kinesis.max_count.max_retries_per_part = <unsigned integer>
+* When the 'remote_queue.kinesis.retry_policy' setting is max_count, 
+  sets the maximum number of times a queue operation is retried 
+  upon intermittent failure.
+* Optional.
+* Default: 9
+
+remote_queue.kinesis.timeout.connect = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Sets the connection timeout, in milliseconds, to use when interacting with
+  Kinesis for this queue.
+* Default: 5000
+
+remote_queue.kinesis.timeout.read = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Sets the read timeout, in milliseconds, to use when interacting with Kinesis
+  for this queue.
+* Default: 60000
+
+remote_queue.kinesis.timeout.write = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Sets the write timeout, in milliseconds, to use when interacting with
+  Kinesis for this queue.
+* Default: 60000
+
+remote_queue.kinesis.large_message_store.endpoint = <URL>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* The URL of the remote storage system supporting the S3 API.
+* Use the scheme, either http or https, to enable or disable SSL connectivity
+  with the endpoint.
+* If not specified, the endpoint is constructed automatically based on the
+  auth_region as follows: https://s3-<auth_region>.amazonaws.com
+* If specified, the endpoint must match the effective auth_region, which is
+  either a value specified via 'remote_queue.kinesis.auth_region' or a value
+  constructed automatically based on the EC2 region of the running instance.
+* Example: https://s3-us-west-2.amazonaws.com/
+* Default: not set
+
+remote_queue.kinesis.large_message_store.path = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* The remote storage location where messages larger than the underlying 
+  queue's maximum message size will reside.
+* The format for this setting is: <scheme>://<remote-location-specifier>
+  * The "scheme" identifies a supported external storage system type.
+  * The "remote-location-specifier" is an external system-specific string for
+    identifying a location inside the storage system.
+* The following external systems are supported:
+   * Object stores that support AWS's S3 protocol. These stores use the 
+     scheme "s3".
+     For example, "path=s3://mybucket/some/path".
+* If not specified, the queue drops messages exceeding the underlying queue's 
+  maximum message size.
+* Default: not set
+
+remote_queue.kinesis.send_interval = <number><unit>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* The interval that the remote queue output processor waits for data to
+  arrive before sending a partial batch to the remote queue.
+* For example, 30s, 1m
+* Default: 30s
+
+remote_queue.kinesis.max_queue_message_size = <integer>[KB|MB|GB]
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* The maximum message size to which events are batched for upload to the remote
+  queue.
+* Specify this value as an integer followed by KB or MB (for example, 500KB 
+  is 500 kilobytes).
+* Queue messages are sent to the remote queue when the next event processed
+  would otherwise result in the message exceeding the maximum message size.
+* The maximum value for this setting is 5GB.
+* Default: 10MB

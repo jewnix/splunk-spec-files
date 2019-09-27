@@ -1,4 +1,4 @@
-#   Version 7.1.8
+#   Version 7.2.0
 #
 # This file contains possible attributes and values you can use to configure
 # distributed search.
@@ -104,7 +104,7 @@ useDisabledListAsBlacklist = <boolean>
 * If set to “false”, search peers that appear in both lists are treated as enabled, despite
    being in the ‘disabled_servers’ list. These search peers do participate in search.
 * Default: false
- 
+
 shareBundles = [true|false]
 * Indicates whether this server will use bundle replication to share search
   time configuration with search peers.
@@ -263,6 +263,93 @@ sanitizeMetaFiles = <bool>
   replicationSettings:refineConf stanza.
 * The filtering process removes comments and cosmetic whitespace.
 * Defaults to: true
+
+################################################################
+# RFS (AKA S3 / REMOTE FILE SYSTEM) REPLICATION SPECIFIC SETTINGS
+################################################################
+enableRFSReplication = <bool>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Required on search heads.
+* When search heads generate bundles, these bundles are uploaded to
+  the configured remote file system.
+* When search heads delete their old bundles, they subsequently
+  attempt to delete the bundle from the configured remote file system.
+* If set to true, remote file system bundle replication is enabled.
+* Default: false.
+
+enableRFSMonitoring = <bool>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Required on search peers.
+* Search peers periodically monitor the configured remote file system
+  and download any bundles that they do not have on disk.
+* If set to true, remote file system bundle monitoring is enabled.
+* Default: false.
+
+rfsMonitoringPeriod = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The amount of time, in seconds, that a search peer waits between polling
+  attempts. You must also set this attribute on search heads, whether or
+  not 'enableRFSMonitoring' is enabled on them.
+* For search heads when 'rfsSyncReplicationTimeout' is set to 'auto',
+  setting this will automatically adapt the 'rfsSyncReplicationTimeout'
+  parameter to the monitoring frequency of the search peers.
+* If you set this parameter to less than 60, it is automatically
+  reset to 60.
+* Default: 60.
+
+rfsSyncReplicationTimeout = <unsigned int>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The amount of time, in seconds, that a search head waits for synchronous
+  replication to complete. Only applies to RFS bundle replication.
+* Default value is computed from 'rfsMonitoringPeriod', i.e.
+  (rfsMonitoringPeriod + 60)) * 5, where 60 is the non-configurable search
+  head to search peer polling interval, and 5 is arbitrary multiplier.
+  If 'rfsMonitoringPeriod' is not modified, default value is 600.
+* Default: auto.
+
+path = <path on server>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Required.
+* The path attribute points to the remote storage location where bundles
+  reside.
+* The format for this attribute is: <scheme>://<remote-location-specifier>
+  * The "scheme" identifies a supported external storage system type.
+  * The "remote-location-specifier" is an external system-specific string
+    for identifying a location inside the storage system.
+* These external systems are supported:
+  - Object stores that support AWS's S3 protocol. These use the scheme
+    "s3".
+    Example: "path=s3://mybucket/some/path"
+  - POSIX file system, potentially a remote filesystem mounted over NFS.
+    These use the scheme "file".
+    Example: "path=file:///mnt/cheap-storage/some/path"
+
+remote.s3.endpoint = <URL>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The URL of the remote storage system supporting the S3 API.
+* The protocol, http or https, can be used to enable or disable SSL
+  connectivity with the endpoint.
+* If not specified and the indexer is running on EC2, the endpoint will be
+  constructed automatically based on the EC2 region of the instance where
+  the indexer is running, as follows: https://s3-<region>.amazonaws.com
+* Example: https://s3-us-west-2.amazonaws.com
+
+remote.s3.encryption = sse-s3 | none
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Specifies the schema to use for Server-side Encryption (SSE) for data at rest.
+* sse-s3: See:
+  http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html
+* none: Server-side encryption is disabled. Data is stored unencrypted on the
+  remote storage.
+* Default: none
 
 [replicationSettings:refineConf]
 

@@ -1,4 +1,4 @@
-#   Version 7.1.8
+#   Version 7.2.0
 #
 # This file maintains the state of a given app in Splunk Enterprise. It may also be used
 # to customize certain aspects of an app.
@@ -64,21 +64,27 @@ author = <name>
 # Your app can include an icon which will show up next to your app in Launcher
 # and on Splunkbase. You can also include a screenshot, which will show up on
 # Splunkbase when the user views info about your app before downloading it.
-# Icons are recommended, although not required.
+# You do not need to include an icon, but if you do, icon file names must end 
+# with "Icon" before the file extension, and the "I" must be capitalized. For
+# example, "mynewIcon.png".
 # Screenshots are optional.
 #
-# There is no setting in app.conf for these images. Instead, icon and
-# screenshot images should be placed in the appserver/static dir of
-# your app. They will automatically be detected by Launcher and Splunkbase.
+# There is no setting in app.conf for these images. Splunk Web places files you
+# upload into the <app_directory>/appserver/static directory. These images will  
+# not appear in your app. 
+#
+# Move or place icon images to the <app_directory>/static directory.
+# Move or place screenshot images to the <app_directory>/default/static directory.
+# Launcher and Splunkbase will automatically detect the images.
 #
 # For example:
 #
-#     <app_directory>/appserver/static/appIcon.png    (the capital "I" is required!)
-#     <app_directory>/appserver/static/screenshot.png
+#     <app_directory>/static/appIcon.png    (the capital "I" is required!)
+#     <app_directory>/default/static/screenshot.png
 #
 # An icon image must be a 36px by 36px PNG file.
 # An app screenshot must be 623px by 350px PNG file.
-
+#
 #
 # [package] defines upgrade-related metadata, and will be
 # used in future versions of Splunk Enterprise to streamline app upgrades.

@@ -1,4 +1,4 @@
-#   Version 7.1.8
+#   Version 7.2.0
 #
 # This file contains possible attributes and values for configuring global
 # saved search actions in alert_actions.conf.  Saved searches are configured
@@ -103,6 +103,16 @@ icon_path = <string>
 * For custom alert actions: Define the icon shown in the UI for the alert
   action. The path refers to appserver/static within the app where the
   alert action is defined in.
+
+forceCsvResults = auto|<bool>
+* If set to a true boolean, any saved search that includes this action will
+  always store results in CSV format, instead of the internal SRS format.
+* If set to a false boolean, results will always be serialized using the
+  internal SRS format.
+* If set to "auto", results will be serialized as CSV if the 'command' setting
+  in this stanza starts with "sendalert" or contains the string
+  "$results.file$".
+* Defaults to "auto".
 
 alert.execute.cmd = <string>
 * For custom alert actions: Explicitly specify the command to be executed

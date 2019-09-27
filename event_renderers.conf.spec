@@ -1,4 +1,4 @@
-#   Version 7.1.8 
+#   Version 7.2.0 
 #
 # This file contains possible attribute/value pairs for configuring event rendering properties.
 #

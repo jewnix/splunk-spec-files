@@ -1,4 +1,4 @@
-#   Version 7.1.7
+#   Version 7.1.8
 #
 # This file contains the set of attributes and values you can use to
 # configure server options in server.conf.
@@ -2356,6 +2356,15 @@ recreate_index_fetch_bucket_batch_size = <positive integer>
   See recreate_index_attempts_from_remote_storage.
 * Defaults to 2000 bucket IDs
 
+use_batch_remote_rep_changes = <boolean>
+* Only valid for 'mode=master'.
+* Specifies whether the master processes bucket copy changes (to meet
+  replication_factor and search_factor) in batch or individually.
+* This is applicable to buckets belonging to
+  remote storage enabled indexes only.
+* Do not change this setting without consulting with Splunk Support.
+* Default: true
+
 buckets_status_notification_batch_size = <positive integer>
 * Only valid for mode=slave
 * Controls the number of existing buckets that the slave
@@ -2363,6 +2372,15 @@ buckets_status_notification_batch_size = <positive integer>
   The master will then initiate fix-ups for these buckets.
 * Caution: Do not modify this setting without guidance from Splunk personnel
 * Defaults to 10 bucket IDs
+
+local_executor_evict_deletes_enabled = <boolean>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* If true, enables jobs that invalidate delete files by marking them as stale,
+  to be enqueued on bucket primary changes.
+* Otherwise, these jobs are not enqueued on bucket primary changes and
+  the files of these buckets are considered to be up-to-date.
+* Default: true
 
 notify_scan_period = <non-zero positive integer>
 * Only valid for mode=slave
@@ -3626,6 +3644,35 @@ max_size_kb = <positive integer>
   occupy on disk. If this value is exceeded, the cache manager starts evicting buckets.
 * A value of 0 means this feature will not be used, and has no maximum size.
 * Defaults to 0.
+
+persist_pending_upload_from_external = <boolean>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies whether the information of the buckets that have been uploaded
+  to remote storage can be serialized to disk or not.
+* When set to true, this information is serialized to disk and
+  the bucket is deemed to be on remote storage.
+* Otherwise, the bucket is deemed to be not on remote storage and
+  bucket is then uploaded to remote storage.
+* Default: true
+
+persistent_id_set_remove_min_sync_secs = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Cache manager persists the set of objects that are
+  no longer pending upload to the remote storage based
+  on when the previous set of changes were persisted to disk.
+* This setting controls the interval from the last persist time that
+  cache manager waits to persist the current set of changes to disk.
+* Default: 5
+
+enable_open_on_stale_object = <bool>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies whether the buckets with stale files can be opened for search.
+* When set to true, these buckets can be opened for search.
+  Otherwise, searches are not allowed to open these buckets.
+* Default: true
 
 hotlist_recency_secs = <unsigned integer>
 * Currently not supported. This setting is related to a feature that is

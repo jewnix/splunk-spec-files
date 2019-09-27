@@ -1,4 +1,4 @@
-#   Version 7.1.7
+#   Version 7.1.8
 #
 # This file maintains the state of a given app in Splunk Enterprise. It may also be used
 # to customize certain aspects of an app.

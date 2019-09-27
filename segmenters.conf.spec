@@ -1,4 +1,4 @@
-#   Version 7.1.7
+#   Version 7.1.8
 #
 # This file contains possible attribute/value pairs for configuring
 # segmentation of events in segementers.conf.

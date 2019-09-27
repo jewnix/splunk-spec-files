@@ -1,4 +1,4 @@
-#   Version 7.1.7
+#   Version 7.1.8
 #
 ############################################################################
 # OVERVIEW
@@ -841,7 +841,7 @@ bucket_localize_status_check_period_ms = <int>
   specified value falls outside this range, it is effectively set to the
   nearest value within the range.  For example, if you set the value to
   70000, the effective value will be 60000.
-* Default: 500 (.5 seconds)
+* Default: 50 (.05 seconds)
 
 bucket_localize_max_lookahead = <int>
 * Currently not supported. This setting is related to a feature that is

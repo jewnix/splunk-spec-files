@@ -1,4 +1,4 @@
-#   Version 6.6.9
+#   Version 6.6.10
 #
 # This file contains possible attributes and values for defining server
 # classes to which deployment clients can belong. These attributes and

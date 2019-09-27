@@ -1,4 +1,4 @@
-#   Version 7.3.0
+#   Version 7.3.1.1
 #
 # This file contains possible attribute/value pairs for rollup policy entries in
 # metric_rollups.conf.  You can configure rollup policies by creating your own
@@ -35,7 +35,7 @@
 * Go to indexes.conf to find metric index configurations. Metric indexes have
   datatype=metric in their configurations.
 
-defaultAggregation = [avg|count|max|median|min|perc<int>|sum]
+defaultAggregation = <'#' separated list of aggregation functions>
 * Required. The default aggregation function for the rollup policy. The Splunk
   software uses this aggregation function to generate the rollup summmary data
   points for all metrics in the source index with the exception of metrics that
@@ -45,6 +45,7 @@ defaultAggregation = [avg|count|max|median|min|perc<int>|sum]
   'defaultAggregation = avg', each metric data point that it generates is the
   average of an hour of data points from the source metric.
 * Note that the 'perc' and 'upperperc' options require an integer.
+* Supported aggregation functions: [avg|count|max|median|min|perc<int>|sum]
 * Default: avg
 
 dimensionList = <comma-separated list of dimensions>
@@ -69,12 +70,31 @@ dimensionListType = <excluded/included>
   policy will include all available dimensions except the ones in the list.
 * Default: excluded
 
-aggregation.<metric_name> = [avg|count|max|median|min|perc<int>|sum]
+metricList = <comma-separated list of metrics>
+* Optional. This setting provides a comma-separated list of metrics.
+* This list corresponds to the 'metricListType' setting.
+* The listed metrics must be present within the source metric index.
+  * Use the Metrics Catalog REST API endpoints in conjunction with the 'rest'
+    command to see the metrics that exist within a particular source index. See
+    the REST API Reference Manual and the Search Reference for more information.
+* Default: None (the setting is not set)
+
+metricListType = <excluded/included>
+* Optional. This setting determines whether the list of metrics specified by
+  the 'metricList' setting is included or excluded when the search head rolls
+  metrics up to the rollup summaries.
+* Select "included" to have the search head roll up only the listed metrics.
+* Select "excluded" to have the search head roll up all available metrics in
+  the source metric index except the listed metrics.
+* Default: excluded
+
+aggregation.<metric_name> = <'#' separated list of aggregation functions>
 * Optional. Sets an exclusion rule for a rollup policy. Use this setting to
   override the 'defaultAggregation' setting for a specific metric.
 * Create exclusion rules for metrics that require different aggregation
   functions than the majority of the metrics in a rollup policy.
 * A single rollup policy can have multiple exclusion rules.
+* Supported aggregation functions: [avg|count|max|median|min|perc<int>|sum]
 * Default: no values
 
 rollup.<summary number>.span = <time range string>

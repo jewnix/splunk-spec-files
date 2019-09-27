@@ -1,4 +1,4 @@
-#   Version 7.3.0
+#   Version 7.3.1.1
 #
 # This file contains possible attribute/value pairs for configuring
 # data models.  To configure a datamodel for an app, put your custom
@@ -262,7 +262,23 @@ dataset.display.datasummary.earliestTime = <time-str>
 dataset.display.datasummary.latestTime = <time-str>
 * The latest time used for the search that powers the datasummary view of 
   the dataset.
-  
+
+strict_fields = <boolean>
+* Sets the default value for the 'strict_fields' argument when you use
+  '| datamodel' in a search.
+  * When you set 'strict_fields' to 'true', the search returns only the fields
+    specified in the constraints for the data model.
+  * When you set 'strict_fields' to 'false', the search returns all fields,
+    including fields inherited from parent datasets and fields derived through
+    search-time processes such as field extraction, eval-based field
+    calculation, and lookup matching.
+* You can override this setting by specifying the 'strict_fields' argument for
+  a '| datamodel' search.
+* This setting also applies to the 'from' command. When you use '| from' to 
+  search a data model that has 'strict_fields=true', the search returns only 
+  those fields that are defined in the constraints for the data model.
+* Default: true
+
 tags_whitelist = <list-of-tags>
 * A comma-separated list of tag fields that the data model requires 
   for its search result sets.

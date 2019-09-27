@@ -1,4 +1,4 @@
-#   Version 7.3.0
+#   Version 7.3.1.1
 #
 # This file contains possible attributes and values you can use to configure
 # distributed search.

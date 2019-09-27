@@ -399,8 +399,9 @@ max_matches = <integer>
   descending time order.  In other words, up <max_matches> lookup entries
   will be allowed to match, and if more than this many the ones nearest to
   the lookup value will be used.
-* Default = 1000 if the lookup is not temporal, default = 1 if it is
-  temporal.
+* Default = 100 matches if the time_field setting is not specified for the
+  lookup. If the time_field setting is specified for the lookup, the default is
+  1 match.
 
 min_matches = <integer>
 * Minimum number of possible matches for each input lookup value.

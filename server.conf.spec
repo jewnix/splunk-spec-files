@@ -536,6 +536,17 @@ no_proxy = <string>
 * If set, splunkd will use the no_proxy rules to decide whether the proxy server
   needs to be bypassed for matching hosts/IP Addresses. Requests going to
   localhost/loopback address will not be proxied.
+* '*' (asterisk): Bypasses proxies for all requests. This is the only 
+  wildcard, and it can only be used by itself.
+* <IPv4 or IPv6 address>: Bypasses the proxy if the request is intended for
+  that IP address.
+* <hostname>/<domain name>: Bypasses the proxy if the request is intended for
+  that host or domain name. For example:
+** no_proxy = "wimpy": Matches the host name "wimpy"
+** no_proxy = "splunk.com": Matches all host names in the domain 
+   splunk.com (apps.splunk.com, www.splunk.com, etc.)
+* If any of the rules in the list has a '*', then that rule overrides all
+  other rules, and proxies are bypassed for all requests.
 * Default set to "localhost, 127.0.0.1, ::1"
 
 ############################################################################

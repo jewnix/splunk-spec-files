@@ -358,7 +358,7 @@ action.populate_lookup = 0 | 1
 
 action.populate_lookup.dest = <string>
 * Can be one of the following two options:
-  * A lookup name from transforms.conf.
+  * A lookup name from transforms.conf. The lookup name cannot be associated with KV store.
   * A path to a lookup .csv file that Splunk should copy the search results to,
     relative to $SPLUNK_HOME.
     * NOTE: This path must point to a .csv file in either of the following

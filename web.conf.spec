@@ -1052,6 +1052,13 @@ loginCustomBackgroundImage = <pathToMyFile or myApp:pathToMyFile>
     * The login page background image updates automatically.
   * If no custom image is used, the default Splunk background image displays.
 
+appNavReportsLimit = <integer>
+* Maximum number of reports to fetch to populate the navigation drop-down menu of an app.
+* An app must be configured to list reports in its navigation XML configuration before it can list any reports.
+* Set to -1 to display all the available reports in the navigation menu.
+* NOTE: Setting to either -1 or a value that is higher than the default might result in decreased browser performance due to listing large numbers of available reports in the drop-down menu.
+* Defaults to 500.
+
 [framework]
 # Put App Framework settings here
 django_enable = [True | False]

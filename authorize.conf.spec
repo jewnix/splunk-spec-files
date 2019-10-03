@@ -324,6 +324,9 @@ disabled = <boolean>
 * NOTE: The 'delete' command does not actually delete the raw data on disk.
   Instead, it masks the data (via the index) from showing up in search results.
 
+[capability::delete_messages]
+* Lets a user delete system messages that appear in the UI navigation bar.
+
 [capability::dispatch_rest_to_indexers]
 * Lets a user dispatch the REST search command to indexers.
 
@@ -535,6 +538,12 @@ disabled = <boolean>
 * Lets a user see if they are exceeding limits or reaching the expiration
   date of their license.
 * License warnings are displayed on the system banner.
+
+[capability::list_accelerate_search]
+* This capability is a subset of the 'accelerate_search' capability.
+* This capability grants access to the summaries that are required to run accelerated reports.
+* Users with this capability, but without the 'accelerate_search' capability, can run,
+  but not create, accelerated reports.
 
 [capability::list_deployment_client]
 * Lets a user list the deployment clients.

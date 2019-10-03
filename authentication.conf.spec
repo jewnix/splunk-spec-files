@@ -1,4 +1,4 @@
-#   Version 7.3.1.1
+#   Version 7.3.2
 #
 # This file contains possible attributes and values for configuring
 # authentication via authentication.conf.
@@ -744,6 +744,17 @@ attributeQueryTTL = <integer>
 * This setting is optional.
 * Defaul: 3600
 
+assertionTimeSkew = <integer>
+* The amount of clock skew, in seconds, that can occur between Splunk software and
+  an identity provider that presents SAML assertions that contain 'NotBefore'
+  and 'NotOnOrAfter' attributes.
+* If you set this, Splunk software accepts a SAML assertion as valid if
+  the clock skew between the assertion validity interval and the system time on the
+  Splunk instance is not greater than the value of this setting.
+* NOTE: Setting this to too high a value can allow for replay attacks and is a security risk.
+* This setting is optional.
+* Default: 120
+
 allowSslCompression = <boolean>
 * If set to true, the server allows clients to negotiate SSL-layer 
   data compression.
@@ -901,6 +912,7 @@ replicateCertificates = <boolean>
 * This setting has no effect if search head clustering is disabled.
 * This setting is optional.
 * Default: true
+
 
 #####################
 # Map roles

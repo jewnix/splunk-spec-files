@@ -1,4 +1,4 @@
-#   Version 7.3.1.1
+#   Version 7.3.2
 ############################################################################
 # This file contains settings and values to configure server options
 # in server.conf.
@@ -4262,6 +4262,15 @@ modificationsMaxReadSec = <integer>
   before it produces collection dumps for distributed searches.
 * Default: 30
 
+initialSyncMaxFetcherRestarts = <positive integer>
+* Specifies the maximum number of query restarts an oplog fetcher can perform 
+  before failing the ongoing Initial Sync attempt.
+* Increasing this value might help in dynamic deployments with very large 
+  KV Store databases where Initial Sync might take a long time.
+* NOTE: This setting should be changed only if you have been asked to set it by 
+  a Splunk Support engineer. It might increase KV Store cluster failover time.
+* Default: 0
+
 ############################################################################
 # Indexer Discovery configuration
 ############################################################################
@@ -4402,6 +4411,12 @@ evict_on_stable = <boolean>
 * When set to false, each target peer continues to store its local copy, if any, until its
   cache manager eventually evicts the bucket according to its cache eviction policy.
 * Default: false
+
+max_file_exists_retry_count = <unsigned integer>
+* The cache manager retries its check on whether the file exists on
+  remote storage when the check fails due to network errors until
+  the retry count exceeds this setting.
+* Default: 5
 
 ############################################################################
 # Raft Statemachine configuration

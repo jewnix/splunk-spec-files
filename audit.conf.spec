@@ -23,9 +23,9 @@
 # KEYS: specify your public and private keys for encryption.
 #########################################################################################
 
-queueing=[true|false]
-* Turn off sending audit events to the indexQueue -- tail the audit events
-  instead.
-* If this is set to 'false', you MUST add an inputs.conf stanza to tail the
-  audit log in order to have the events reach your index.
-  * Defaults to true.
+queueing = <boolean>
+* Whether or not audit events are sent to the indexQueue.
+* If set to "true", audit events are sent to the indexQueue.
+* If set to "false", you must add an inputs.conf stanza to tail the
+  audit log for the events reach your index.
+* Default: true

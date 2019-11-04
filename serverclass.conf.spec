@@ -290,7 +290,7 @@ stateOnClient = enabled | disabled | noop
 * Can be overridden at the serverClass level and the serverClass:app level.
 * Default: enabled
 
-precompressBundles = true | flase
+precompressBundles = <boolean>
 * Controls whether the deployment server generates both .bundle and
   .bundle.gz files. The pre-compressed files offer improved performance as
   the deployment server is not required to compress the bundles on the fly

@@ -19,6 +19,13 @@
 # documentation located at
 # http://docs.splunk.com/Documentation/Splunk/latest/Admin/Aboutconfigurationfiles
 
+[distributed_health_reporter]
+disabled = [0|1]
+* A value of 1 disables the distributed health report on this Splunk instance.
+  When disabled, the instance does not call connected search peers to retrieve
+  health report information.
+* Default: 1 (disabled)
+
 [health_reporter]
 full_health_log_interval = <number>
 * The amount of time, in seconds, that elapses between each ‘PeriodicHealthReporter=INFO’ log entry.

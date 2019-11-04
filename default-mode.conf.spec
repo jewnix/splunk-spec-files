@@ -58,4 +58,4 @@ disabled = true | false
 disabled_processors = <processor1>, <processor2>
 * Processors which normally would be loaded in this pipeline are not loaded
   if they appear in this list
-* The set of named procoessors is again a splunk-internal design component.
+* The set of named processors is again a splunk-internal design component.

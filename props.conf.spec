@@ -1,4 +1,4 @@
-#   Version 7.3.2
+#   Version 8.0.0
 #
 # This file contains possible setting/value pairs for configuring Splunk
 # software's processing properties through props.conf.
@@ -689,7 +689,7 @@ INDEXED_EXTRACTIONS = <CSV|TSV|PSV|W3C|JSON|HEC>
   CSV  - Comma separated value format
   TSV  - Tab-separated value format
   PSV  - pipe ("|")-separated value format
-  W3C  - World Wide Web Consortium (W3C) Extended Extended Log File Format
+  W3C  - World Wide Web Consortium (W3C) Extended Log File Format
   JSON - JavaScript Object Notation format
   HEC  - Interpret file as a stream of JSON events in the same format
          as the HTTP Event Collector (HEC) input.
@@ -772,6 +772,28 @@ HEADER_FIELD_DELIMITER = <character>
   the specified file or source.
 * The default can vary if 'INDEXED_EXTRACTIONS' is set.
 * Default (if 'INDEXED_EXTRACTIONS' is not set): not set
+
+HEADER_FIELD_ACCEPTABLE_SPECIAL_CHARACTERS = <string>
+* This setting specifies the special characters that are allowed in header
+  fields.
+* When this setting is not set, the processor replaces all characters in header
+  field names that are neither alphanumeric or a space (" ") with underscores.
+  * For example, if you import a CSV file, and one of the header field names is
+    "field.name", the processor replaces "field.name" with "field_name", and
+    imports the field this way.
+* If you configure this setting, the processor does not perform a character
+  replacement in header field names if the special character it encounters
+  matches one that you specify in the setting value.
+  * For example, if you configure this setting to ".", the processor does not
+    replace the "." characters in header field names with underscores.
+* This setting only supports characters with ASCII codes below 128.
+* CAUTION: Certain special characters can cause the Splunk instance to
+  malfunction.
+  * For example, the field name "fieldname=a" is currently sanitized to
+    "fieldname_a" and the search query "fieldname_a=val" works fine. If the
+    setting is set to "=" and the field name "fieldname=a" is allowed, it could
+    result in an invalid-syntax search query "fieldname=a=val".
+* Default: empty string
 
 FIELD_QUOTE = <character>
 * The character to use for quotes in the specified file

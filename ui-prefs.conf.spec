@@ -1,15 +1,15 @@
-#   Version 7.3.2
+#   Version 8.0.0
 #
-# This file contains possible attribute/value pairs for ui preferences for a
-# view.
+# This file contains possible attribute/value pairs you can use to configure
+# the ui for a view.
 #
-# There is a default ui-prefs.conf in $SPLUNK_HOME/etc/system/default. To set
+# There is a ui-prefs.conf in $SPLUNK_HOME/etc/system/default. To set
 # custom configurations, place a ui-prefs.conf in
 # $SPLUNK_HOME/etc/system/local/. To set custom configuration for an app, place
 # ui-prefs.conf in $SPLUNK_HOME/etc/apps/<app_name>/local/.  For examples, see
-# ui-prefs.conf.example. You must restart Splunk to enable configurations.
+# ui-prefs.conf.example. You must restart Splunk software to enable configurations.
 #
-# To learn more about configuration files (including precedence) please see the
+# To learn more about configuration files (including precedence), see the
 # documentation located at
 # http://docs.splunk.com/Documentation/Splunk/latest/Admin/Aboutconfigurationfiles
 
@@ -18,19 +18,19 @@
 #   * You can also define global settings outside of any stanza, at the top of
 #     the file.
 #   * Each conf file should have at most one default stanza. If there are
-#     multiple default stanzas, attributes are combined. In the case of
+#     multiple default stanzas, settings are combined. In the case of
 #     multiple definitions of the same attribute, the last definition in the
 #     file wins.
-#   * If an attribute is defined at both the global level and in a specific
+#   * If a setting is defined at both the global level and in a specific
 #     stanza, the value in the specific stanza takes precedence.
 
 [<stanza name>]
-* Stanza name is the name of the xml view file
+* The name of the xml view file
 
 dispatch.earliest_time =
 dispatch.latest_time =
 
-# Pref only options
+# Preference options
 display.prefs.autoOpenSearchAssistant = 0 | 1
 display.prefs.timeline.height = <string>
 display.prefs.timeline.minimized = 0 | 1
@@ -48,7 +48,7 @@ display.prefs.customSampleRatio = <int>
 display.prefs.showSPL = 0 | 1
 display.prefs.livetail = 0 | 1
 
-# count per page for listing pages
+# Count per page for listing pages
 countPerPage = [10|20|50]
 
 #******

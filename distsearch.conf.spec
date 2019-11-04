@@ -1,4 +1,4 @@
-#   Version 7.3.2
+#   Version 8.0.0
 #
 # This file contains possible attributes and values you can use to configure
 # distributed search.
@@ -114,12 +114,7 @@ useDisabledListAsBlacklist = <boolean>
 * Default: false
 
 shareBundles = <boolean>
-* Indicates whether this server will use bundle replication to share search-time
-  configurations with search peers.
-* If set to "false", the search head assumes that all the search peers can
-  access the correct bundles via shared storage and have configured the
-  options listed under the "SEARCH HEAD BUNDLE MOUNTING OPTIONS" heading.
-* Default: true
+* DEPRECATED.
 
 useSHPBundleReplication =[true|false|always]
 * Whether the search heads in the pool compete with each other to decide which
@@ -221,6 +216,28 @@ genKeyScript = <string>
 
 [replicationSettings]
 
+replicationPolicy = [classic | cascading | rfs | mounted]
+* The strategy used by the search head to replicate knowledge bundle across all
+  search peers.
+* When set to 'classic', the search head replicates bundle to all search peers.
+* When set to 'cascading', the search head replicates bundle to select few
+  search peers who in turn replicate to other peers. For tuning parameters for
+  cascading replication, refer to the `cascading_replication` stanza in
+  server.conf.
+* When set to 'rfs', the search head uploads the bundle to the configured remote
+  file system like Amazon S3. Note that this policy is not supported for
+  on-premise Splunk Enterprise deployments.
+* When set to 'mounted', the search head assumes that all the search peers can
+  access the correct bundles via shared storage and have configured the
+  options listed under the "SEARCH HEAD BUNDLE MOUNTING OPTIONS" heading.
+  The 'mounted' option replaces the 'shareBundles' setting, which is no longer
+  available. The functionality remains unchanged.
+* Default: classic
+
+#******************************************************************************
+# 'classic' REPLICATION-SPECIFIC SETTINGS
+#******************************************************************************
+
 connectionTimeout = <integer>
 * The maximum amount of time to wait, in seconds, before a search head's initial
   connection to a peer times out.
@@ -241,13 +258,12 @@ replicationThreads = <positive integer>|auto
     * If the peer has 8-15 CPUs, it allocates up to '# of CPUs - 3' threads.
     * If the peer has 16 or more CPUs, it allocates up to
       '# of CPUs - 4' threads.
-* Default: 5
+* This setting is applicable only when replicationPolicy is set to 'classic'.
+* Maximum accepted value for this setting is 16.
+* Default: auto
 
 maxMemoryBundleSize = <integer>
-* The maximum size, in megabytes, of bundles to hold in memory.
-* If a bundle is larger than this value, Splunk software reads and encodes
-  the bundle on the fly for each peer on which the replication is taking place.
-* Default: 10
+* UNSUPPORTED: This setting is no longer supported
 
 maxBundleSize = <integer>
 * The maximum bundle size, in megabytes, for which replication can occur.
@@ -272,21 +288,10 @@ excludeReplicatedLookupSize = <integer>
 * Default: 0
 
 allowStreamUpload = [auto|true|false]
-* Whether to enable streaming bundle replication for peers.
-* If set to "auto", search heads use streaming bundle replication when
-  connecting to peers with a complete implementation of this feature
-  (Splunk Enterprise 6.0 or higher).
-* If set to "true", search heads use streaming bundle replication when
-  connecting to peers with a complete or experimental implementation
-  of this feature (Splunk Enterprise 4.2.3 or higher).
-* If set to "false", streaming bundle replication is never used.
-* Whatever the value of this setting, streaming bundle replication is
-  not used for peers that completely lack support for this feature.
-* Default: auto
+* UNSUPPORTED: This setting is no longer supported
 
 allowSkipEncoding = <boolean>
-* Whether to skip over URL-encoded bundled data on upload.
-* Default: true
+* UNSUPPORTED: This setting is no longer supported
 
 allowDeltaUpload = <boolean>
 * Whether to enable delta-based bundle replication.
@@ -303,20 +308,38 @@ sanitizeMetaFiles = <boolean>
 * The filtering process removes comments and cosmetic white space.
 * Default: true
 
+statusQueueSize = <integer>
+* The maximum number of knowledge bundle replication cycle status values that the
+  search head maintains in memory. These status values remain accessible by queries.
+* Default: 5
+
+################################################################
+# CASCADING BUNDLE REPLICATION-SPECIFIC SETTINGS
+################################################################
+
+cascade_replication_status_interval = <interval>
+* The interval at which the cascading replication status thread runs
+  to update the cascading replication status for all peers.
+* The maximum and recommended value for this setting is 60s.
+* The minimum accepted value is 1s.
+* Do not change this setting without consulting Splunk Support.
+* Default: 60s
+
+cascade_replication_status_unchanged_threshold = <integer>
+* The maximum number of intervals (interval length being determined
+  by the "cascade_replication_status_interval" setting) that a peer's
+  status can remain unchanged while stuck in an in-progress state.
+* Once this limit is reached, the replication is resent to this peer.
+* The maximum accepted value for this setting is 20.
+* The minimum accepted value for this setting is 1.
+* Default: 5
+
 ################################################################
 # RFS (AKA S3/REMOTE FILE SYSTEM) REPLICATION-SPECIFIC SETTINGS
 ################################################################
 
 enableRFSReplication = <boolean>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* If set to "true", remote file system bundle replication is enabled.
-* When search heads generate bundles, these bundles are uploaded to
-  the configured remote file system.
-* When search heads delete their old bundles, they subsequently
-  attempt to delete the bundle from the configured remote file system.
-* Required on search heads.
-* Default: false
+* DEPRECATED.
 
 enableRFSMonitoring = <boolean>
 * Currently not supported. This setting is related to a feature that is
@@ -352,6 +375,15 @@ rfsSyncReplicationTimeout = <unsigned integer>
   value is 600.
 * Default: auto
 
+activeServerTimeout = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The amount of time, in seconds, that must elapse before a search peer
+  considers the search head to be inactive and no longer attempts to
+  download knowledge bundles from that search head from S3/RFS.
+* Only applies to RFS bundle replication.
+* Default: 360
+
 path = <path>
 * Currently not supported. This setting is related to a feature that is
   still under development.
@@ -368,6 +400,17 @@ path = <path>
     These use the scheme "file".
     Example: "path=file:///mnt/cheap-storage/some/path"
 
+remote.s3.url_version = v1|v2
+* Specifies which url version to use, both for parsing the endpoint/path, and
+* for communicating with the remote storage. This value only needs to be
+* specified when running on non-AWS S3-compatible storage that has been configured
+* to use v2 urls.
+* In v1 the bucket is the first element of the path.
+* Example: mydomain.com/bucketname/rest/of/path
+* In v2 the bucket is the outermost subdomain in the endpoint.
+* Exmaple: bucketname.mydomain.com/rest/of/path
+* Default: v1
+
 remote.s3.endpoint = <URL>
 * Currently not supported. This setting is related to a feature that is
   still under development.
@@ -379,6 +422,16 @@ remote.s3.endpoint = <URL>
   the indexer is running, as follows: https://s3-<region>.amazonaws.com
 * Example: https://s3-us-west-2.amazonaws.com
 
+remote.s3.bucket_name = <string>
+* Specifies the S3 bucket to use when endpoint isn't set.
+* Example
+  path = s3://path/example
+  remote.s3.bucket_name = mybucket
+* Used for constructing the amazonaws.com hostname, as shown above.
+* If neither endpoint nor bucket_name is specified, the bucket is assumed
+  to be the first path element.
+* Optional.
+
 remote.s3.encryption = [sse-s3|none]
 * Currently not supported. This setting is related to a feature that is
   still under development.
@@ -389,6 +442,44 @@ remote.s3.encryption = [sse-s3|none]
   remote storage.
 * Optional.
 * Default: none
+
+remote.s3.supports_versioning = <boolean>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies whether the remote storage supports versioning.
+* Versioning is a means of keeping multiple variants of an object
+  in the same bucket on the remote storage. While versioning is not used by
+  RFS bundle replication, this much match the configuration of the S3 bucket
+  for bundle reaping to work correctly.
+* Optional.
+* Default: true
+
+#******************************************************************************
+# SEARCH HEAD BUNDLE MOUNTING OPTIONS
+# Configure these settings on the search peers only, and only if you also
+# configure replicationPolicy=mounted in the [replicationSettings] stanza on the search
+# head. Use these settings to access bundles that are not replicated. The search
+# peers use a shared
+# storage mount point to access the search head bundles ($SPLUNK_HOME/etc).
+#******************************************************************************
+
+[searchhead:<searchhead-splunk-server-name>]
+* <searchhead-splunk-server-name> is the name of the related search head
+  installation.
+* The server name is located in server.conf: serverName = <name>
+
+mounted_bundles = <boolean>
+* Determines whether the bundles belonging to the search head specified in the
+  stanza name are mounted.
+* You must set this value to "true" to use mounted bundles.
+* Default: false
+
+bundles_location = <path>
+* The path to where the search head's bundles are mounted.
+* This path must be the mount point on the search peer, not on the search head.
+* The path should point to a directory that is equivalent to $SPLUNK_HOME/etc/.
+* The path must contain at least the following subdirectories: system, apps,
+  users
 
 [replicationSettings:refineConf]
 
@@ -485,33 +576,6 @@ replicate.<conf_file_name> = <boolean>
   rules specified here even if that file is allowed by [bundleEnforcerWhitelist].
 * If this stanza is empty, then only [bundleEnforcerWhitelist] matters.
 * No default.
-
-#******************************************************************************
-# SEARCH HEAD BUNDLE MOUNTING OPTIONS
-# Configure these settings on the search peers only, and only if you also
-# configure shareBundles=false in the [distributedSearch] stanza on the search
-# head. Use these settings to access bundles that are not replicated. The search
-# peers use a shared
-# storage mount point to access the search head bundles ($SPLUNK_HOME/etc).
-#******************************************************************************
-
-[searchhead:<searchhead-splunk-server-name>]
-* <searchhead-splunk-server-name> is the name of the related search head
-  installation.
-* The server name is located in server.conf: serverName = <name>
-
-mounted_bundles = <boolean>
-* Determines whether the bundles belonging to the search head specified in the
-  stanza name are mounted.
-* You must set this value to "true" to use mounted bundles.
-* Default: false
-
-bundles_location = <path>
-* The path to where the search head's bundles are mounted.
-* This path must be the mount point on the search peer, not on the search head.
-* The path should point to a directory that is equivalent to $SPLUNK_HOME/etc/.
-* The path must contain at least the following subdirectories: system, apps,
-  users
 
 
 #******************************************************************************

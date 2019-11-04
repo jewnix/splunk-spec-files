@@ -1,4 +1,4 @@
-#   Version 7.3.2
+#   Version 8.0.0
 #
 # This file contains possible settings and values for configuring global
 # saved search actions in the alert_actions.conf file.  Saved searches are configured
@@ -128,6 +128,13 @@ alert.execute.cmd.arg.<n> = <string>
 * Provide additional arguments to the 'alert.execute.cmd'.
   Environment variables are substituted.
 
+python.version = {default|python|python2|python3}
+* For Python scripts only, selects which Python version to use.
+* Set to either "default" or "python" to use the system-wide default Python
+  version.
+* Optional.
+* Default: Not set; uses the system-wide Python version.
+
 ################################################################################
 # EMAIL: these settings are prefaced by the [email] stanza name
 ################################################################################
@@ -159,7 +166,7 @@ message.report = <string>
 
 message.alert = <string>
 * Specify a custom email message for alerts.
-* Includes the ability to reference settingss from result,
+* Includes the ability to reference settings from result,
   saved search, or job.
 
 subject = <string>
@@ -177,6 +184,7 @@ subject.report = <string>
 useNSSubject = [1|0]
 * Specify whether to use the namespaced subject, for example, subject.report or the
   subject.
+* Default: 0
 
 footer.text = <string>
 * Specify an alternate email footer.
@@ -310,8 +318,7 @@ width_sort_columns = <boolean>
 
 preprocess_results = <search-string>
 * Supply a search string to preprocess results before emailing the results.
-  Usually the preprocessing consists of filtering out unwanted
-  internal fields.
+  Usually the preprocessing consists of filtering out unwanted internal fields.
 * Default: an empty string (no preprocessing)
 
 pdf.footer_enabled = [1 or 0]

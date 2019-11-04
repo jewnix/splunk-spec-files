@@ -1,23 +1,36 @@
-#   Version 7.3.2
+#   Version 8.0.0
 #
+############################################################################
+# OVERVIEW
+############################################################################
 # This file contains all possible options for an indexes.conf file.  Use
 # this file to configure Splunk's indexes and their properties.
 #
-# There is an indexes.conf in $SPLUNK_HOME/etc/system/default/.  To set
-# custom configurations, place an indexes.conf in
-# $SPLUNK_HOME/etc/system/local/. For examples, see indexes.conf.example.
-# You must restart Splunk to enable configurations.
+# Each stanza controls different search commands settings.
 #
-# To learn more about configuration files (including precedence) please see
-# the documentation located at
+# There is a indexes.conf file in the $SPLUNK_HOME/etc/system/default/ directory.
+# Never change or copy the configuration files in the default directory.
+# The files in the default directory must remain intact and in their original
+# location.
+#
+# To set custom configurations, create a new file with the name indexes.conf in
+# the $SPLUNK_HOME/etc/system/local/ directory. Then add the specific settings
+# that you want to customize to the local configuration file.
+# For examples, see indexes.conf.example. You must restart the Splunk instance
+# to enable configuration changes.
+#
+# To learn more about configuration files (including file precedence) see the
+# documentation located at
 # http://docs.splunk.com/Documentation/Splunk/latest/Admin/Aboutconfigurationfiles
 #
-# CAUTION:  You can drastically affect your Splunk installation by changing
-# these settings.  Consult technical support
+# CAUTION: You can drastically affect your Splunk installation by changing
+# these settings. Consult technical support
 # (http://www.splunk.com/page/submit_issue) if you are not sure how to
 # configure this file.
 #
+############################################################################
 # GLOBAL SETTINGS
+############################################################################
 # Use the [default] stanza to define any global settings.
 #   * You can also define global settings outside of any stanza, at the top
 #     of the file.
@@ -66,7 +79,7 @@ bucketMerge.maxMergeTimeGapSecs = <unsigned integer>
   still under development.
 * Maximum allowed time gap, in seconds, between buckets about to be merged.
 * You can override this value on a per-index basis.
-* Default: 7776000 (90 days).
+* Default: 7776000 (90 days)
 
 queryLanguageDefinition = <path to file>
 * DO NOT EDIT THIS SETTING. SERIOUSLY.
@@ -101,7 +114,7 @@ malformedEventIndex = <index name>
     * metric events destined for datatype=event indexes
     * metric events with invalid metric values, like non-numeric values
     * metric events lacking required attributes, like metric name
-* Malformed events may be modified in order to make them suitable for
+* Malformed events can be modified in order to make them suitable for
   indexing, as well as to aid in debugging.
 * A high volume of malformed events can affect search performance against
   the specified index; for example, malformed metric events can lead to an
@@ -234,7 +247,7 @@ bucketRebuildMemoryHint = <positive integer>[KB|MB|GB]|auto
   *  2GB to 8GB RAM = 134217728 (128MB) tsidx
   *  more than 8GB RAM = 268435456 (256MB) tsidx
 * If not set to "auto", then you must set this setting between 16MB and 1GB.
-* A value may be specified using a size suffix: "16777216" or "16MB" are
+* A value can be specified using a size suffix: "16777216" or "16MB" are
   equivalent.
 * Inappropriate use of this setting causes splunkd to not start if
   rebuild is required.
@@ -266,7 +279,7 @@ serviceOnlyAsNeeded = <boolean>
 * DEPRECATED; use 'serviceInactiveIndexesPeriod' instead.
 * Causes index service (housekeeping tasks) overhead to be incurred only
   after index activity.
-* Indexer module problems may be easier to diagnose when this optimization
+* Indexer module problems might be easier to diagnose when this optimization
   is disabled (set to false).
 * Default: true
 
@@ -315,11 +328,21 @@ hotBucketTimeRefreshInterval = <positive integer>
   on a per-index basis if needed.
 * If you want the index information to be refreshed with
   every service (and accept minor performance overhead), set to 1.
-* Default: 10 (services).
+* Default: 10 (services)
+
+fileSystemExecutorWorkers = <positive iinteger>
+* Determines the number of threads to use for file system io operations.
+* This maximum applies to all of splunkd, not per index. If you have N
+  indexes, there will be at most 'fileSystemExecutorWorkers' workers,
+  not N * 'fileSystemExecutorWorkers' workers.
+* This is an advanced setting; do NOT set unless instructed by Splunk
+  Support.
+* Highest legal value is 4294967295.
+* Default: 5
 
 #**************************************************************************
 # PER INDEX OPTIONS
-# These options may be set under an [<index>] entry.
+# These options can be set under an [<index>] entry.
 #
 # Index names must consist of only numbers, lowercase letters, underscores,
 # and hyphens. They cannot begin with an underscore or hyphen, or contain
@@ -329,6 +352,7 @@ hotBucketTimeRefreshInterval = <positive integer>
 disabled = <boolean>
 * Toggles your index entry off and on.
 * Set to "true" to disable an index.
+* CAUTION: Do not set this setting to "true" on remote storage enabled indexes.
 * Default: false
 
 deleted = true
@@ -347,7 +371,7 @@ homePath = <string>
   if the index name is "newindex", homePath becomes
      "$SPLUNK_DB/newindex/db".
 * Splunkd keeps a file handle open for warmdbs at all times.
-* May contain a volume reference (see volume section below) in place of $SPLUNK_DB.
+* Can contain a volume reference (see volume section below) in place of $SPLUNK_DB.
 * CAUTION: The parent path "$SPLUNK_DB/$_index_name/" must be writable.
 * Required. Splunkd does not start if an index lacks a valid 'homePath'.
 * You must restart splunkd after changing this setting for the changes to take effect.
@@ -363,7 +387,7 @@ homePath = <string>
       or data loss.
     * Writing to a new, unexpected location could lead to disk space exhaustion
       causing additional operational problems.
-    * Recovery from such a scenario requires manual intevention and bucket
+    * Recovery from such a scenario requires manual intervention and bucket
       renaming, especially difficult in an index cluster environment.
     * In all circumstances, Splunk Diag, the diagnostic tool that Splunk Support
       uses, has no way to determine the correct values for the environment
@@ -375,13 +399,13 @@ homePath = <string>
 
 coldPath = <string>
 * An absolute path that contains the colddbs for the index.
-* Beat practice is to specify the path with the following syntax:
+* Best practice is to specify the path with the following syntax:
      coldPath = $SPLUNK_DB/$_index_name/colddb
   At runtime, splunkd expands "$_index_name" to the name of the index. For example,
   if the index name is "newindex", 'coldPath'
   becomes "$SPLUNK_DB/newindex/colddb".
 * Cold databases are opened as needed when searching.
-* May contain a volume reference (see volume section below) in place of $SPLUNK_DB.
+* Can contain a volume reference (see volume section below) in place of $SPLUNK_DB.
 * Path must be writable.
 * Required. Splunkd does not start if an index lacks a valid 'coldPath'.
 * You must restart splunkd after changing this setting for the changes to
@@ -398,7 +422,7 @@ coldPath = <string>
 thawedPath = <string>
 * An absolute path that contains the thawed (resurrected) databases for the
   index.
-* May NOT contain a volume reference.
+* CANNOT contain a volume reference.
 * Path must be writable.
 * Required. Splunkd does not start if an index lacks a valid thawedPath.
 * You must restart splunkd after changing this setting for the changes to
@@ -435,13 +459,13 @@ createBloomfilter = <boolean>
 summaryHomePath = <string>
 * An absolute path where transparent summarization results for data in this
   index should be stored.
-* This value must be different for each index and may be on any disk drive.
+* This value must be different for each index and can be on any disk drive.
 * Best practice is to specify the path with the following syntax:
      summaryHomePath = $SPLUNK_DB/$_index_name/summary
   At runtime, splunkd expands "$_index_name" to the name of the index.
   For example, if the index name is "newindex", summaryHomePath becomes
   "$SPLUNK_DB/newindex/summary".
-* May contain a volume reference (see volume section below) in place of $SPLUNK_DB.
+* Can contain a volume reference (see volume section below) in place of $SPLUNK_DB.
 * Volume reference must be used if you want to retain data based on data size.
 * Path must be writable.
 * If not specified, splunkd creates a directory 'summary' in the same
@@ -456,7 +480,7 @@ summaryHomePath = <string>
 * Avoid the use of environment variables in index paths, aside from the
   exception of SPLUNK_DB. See 'homePath' for additional
   information as to why.
-* Default: not set
+* No default.
 
 tstatsHomePath = <string>
 * Location where data model acceleration TSIDX data for this index should be stored.
@@ -502,13 +526,13 @@ maxBloomBackfillBucketAge = <nonnegative integer>[smhd]|infinite
 hotlist_recency_secs = <unsigned integer>
 * The cache manager attempts to defer bucket eviction until the interval
   between the bucket's latest time and the current time exceeds this setting.
-* Default: the global setting under server.conf/[cachemanager].
+* Default: The global setting in the server.conf file [cachemanager] stanza
 
 hotlist_bloom_filter_recency_hours = <unsigned integer>
 * The cache manager attempts to defer eviction of the non-journal and non-tsidx
   bucket files, such as the bloomfilter file, until the interval between the
   bucket's latest time and the current time exceeds this setting.
-* Default: the global setting under server.conf/[cachemanager].
+* Default: The global setting in the server.conf file [cachemanager] stanza
 
 enableOnlineBucketRepair = <boolean>
 * Controls asynchronous "online fsck" bucket repair, which runs concurrently
@@ -567,7 +591,7 @@ maxGlobalRawDataSizeMB = <nonnegative integer>
 * This value applies to warm and cold buckets. It does not
   apply to hot or thawed buckets.
 * The maximum allowable value is 4294967295.
-* Default: 0 (no limit to the amount of raw data in an index.)
+* Default: 0 (no limit to the amount of raw data in an index)
 
 maxGlobalDataSizeMB = <nonnegative integer>
 * The maximum size, in megabytes, for all warm buckets in a SmartStore
@@ -593,7 +617,7 @@ maxGlobalDataSizeMB = <nonnegative integer>
   include the size of any associated files, such as report acceleration
   or data model acceleration summaries.
 * The highest legal value is 4294967295.
-* Default: 0 (No limit to the space that an index's warm buckets can occupy.)
+* Default: 0 (No limit to the space that an index's warm buckets can occupy)
 
 rotatePeriodInSecs = <positive integer>
 * Controls the service period (in seconds): how often splunkd performs
@@ -615,7 +639,7 @@ frozenTimePeriodInSecs = <nonnegative integer>
 * NOTE: Every event in a bucket must be older than 'frozenTimePeriodInSecs'
   seconds before the bucket rolls to frozen.
 * The highest legal value is 4294967295.
-* Default: 188697600 (6 years).
+* Default: 188697600 (6 years)
 
 warmToColdScript = <script path>
 * Specifies a script to run when moving data from warm to cold.
@@ -627,6 +651,9 @@ warmToColdScript = <script path>
 * The script must accept two arguments:
   * First: the warm directory (bucket) to be rolled to cold.
   * Second: the destination in the cold path.
+* If the script you specify is a Python script, it uses the default system-wide
+  Python interpreter. You cannot override this configuration with the
+  'python.version' setting.
 * Searches and other activities are paused while the script is running.
 * Contact Splunk Support (http://www.splunk.com/page/submit_issue) if you
   need help configuring this setting.
@@ -693,6 +720,16 @@ coldToFrozenScript = <path to script interpreter> <path to script>
 * The script must be in $SPLUNK_HOME/bin or a subdirectory thereof.
 * No default.
 
+python.version = {default|python|python2|python3}
+* For Python scripts only, selects which Python version to use.
+* This setting is valid for 'coldToFrozenScript' only when the value starts
+  with the canonical path to the Python interpreter, in other words,
+  $SPLUNK_HOME/bin/python. If you use any other path, this setting is ignored.
+* Set to either "default" or "python" to use the system-wide default Python
+  version.
+* Optional.
+* Default: Not set; uses the system-wide Python version.
+
 coldToFrozenDir = <path to frozen archive>
 * An alternative to a 'coldToFrozen' script - this setting lets you
   specify a destination path for the frozen archive.
@@ -747,12 +784,12 @@ maxDataSize = <positive integer>|auto|auto_high_volume
   Splunk Support.
 * If you specify an invalid number or string, maxDataSize will be auto
   tuned.
-* NOTE: The maximum size of your warm buckets may slightly exceed
+* NOTE: The maximum size of your warm buckets might slightly exceed
   'maxDataSize', due to post-processing and timing issues with the rolling
   policy.
 * For remote storage enabled indexes, consider setting this value to "auto"
   (750MB) or lower.
-* Default: "auto" (sets the size to 750 megabytes.)
+* Default: "auto" (sets the size to 750 megabytes)
 
 rawFileSizeBytes = <positive integer>
 * Deprecated in version 4.2 and later. Splunkd ignores this value.
@@ -772,7 +809,7 @@ rawChunkSizeBytes = <positive integer>
 * You must restart splunkd after changing this setting. Reloading the
   configuration does not suffice.
 * The highest legal value is 18446744073709551615
-* Default: 131072 (128 kilobytes).
+* Default: 131072 (128 kilobytes)
 
 minRawFileSyncSecs = <nonnegative decimal>|disable
 * How frequently splunkd forces a filesystem sync while compressing journal
@@ -821,7 +858,7 @@ maxHotSpanSecs = <positive integer>
 * The highest legal value is 4294967295.
 * NOTE: the bucket timespan snapping behavior is removed from this setting.
   See the 6.5 spec file for details of this behavior.
-* Default: 7776000 (90 days).
+* Default: 7776000 (90 days)
 
 maxHotIdleSecs = <nonnegative integer>
 * How long, in seconds, that a hot bucket can remain in hot status without
@@ -909,7 +946,7 @@ splitByIndexKeys = <comma separated list>
 * Valid values are: host, sourcetype, source, metric_name
 * This setting only applies to metric indexes.
 * If not set, splunkd splits buckets by time span.
-* Default: empty string (no key).
+* Default: empty string (no key)
 
 quarantinePastSecs = <positive integer>
 * Determines what constitutes an anomalous past timestamp for quarantining
@@ -919,7 +956,7 @@ quarantinePastSecs = <positive integer>
 * This is a mechanism to prevent the main hot buckets from being polluted
   with fringe events.
 * The highest legal value is 4294967295
-* Default: 77760000 (900 days).
+* Default: 77760000 (900 days)
 
 quarantineFutureSecs = <positive integer>
 * Determines what constitutes an anomalous future timestamp for quarantining
@@ -929,7 +966,7 @@ quarantineFutureSecs = <positive integer>
 * This is a mechanism to prevent the main hot buckets from being polluted with
   fringe events.
 * The highest legal value is 4294967295
-* Default: 2592000 (30 days).
+* Default: 2592000 (30 days)
 
 maxMetaEntries = <nonnegative integer>
 * The maximum number of unique lines in .data files in a bucket, which
@@ -981,7 +1018,7 @@ partialServiceMetaPeriod = <positive integer>
   the value of 'serviceMetaPeriod', this setting has no effect.
 * Splunkd ignores this setting if 'serviceOnlyAsNeeded' = "true" (the default).
 * The highest legal value is 4294967295.
-* Default: 0 (disabled).
+* Default: 0 (disabled)
 
 throttleCheckPeriod = <positive integer>
 * How frequently, in seconds, that splunkd checks for index throttling
@@ -1093,7 +1130,7 @@ streamingTargetTsidxSyncPeriodMsec = <nonnegative integer>
 * No default.
 
 journalCompression = gzip|lz4|zstd
-* The compression algorthm that splunkd should use for the rawdata journal
+* The compression algorithm that splunkd should use for the rawdata journal
   file of new index buckets.
 * This setting does not have any effect on already created buckets. There is
   no problem searching buckets that are compressed with different algorithms.
@@ -1115,7 +1152,7 @@ tsidxWritingLevel = [1|2|3]
 * Enables various performance and space-saving improvements for tsidx files.
 * For deployments that do not have multi-site index clustering enabled,
     set this to the highest value possible for all your indexes.
-  * For deploments that have multi-site index clustering, only set
+  * For deployments that have multi-site index clustering, only set
     this to the highest level possible AFTER all your indexers in the
     cluster have been upgraded to the latest code level.
   * Do not configure indexers with different values for 'tsidxWritingLevel'
@@ -1123,6 +1160,21 @@ tsidxWritingLevel = [1|2|3]
   * The higher settings take advantage of newer tsidx file formats for
     metrics and log events that decrease storage cost and increase performance
 * Default: 1
+
+metric.enableFloatingPointCompression = <boolean>
+* Determines whether the floating-point values compression is enabled for metric
+  index files.
+* Set this to false only if you are experiencing high CPU usage during data
+  ingestion. However, doing this will cause you to lose the disk space savings
+  that the compression gives you.
+* Default: true
+
+metric.compressionBlockSize = <integer>
+* The block size, in words (eight-byte multiples), that the floating-point compression
+  algorithm should use to store compressed data within a single block in a column.
+* Valid only if 'metric.enableMetricTsidxFloatingPointCompression' is set to "true".
+* Minimum value: 128 (1024 bytes)
+* Default: 1024 (8192 bytes)
 
 suspendHotRollByDeleteQuery = <boolean>
 * Whether or not splunkd rolls hot buckets upon running of the "delete"
@@ -1153,6 +1205,33 @@ timePeriodInSecBeforeTsidxReduction = <positive integer>
 * When this time difference is exceeded, a bucket becomes eligible
   for tsidx reduction.
 * Default: 604800
+
+tsidxTargetSizeMB = <positive integer>
+* The target size for tsidx files. The indexer attempts to make all tsidx files
+  in index buckets as close to this size as possible when:
+      (a) buckets merge.
+      (b) hot buckets roll to warm buckets.
+* This value is used to help tune the performance of tsidx-based search queries,
+  especially 'tstats'.
+* If this value exceeds 'maxDataSize', then the hot bucket will roll based
+  on the 'maxDataSize' configuration even if no tsidx file has met the
+  specified 'tsidxTargetSizeMB'.
+* Cannot exceed 4096 MB (4 GB).
+* Default: 1500 (MB)
+
+metric.tsidxTargetSizeMB = <positive integer>
+* The target size for msidx files (tsidx files for metrics data). The indexer
+  attempts to make all msidx files in index buckets as close to this size as
+  possible when:
+      (a) buckets merge.
+      (b) hot buckets roll to warm buckets.
+* This value is used to help tune the performance of metrics search queries,
+  especially 'mstats'.
+* If this value exceeds 'maxDataSize', then the hot bucket will roll based
+  on the 'maxDataSize' configuration even if no msidx file has met the
+  specified 'metric.tsidxTargetSizeMB'.
+* Cannot exceed 4096 MB (4 GB).
+* Default: 1500 (MB)
 
 datatype = <event|metric>
 * Determines whether the index stores log events or metric data.
@@ -1192,7 +1271,7 @@ datatype = <event|metric>
 #**************************************************************************
 vix.family = <family>
 * A provider family to which this provider belongs.
-* The only family available by default is "hadoop". Others may be added.
+* The only family available by default is "hadoop". Others can be added.
 
 vix.mode = stream|report
 * Usually specified at the family level.
@@ -1344,7 +1423,7 @@ vix.splunk.setup.bundle.replication = <positive integer>
 * Increasing this setting may help performance on large clusters by decreasing
   the average access time for a bundle across Task Nodes.
 * Optional.
-* If not set, the default replication factor for the file-system applies.
+* Default: The default replication factor for the file-system applies.
 
 vix.splunk.setup.bundle.max.inactive.wait = <positive integer>
 * A positive integer represent a time interval in seconds.
@@ -1390,7 +1469,7 @@ vix.splunk.setup.package.poll.interval = <positive integer>
 vix.splunk.setup.package.setup.timelimit = <positive integer>
 * A positive number, representing a time duration in milliseconds.
 * A task will wait this long for a Splunk package to be installed before it quits.
-* Default: 20000 (20 seconds).
+* Default: 20000 (20 seconds)
 
 vix.splunk.setup.bundle.reap.timelimit = <positive integer>
 * Specific to Hunk provider
@@ -1398,7 +1477,7 @@ vix.splunk.setup.bundle.reap.timelimit = <positive integer>
   how old they must be before they are eligible for reaping.
 * Unit is milliseconds
 * Values larger than 86400000 will be treated as if set to 86400000.
-* Default: 86400000 (24 hours).
+* Default: 86400000 (24 hours)
 
 vix.splunk.search.column.filter = <boolean>
 * Enables/disables column filtering. When enabled, Hunk will trim columns that
@@ -1444,7 +1523,7 @@ vix.splunk.heartbeat.interval = <positive integer>
 * The frequency, in milliseconds, with which the Heartbeat will be updated
   on the Search Head.
 * Minimum value is 1000. Smaller values will cause an exception to be thrown.
-* Default: 6000 (6 seconds).
+* Default: 6000 (6 seconds)
 
 vix.splunk.heartbeat.threshold = <positive integer>
 * The number of times the MR job will detect a missing heartbeat update before
@@ -1497,13 +1576,13 @@ vix.splunk.search.splitter.hive.ppd = <boolean>
 vix.splunk.search.splitter.hive.fileformat = textfile|sequencefile|rcfile|orc
 * Format of the Hive data files in this provider.
 * May be specified in either the provider stanza or in the virtual index stanza.
-* Default: "textfile".
+* Default: "textfile"
 
 vix.splunk.search.splitter.hive.dbname = <DB name>
 * Name of Hive database to be accessed by this provider.
 * Optional.
 * May be specified in either the provider stanza or in the virtual index stanza.
-* Default: "default".
+* Default: "default"
 
 vix.splunk.search.splitter.hive.tablename = <table name>
 * Table accessed by this provider.
@@ -1513,51 +1592,51 @@ vix.splunk.search.splitter.hive.tablename = <table name>
 vix.splunk.search.splitter.hive.columnnames = <list of column names>
 * Comma-separated list of file names.
 * Required if using Hive, not using metastore.
-* May be specified in either the provider stanza or in the virtual index stanza.
+* Can be specified in either the provider stanza or in the virtual index stanza.
 
 vix.splunk.search.splitter.hive.columntypes = string:float:int # COLON separated list of column types, required
 * Colon-separated list of column- types.
 * Required if using Hive, not using metastore.
-* May be specified in either the provider stanza or in the virtual index stanza.
+* Can be specified in either the provider stanza or in the virtual index stanza.
 
 vix.splunk.search.splitter.hive.serde = <SerDe class>
 * Fully-qualified class name of SerDe.
 * Required if using Hive, not using metastore, and if specified in creation of Hive table.
-* May be specified in either the provider stanza or in the virtual index stanza.
+* Can be specified in either the provider stanza or in the virtual index stanza.
 
 vix.splunk.search.splitter.hive.serde.properties = <list of key-value pairs>
 * Comma-separated list of "key=value" pairs.
 * Required if using Hive, not using metastore, and if specified in creation of Hive table.
-* May be specified in either the provider stanza or in the virtual index stanza.
+* Can be specified in either the provider stanza or in the virtual index stanza.
 
 vix.splunk.search.splitter.hive.fileformat.inputformat = <InputFormat class>
 * Fully-qualified class name of an InputFormat to be used with Hive table data.
-* May be specified in either the provider stanza or in the virtual index stanza.
+* Can be specified in either the provider stanza or in the virtual index stanza.
 
 vix.splunk.search.splitter.hive.rowformat.fields.terminated = <delimiter>
 * Will be set as the Hive SerDe property "field.delim".
 * Optional.
-* May be specified in either the provider stanza or in the virtual index stanza.
+* Can be specified in either the provider stanza or in the virtual index stanza.
 
 vix.splunk.search.splitter.hive.rowformat.escaped = <escape char>
 * Will be set as the Hive SerDe property "escape.delim".
 * Optional.
-* May be specified in either the provider stanza or in the virtual index stanza.
+* Can be specified in either the provider stanza or in the virtual index stanza.
 
 vix.splunk.search.splitter.hive.rowformat.lines.terminated = <delimiter>
 * Will be set as the Hive SerDe property "line.delim".
 * Optional.
-* May be specified in either the provider stanza or in the virtual index stanza.
+* Can be specified in either the provider stanza or in the virtual index stanza.
 
 vix.splunk.search.splitter.hive.rowformat.mapkeys.terminated  = <delimiter>
 * Will be set as the Hive SerDe property "mapkey.delim".
 * Optional.
-* May be specified in either the provider stanza or in the virtual index stanza.
+* Can be specified in either the provider stanza or in the virtual index stanza.
 
 vix.splunk.search.splitter.hive.rowformat.collectionitems.terminated = <delimiter>
 * Will be set as the Hive SerDe property "colelction.delim".
 * Optional.
-* May be specified in either the provider stanza or in the virtual index stanza.
+* Can be specified in either the provider stanza or in the virtual index stanza.
 
 #
 # Archiving
@@ -1567,7 +1646,7 @@ vix.output.buckets.max.network.bandwidth = 0|<bits per second>
 * Throttles network bandwidth to <bits per second>
 * Set at provider level. Applied to all virtual indexes using a provider
   with this setting.
-* Default: 0 (no throttling).
+* Default: 0 (no throttling)
 
 #**************************************************************************
 # PER VIRTUAL INDEX OPTIONS
@@ -1715,7 +1794,7 @@ recordreader.journal.buffer.size = <bytes>
 recordreader.csv.dialect = default|excel|excel-tab|tsv
 * Set the csv dialect for csv files
 * A csv dialect differs on delimiter_char, quote_char and escape_char.
-* Here is a list of how the different dialects are defined in order delim,
+* Here is a list of how the different dialects are defined in order delimiter,
   quote, and escape:
   * default   = ,  " \
   * excel     = ,  " "
@@ -1869,7 +1948,7 @@ storageType = local | remote
 * Optional.
 * Specifies whether the volume definition is for indexer local storage or remote
   storage. Only the 'remotePath' setting references a remote volume.
-* Default: "local".
+* Default: "local"
 
 path = <path on server>
 * Required.
@@ -1900,13 +1979,14 @@ maxVolumeDataSizeMB = <positive integer>
 * The highest legal value is 4294967295.
 * The lowest legal value is 1.
 * Optional.
-* This setting is ignored when 'storageType' is set to "remote".
+* This setting is ignored when 'storageType' is set to "remote" or
+  when set to "local" and the volume contains any remote-storage enabled indexes.
 
 rotatePeriodInSecs = <nonnegative integer>
 * Optional, ignored for storageType=remote
 * Specifies period of trim operation for this volume.
 * The highest legal value is 4294967295.
-* Default: the global 'rotatePeriodInSecs' value.
+* Default: The global 'rotatePeriodInSecs' value
 
 datatype = <event|metric>
 * Determines whether the index stores log events or metric data.
@@ -1947,7 +2027,7 @@ remote.s3.access_key = <string>
 * If the environment variables are not set and the indexer is running on EC2,
   the indexer attempts to use the access key from the IAM role.
 * Optional.
-* Default: not set
+* No default.
 
 remote.s3.secret_key = <string>
 * Specifies the secret key to use when authenticating with the remote storage
@@ -1957,7 +2037,7 @@ remote.s3.secret_key = <string>
 * If the environment variables are not set and the indexer is running on EC2,
   the indexer attempts to use the secret key from the IAM role.
 * Optional.
-* Default: not set
+* No default.
 
 remote.s3.list_objects_version = v1|v2
 * The AWS S3 Get Bucket (List Objects) Version to use.
@@ -1968,8 +2048,20 @@ remote.s3.signature_version = v2|v4
 * The signature version to use when authenticating with the remote storage
   system supporting the S3 API.
 * For 'sse-kms' server-side encryption scheme, you must use signature_version=v4.
+* For signature_version=v2 you must set url_version=v1.
 * Optional.
 * Default: v4
+
+remote.s3.url_version = v1|v2
+* Specifies which url version to use, both for parsing the endpoint/path, and
+* for communicating with the remote storage. This value only needs to be
+* specified when running on non-AWS S3-compatible storage that has been configured
+* to use v2 urls.
+* In v1 the bucket is the first element of the path.
+* Example: mydomain.com/bucketname/rest/of/path
+* In v2 the bucket is the outermost subdomain in the endpoint.
+* Exmaple: bucketname.mydomain.com/rest/of/path
+* Default: v1
 
 remote.s3.auth_region = <string>
 * The authentication region to use for signing requests when interacting
@@ -1977,13 +2069,13 @@ remote.s3.auth_region = <string>
 * Used with v4 signatures only.
 * If unset and the endpoint (either automatically constructed or explicitly
   set with remote.s3.endpoint setting) uses an AWS URL (for example,
-  https://s3-us-west-1.amazonaws.com), the instance attempts to extract
+  https://<bucketname>.s3-us-west-1.amazonaws.com), the instance attempts to extract
   the value from the endpoint URL (for example, "us-west-1").  See the
   description for the remote.s3.endpoint setting.
 * If unset and an authentication region cannot be determined, the request
   will be signed with an empty region value.
 * Optional.
-* Default: not set
+* No default.
 
 remote.s3.use_delimiter = <boolean>
 * Specifies whether a delimiter (currently "guidSplunk") should be
@@ -2007,16 +2099,26 @@ remote.s3.endpoint = <URL>
   with the endpoint.
 * If not specified and the indexer is running on EC2, the endpoint will be
   constructed automatically based on the EC2 region of the instance where the
-  indexer is running, as follows: https://s3-<region>.amazonaws.com
-* Example: https://s3-us-west-2.amazonaws.com
+  indexer is running, as follows: https://<bucketname>.s3-<region>.amazonaws.com
+* Example: https://<bucketname>.s3-us-west-2.amazonaws.com
+* Optional.
+
+remote.s3.bucket_name = <string>
+* Specifies the S3 bucket to use when endpoint isn't set.
+* Example
+  path = s3://path/example
+  remote.s3.bucket_name = mybucket
+* Used for constructing the amazonaws.com hostname, as shown above.
+* If neither endpoint nor bucket_name is specified, the bucket is assumed
+  to be the first path element.
 * Optional.
 
 remote.s3.multipart_download.part_size = <unsigned integer>
 * Sets the download size of parts during a multipart download.
 * This setting uses HTTP/1.1 Range Requests (RFC 7233) to improve throughput
   overall and for retransmission of failed transfers.
-* A value of 0 disables downloading in multiple parts, i.e., files will always
-  be downloaded as a single (large) part.
+* The special value of 0 disables downloading in multiple parts. In other
+  words, files will always get downloaded as a single (large) part.
 * Do not change this value unless that value has been proven to improve
   throughput.
 * Optional.
@@ -2025,6 +2127,8 @@ remote.s3.multipart_download.part_size = <unsigned integer>
 
 remote.s3.multipart_upload.part_size = <unsigned integer>
 * Sets the upload size of parts during a multipart upload.
+* The special value of 0 disables uploading in multiple parts. In other
+  words, files will always get uploaded as a single (large) part.
 * Optional.
 * Minimum value: 5242880 (5 MB)
 * Default: 134217728 (128 MB)
@@ -2123,7 +2227,7 @@ remote.s3.sslAltNameToCheck = <alternateName1>, <alternateName2>, ..
   splunkd checks the alternate name(s) of the certificate presented by
   the remote server (specified in 'remote.s3.endpoint') against this list of
   subject alternate names.
-* Default: not set
+* No default.
 
 remote.s3.sslRootCAPath = <path>
 * Full path to the Certificate Authority (CA) certificate PEM format file
@@ -2150,14 +2254,14 @@ remote.s3.ecdhCurves = <comma-separated list>
   $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
 * e.g. ecdhCurves = prime256v1,secp384r1,secp521r1
 * Optional.
-* Default: not set
+* No default.
 
 remote.s3.dhFile = <path>
 * PEM format Diffie-Hellman parameter file name.
 * DH group size should be no less than 2048bits.
 * This file is required in order to enable any Diffie-Hellman ciphers.
 * Optional.
-* Default: not set
+* No default.
 
 remote.s3.encryption = sse-s3 | sse-kms | sse-c | none
 * Specifies the scheme to use for Server-side Encryption (SSE) for data-at-rest.
@@ -2194,26 +2298,26 @@ remote.s3.kms.key_id = <string>
   CMK ARN: arn:aws:kms:us-east-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
   Alias name: alias/ExampleAlias
   Alias ARN: arn:aws:kms:us-east-2:111122223333:alias/ExampleAlias
-* Default: not set
+* No default.
 
 remote.s3.kms.access_key = <string>
 * Similar to 'remote.s3.access_key'.
 * If not specified, KMS access uses 'remote.s3.access_key'.
 * Optional.
-* Default: not set
+* No default.
 
 remote.s3.kms.secret_key = <string>
 * Similar to 'remote.s3.secret_key'.
 * If not specified, KMS access uses 'remote.s3.secret_key'.
 * Optional.
-* Default: not set
+* No default.
 
 remote.s3.kms.auth_region = <string>
 * Required if 'remote.s3.auth_region' is unset and Splunk can not
   automatically extract this information.
 * Similar to 'remote.s3.auth_region'.
 * If not specified, KMS access uses 'remote.s3.auth_region'.
-* Default: not set
+* No default.
 
 remote.s3.kms.max_concurrent_requests = <unsigned integer>
 * Optional.

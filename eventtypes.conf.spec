@@ -1,4 +1,4 @@
-#   Version 7.3.2
+#   Version 8.0.0
 #
 # This file contains all possible attributes and value pairs for an
 # eventtypes.conf file.  Use this file to configure event types and their

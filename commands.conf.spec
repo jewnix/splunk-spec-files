@@ -1,161 +1,185 @@
-#   Version 7.3.2
+#   Version 8.0.0
+############################################################################
+# OVERVIEW
+############################################################################
+# This file contains descriptions for the setting/value pairs that you can 
+# use for for creating search commands for custom search scripts. 
+# 
+# You can add your custom search script to one of these paths: 
+# * If you add your custom search script to the $SPLUNK_HOME/etc/searchscripts/
+#   path, put a custom commands.conf file in $SPLUNK_HOME/etc/system/local/.
+# * If you add your custom search script to the $SPLUNK_HOME/etc/apps/MY_APP/bin/
+#   path, put a custom commands.conf file in $SPLUNK_HOME/etc/apps/MY_APP.
 #
-# This file contains possible attribute/value pairs for creating search
-# commands for any custom search scripts created.  Add your custom search
-# script to $SPLUNK_HOME/etc/searchscripts/ or
-# $SPLUNK_HOME/etc/apps/MY_APP/bin/.  For the latter, put a custom
-# commands.conf in $SPLUNK_HOME/etc/apps/MY_APP.  For the former, put your
-# custom commands.conf in $SPLUNK_HOME/etc/system/local/.
-
-# There is a commands.conf in $SPLUNK_HOME/etc/system/default/.  For examples,
-# see commands.conf.example.  You must restart Splunk to enable configurations.
-
-# To learn more about configuration files (including precedence) please see the
+# There is a commands.conf in $SPLUNK_HOME/etc/system/default/.  
+# Never change or copy the configuration files in the default directory.
+# The files in the default directory must remain intact and in their original
+# location.
+#
+# To set custom configurations, create a new file with the name commands.conf in
+# the $SPLUNK_HOME/etc/system/local/ directory. Then add the specific settings
+# that you want to customize to the local configuration file.
+# For examples, see commands.conf.example.  You must restart the Splunk platform 
+# to enable configurations.
+#
+# To learn more about configuration files (including file precedence) see the
 # documentation located at
 # http://docs.splunk.com/Documentation/Splunk/latest/Admin/Aboutconfigurationfiles
-
+#
+############################################################################
 # GLOBAL SETTINGS
+############################################################################
 # Use the [default] stanza to define any global settings.
 #   * You can also define global settings outside of any stanza, at the top of
 #     the file.
 #   * Each conf file should have at most one default stanza. If there are
-#     multiple default stanzas, attributes are combined. In the case of
-#     multiple definitions of the same attribute, the last definition in the
+#     multiple default stanzas, settings are combined. In the case of
+#     multiple definitions of the same setting, the last definition in the
 #     file wins.
-#   * If an attribute is defined at both the global level and in a specific
+#   * If a setting is defined at both the global level and in a specific
 #     stanza, the value in the specific stanza takes precedence.
 
-
 [<STANZA_NAME>]
-* Each stanza represents a search command; the command is the stanza name.
+* Each stanza represents a search command. The command name is the stanza name.
 * The stanza name invokes the command in the search language.
-* Set the following attributes/values for the command.  Otherwise, Splunk uses
-  the defaults.
-* If the filename attribute is not specified, Splunk searches for an
-  external program by appending extensions (e.g. ".py", ".pl") to the
-  stanza name.
-* If chunked = true, in addition to ".py" and ".pl" as above, Splunk
-  searches using the extensions ".exe", ".bat", ".cmd", ".sh", ".js",
-  and no extension (to find extensionless binaries).
-* See the filename attribute for more information about how Splunk
-  searches for external programs.
+* Specify the following settings/values for the command.  Otherwise, the 
+  default values are used.
+* If the 'filename' setting is not specified, an external program is searched for 
+  by appending extensions (e.g. ".py", ".pl") to the stanza name.
+* If chunked = true, in addition to the extensions ".py" and ".pl" as above, 
+  the extensions ".exe", ".bat", ".cmd", ".sh", ".js", as well as
+  no extension (to find binaries without extensions), are searched for.
+* See the 'filename' setting for more information about how external programs
+  are searched for.
 
 type = <string>
-* Type of script: python, perl
-* Defaults to python.
+* The type of script. Valid values are python and perl.
+* Default: python
+
+python.version = {default|python|python2|python3}
+* For Python scripts only, selects which Python version to use.
+* Set to either "default" or "python" to use the system-wide default Python
+  version.
+* Optional.
+* Default: Not set; uses the system-wide Python version.
 
 filename = <string>
-* Optionally specify the program to be executed when the search command is used.
-* Splunk looks for the given filename in the app's bin directory.
-* The filename attribute can not reference any file outside of the app's bin directory.
-* If the filename ends in ".py", Splunk's python interpreter is used
+* Optionally specify the program to run when the search command is used.
+* The 'filename' is looked for in the `bin` directory for the app.
+* The 'filename' setting cannot reference any file outside of the `bin` directory  
+  for the app.
+* If the 'filename' ends in ".py", the python interpreter is used
   to invoke the external script.
-* If chunked = true, Splunk looks for the given filename in
-  $SPLUNK_HOME/etc/apps/MY_APP/<PLATFORM>/bin before searching
-  $SPLUNK_HOME/etc/apps/MY_APP/bin, where <PLATFORM> is one of
-  "linux_x86_64", "linux_x86", "windows_x86_64", "windows_x86",
-  "darwin_x86_64" (depending on the platform on which Splunk is
-  running on).
+* If chunked = true, the 'filename' is looked for first in the
+  $SPLUNK_HOME/etc/apps/MY_APP/<PLATFORM>/bin directory before searching the
+  $SPLUNK_HOME/etc/apps/MY_APP/bin directory. The <PLATFORM> is one of the following:
+  "linux_x86_64"
+  "linux_x86"
+  "windows_x86_64"
+  "windows_x86"
+  "darwin_x86_64" 
+  Depending on the platform that the Splunk software is running.
 * If chunked = true and if a path pointer file (*.path) is specified,
-  the contents of the file are read and the result is used as the
-  command to be run. Environment variables in the path pointer
-  file are substituted. Path pointer files can be used to reference
-  system binaries (e.g. /usr/bin/python).
+  the contents of the path pointer file are read and the result is used as the
+  command to run. Environment variables in the path pointer
+  file are substituted. You can use path pointer files to reference
+  system binaries. For example: /usr/bin/python.
 
 command.arg.<N> = <string>
 * Additional command-line arguments to use when invoking this
-  program. Environment variables will be substituted (e.g. $SPLUNK_HOME).
+  program. Environment variables, such as $SPLUNK_HOME, are substituted.
 * Only available if chunked = true.
 
 local = [true|false]
-* If true, specifies that the command should be run on the search head only
-* Defaults to false
+* If set to "true", specifies that the command should be run on the search head only.
+* Default: false
 
 perf_warn_limit = <integer>
-* Issue a performance warning message if more than this many input events are
+* Issue a performance warning message if more than the value specified for input events are
   passed to this external command (0 = never)
-* Defaults to 0 (disabled)
+* Default: 0 (disabled)
 
 streaming = [true|false]
 * Specify whether the command is streamable.
-* Defaults to false.
+* Default: false
 
 maxinputs = <integer>
-* Maximum number of events that can be passed to the command for each
+* The maximum number of events that can be passed to the command for each
   invocation.
-* This limit cannot exceed the value of maxresultrows in limits.conf.
-* 0 for no limit.
-* Defaults to 50000.
+* This limit cannot exceed the value of the 'maxresultrows' setting in limits.conf file.
+* Specify 0 for no limit.
+* Default: 50000
 
 passauth = [true|false]
-* If set to true, splunkd passes several authentication-related facts
+* If set to "true", splunkd passes several authentication-related facts
   at the start of input, as part of the header (see enableheader).
-* The following headers are sent
+* The following headers are sent:
   * authString: psuedo-xml string that resembles
       <auth><userId>username</userId><username>username</username><authToken>auth_token</authToken></auth>
-    where the username is passed twice, and the authToken may be used
+    where the username is passed twice, and the authToken can be used
     to contact splunkd during the script run.
-  * sessionKey: the session key again.
+  * sessionKey: the session key again
   * owner: the user portion of the search context
   * namespace: the app portion of the search context
-* Requires enableheader = true; if enableheader = false, this flag will
-  be treated as false as well.
-* Defaults to false.
-* If chunked = true, this attribute is ignored. An authentication
+* Requires enableheader = true. If enableheader = false, this flag is
+  be treated as "false" as well.
+* Default: false
+* If chunked = true, this setting is ignored. An authentication
   token is always passed to commands using the chunked custom search
   command protocol.
 
 run_in_preview = [true|false]
 * Specify whether to run this command if generating results just for preview
-  rather than final output.
-* Defaults to true
+  rather than for final output.
+* Default: true
 
 enableheader = [true|false]
 * Indicate whether or not your script is expecting header information or not.
-* Currently, the only thing in the header information is an auth token.
-* If set to true it will expect as input a head section + '\n' then the csv input
-* NOTE: Should be set to true if you use splunk.Intersplunk
-* Defaults to true.
+* Currently, the only thing in the header information is an authentication token.
+* If set to "true" it will expect as input a head section + '\n' then the CSV input
+* NOTE: Should be set to "true" if you use splunk.Intersplunk
+* Default: true
 
 retainsevents = [true|false]
 * Specify whether the command retains events (the way the sort/dedup/cluster
   commands do) or whether it transforms them (the way the stats command does).
-* Defaults to false.
+* Default: false
 
 generating = [true|false]
 * Specify whether your command generates new events. If no events are passed to
   the command, will it generate events?
-* Defaults to false.
+* Default: false
 
 generates_timeorder = [true|false]
-* If generating = true, does command generate events in descending time order
-  (latest first)
-* Defaults to false.
+* If generating = true, does the command generate events in descending time order
+  (latest first).
+* Default: false
 
 overrides_timeorder = [true|false]
-* If generating = false and streaming=true, does command change the order of
+* If generating = false and streaming=true, does the command change the order of
   events with respect to time?
-* Defaults to false.
+* Default: false
 
 requires_preop = [true|false]
-* Specify whether the command sequence specified by the 'streaming_preop' key
-  is required for proper execution or is it an optimization only
-* Default is false (streaming_preop not required)
+* Specify whether the command sequence specified by the 'streaming_preop' setting
+  is required for proper execution or is it an optimization only.
+* Default: false (streaming_preop not required)
 
 streaming_preop = <string>
 * A string that denotes the requested pre-streaming search string.
 
 required_fields = <string>
-* A comma separated list of fields that this command may use.
+* A comma separated list of fields that this command can use.
 * Informs previous commands that they should retain/extract these fields if
   possible.  No error is generated if a field specified is missing.
-* Defaults to '*'
+  The default is all fields.
+* Default: '*'
 
 supports_multivalues = [true|false]
-* Specify whether the command supports multivalues.
-* If true, multivalues will be treated as python lists of strings, instead of a
+* Specify whether the command supports multiple values.
+* If set to "true", multivalues are treated as python lists of strings, instead of a
   flat string (when using Intersplunk to interpret stdin/stdout).
-* If the list only contains one element, the value of that element will be
+* If the list only contains one element, the value of that element is
   returned, rather than a list
   (for example, isinstance(val, basestring) == True).
 
@@ -164,60 +188,61 @@ supports_getinfo = [true|false]
   (first argument invoked == __GETINFO__ or __EXECUTE__).
 
 supports_rawargs = [true|false]
-* Specifies whether the command supports raw arguments being passed to it or if
-  it prefers parsed arguments (where quotes are stripped).
-* If unspecified, the default is false
+* If set to "true", specifies that the command supports raw arguments being passed to it.
+* If set to "fasle", specifies that the command prefers parsed arguments, 
+  where quotes are stripped.
+* Default: false
 
 undo_scheduler_escaping = [true|false]
 * Specifies whether the commands raw arguments need to be unesacped.
 * This is perticularly applies to the commands being invoked by the scheduler.
-* This applies only if the command supports raw arguments(supports_rawargs).
-* If unspecified, the default is false
+* This applies only if the command supports raw arguments, where supports_rawargs=true).
+* Default: false
 
 requires_srinfo = [true|false]
 * Specifies if the command requires information stored in SearchResultsInfo.
-* If true, requires that enableheader be set to true, and the full
+* If set to "true", requires that 'enableheader' is set to "true", and the full
   pathname of the info file (a csv file) will be emitted in the header under
   the key 'infoPath'
-* If unspecified, the default is false
+* Default: false
 
 
 needs_empty_results = [true|false]
 * Specifies whether or not this search command needs to be called with
-  intermediate empty search results
-* If unspecified, the default is true
+  intermediate empty search results.
+* Default: true
 
 changes_colorder = [true|false]
 * Specify whether the script output should be used to change the column
   ordering of the fields.
-* Default is true
+* Default: true
 
 outputheader = <true/false>
-* If set to true, output of script should be
-  a header section + blank line + csv output
-* If false, script output should be pure csv only
-* Default is false
+* If set to "true", output of script should be
+  a header section + blank line + csv output.
+* If set to "false", the script output should be pure comma separated values only.
+* Default: false
 
 clear_required_fields = [true|false]
-* If true, required_fields represents the *only* fields required.
-* If false, required_fields are additive to any fields that may be required by
+* If set to "true", required_fields represents the *only* fields required.
+* If set to "false", required_fields are additive to any fields that might be required by
   subsequent commands.
-* In most cases, false is appropriate for streaming commands and true for
-  reporting commands
-* Default is false
+* In most cases, "false" is appropriate for streaming commands and "true" for
+  transforming commands.
+* Default: false
 
 stderr_dest = [log|message|none]
-* What do to with the stderr output from the script
-* 'log' means to write the output to the job's search.log.
+*  Specifies what do to with the stderr output from the script.
+* 'log' means to write the output to the job search.log.
 * 'message' means to write each line as an search info message.  The message
   level can be set to adding that level (in ALL CAPS) to the start of the
   line, e.g. "WARN my warning message."
-* 'none' means to discard the stderr output
-* Defaults to log
+* 'none' means to discard the stderr output.
+* Default: log
 
 is_order_sensitive = [true|false]
-* Specify whether the command requires ordered input.
-* Defaults to false.
+* Set to "true" if the command requires the input to be in order.
+* Default: false
 
 is_risky = [true|false]
 * Searches using Splunk Web are flagged to warn users when they
@@ -226,31 +251,32 @@ is_risky = [true|false]
   a URL that loads a search that contains risky commands. This warning
   does not appear when users create ad hoc searches.
 * This flag is used to determine whether the command is risky.
-* Defaults to false.
-* - Specific commands that ship with the product have their own defaults
+* NOTE: Specific commands that ship with the product have their own
+  default setting for 'is_risky'.
+* Default: false
 
 chunked = [true|false]
-* If true, this command supports the new "chunked" custom
+* If set to "true", this command supports the new "chunked" custom
   search command protocol.
-* If true, the only other commands.conf attributes supported are
-  is_risky, maxwait, maxchunksize, filename, command.arg.<N>, and
-  run_in_preview.
-* If false, this command uses the legacy custom search command
+* If set to "true", the only other commands.conf settings supported are
+  'is_risky', 'maxwait', 'maxchunksize', 'filename', 'command.arg.<N>', and
+  'run_in_preview'.
+* If set to "false", this command uses the legacy custom search command
   protocol supported by Intersplunk.py.
-* Default is false
+* Default: false
 
 maxwait = <integer>
 * Only available if chunked = true.
-* Not supported in Windows.
-* The value of maxwait is the maximum number of seconds the custom
-  search command can pause before producing output.
-* If set to 0, the command can pause forever.
-* Default is 0
+* Not supported on Windows.
+* The maximum amount of time, in seconds, that the custom search command can 
+  pause before producing output.
+* If set to "0", the command can pause forever.
+* Default: 0
 
 maxchunksize = <integer>
 * Only available if chunked = true.
-* The value of maxchunksize is maximum size chunk (size of metadata
-  plus size of body) the external command may produce. If the command
+* The maximum chunk size, including the size of metadata plus the size of body,
+  that the external command can produce. If the command
   tries to produce a larger chunk, the command is terminated.
-* If set to 0, the command may send any size chunk.
-* Default is 0
+* If set to "0", the command can send any size chunk.
+* Default: 0

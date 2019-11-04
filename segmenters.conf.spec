@@ -1,12 +1,20 @@
-#   Version 7.3.2
+#   Version 8.0.0
 #
-# This file contains possible attribute/value pairs for configuring
-# segmentation of events in segementers.conf.
+# This file contains possible setting you can use to configure segmentation of events.
 #
-# There is a default segmenters.conf in $SPLUNK_HOME/etc/system/default. To set
+# There is a segmenters.conf in $SPLUNK_HOME/etc/system/default. To set
 # custom configurations, place a segmenters.conf in
 # $SPLUNK_HOME/etc/system/local/.  For examples, see segmenters.conf.example.
-# You must restart Splunk to enable configurations.
+# You must restart Splunk software to enable configurations.
+#
+# NOTE: Keep in mind the following limitations when working with event segmentation:
+#       1) The segmenters.conf file must not have conflicting definitions for different installed
+#          apps. This means that definitions within a segmenters.conf that is installed in one 
+#          app cannot directly conflict with definitions within a segmenters.conf that is installed
+#          in another app.
+#       2) Definitions within segmenters.conf must match between search heads and search peers.  
+#       3) Definitions in segmenters.conf must be visible in the global context, either within a 
+#          [default] stanza, or outside of any stanza.
 #
 # To learn more about configuration files (including precedence) please see the
 # documentation located at

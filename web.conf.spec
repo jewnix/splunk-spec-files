@@ -1,4 +1,4 @@
-#   Version 8.0.0
+#   Version 7.3.3
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -42,14 +42,21 @@ appServerPorts = <positive integer>[, <positive integer>, <positive integer> ...
 * Port number(s) for the python-based application server to listen on.
   This port is bound only on the loopback interface -- it is not
   exposed to the network at large.
+* If set to "0", prevents the application server from
+  being run from splunkd. Instead, Splunk Web starts as
+  a separate python-based service which directly listens to the
+  'httpport'. This is how Splunk 6.1.X and earlier behaved.
 * Generally, you should only set one port number here. For most
   deployments a single application server won't be a performance
   bottleneck. However you can provide a comma-separated list of
   port numbers here and splunkd will start a load-balanced
   application server on each one.
-* At one time, setting this to zero indicated that the web service
-  should be run in a legacy mode as a separate service, but as of
-  Splunk 8.0 this is no longer supported.
+* Set this setting to a non-zero value unless you experience
+  compatibility problems. The new separate application server configuration
+  is faster and supports more configuration options. Also, setting this to
+  "0" can cause problems with new functionality, such as using the
+  Search Head Clustering feature. See the [shclustering] stanza 
+  in server.conf for more information.
 * Default: 8065
 
 splunkdConnectionTimeout = <integer>
@@ -167,14 +174,22 @@ sslVersions = <comma-separated list>
   selects all versions tls1.0 or newer
 * If you prefix a version with "-", it is removed from the list.
 * SSLv2 is always disabled; "-ssl2" is accepted in the version list, but does nothing.
+* When 'appServerPorts'="0" only supported values are  "all", "ssl3, tls"
+  and "tls"
 * When configured in FIPS mode, "ssl3" is always disabled regardless
   of this configuration.
+* NOTE: this setting only takes effect when 'appServerPorts' is set to a
+  non-zero value.
 * For the default, see $SPLUNK_HOME/etc/system/default/web.conf.
 
 supportSSLV3Only = <boolean>
-* This setting is DEPRECATED. SSLv2 is now always disabled.
+* When 'appServerPorts' is set to a non-zero value (the default mode),
+  this setting is DEPRECATED. SSLv2 is now always disabled.
   The exact set of SSL versions allowed is now configurable via the
   'sslVersions' setting above.
+* When 'appServerPorts' is set to 0, this controls whether SSLv2
+  connections are disallowed.
+* Default (when 'appServerPorts' is set to 0): false
 
 cipherSuite = <cipher suite string>
 * If set, uses the specified cipher string for the HTTP server.
@@ -335,22 +350,25 @@ js_no_cache = <boolean>
 * Default: false
 
 cacheBytesLimit = <integer>
-* Splunkd can keep a small cache of static web assets in memory.
-  When the total size of the objects in cache grows larger than this setting,
+* When appServerPorts is set to a non-zero value, splunkd can keep a
+  small cache of static assets in memory. 
+* When the total size of the objects in cache grows larger than this setting, 
   in bytes, splunkd begins ageing entries out of the cache.
 * If set to zero, disables the cache.
 * Default: 4194304
 
 cacheEntriesLimit = <integer>
-* Splunkd can keep a small cache of static web assets in memory.
-  When the number of the objects in cache grows larger than this,
+* When appServerPorts is set to a non-zero value, splunkd can keep a
+  small cache of static assets in memory.  
+* When the number of the objects in cache grows larger than this, 
   splunkd begins ageing entries out of the cache.
 * If set to zero, disables the cache.
 * Default: 16384
 
 staticCompressionLevel = <integer>
-* Splunkd can keep a small cache of static web assets in memory.
-  Splunkd stores these assets in a compressed format, and the assets can
+* When appServerPorts is set to a non-zero value, splunkd can keep a
+  small cache of static assets in memory.  
+* Splunkd stores these assets in a compressed format, and the assets can
   usually be served directly to the web browser in compressed format.
 * This level can be a number between 1 and 9.  Lower numbers use less
   CPU time to compress objects, but the resulting compressed objects
@@ -369,6 +387,8 @@ verifyCookiesWorkDuringLogin = <boolean>
 * Normally, the login page makes an attempt to see if cookies work
   properly in the user's browser before allowing them to log in. 
 * If you set this to "false", this check is skipped.
+* This setting only takes effect when 'appServerPorts' is set to a
+  non-zero value.
 * Do not set to "false" in normal operations.
 * Default: true  
 
@@ -473,11 +493,11 @@ dashboard_html_allow_inline_styles = <boolean>
 
 dashboard_html_allow_embeddable_content = <boolean>
 * Whether or not to allow <embed> and <iframe> HTML elements in dashboards.
-* If set to "true", <embed> and <iframe> HTML elements in dashboards will not be removed 
+* If set to the default value of "true", <embed> and <iframe> HTML elements in dashboards will not be removed 
   and can lead to a potential security risk.
-* If set to the default value of "false", <embed> and <iframe> HTML elements will be stripped
+* If set to "false", <embed> and <iframe> HTML elements will be stripped
   from the dashboard HTML.
-* Default: false
+* Default: true
 
 dashboard_html_wrap_embed = <boolean>
 * Whether or not to wrap <embed> HTML elements in dashboards with an <iframe>.
@@ -485,7 +505,7 @@ dashboard_html_wrap_embed = <boolean>
   a potential security risk.
 * If set to "true", <embed> HTML elements will be wrapped by an <iframe sandbox> element to help
   mitigate potential security risks.
-* Default: true
+* Default: false
 
 dashboard_html_allow_iframes = <boolean>
 * Whether or not to allow iframes from HTML elements in dashboards.
@@ -577,7 +597,7 @@ remoteUser = <http_header_string>
 * In practice, however, the proxy adds its headers last, which causes them 
   to take precedence, making the problem moot.
 * See also the 'remoteUserMatchExact' setting which can enforce more exact
-  header matching.
+  header matching when running with 'appServerPorts' enabled.
 * Default: 'REMOTE_USER'
 
 remoteGroups = <http_header_string>
@@ -600,21 +620,25 @@ remoteGroupsQuoted = <boolean>
 remoteUserMatchExact = [0 | 1]
 * Whether or not to consider dashes and underscores in a remoteUser header 
   to be distinct.
+* This setting only takes effect when 'appServerPorts' is set to a
+  non-zero value.
 * When set to "1", considers dashes and underscores distinct (so
   "Remote-User" and "Remote_User" are considered different headers.)
 * When set to 0, dashes and underscores are not considered to be distinct, 
   to retain compatibility with older versions of Splunk software. 
-* Set to 1 when you set up SSO
+* Set to 1 when you set up SSO with 'appServerPorts' enabled.
 * Default: 0
 
 remoteGroupsMatchExact = [0 | 1]
 * Whether or not to consider dashes and underscores in a remoteGroup header
   to be distinct.
+* This setting only takes effect when 'appServerPorts' is set to a
+  non-zero value.
 * When set to 1, considers dashes and underscores distinct (so 
   "Remote-Groups" and "Remote_Groups" are considered different headers)
 * When set to 0, dashes and underscores are not considered to be distinct,
   to retain compatibility with older versions of Splunk software.
-* Set to 1 when you set up SSO
+* Set to 1 when you set up SSO with 'appServerPorts' enabled.
 * Default: 0
 
 SSOMode = [permissive | strict]
@@ -627,18 +651,21 @@ SSOMode = [permissive | strict]
   authentication.
 * Default: strict
 
-trustedIP = <ip_addresses>
-* IP addresses of the authenticating proxy (trusted IP).
+trustedIP = <ip_address>
+* The IP address of the authenticating proxy (trusted IP).
 * Splunk Web verifies it is receiving data from the proxy host for all
   SSO requests.
 * Set to a valid IP address to enable SSO.
-* This setting can accept a list of IPs or networks, using the same format
-  as the 'acceptFrom' setting.
+* If 'appServerPorts' is set to a non-zero value, this setting can accept a
+  richer set of configurations, using the same format as the 'acceptFrom'
+  setting.
 * Default: not set; the normal value is the loopback address (127.0.0.1).
 
 allowSsoWithoutChangingServerConf = [0 | 1]
 * Whether or not to allow SSO without setting the 'trustedIP' setting in
   server.conf as well as in web.conf.
+* This setting only takes effect when 'appServerPorts' is set to a
+  non-zero value.
 * If set to 1, enables web-based SSO without a 'trustedIP' setting configured
   in server.conf.
 * Default: 0
@@ -764,7 +791,7 @@ request.show_tracebacks = <boolean>
   exceptions.
 * Default: true
 
-engine.autoreload.on = <boolean>
+engine.autoreload_on = <boolean>
 * Whether or not the appserver will auto-restart if it detects a python file
   has changed.
 * Default: false
@@ -818,6 +845,8 @@ tools.sessions.forceSecure = <boolean>
   connects to Splunk over HTTP, then setting this to "true" forces the
   session cookie being sent back to the client over HTTPS to have the
   secure bit set.
+* This setting only takes effect when 'appServerPorts' is set to a
+  non-zero value.
 * Default: false
 
 response.timeout = <integer>
@@ -857,13 +886,6 @@ tools.encode.encoding = <codec>
   receive some other character encoding (Latin-1 iso-8859-1, etc)
 * CAUTION: Change this setting at your own risk.
 * Default: utf-8
-
-tools.encode.text_only = <boolean>
-# Controls CherryPy's ability to encode content type. If set to True, CherryPy will only encode
-# text (text/*) content. As of the Python 3 conversion we are defaulting to False as the current
-# controller responses are in Unicode.
-# WARNING: Change this at your own risk.
-* Default: False
 
 tools.proxy.on = <boolean>
 * Whether or not the Splunk platform instance is behind a reverse proxy server.
@@ -928,6 +950,8 @@ job_max_polling_interval = <integer>
 acceptFrom = <network_acl> ...
 
 * Lists a set of networks or addresses from which to accept connections.
+* This setting only takes effect when 'appServerPorts' is set to a
+  non-zero value.
 * Separate multiple rules with commas or spaces.
 * Each rule can be in one of the following formats:
     1. A single IPv4 or IPv6 address (examples: "10.1.2.3", "fe80::4a3")
@@ -945,6 +969,8 @@ acceptFrom = <network_acl> ...
 
 maxThreads = <integer>
 * The number of threads that can be used for active HTTP transactions.
+* This setting only takes effect when appServerPorts is set to a
+  non-zero value.
 * This value can be limited to constrain resource usage.
 * If set to 0, a limit is automatically picked based on 
   estimated server capacity.
@@ -953,6 +979,8 @@ maxThreads = <integer>
 
 maxSockets = <integer>
 * The number of simultaneous HTTP connections that Splunk Web can accept.
+* This setting only takes effect when appServerPorts is set to a
+  non-zero value.
 * This value can be limited to constrain resource usage.
 * If set to 0, a limit is automatically picked based on estimated 
   server capacity.
@@ -977,6 +1005,8 @@ busyKeepAliveIdleTimeout = <integer>
 forceHttp10 = auto|never|always
 * How the HTTP server deals with HTTP/1.0 support for incoming
   clients.
+* This setting only takes effect when 'appServerPorts' is set to a
+  non-zero value.
 * When set to "always", the REST HTTP server does not use some
   HTTP 1.1 features such as persistent connections or chunked
   transfer encoding.
@@ -990,6 +1020,8 @@ forceHttp10 = auto|never|always
 crossOriginSharingPolicy = <origin_acl> ...
 * A list of HTTP Origins for which to return Access-Control-Allow-* 
   (CORS) headers.
+* This setting only takes effect when 'appServerPorts' is set to a
+  non-zero value.
 * These headers tell browsers that Splunk Web trusts web applications
   at those sites to make requests to the REST interface.
 * The origin is passed as a URL without a path component (for example
@@ -1009,13 +1041,19 @@ crossOriginSharingPolicy = <origin_acl> ...
 allowSslCompression = <boolean>
 * Whether or not the server lets clients negotiate SSL-layer data
   compression.
+* This setting only takes effect when 'appServerPorts' is set
+  to a non-zero value. When 'appServerPorts' is zero or not set, this setting
+  is "true".
 * If set to "true", the server lets clients negotiate SSL-layer
   data compression.
 * The HTTP layer has its own compression layer which is usually sufficient.
-* Default: false
+* Default (if 'appServerPorts' is set and not 0): false
+* Default (if 'appServerPorts' is 0 or not set): true
 
 allowSslRenegotiation = <boolean>
 * Whether or not the server lets clients renegotiate SSL connections.
+* This setting only takes effect when 'appServerPorts' is set to a
+  non-zero value.
 * In the SSL protocol, a client may request renegotiation of the connection
   settings from time to time.
 * Setting this to "false" causes the server to reject all renegotiation
@@ -1027,6 +1065,8 @@ allowSslRenegotiation = <boolean>
 sendStrictTransportSecurityHeader = <boolean>
 * Whether or not the REST interface sends a "Strict-Transport-Security"
   header with all responses to requests made over SSL.
+* This setting only takes effect when 'appServerPorts' is set to a
+  non-zero value.
 * If set to "true", the REST interface sends a "Strict-Transport-Security"
   header with all responses to requests made over SSL.
 * This can help avoid a client being tricked later by a Man-In-The-Middle
@@ -1039,6 +1079,8 @@ sendStrictTransportSecurityHeader = <boolean>
 
 dedicatedIoThreads = <integer>
 * The number of dedicated threads to use for HTTP input/output operations.
+* This setting only takes effect when 'appServerPorts' is set to a
+  non-zero value.
 * If set to zero, HTTP I/O is performed in the same thread
   that accepted the TCP connection.
 * If set set to a non-zero value, separate threads run
@@ -1049,6 +1091,8 @@ dedicatedIoThreads = <integer>
 
 replyHeader.<name> = <string>
 * Adds a static header to all HTTP responses that this server generates.
+* This setting only takes effect when 'appServerPorts' is set to a
+  non-zero value.
 * For example, "replyHeader.My-Header = value" causes Splunk Web to include
   the response header "My-Header: value" in the reply to every HTTP request
   to it.
@@ -1057,6 +1101,8 @@ replyHeader.<name> = <string>
 termsOfServiceDirectory = <directory>
 * The directory to look in for a "Terms of Service" document that each
   user must accept before logging into Splunk Web.
+* This setting only takes effect when 'appServerPorts' is set to a
+  non-zero value.
   * Inside the directory the TOS should have a filename in the format
     "<number>.html"
   * <number> is in the range 1 to 18446744073709551615. 
@@ -1076,19 +1122,11 @@ termsOfServiceDirectory = <directory>
 appServerProcessShutdownTimeout = <nonnegative integer>[smhd]
 * The amount of time splunkd waits for a Python-based application server
   process to handle outstanding or existing requests.
+* This setting only takes effect when 'appServerPorts' is set to a
+  non-zero value.
 * If a Python-based application server process "outlives" this timeout,
   splunkd forcibly terminates the process.
 * Default: '10m' (10 minutes).
-
-appServerProcessLogStderr = <boolean>
-* If set to true, messages written to the standard error stream by the
-  Python-based application server processes will be logged to splunkd.log
-  under the "UiAppServer" channel.
-* This can be useful when debugging issues when the appserver process
-  fails to start
-* However, some appserver code may print sensitive information such as
-  session ID strings to standard error so this defaults to disabled.
-* Default: false
 
 enableWebDebug = <boolean>
 * Whether or not the debug REST endpoints are accessible, for example., 
@@ -1104,15 +1142,6 @@ allowableTemplatePaths =  <directory> [, <directory>]...
 enable_risky_command_check = <boolean>
 * Whether or not checks for data-exfiltrating search commands are enabled.
 * default true
-
-enableSearchJobXslt = <boolean>
-* Whether or not the search job request accepts XML stylesheet language (XSL)
-  as input to format search results.
-* If set to "true", the search job request accepts XSL as input 
-  to format search results.
-* If set to "false", the search job request does not accept XSL as input 
-  to format search results.
-* Default: false
 
 customFavicon = <pathToMyFile, myApp:pathToMyFile, or blank for default>
 * Customizes the favicon image across the entire application. 

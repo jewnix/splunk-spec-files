@@ -1,4 +1,4 @@
-#   Version 8.0.0
+#   Version 7.3.3
 #
 # This file contains possible attribute/value pairs for creating roles in
 # authorize.conf.  You can configure roles and granular access controls by
@@ -71,10 +71,10 @@ importRoles = <semicolon-separated list>
   should import.
 * Importing other roles also imports the other aspects of that role, such as
   allowed indexes to search.
-* Default: A role imports no other roles
+* By default a role imports no other roles.
 
 grantableRoles = <semicolon-separated list>
-* A list of roles that determines which users, roles, and capabilities
+* A list of roles that determines which users, roles, and capabilities 
   that a user with a specific set of permissions can manage.
 * This setting lets you limit the scope of user, role, and capability
   management that these users can perform.
@@ -82,51 +82,53 @@ grantableRoles = <semicolon-separated list>
   'edit_roles_grantable' and 'edit_user' capabilities can do only the
   following with regards to access control management for the Splunk
   Enterprise instance:
-  * They can edit only the roles that contain capabilities that are a
-    union of the capabilities in the roles that you specify
+  * They can edit only the roles that contain capabilities that are a 
+    union of the capabilities in the roles that you specify 
     with this setting.
-  * Any new roles that they create can contain only the capabilities
+  * Any new roles that they create can contain only the capabilities 
     that are a union of these capabilities.
   * Any new roles that they create can search only the indexes that
-    have been assigned to all roles that have been specified with
+    have been assigned to all roles that have been specified with 
     this setting.
   * They can see only users who have been assigned roles that contain
     capabilities that are a union of these capabilities.
   * They can assign users only to roles whose assigned capabilities are a
     union of these capabilities.
-* For this setting to work, you must assign a user at least one role
+* For this setting to work, you must assign a user at least one role 
   that:
   * Has both the 'edit_roles_grantable' and 'edit_user' capabilities
     assigned to it, and
   * Does NOT have the 'edit_roles' capability assigned to it.
 * Example:
-  * Consider a Splunk instance where role1-role4 have the
-    following capabilities:
+  Consider a Splunk instance where roles role1-role4 have the
+  following capabilities:
+  
+  role1: cap1, cap2, cap3
+  role2: cap4, cap5, cap6
+  role3: cap1, cap6
+  role4: cap4, cap8
 
-    role1: cap1, cap2, cap3
-    role2: cap4, cap5, cap6
-    role3: cap1, cap6
-    role4: cap4, cap8
+  And users user1-user4 have been assigned the following roles:
+  user1: role1
+  user2: role2
+  user3: role3
+  user4: role4
 
-  * And user1-user4 have been assigned the following roles:
-    user1: role1
-    user2: role2
-    user3: role3
-    user4: role4
+  If you define the 'grantableRoles' setting as follows for 
+  the 'power' role:
+  
+  [role_power]
+  grantableRoles = role1;role2
 
-  * If you define the 'grantableRoles' setting as follows for
-    the 'power' role:
-
-  *      [role_power]
-  *      grantableRoles = role1;role2
-
-  * and edit the role so that the 'edit_roles_grantable'
-    capability is selected, and the 'edit_roles' capability
-    is not selected, then a user that has been assigned the 'power' role
-    can make only the following access control changes on the instance:
-    * View or edit the following users: user1, user2, user3
-    * Assign the following roles: role1, role2, role3
-    * Create roles with the following capabilities: cap1, cap2, cap3,
+  and edit the role so that the 'edit_roles_grantable' 
+  capability is selected, and the 'edit_roles' capability
+  is not selected,
+  
+  then a user that has been assigned the 'power' role can make only
+  the following access control changes on the instance:
+  * View or edit the following users: user1, user2, user3
+  * Assign the following roles: role1, role2, role3
+  * Create roles with the following capabilities: cap1, cap2, cap3,
     cap4, cap5, cap6
 * Only the 'admin' role holds the 'edit_roles_grantable' capability on
   a new Splunk Enterprise installation.
@@ -135,13 +137,13 @@ grantableRoles = <semicolon-separated list>
 * This setting does not work if you use tokens to authenticate into a
   Splunk Enterprise instance.
 * Default (if 'admin' role is edited): admin
-* Default (otherwise): No default
+* Default (otherwise): not set
 
 srchFilter = <semicolon-delimited list>
 * A list of search filters for this role.
 * To override any search filters from imported roles, set this to "*", as
   the 'admin' role does.
-* Default: Splunk software does not perform search filtering
+* By default, Splunk software does not perform search filtering.
 
 srchTimeWin = <integer>
 * Maximum time span, in seconds, of a search.
@@ -153,7 +155,7 @@ srchTimeWin = <integer>
   this role.
     * This is equivalent to not setting the 'srchTimeWin' setting at all,
       which means it can be easily overridden by an imported role.
-* Default: Searches are not limited to any specific time window
+* By default, searches are not limited to any specific time window.
 
 srchDiskQuota = <integer>
 * The maximum amount of disk space, in megabytes, that can be used by search
@@ -281,7 +283,7 @@ expiration = <relative-time-modifier>|never
 
 disabled = <boolean>
 * Disables and enables Splunk token authorization.
-* Default: true
+* Defaults to true.
 
 [capability::accelerate_datamodel]
 * Lets a user enable or disable data model acceleration.
@@ -329,13 +331,6 @@ disabled = <boolean>
 [capability::dispatch_rest_to_indexers]
 * Lets a user dispatch the REST search command to indexers.
 
-[capability::edit_authentication_extensions]
-* Lets a user change the authentication extensions through the
-  authentication endpoints.
-
-[capability::edit_bookmarks_mc]
-* Lets a user add bookmark URLs within the Monitoring Console.
-
 [capability::edit_deployment_client]
 * Lets a user edit the deployment client.
 * Lets a user edit a deployment client admin endpoint.
@@ -346,12 +341,8 @@ disabled = <boolean>
 * Lets a user change or create remote inputs that are pushed to the
   forwarders and other deployment clients.
 
-[capability::list_dist_peer]
-* Lets a user list/read peers for distributed search.
-
 [capability::edit_dist_peer]
 * Lets a user add and edit peers for distributed search.
-* Supercedes list_dist_peer also allows list/read
 
 [capability::edit_encryption_key_provider]
 * Lets a user view and edit keyprovider properties when using
@@ -549,8 +540,8 @@ disabled = <boolean>
   "enable_install_apps" setting in limits.conf.
 
 [capability::license_tab]
-* DEPRECATED.
 * Lets a user access and change the license.
+* DEPRECATED.
 * Replaced with the 'license_edit' capability.
 
 [capability::license_edit]
@@ -684,9 +675,6 @@ disabled = <boolean>
 * Lets a user schedule saved searches, create and update alerts, and
   review triggered alert information.
 
-[capability::metric_alerts]
-* Lets a user create and update the new metric alerts.
-
 [capability::search]
 * Lets a user run a search.
 
@@ -708,7 +696,7 @@ disabled = <boolean>
 * Lets a user in Splunk platform implementations that have enabled Data
   Fabric Search (DFS) functionality manage the federated search settings.
 * With the federated search settings, users with this role can add federated
-  providers to federated.conf and manage user access to those federated
+  providers to federated.conf and manage user access to those federated 
   providers through the maintenance of authentication settings.
 * The 'admin' role has this capability enabled by default.
 

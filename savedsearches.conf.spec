@@ -1,4 +1,4 @@
-#   Version 8.0.0
+#   Version 7.3.3
 #
 # This file contains possible setting/value pairs for saved search entries in the
 # savedsearches.conf file.  You can configure saved searches by creating your own
@@ -725,11 +725,9 @@ alert.severity = <integer>
 * Default: 3
 
 alert.expires = <time-specifier>
-* Sets the period of time to show the alert on the Triggered Alerts page.
-  * Use [number][time-unit] to specify a time.
-  * For example: 60s = 60 seconds, 1m = 1 minute, 1h = 60 minutes = 1 hour etc
-* This setting is only honored when 'alert.track = true' (when the "Add to
-  Triggered Alerts" action is selected for the alert in Splunk Web).
+* Sets the period of time to show the alert in the dashboard. Use [number][time-unit]
+  to specify a time.
+* For example: 60 = 60 seconds, 1m = 1 minute, 1h = 60 minutes = 1 hour etc
 * This property is valid until splunkd restarts. Restart clears the listing of
   triggered alerts.
 * Default: 24h
@@ -1018,7 +1016,7 @@ defer_scheduled_searchable_idxc = <boolean>
 federated.provider = <federated-provider-stanza>
 * Identifies the federated provider where this search has to run.
 * Select a federated provider stanza defined in your federated.conf file.
-* No default.
+* Default: no default
 
 #*******
 # Deprecated settings

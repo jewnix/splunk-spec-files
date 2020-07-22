@@ -1,4 +1,4 @@
-#   Version 8.0.0
+#   Version 7.3.3
 #
 # Forwarders require outputs.conf. Splunk instances that do not forward
 # do not use it. Outputs.conf determines how the forwarder sends data to
@@ -8,10 +8,10 @@
 # $SPLUNK_HOME/etc/system/local/. For examples of its use, see
 # outputs.conf.example.
 #
-# You must restart the Splunk software to enable configurations.
+# You must restart Splunk software to enable configurations.
 #
 # To learn more about configuration files (including precedence) see the topic
-# "About Configuration Files" in the Splunk Enterprise Admin manual.
+# "About Configuration Files" in the Splunk Documentation set.
 #
 # To learn more about forwarding, see the topic "About forwarding and
 # receiving data" in the Splunk Enterprise Forwarding manual.
@@ -47,8 +47,7 @@
 # This spec file first describes the three levels of stanzas (and any
 # settings unique to a particular level). It then describes the optional
 # settings, which you can set at any of the three levels.
-# Default: true
-# If set to 'true', prevents the logs from being forwarder to the indexing tiers.
+
 
 #----TCP Output Global Configuration -----
 # You can overwrite the global configurations specified here in the
@@ -395,14 +394,6 @@ writeTimeout = <integer>
   'writeTimeout' seconds.
 * Default: 300 seconds (5 minutes)
 
-connectionTTL = <integer>
-* The time, in seconds, for a forwarder to keep a socket connection
-  open with an existing indexer despite switching to a new indexer.
-* This setting reduces the time required for indexer switching.
-* Useful during frequent indexer switching potentially caused
-  by using the 'autoLBVolume' setting.
-* Default: 0 seconds
-
 tcpSendBufSz = <integer>
 * The size of the TCP send buffer, in bytes.
 * Only use this setting if you are a TCP/IP expert.
@@ -511,7 +502,7 @@ useSSL = <true|false|legacy>
 * Default: legacy
 
 sslPassword = <password>
-* The password associated with the Certificate Authority certificate (CAcert).
+* The password associated with the Certificate Authority certficate (CAcert).
 * The default Splunk CAcert uses the password "password".
 * No default.
 
@@ -612,6 +603,8 @@ sslVersions = <comma-separated list>
 * If you prefix a version with "-", it is removed from the list.
 * SSLv2 is always disabled; "-ssl2" is accepted in the version list, but
   does nothing.
+* When 'appServerPorts'="0" only supported values are "all", "ssl3, tls"
+  and "tls"
 * When configured in FIPS mode, "ssl3" is always disabled regardless
   of this configuration.
 * The default can vary. See the 'sslVersions' setting in
@@ -1280,12 +1273,3 @@ remote_queue.kinesis.max_queue_message_size = <integer>[KB|MB|GB]
   would otherwise result in the message exceeding the maximum message size.
 * The maximum value for this setting is 5GB.
 * Default: 10MB
-
-remote_queue.kinesis.tenantId = <string>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* Optional.
-* The ID of the tenant that owns the messages being
-  written to the remote queue.
-* If not specified, the messages do not belong to any tenant.
-* Default: not set

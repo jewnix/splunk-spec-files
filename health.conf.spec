@@ -1,4 +1,4 @@
-#   Version 8.0.0
+#   Version 7.3.3
 #
 # This file sets the default thresholds for Splunk Enterprise's built
 # in Health Report.
@@ -19,13 +19,6 @@
 # To learn more about configuration files (including precedence), see the
 # documentation located at
 # http://docs.splunk.com/Documentation/Splunk/latest/Admin/Aboutconfigurationfiles
-
-[distributed_health_reporter]
-disabled = [0|1]
-* A value of 1 disables the distributed health report on this Splunk instance.
-  When disabled, the instance does not call connected search peers to retrieve
-  health report information.
-* Default: 1 (disabled)
 
 [health_reporter]
 full_health_log_interval = <number>

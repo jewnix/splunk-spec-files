@@ -1187,6 +1187,13 @@ passAuth = <username>
   user and passes it to the script through stdin.
 * No default.
 
+python.version = {default|python|python2|python3}
+* ******* FOR SPLUNK 8.0 BACKWARDS COMPATIBILITY ONLY ********
+* In Splunk 8.0 this attribute allows you to select which Python version to use.
+* In this version of Splunk, this attribute is IGNORED as only Python 2 is supported
+  by the platform. Ignoring this attribute allows you to set flags in your apps
+  in anticipation of moving to 8.0 without causing startup warnings.
+
 queueSize = <integer>[KB|MB|GB]
 * Maximum size of the in-memory input queue.
 * Default: 500KB.
@@ -1921,14 +1928,9 @@ stats = <average;count;dev;min;max>
   statistics.
 * Default: not set (disabled).
 
-disabled = [0|1]
+disabled = <boolean>
 * Specifies whether or not the input is enabled.
-* 1 to disable the input, 0 to enable it.
-* Default: 0 (enabled).
-
-disabled = [0|1]
-* Specifies whether or not the input is enabled.
-* Set to 1 to disable the input, and 0 to enable it.
+* Set to 1 to disable the input, 0 to enable it.
 * Default: 0 (enabled).
 
 showZeroValue = [0|1]

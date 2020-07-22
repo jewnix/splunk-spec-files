@@ -703,6 +703,13 @@ coldToFrozenScript = <path to script interpreter> <path to script>
 * The script must be in $SPLUNK_HOME/bin or a subdirectory thereof.
 * No default.
 
+python.version = {default|python|python2|python3}
+* ******* FOR SPLUNK 8.0 BACKWARDS COMPATIBILITY ONLY ********
+* In Splunk 8.0 this attribute allows you to select which Python version to use.
+* In this version of Splunk, this attribute is IGNORED as only Python 2 is supported
+  by the platform. Ignoring this attribute allows you to set flags in your apps
+  in anticipation of moving to 8.0 without causing startup warnings.
+
 coldToFrozenDir = <path to frozen archive>
 * An alternative to a 'coldToFrozen' script - this setting lets you
   specify a destination path for the frozen archive.
@@ -1927,16 +1934,6 @@ rotatePeriodInSecs = <nonnegative integer>
 * Specifies period of trim operation for this volume.
 * The highest legal value is 4294967295.
 * Default: the global 'rotatePeriodInSecs' value.
-
-datatype = <event|metric>
-* Determines whether the index stores log events or metric data.
-* If set to "metric", Splunk software optimize the index to store
-  metric data which can be queried later only using the 'mstats'
-  operator as searching metric data is different from traditional
-  log events.
-* Use "metric" only for metric sourcetypes like statsd.
-* Optional.
-* Default: event
 
 remote.* = <string>
 * With remote volumes, communication between the indexer and the external

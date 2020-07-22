@@ -1,4 +1,4 @@
-#   Version 8.0.2
+#   Version 8.0.3
 #
 # This file contains possible setting/value pairs for saved search entries in the
 # savedsearches.conf file.  You can configure saved searches by creating your own
@@ -430,6 +430,13 @@ action.summary_index.<field> = <string>
   by this search.
 * You can define multiple field/value pairs for a single summary index search.
 
+action.summary_index.force_realtime_schedule = <boolean>
+* By default 'realtime_schedule' is false for a report configured for
+  summary indexing. Set this attribute to 'true' or '1' to override the
+  default behavior.
+* CAUTION: Setting this to 'true' can cause gaps in summary data as a realtime_schedule
+  search is skipped if search concurrency limits are violated.
+* Default: 0 (false)
 
 #*******
 # Settings for lookup table population parameters

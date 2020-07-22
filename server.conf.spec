@@ -1,4 +1,4 @@
-#   Version 8.0.2
+#   Version 8.0.3
 #
 ############################################################################
 # OVERVIEW
@@ -1132,6 +1132,21 @@ crossOriginSharingPolicy = <origin_acl> ...
   matching one host in a domain
 * A single "*" can also be used to match all origins
 * No default.
+
+crossOriginSharingHeaders = <string>
+* A list of the HTTP headers to which splunkd sets
+  "Access-Control-Allow-Headers" when replying to
+  Cross-Origin Resource Sharing (CORS) preflight requests.
+* The "Access-Control-Allow-Headers" header is used in response to
+  a CORS preflight request to tell browsers which HTTP headers can be
+  used during the actual request.
+* A CORS preflight request is a CORS request that checks to see if
+  the CORS protocol is understood and a server is aware of using
+  specific methods and headers.
+* This setting can take a list of acceptable HTTP headers, separated
+  by commas.
+* A single "*" can also be used to match all headers.
+* Default: Empty string.
 
 x_frame_options_sameorigin = <boolean>
 * Adds a X-Frame-Options header set to "SAMEORIGIN" to every response

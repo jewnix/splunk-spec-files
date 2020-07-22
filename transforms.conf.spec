@@ -1,4 +1,4 @@
-#   Version 8.0.2
+#   Version 8.0.3
 #
 # This file contains settings and values that you can use to configure
 # data transformations.

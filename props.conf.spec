@@ -1,4 +1,4 @@
-#   Version 8.0.2
+#   Version 8.0.3
 #
 # This file contains possible setting/value pairs for configuring Splunk
 # software's processing properties through props.conf.
@@ -724,6 +724,25 @@ STATSD-DIM-TRANSFORMS = <statsd_dim_stanza_name1>,<statsd_dim_stanza_name2>..
 * Optional for sourcetypes which have only one transforms stanza for extracting
   dimensions, and the stanza name is the same as that of sourcetype name.
 * Default: not set
+
+STATSD_EMIT_SINGLE_MEASUREMENT_FORMAT = <boolean>
+* Valid only when 'METRICS_PROTOCOL' is set to 'statsd'.
+* This setting controls the metric data point format emitted by the statsd 
+  processor. 
+* When set to true, the statsd processor produces metric data points in 
+  single-measurement format. This format allows only one metric measurement per 
+  data point, with one key-value pair for the metric name 
+  (metric_name=<metric_name>) and another key-value pair for the measurement 
+  value (_value=<numerical_value>). 
+* When set to false, the statsd processor produces metric data points in 
+  multiple-measurement format. This format allows multiple metric measurements 
+  per data point, where each metric measurement follows this syntax:   
+  metric_name:<metric_name>=<numerical_value>
+* We recommend you set this to 'true' for statsd data, because the statsd data 
+  format is single-measurement per data point. This practice enables you to use 
+  downstream transforms to edit the metric_name if necessary. Multiple-value 
+  metric data points are harder to process with downstream transforms.
+* Default: true
 
 METRIC-SCHEMA-TRANSFORMS = <metric-schema:stanza_name>[,<metric-schema:stanza_name>]...
 * A comma-separated list of metric-schema stanza names from transforms.conf

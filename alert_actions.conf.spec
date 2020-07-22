@@ -177,6 +177,10 @@ useNSSubject = [1|0]
 * Specify whether to use the namespaced subject, for example, subject.report or the
   subject.
 
+escapeCSVNewline = <boolean>
+* Whether to escape newlines as "\r\n" or "\n" or not in emailed csv files.
+* Default: true
+
 footer.text = <string>
 * Specify an alternate email footer.
 * Default: "If you believe you've received this email in error,

@@ -1549,6 +1549,17 @@ maxvalues = <integer>
 * Default: 1000
 
 
+[dbinspect]
+
+maxresultrows = <integer>
+* The maximum number of result rows that the dbinspect command can fetch
+  at one time.
+* A smaller value uses less search head memory in scenarios with large
+  number of buckets. However, setting the value too small decreases
+  search performance.
+* Note: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: 50000
+
 [discretize]
 
 * This stanza contains the settings for the bin command.

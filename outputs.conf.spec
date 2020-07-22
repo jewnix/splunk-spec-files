@@ -393,6 +393,14 @@ writeTimeout = <integer>
   'writeTimeout' seconds.
 * Default: 300 seconds (5 minutes)
 
+connectionTTL = <integer>
+* The time, in seconds, for a forwarder to keep a socket connection
+  open with an existing indexer despite switching to a new indexer.
+* This setting reduces the time required for indexer switching.
+* Useful during frequent indexer switching potentially caused
+  by using the 'autoLBVolume' setting.
+* Default: 0 seconds
+
 tcpSendBufSz = <integer>
 * The size of the TCP send buffer, in bytes.
 * Only use this setting if you are a TCP/IP expert.

@@ -1,4 +1,4 @@
-#   Version 8.0.1
+#   Version 8.0.2
 #
 # This file contains possible settings and values for configuring global
 # saved search actions in the alert_actions.conf file.  Saved searches are configured
@@ -185,6 +185,10 @@ useNSSubject = [1|0]
 * Specify whether to use the namespaced subject, for example, subject.report or the
   subject.
 * Default: 0
+
+escapeCSVNewline = <boolean>
+* Whether to escape newlines as "\r\n" or "\n" or not in emailed csv files.
+* Default: true
 
 footer.text = <string>
 * Specify an alternate email footer.

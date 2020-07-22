@@ -1,4 +1,4 @@
-#   Version 8.0.1
+#   Version 8.0.2
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.

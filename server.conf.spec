@@ -1,4 +1,4 @@
-#   Version 8.0.1
+#   Version 8.0.2
 #
 ############################################################################
 # OVERVIEW
@@ -446,8 +446,6 @@ sslCommonNameToCheck = <commonName1>, <commonName2>, ...
   splunkd limits most outbound HTTPS connections to hosts which
   use a certificate with one of the listed common names.
 * The most important scenario is distributed search.
-* This feature does not work with the deployment server and client
-  communication over SSL.
 * Optional.
 * No default (no common name checking.)
 
@@ -467,8 +465,6 @@ sslAltNameToCheck = <alternateName1>, <alternateName2>, ...
 * Accepts a comma-separated list of Subject Alternate Names to
   consider as valid.
 * Items in this list are never validated against the SSL Common Name.
-* This feature does not work with the deployment server and client
-  communication over SSL.
 * Optional.
 * No default (no alternate name checking.)
 
@@ -4181,14 +4177,14 @@ dbPath = <path>
 * Default: $SPLUNK_DB/kvstore
 
 oplogSize = <integer>
-* The size of the replication operation log, in MB, for environments
+* The size of the replication operation log, in megabytes, for environments
   with search head clustering or search head pooling.
   In a standalone environment, 20% of this size is used.
 * After the KV Store has created the oplog for the first time, changing this
   setting does NOT affect the size of the oplog. A full backup and restart
   of the KV Store is required.
 * Do not change this setting without first consulting with Splunk Support.
-* Default: 1000MB (1GB)
+* Default: 1000 (1GB)
 
 replicationWriteTimeout = <integer>
 * The time to wait, in seconds, for replication to complete while saving KV
@@ -4196,6 +4192,16 @@ replicationWriteTimeout = <integer>
 * Used for replication environments (search head clustering or search
   head pooling).
 * Default: 1800 (30 minutes)
+
+clientConnectionTimeout = <positive integer>
+* The time, in seconds, to wait while attempting a connection to the KV Store 
+  before the attempt times out. 
+* Default: 10
+
+clientSocketTimeout = <positive integer>
+* The time, in seconds, to wait while attempting to send or receive on a 
+  socket before the attempt times out. 
+* Default: 300 (5 minutes)
 
 caCertFile = <path>
 * DEPRECATED; use '[sslConfig]/sslRootCAPath' instead.

@@ -1,4 +1,4 @@
-#   Version 8.0.1
+#   Version 8.0.2
 #
 ############################################################################
 # OVERVIEW
@@ -1997,16 +1997,6 @@ rotatePeriodInSecs = <nonnegative integer>
 * Specifies period of trim operation for this volume.
 * The highest legal value is 4294967295.
 * Default: The global 'rotatePeriodInSecs' value
-
-datatype = <event|metric>
-* Determines whether the index stores log events or metric data.
-* If set to "metric", Splunk software optimize the index to store
-  metric data which can be queried later only using the 'mstats'
-  operator as searching metric data is different from traditional
-  log events.
-* Use "metric" only for metric sourcetypes like statsd.
-* Optional.
-* Default: event
 
 remote.* = <string>
 * With remote volumes, communication between the indexer and the external

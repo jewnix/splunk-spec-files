@@ -1,4 +1,4 @@
-#   Version 8.0.1
+#   Version 8.0.2
 #
 # This file maintains the state of a given app in the Splunk platform. It can
 # also be used to customize certain aspects of an app.

@@ -1,4 +1,4 @@
-#   Version 8.0.1
+#   Version 8.0.2
 #
 # This file configures the KV Store collections for a given app in Splunk.
 #

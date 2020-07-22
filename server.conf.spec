@@ -1,22 +1,32 @@
-#   Version 7.3.6
+#   Version 8.0.0
+#
+############################################################################
+# OVERVIEW
 ############################################################################
 # This file contains settings and values to configure server options
 # in server.conf.
 #
-# There is a server.conf in $SPLUNK_HOME/etc/system/default/. To set custom
-# configurations, place a copy of server.conf in
-# $SPLUNK_HOME/etc/system/local/.
+# Each stanza controls different search commands settings.
 #
-# For examples, see server.conf.example.
+# There is a server.conf file in the $SPLUNK_HOME/etc/system/default/ directory.
+# Never change or copy the configuration files in the default directory.
+# The files in the default directory must remain intact and in their original
+# location.
 #
-# You must restart Splunk to enable configurations.
+# To set custom configurations, create a new file with the name server.conf in
+# the $SPLUNK_HOME/etc/system/local/ directory. Then add the specific settings
+# that you want to customize to the local configuration file.
+# For examples, see server.conf.example. You must restart the Splunk instance
+# to enable configuration changes.
 #
-# To learn more about configuration files (including how file precedence is
-# determined) see the Administration Manual section about configuration
-# files. Splunk documentation can be found at
-# https://docs.splunk.com/Documentation.
-
+# To learn more about configuration files (including file precedence) see the
+# documentation located at
+# http://docs.splunk.com/Documentation/Splunk/latest/Admin/Aboutconfigurationfiles
+#
+#
+############################################################################
 # GLOBAL SETTINGS
+############################################################################
 # Use the [default] stanza to define any global settings.
 #   * You can also define global settings outside of any stanza at the top
 #     of the file.
@@ -66,7 +76,7 @@ allowRemoteLogin = always|never|requireSetPassword
   does not apply to trusted SSO logins from a trustedIP.
 * When set to "always", all remote login attempts are allowed.
 * When set to "never", only local logins to splunkd are allowed. Note that this
-  still allows remote management through splunkweb if splunkweb is on
+  still allows remote management through Splunk Web if Splunk Web is on
   the same server.
 * If set to "requireSetPassword":
   * In the free license, remote login is disabled.
@@ -171,7 +181,7 @@ defaultHTTPServerCompressionLevel = <integer>
 * This number must be between 1 and 9.
 * Higher numbers produce smaller compressed results but require more CPU
   usage.
-* Default: 6 (This is appropriate for most environments).
+* Default: 6 (This is appropriate for most environments)
 
 skipHTTPCompressionAcl = <network_acl>
 * Lists a set of networks or addresses to skip data compression.
@@ -210,12 +220,12 @@ site = <site-id>
     forwarder to send data to all peer nodes across all sites.
 
 useHTTPClientCompression = true|false|on-http|on-https
-* Specifies whether gzip compression should be supported when Splunkd acts
+* Specifies whether gzip compression should be supported when splunkd acts
   as a client (including distributed searches). Note: For the content to
   be compressed, the HTTP server that the client is connecting to should
   also support compression.
 * If the connection is being made over https and
-  useClientSSLCompression=true, then setting useHTTPClientCompression=true
+  "useClientSSLCompression=true", then setting "useHTTPClientCompression=true"
   results in double compression work without much compression gain. To
   mitigate this, set this value to "on-http" (or to "true", and
   useClientSSLCompression to "false").
@@ -280,19 +290,9 @@ pipelineSetNumTrackingPeriods = <number>
   at every expiry of pipelineSetWeightsUpdatePeriod.
 * Default: 5
 
-pipelineSetChannelSetCacheSize = <integer>
-* Maximum number of inactive channels to be stored in the per-pipeline set
-  cache to reduce load in the configuration management system.
-* Currently only affects ingestion via the HTTP Event Collector.
-* Increasing this setting should reduce the number of created channels
-  reported in metrics.log under the 'channel_cache' group. If neither that
-  group nor the 'created' field exists in metrics.log, increasing this
-  value has no effect.
-* Default: 12
-
 instanceType = <string>
 * Should not be modified by users.
-* Informs components (such as the SplunkWeb Manager section) which
+* Informs components (such as the Splunk Web Manager section) which
   environment the Splunk server is running in, to allow for more
   customized behaviors.
 * Default: "download"
@@ -330,6 +330,14 @@ splunkd_stop_timeout = <positive_integer>
 * The maximum time, in seconds, that splunkd waits for a graceful shutdown to
   complete before splunkd forces a stop.
 * Default: 360 (6 minutes)
+
+python.version = {python2|python3|force_python3}
+* For Python scripts only, sets the default Python version to use.
+* Can be overridden by other 'python.version' values elsewhere, with the
+  following exception:
+* If you set to "force_python3", the system always uses Python 3, and ignores
+  'python.version' values that you set elsewhere.
+* Default: python2
 
 ############################################################################
 # Deployment Configuration details
@@ -397,9 +405,9 @@ sslVersions = <versions_list>
   list but does nothing.
 * When configured in FIPS mode, "ssl3" is always disabled regardless
   of this configuration.
-* The default can vary. See the 'sslVersions' setting in
+* Default: The default can vary (see the 'sslVersions' setting in
   the $SPLUNK_HOME/etc/system/default/server.conf file for the
-  current default.
+  current default)
 
 sslVersionsForClient = <versions_list>
 * Comma-separated list of SSL versions to support for outgoing HTTP connections
@@ -411,9 +419,9 @@ sslVersionsForClient = <versions_list>
 * NOTE: For forwarder connections, there is a separate 'sslVersions'
   setting in the outputs.conf file. For connections to SAML servers, there
   is a separate 'sslVersions' setting in the authentication.conf file.
-* The default can vary. See the 'sslVersionsForClient' setting in
+* Default: The default can vary (see the 'sslVersionsForClient' setting in
   the $SPLUNK_HOME/etc/system/default/server.conf file for the
-  current default.
+  current default)
 
 supportSSLV3Only = <boolean>
 * DEPRECATED.  SSLv2 is disabled.  The exact set of SSL versions
@@ -434,12 +442,14 @@ sslVerifyServerCert = <boolean>
 * Default: false
 
 sslCommonNameToCheck = <commonName1>, <commonName2>, ...
-* If set, and 'sslVerifyServerCert' is set to true,
+* If set, and 'sslVerifyServerCert' is set to "true",
   splunkd limits most outbound HTTPS connections to hosts which
   use a certificate with one of the listed common names.
 * The most important scenario is distributed search.
+* This feature does not work with the deployment server and client
+  communication over SSL.
 * Optional.
-* Default: No common name checking.
+* No default (no common name checking.)
 
 sslCommonNameList = <commonName1>, <commonName2>, ...
 * DEPRECATED. Use the 'sslCommonNameToCheck' setting instead.
@@ -457,8 +467,10 @@ sslAltNameToCheck = <alternateName1>, <alternateName2>, ...
 * Accepts a comma-separated list of Subject Alternate Names to
   consider as valid.
 * Items in this list are never validated against the SSL Common Name.
+* This feature does not work with the deployment server and client
+  communication over SSL.
 * Optional.
-* Default: No alternate name checking.
+* No default (no alternate name checking.)
 
 requireClientCert = <boolean>
 * Requires that any HTTPS client that connects to a splunkd
@@ -479,9 +491,9 @@ cipherSuite = <cipher suite string>
   This is used to ensure that the server does not accept connections using
   weak encryption protocols.
 * Must specify 'dhFile' to enable any Diffie-Hellman ciphers.
-* The default can vary. See the 'cipherSuite' setting in
+* Default: The default can vary (See the 'cipherSuite' setting in
   the $SPLUNK_HOME/etc/system/default/server.conf file for the
-  current default.
+  current default)
 
 ecdhCurveName = <string>
 * DEPRECATED.
@@ -506,14 +518,14 @@ ecdhCurves = <comma-separated list>
   by running this CLI command:
   $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
 * Example setting: "ecdhCurves = prime256v1,secp384r1,secp521r1"
-* The default can vary. See the 'ecdhCurves' setting in
+* Default: The default can vary (See the 'ecdhCurves' setting in
   the $SPLUNK_HOME/etc/system/default/server.conf file for the
-  current default.
+  current default)
 
 serverCert = <path>
 * The full path to the PEM (Privacy-Enhanced Mail) format server
   certificate file.
-* Certificates are auto-generated by splunkd upon starting Splunk Enterprise.
+* Certificates are auto-generated by splunkd on starting Splunk Enterprise.
 * You can replace the default certificate with your own PEM
   format file.
 * Default: $SPLUNK_HOME/etc/auth/server.pem
@@ -553,7 +565,7 @@ sslRootCAPathHonoredOnWindows = <boolean>
 * When the 'sslRootCAPath' setting is respected, the instance expects to find
   a valid PEM file with valid root certificates that are referenced by that
   path. If a valid file is not present, SSL communication fails.
-* Default: true.
+* Default: true
 
 caCertFile = <filename>
 * DEPRECATED. Use the 'sslRootCAPath' setting instead.
@@ -573,7 +585,7 @@ caPath = <path>
 * DEPRECATED. Use absolute paths for all certificate files.
 * If certificate files given by other settings in this stanza are not absolute
   paths, then they are relative to this path.
-* Default: $SPLUNK_HOME/etc/auth.
+* Default: $SPLUNK_HOME/etc/auth
 
 certCreateScript = <script name>
 * Creation script for generating certificates on startup of Splunk Enterprise.
@@ -585,7 +597,7 @@ sendStrictTransportSecurityHeader = <boolean>
   Man-In-The-Middle attack to accept a non-SSL request.
   However, this requires a commitment that no non-SSL web hosts
   ever run on this hostname on any port. For
-  example, if splunkweb is in default non-SSL mode this can break the
+  example, if Splunk Web is in default non-SSL mode this can break the
   ability of a browser to connect to it.
 * NOTE: Enable with caution.
 * Default: false
@@ -733,7 +745,7 @@ verify_search_peer_to_dfw_client_certificate = <boolean>
   'search_peer_to_dfw_common_name_list' setting.
 * The alternative names used in the search peer certificate has to be a value
   of the 'search_peer_to_dfw_alt_name_list' setting.
-* Default: false.
+* Default: false
 
 search_peer_to_dfw_common_name_list = <commonName1>, <commonName2>, ...
 * This setting is required when 'verify_search_peer_to_dfw_client_certificate'
@@ -742,7 +754,7 @@ search_peer_to_dfw_common_name_list = <commonName1>, <commonName2>, ...
   certificate.
 * If this list is empty, the DFS workers skip the common name check to the search
   peers' certificate.
-* Default: empty list (No checks for search peer certificate's common name)
+* Default: No defailt (No checks for search peer certificate's common name)
 
 search_peer_to_dfw_alt_name_list = <alternateName1>, <alternateName2>, ...
 * This setting is required when 'verify_search_peer_to_dfw_client_certificate'
@@ -752,7 +764,7 @@ search_peer_to_dfw_alt_name_list = <alternateName1>, <alternateName2>, ...
 * Items in this list are never validated against the 'search_peer_to_dfw_common_name_list'.
 * If this list is empty, the DFS workers skip the alternative name check to
   the search peers' certificate.
-* Default: empty list (No checks for search peer certificate's alternative names)
+* Default: No defailt (No checks for search peer certificate's alternative names)
 
 legacy_ca_certificate_folder = <path>
 * This is an optional security setting. It helps you provide DFS security for
@@ -1018,15 +1030,13 @@ disableDefaultPort = <boolean>
   * This is the general communication path to splunkd.  If it is disabled,
     there is no way to communicate with a running splunk instance.
   * This means many command line splunk invocations cannot function,
-    splunkweb cannot function, the REST interface cannot function, etc.
+    Splunk Web cannot function, the REST interface cannot function, etc.
   * If you choose to disable the port anyway, understand that you are
     selecting reduced Splunk functionality.
 * Default: false
 
 acceptFrom = <network_acl> ...
 * Lists a set of networks or addresses from which to accept connections.
-* This setting only takes effect when 'appServerPorts' is set to a
-  non-zero value.
 * Separate multiple rules with commas or spaces.
 * Each rule can be in one of the following formats:
     1. A single IPv4 or IPv6 address (examples: "10.1.2.3", "fe80::4a3")
@@ -1126,21 +1136,6 @@ crossOriginSharingPolicy = <origin_acl> ...
   matching one host in a domain
 * A single "*" can also be used to match all origins
 * No default.
-
-crossOriginSharingHeaders = <string>
-* A list of the HTTP headers to which splunkd sets
-  "Access-Control-Allow-Headers" when replying to
-  Cross-Origin Resource Sharing (CORS) preflight requests.
-* The "Access-Control-Allow-Headers" header is used in response to
-  a CORS preflight request to tell browsers which HTTP headers can be
-  used during the actual request.
-* A CORS preflight request is a CORS request that checks to see if
-  the CORS protocol is understood and a server is aware of using
-  specific methods and headers.
-* This setting can take a list of acceptable HTTP headers, separated
-  by commas.
-* A single "*" can also be used to match all headers.
-* Default: Empty string.
 
 x_frame_options_sameorigin = <boolean>
 * Adds a X-Frame-Options header set to "SAMEORIGIN" to every response
@@ -1246,8 +1241,6 @@ listenOnIPv6 = no|yes|only
 
 acceptFrom = <network_acl> ...
 * Lists a set of networks or addresses from which to accept connections.
-* This setting only takes effect when 'appServerPorts' is set to a
-  non-zero value.
 * Separate multiple rules with commas or spaces.
 * Each rule can be in one of the following formats:
     1. A single IPv4 or IPv6 address (examples: "10.1.2.3", "fe80::4a3")
@@ -1389,9 +1382,9 @@ sslVersions = <versions_list>
   but does nothing.
 * When configured in FIPS mode, ssl3 is always disabled regardless
   of this configuration.
-* The default can vary. See the 'sslVersions' setting in
+* Default: The default can vary (See the 'sslVersions' setting in
   the $SPLUNK_HOME/etc/system/default/server.conf file for the
-  current default.
+  current default)
 
 sslVerifyServerCert = <boolean>
 * If this is set to true, Splunk verifies that the remote server (
@@ -1440,9 +1433,9 @@ ecdhCurves = <comma separated list of ec curves>
   by executing this command:
   $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
 * e.g. ecdhCurves = prime256v1,secp384r1,secp521r1
-* The default can vary. See the 'ecdhCurves' setting in
+* Default: The default can vary (See the 'ecdhCurves' setting in
   the $SPLUNK_HOME/etc/system/default/server.conf file for the
-  current default.
+  current default)
 
 ############################################################################
 # Misc. configuration
@@ -1537,7 +1530,7 @@ cntr_3_lookback_time = [<integer>[s|m]]
 * See above for explanation and usage of the lookback counter..
 * Specifies how far into history should the size/count variation be tracked
   for counter 3.
-* Default: 900s (15 minutes).
+* Default: 900s (15 minutes)
 
 sampling_interval = [<integer>[s|m]]
 * The lookback counters described above collects the size and count
@@ -1558,13 +1551,13 @@ maxSize = [<integer>|<integer>[KB|MB|GB]]
 * If specified as an integer followed by KB, MB, or GB (for example,
   maxSize=100MB), it indicates the maximum RAM allocated for queue.
 * Default: The default is inherited from the 'maxSize' value specified
-  in the [queue] stanza.
+  in the [queue] stanza
 
 cntr_1_lookback_time = [<integer>[s|m]]
 * Same explanation as mentioned in the [queue] stanza.
 * Specifies the lookback time for the specific queue for counter 1.
 * Default: The default value is inherited from the 'cntr_1_lookback_time'
-  value that is specified in the [queue] stanza.
+  value that is specified in the [queue] stanza
 
 cntr_2_lookback_time = [<integer>[s|m]]
 * Specifies the lookback time for the specific queue for counter 2.
@@ -1823,7 +1816,7 @@ caCertFile = <path>
   Criteria mode until it has been certified by NIAP. See the "Securing
   Splunk Enterprise" manual for information on the status of Common
   Criteria certification.
-* Default: $SPLUNK_HOME/etc/auth/cacert.pem
+* Default: $SPLUNK_HOME/etc/auth/applicenseCA.pem
 
 sslVersions = <versions_list>
 * Comma-separated list of SSL versions to support.
@@ -1834,15 +1827,15 @@ sslVersions = <versions_list>
   but does nothing.
 * When configured in FIPS mode, ssl3 is always disabled regardless
   of this configuration.
-* The default can vary. See the 'sslVersions' setting in
+* Default: The default can vary (See the 'sslVersions' setting in
   the $SPLUNK_HOME/etc/system/default/server.conf file for the
-  current default.
+  current default)
 
 cipherSuite = <cipher suite string>
 * If set, uses the specified cipher string for the SSL connection.
-* The default can vary. See the 'cipherSuite' setting in
+* Default: The default can vary (See the 'cipherSuite' setting in
   the $SPLUNK_HOME/etc/system/default/server.conf file for the
-  current default.
+  current default)
 
 sslVerifyServerCert = <boolean>
 * If this is set to true, Splunk Enterprise verifies that the remote server
@@ -1923,6 +1916,19 @@ report_interval = <nonnegative integer>[s|m|h]
 * If no time unit is provided, seconds is assumed.
 * Default: 1m
 
+license_warnings_update_interval = <nonnegative integer>
+* Specifies a time period, in seconds, for license master to update
+  license warnings in Splunk Web bulletin messages.
+* License master checks at every second the last time it updated the
+  warnings, and updates if this time period has elapsed.
+* Increase this value for very large deployments that contain very
+  large number of source types.
+* The minimum permitted interval is 10.
+* The maximum permiited interval is 3600, equivalent to 1 hour.
+* If set to special value of 0, the license master automatically tunes this
+  setting to accommodate the size of the deployment.
+* Default: 0
+
 strict_pool_quota = <boolean>
 * Toggles strict pool quota enforcement
 * If set to true, members of pools receive warnings for a given day if
@@ -1985,98 +1991,31 @@ stack_id = forwarder
 * Field descriptions are the same as that for
   the "lmpool:auto_generated_pool_forwarder"
 
-############################################################################
-#
-# Search head pooling configuration
-#
-# Changes to a search head's pooling configuration must be made to the file:
-#
-#  $SPLUNK_HOME/etc/system/local/server.conf
-#
-# In other words, you can not deploy the [pooling] stanza using an app, either
-# on local disk or on shared storage.
-#
-# This is because these values are read before the configuration system
-# itself has been completely initialized. Take the value of the 'storage'
-# setting, for example.  This value cannot be placed in an app on
-# shared storage because Splunk must use this value to find shared storage
-# in the first place!
-#
-############################################################################
-
 [pooling]
 
 state = [enabled|disabled]
-* Enables or disables search head pooling.
-* Default: disabled
+* UNSUPPORTED: This setting is no longer supported
 
 storage = <path to shared storage>
-* All members of a search head pool must have access to shared storage.
-* Splunk software stores configurations and search artifacts here.
-* On *NIX, this should be an NFS mount.
-* On Windows, this should be a UNC path to a Samba/CIFS share.
+* UNSUPPORTED: This setting is no longer supported
 
 app_update_triggers = true|false|silent
-* Should this search head run update triggers for apps modified by other
-  search heads in the pool?
-* For more information about update triggers specifically, see the
-  [triggers] stanza in the
-  $SPLUNK_HOME/etc/system/README/app.conf.spec
-  file.
-* If set to true, this search head attempts to reload inputs, indexes,
-  custom REST endpoints, etc. stored within apps that are installed,
-  updated, enabled, or disabled by other search heads.
-* If set to false, this search head does not run any update triggers. Note
-  that this search head still detects configuration changes and app
-  state changes made by other search heads. It simply does not reload any
-  components within Splunk that might care about those changes, like input
-  processors or the HTTP server.
-* If set to silent, is like setting a value of 'true', with one
-  difference: update triggers never result in restart banner messages
-  or restart warnings in the UI. Any need to restart is instead be
-  signaled only by messages in splunkd.log.
-* Default: true
+* UNSUPPORTED: This setting is no longer supported
 
 lock.timeout = <time range string>
-* Timeout, in seconds, for acquiring file-based locks on configuration files.
-* Splunk software waits up to this amount of time before aborting a
-  configuration write.
-* Default: 10s
+* UNSUPPORTED: This setting is no longer supported
 
 lock.logging = <boolean>
-* When acquiring a file-based lock, log information into the locked file.
-* This information typically includes:
-  * Which host is acquiring the lock
-  * What that host intends to do while holding the lock
-* There is no maximum filesize or rolling policy for this logging. If you
-  enable this setting, you must periodically truncate the locked file
-  yourself to prevent unbounded growth.
-* The information logged to the locked file is intended for debugging
-  purposes only. Splunk makes no guarantees regarding the contents of the
-  file. It may, for example, write padding NULs to the file or truncate the
-  file at any time.
-* Default: false
-
-
-############################################################################
-# The following two intervals interrelate; the longest possible time for a
-# state change to travel from one search pool member to the rest should be
-# approximately the sum of these two timers.
-############################################################################
+* UNSUPPORTED: This setting is no longer supported
 
 poll.interval.rebuild = <time range string>
-* Rebuild or refresh in-memory configuration data structures at most this
-  often.
-* Default: 1m (1 minute)
+* UNSUPPORTED: This setting is no longer supported
 
 poll.interval.check = <time range string>
-* Check on-disk configuration files for changes at most this often.
-* Default: 1m (1 minute)
+* UNSUPPORTED: This setting is no longer supported
 
 poll.blacklist.<name> = <regex>
-* Do not check configuration files for changes if they match this regular
-  expression.
-* Example: Do not check vim swap files for changes -- .swp$
+* UNSUPPORTED: This setting is no longer supported
 
 
 ############################################################################
@@ -2234,7 +2173,7 @@ decommission_node_force_timeout = <seconds>
   is accessed.
 * This attribute is not applicable to the  "--enforce-counts" version of the
   “splunk offline" command
-* Default: 300 seconds.
+* Default: 300 seconds
 
 decommission_force_finish_idle_time = <zero or positive integer>
 * Valid only for mode=master.
@@ -2264,7 +2203,7 @@ rolling_restart = restart|shutdown|searchable|searchable_force
 * If set to searchable or searchable_force, scheduled searches
   are deferred or run during the rolling restart based on the
   'defer_scheduled_searchable_idx' setting in savedsearches.conf.
-* Default: restart.
+* Default: restart
 
 site_by_site = <boolean>
 * Only valid for mode=master and multisite=true.
@@ -2273,7 +2212,7 @@ site_by_site = <boolean>
   site, during a rolling restart.
 * If set to false, the master randomly selects peers to restart, from
   across all sites, during a rolling restart.
-* Default: true.
+* Default: true
 
 decommission_force_timeout = <zero or positive integer>
 * Only valid for rolling_restart=searchable_force
@@ -2340,8 +2279,6 @@ rep_max_send_timeout = <integer>
 * If cumulative 'rep_send_timeout' exceeds 'rep_max_send_timeout',
   replication
   fails.
-* This setting is dynamically reloadable and does not require restart
-  of cluster peer.
 * Default: 180 (3 minutes)
 
 rep_max_rcv_timeout = <integer>
@@ -2350,8 +2287,6 @@ rep_max_rcv_timeout = <integer>
 * On 'rep_rcv_timeout' source peer determines if total
   receive timeout has exceeded 'rep_max_rcv_timeout'.
   If so, replication fails.
-* This setting is dynamically reloadable and does not require restart
-  of cluster peer.
 * Default: 180 (3 minutes)
 
 multisite = <boolean>
@@ -2517,12 +2452,15 @@ restart_timeout = <positive integer>
 
 quiet_period = <positive integer>
 * Only valid for 'mode=master'.
-* This determines the amount of time, in seconds, for which the
-  master is quiet right after it starts. During this period the master
-  does not initiate any action but is instead waiting for the slaves to
-  register themselves. At the end of this time period, it builds
-  its view of the cluster based on the registered information and
-  starts normal processing.
+* This setting determines the amount of time, in seconds, that the master is
+  quiet upon start-up.
+* However, if peers are still registering themselves with the master after
+  the initial quiet_period has elapsed, the master continues to remain
+  quiet until all peers finish registering, up to a total quiet time not to
+  exceed 3x the specified 'quiet_period', including the initial quiet time.
+* During the quiet time, the master does not initiate any actions. At the end of
+  this period, the master builds its view of the cluster based on the
+  registered information. It then starts normal operations.
 * Default: 60
 
 reporting_delay_period = <positive integer>
@@ -2580,8 +2518,6 @@ max_replication_errors = <integer>
   replication occurs to this target from this source.
 * The special value of 0 turns off this safeguard; so the source
   always rolls hot buckets on streaming error to any target.
-* This setting is dynamically reloadable and does not require restart
-  of cluster peer.
 * Default: 3
 
 searchable_targets = <boolean>
@@ -2608,8 +2544,6 @@ target_wait_time = <positive integer>
 * Specifies the time, in seconds, that the master waits for the
   target of a replication to register itself before it services
   the bucket again and potentially schedules another fixup.
-* This setting is dynamically reloadable and does not require restart
-  of cluster master.
 * Default: 150 (2 minutes 30 seconds)
 
 summary_wait_time = <positive integer>
@@ -2666,6 +2600,20 @@ rebalance_primaries_execution_limit_ms = <non-negative integer>
 * The default value of 0 signifies auto mode.  In auto mode, the cluster
   master uses the value of the 'service_interval' setting to determine the
   maximum time for the operation.
+* Default: 0
+
+commit_generation_execution_limit_ms = <non-negative integer>
+* Only valid for 'mode=master'.
+* Specifies, in milliseconds, the maximum period for one execution
+  of the committing pending generation.
+* This setting is useful for large clusters with large numbers of
+  buckets, to prevent the commit-geenration operation from blocking
+  other operations for significant amounts of time.
+* The default value of 0 signifies auto mode.  In auto mode, the cluster
+  master uses the value of the 'service_interval' setting to determine the
+  maximum time for the operation.
+* If 'service_interval' is auto, the range of this value will be within the
+  range of 10ms and 25ms.
 * Default: 0
 
 idle_connections_pool_size = <integer>
@@ -2850,8 +2798,6 @@ remote_storage_upload_timeout = <non-zero positive integer>
   in seconds, after which target peers assume responsibility for
   uploading a bucket to the remote storage, if they do not hear from
   the source peer.
-* This setting is dynamically reloadable and does not require restart
-  of cluster peer.
 * Default: 60 (1 minute)
 
 report_remote_storage_bucket_upload_to_targets = <boolean>
@@ -2870,8 +2816,6 @@ remote_storage_retention_period = <non-zero positive integer>
 * Controls the length, in seconds, of peer-node retention for buckets in
   remote storage enabled indexes. When this length is exceeded, the master
   freezes the buckets on the peer nodes.
-* This setting is dynamically reloadable and does not require restart
-  of cluster master.
 * Default: 900 (15 minutes)
 
 recreate_bucket_attempts_from_remote_storage = <positive integer>
@@ -2903,7 +2847,7 @@ recreate_bucket_max_per_service = <positive integer>
 * Do not change the value from the default unless instructed by
   Splunk Support.
 * If set to 0, recreating buckets will go at full speed.
-* Default: 0
+* Default: 20000
 
 recreate_bucket_fetch_manifest_batch_size = <positive integer>
 * Only valid for 'mode=master'.
@@ -2953,9 +2897,7 @@ use_batch_remote_rep_changes = <boolean>
 * This is applicable to buckets belonging to
   remote storage enabled indexes only.
 * Do not change this setting without consulting with Splunk Support.
-* This setting is dynamically reloadable and does not require restart
-  of cluster master.
-* Default: true
+* Default: false
 
 buckets_status_notification_batch_size = <positive integer>
 * Only valid for 'mode=slave'.
@@ -2964,15 +2906,14 @@ buckets_status_notification_batch_size = <positive integer>
   The master then initiates fix-ups for these buckets.
 * CAUTION: Do not modify this setting without guidance from
   Splunk personnel.
-* Default: 10
+* Default: 1000
 
 notify_scan_period = <non-zero positive integer>
 * Only valid for 'mode=slave'.
 * Controls the frequency, in seconds, that the indexer handles
   the following options:
-  1. buckets_status_notification_batch_size
-  2. summary_update_batch_size
-  3. summary_registration_batch_size
+  1. summary_update_batch_size
+  2. summary_registration_batch_size
 * CAUTION: Do not modify this setting without guidance from
   Splunk personnel.
 * Default: 10
@@ -2987,6 +2928,14 @@ notify_scan_min_period = <non-zero positive integer>
   either summary_update_batch_size or summary_registration_batch_size.
 * CAUTION: Do not modify this setting without guidance from Splunk
   personnel.
+* Default: 10
+
+notify_buckets_period = <non-zero positive integer>
+* Only valid for 'mode=slave'.
+* Controls the frequency, in milliseconds, that the indexer handles
+  buckets_status_notification_batch_size
+* CAUTION: Do not modify this setting without guidance from
+  Splunk personnel.
 * Default: 10
 
 summary_update_batch_size = <non-zero positive integer>
@@ -3096,8 +3045,6 @@ listenOnIPv6 = no|yes|only
 
 acceptFrom = <network_acl> ...
 * Lists a set of networks or addresses from which to accept connections.
-* This setting only takes effect when 'appServerPorts' is set to a
-  non-zero value.
 * Separate multiple rules with commas or spaces.
 * Each rule can be in one of the following formats:
     1. A single IPv4 or IPv6 address (examples: "10.1.2.3", "fe80::4a3")
@@ -3150,8 +3097,8 @@ rootCA = <path>
 cipherSuite = <cipher suite string>
 * If set, uses the specified cipher string for the SSL connection.
 * Must specify 'dhFile' to enable any Diffie-Hellman ciphers.
-* The default can vary. See the cipherSuite setting in
-  the $SPLUNK_HOME/etc/system/default/server.conf file for the current default.
+* Default: The default can vary (See the cipherSuite setting in
+  the $SPLUNK_HOME/etc/system/default/server.conf file for the current default)
 
 sslVersions = <versions_list>
 * Comma-separated list of SSL versions to support.
@@ -3163,8 +3110,8 @@ sslVersions = <versions_list>
   does nothing.
 * When configured in FIPS mode, ssl3 is always disabled regardless
   of this configuration.
-* The default can vary. See the sslVersions setting in
-  the $SPLUNK_HOME/etc/system/default/server.conf file for the current default.
+* Default: The default can vary (See the sslVersions setting in
+  the $SPLUNK_HOME/etc/system/default/server.conf file for the current default)
 
 ecdhCurves = <comma separated list of ec curves>
 * ECDH curves to use for ECDH key negotiation.
@@ -3177,14 +3124,14 @@ ecdhCurves = <comma separated list of ec curves>
   by executing this command:
   $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
 * e.g. ecdhCurves = prime256v1,secp384r1,secp521r1
-* The default can vary. See the 'ecdhCurves' setting in
-  the $SPLUNK_HOME/etc/system/default/server.conf file for the current default.
+* Default: The default can vary (See the 'ecdhCurves' setting in
+  the $SPLUNK_HOME/etc/system/default/server.conf file for the current default)
 
 dhFile = <path>
 * PEM format Diffie-Hellman parameter file name.
 * DH group size should be no less than 2048bits.
 * This file is required in order to enable any Diffie-Hellman ciphers.
-* Not set by default.
+* No default.
 
 dhfile = <path>
 * DEPRECATED; use 'dhFile' instead.
@@ -3366,7 +3313,7 @@ collectionPeriodInSecs = <positive integer>
   indirectly (increased disk and bandwidth utilization, to store the
   produced i-data).
 * Default: 600 (10 minutes) on Universal Forwarders, and 10 (1/6th of a minute)
-  on non-Universal Forwarders.
+  on non-Universal Forwarders
 
 [introspection:generator:resource_usage__iostats]
 * This stanza controls the collection of i-data about: IO Statistics data
@@ -3494,7 +3441,7 @@ spark_master_connect_timeout = <unsigned integer>
 spark_home = <path>
 * Absolute location of Spark home.
 * Used only if SPARK_HOME is unset.
-* Default is empty
+* No default.
 
 connection_timeout = <integer>
 * Low-level timeout, in seconds, for establishing a connection between
@@ -3593,14 +3540,14 @@ pass4SymmKey = <password>
   in the [general] stanza.
 * Unencrypted passwords must not begin with "$1$", as this is used by
   Splunk software to determine if the password is already encrypted.
-* Default: 'changeme' from the [general] stanza in the default the
+* Default: The 'changeme' from the [general] stanza in the default the
   server.conf file.
 
 async_replicate_on_proxy = <boolean>
 * If the jobs/${sid}/results REST endpoint had to be proxied to a different
   member due to missing local replica, this attribute automatically
   schedules an async replication to that member when set to true.
-* Default is true.
+* Default: true
 
 master_dump_service_periods = <integer>
 * If SHPMaster info is switched on in log.cfg, then captain statistics
@@ -3623,7 +3570,7 @@ scheduling_heuristic = <string>
 id = <GUID>
 * Unique identifier for this cluster as a whole, shared across all cluster
   members.
-* By default, Splunk software arranges for a unique value to be generated and
+* Default: Splunk software arranges for a unique value to be generated and
   shared across all members.
 
 cxn_timeout = <integer>
@@ -4041,7 +3988,7 @@ enable_jobs_data_lite = <boolean>
 *This is for memory reduction on the captain for Search head clustering,
   leads to lower memory in captain while slaves send the artifacts
   status.csv as a string.
-* Default: false
+* Default: true
 
 shcluster_label = <string>
 * This specifies the label of the search head cluster.
@@ -4076,8 +4023,6 @@ listenOnIPv6 = no|yes|only
 
 acceptFrom = <network_acl> ...
 * Lists a set of networks or addresses from which to accept connections.
-* This setting only takes effect when 'appServerPorts' is set to a
-  non-zero value.
 * Separate multiple rules with commas or spaces.
 * Each rule can be in one of the following formats:
     1. A single IPv4 or IPv6 address (examples: "10.1.2.3", "fe80::4a3")
@@ -4102,7 +4047,7 @@ disabled = <boolean>
 
 listenOnIPv6 = no|yes|only
 * Toggle whether this listening port listens on IPv4, IPv6, or both.
-* If not present, the setting in the [general] stanza is used.
+* Default: The setting in the [general] stanza
 
 acceptFrom = <network_acl> ...
 * This setting is the same as the setting in the [replication_port] stanza.
@@ -4222,14 +4167,14 @@ dbPath = <path>
 * Default: $SPLUNK_DB/kvstore
 
 oplogSize = <integer>
-* The size of the replication operation log, in megabytes, for environments
+* The size of the replication operation log, in MB, for environments
   with search head clustering or search head pooling.
   In a standalone environment, 20% of this size is used.
 * After the KV Store has created the oplog for the first time, changing this
   setting does NOT affect the size of the oplog. A full backup and restart
   of the KV Store is required.
 * Do not change this setting without first consulting with Splunk Support.
-* Default: 1000 (1GB)
+* Default: 1000MB (1GB)
 
 replicationWriteTimeout = <integer>
 * The time to wait, in seconds, for replication to complete while saving KV
@@ -4237,16 +4182,6 @@ replicationWriteTimeout = <integer>
 * Used for replication environments (search head clustering or search
   head pooling).
 * Default: 1800 (30 minutes)
-
-clientConnectionTimeout = <positive integer>
-* The time, in seconds, to wait while attempting a connection to the KV Store 
-  before the attempt times out. 
-* Default: 10
-
-clientSocketTimeout = <positive integer>
-* The time, in seconds, to wait while attempting to send or receive on a 
-  socket before the attempt times out. 
-* Default: 300 (5 minutes)
 
 caCertFile = <path>
 * DEPRECATED; use '[sslConfig]/sslRootCAPath' instead.
@@ -4314,7 +4249,7 @@ sslCRLPath = <filepath>
   Splunk Enterprise" manual for information on the status of Common
   Criteria certification.
 * Optional.
-* Default: empty string (no Revocation List.)
+* Default: empty string (no Revocation List)
 
 modificationsReadIntervalMillisec = <integer>
 * How often, in milliseconds, to check for modifications to
@@ -4365,6 +4300,70 @@ indexerWeightByDiskCapacity = <boolean>
    indexer_disk_capacity/total_disk_capacity_of_indexers_combined
 * Default: false
 
+
+############################################################################
+# Cascading Replication Configuration
+############################################################################
+[cascading_replication]
+pass4SymmKey = <password>
+* Security key shared between indexers participating in cascading replication.
+* The same value must be specified on all indexers participating in cascading replication.
+* Unencrypted passwords must not begin with "$1$", as this is used by
+  Splunk software to determine if the password is already encrypted.
+* Empty passwords will not be accepted.
+* Default: None
+
+max_replication_threads = <integer>
+* Maximum threads used for replicating metadata and payload to search peers.
+* If set to "auto", the peer auto-tunes the number of threads it uses for
+  cascading replication.
+    * If the peer has 3 or fewer CPUs, it allocates 2 threads.
+    * If the peer has 4-7 CPUs, it allocates up to '# of CPUs - 2' threads.
+    * If the peer has 8-15 CPUs, it allocates up to '# of CPUs - 3' threads.
+    * If the peer has 16 or more CPUs, it allocates up to
+      '# of CPUs - 4' threads.
+* Maximum accepted value for this setting is 16.
+* Default: auto
+
+max_replication_jobs = <integer>
+* Maximum jobs used for replicating metadata and payload to search peers.
+* Default: 5
+
+cascade_replication_plan_reap_interval = <interval>
+* The interval at which the cascade replication plans are reaped.
+* The interval can be specified as a string for minutes, seconds, hours, days.
+  For example: 60s, 1m, 1h, 1d etc.
+* Maximum accepted value is 5h
+* Default: 1h
+
+cascade_replication_plan_age = <interval>
+* The age of the cascade replication plan when it gets reaped.
+* The interval can be specified as a string for minutes, seconds, hours, or days.
+  For example: 60s, 1m, 1h, 1d etc.
+* Maximum accepted value is 24h
+* Default: 8h
+
+cascade_replication_plan_fanout = auto|<positive integer>
+* Number of receivers that each sender replicates to at a time.
+* If set to auto, Splunk automatically calculates an optimal fanout, based on
+  the maximum number of replication threads, as determined by the
+  'max_replication_threads' setting under [cascading_replication] in server.conf.
+* If set to an integer, the integer must be no greater than the number of cluster
+  peers, or, in the case of multisite clustering, no greater than the least number
+  of peers on any one site.
+* Default: auto
+
+cascade_replication_plan_topology = size_balanced
+* Topology used for building a cascading plan.
+* When set to size_balanced, receivers are evenly distributed among senders.
+  Senders on the same layer have same or similar number of receivers.
+* Default: size_balanced
+
+cascade_replication_plan_select_policy = random
+* Policy for deciding which receivers the senders pick.
+* When set to random, receivers are randomly picked.
+* Default: random
+
 ############################################################################
 # Node level authentication
 ############################################################################
@@ -4399,7 +4398,7 @@ max_concurrent_uploads = <unsigned integer>
 
 eviction_policy = <string>
 * The name of the eviction policy to use.
-* Current options: lru, clock, random, lrlt, noevict
+* Current options: lru, clock, random, lrlt, noevict, lruk
 * Do not change the value from the default unless instructed by
   Splunk Support.
 * Default: lru
@@ -4529,7 +4528,7 @@ actions = <actions_list>
 * NOTE: This setting should be used only during troubleshooting, and if you have
   been asked to set it by a Splunk Support engineer. It might degrade
   performance by increasing CPU and disk usage.
-* Default: empty list (no action executed).
+* Default: empty list (no action executed)
 
 actionsInterval = <decimal>
 * The timeout, in seconds, that the watchdog uses while tracing a blocked
@@ -4561,10 +4560,10 @@ reaperThread = <decimal>
 * Default: 30
 
 [watchdogaction:pstacks]
-* Setting under this stanza are ignored if 'pstacks' is not enabled in the 
+* Setting under this stanza are ignored if 'pstacks' is not enabled in the
   'actions' list.
 * NOTE: Change these settings only during troubleshooting, and if you have
-  been asked to set it by a Splunk Support engineer. It can affect performance 
+  been asked to set it by a Splunk Support engineer. It can affect performance
   by increasing CPU and disk usage.
 
 dumpAllThreads = <boolean>
@@ -4613,15 +4612,16 @@ batchStacksThreshold = <unsigned integer>|auto
 * Default: auto
 
 [watchdogaction:script]
-* Setting under this stanza are ignored if 'script' is not enabled in the 
+* Setting under this stanza are ignored if 'script' is not enabled in the
   'actions' list.
 * NOTE: Change these settings only during troubleshooting, and if you have
-  been asked to set it by a Splunk Support engineer. It can affect performance 
+  been asked to set it by a Splunk Support engineer. It can affect performance
   by increasing CPU and disk usage.
 
 path = <string>
 * The path to the script to execute when the watchdog triggers the action.
-* No default. If you do not set 'path', the watchdog ignores the action.
+* If you do not set 'path', the watchdog ignores the action.
+* No default.
 
 useShell = <boolean>
 * If set to true, the script runs from the OS shell
@@ -4651,8 +4651,6 @@ pass4SymmKey = <password>
 * The same value must also be specified on all intermediaries.
 * Unencrypted passwords must not begin with "$1$", as this is used by
   Splunk software to determine if the password is already encrypted.
-
-
 
 @
 @
@@ -4950,14 +4948,14 @@ remote.s3.ecdhCurves = <comma separated list of ec curves>
   by executing this command:
   $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
 * e.g. ecdhCurves = prime256v1,secp384r1,secp521r1
-* Default: not set
+* No default.
 
 remote.s3.dhFile = <path>
 * Optional
 * PEM format Diffie-Hellman parameter file name.
 * DH group size should be no less than 2048bits.
 * This file is required in order to enable any Diffie-Hellman ciphers.
-* Default: not set
+* No default.
 
 remote.s3.encryption = sse-s3 | sse-kms | sse-c | none
 * Optional

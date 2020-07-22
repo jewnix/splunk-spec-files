@@ -1,30 +1,39 @@
-#   Version 7.3.6
+#   Version 8.0.0
 #
-# This file contains possible settings and values for configuring a
-# deployment client to receive content (apps and configurations) from a
-# deployment server.
+############################################################################
+# OVERVIEW
+############################################################################
+# This file contains descriptions of the settings that you can use to
+# customize the way a deployment client behaves.
 #
-# To customize the way a deployment client behaves, place a
-# deploymentclient.conf in $SPLUNK_HOME/etc/system/local/ on that Splunk
-# instance. Configure what apps or configuration content is deployed to a
-# given deployment client in serverclass.conf.  Refer to
-# serverclass.conf.spec and serverclass.conf.example for more information.
+# Each stanza controls different search commands settings.
 #
-# You must restart the Splunk software for changes to this configuration
-# file to take effect.
+# There is a deploymentclient.conf file in the
+# $SPLUNK_HOME/etc/system/default/ directory.
+# Never change or copy the configuration files in the default directory.
+# The files in the default directory must remain intact and in their original
+# location.
 #
-# To learn more about configuration files (including precedence) please see
-# the documentation located at
+# To set custom configurations, create a new file with the name
+# deploymentclient.conf in the $SPLUNK_HOME/etc/system/local/ directory.
+# Then add the specific settings that you want to customize to the local
+# configuration file. For examples, see deploymentclient.conf.example.
+# You must restart the Splunk instance to enable configuration changes.
+#
+# To learn more about configuration files (including file precedence) see the
+# documentation located at
 # http://docs.splunk.com/Documentation/Splunk/latest/Admin/Aboutconfigurationfiles
-
+#
 #***************************************************************************
 # Configure a Splunk deployment client
 #
 # Note: At minimum, the [deployment-client] stanza must be in
 # deploymentclient.conf to enable a deployment client.
 #***************************************************************************
-
+#
+############################################################################
 # GLOBAL SETTINGS
+############################################################################
 # Use the [default] stanza to define any global settings.
 #   * You can also define global settings outside of any stanza, at the top
 #     of the file.
@@ -52,7 +61,7 @@ workingDir = $SPLUNK_HOME/var/run
 
 repositoryLocation = $SPLUNK_HOME/etc/apps
 * The location where content installs when downloaded from a deployment server
-* For the Splunk software instance on the deployment client to recogize an app
+* For the Splunk software instance on the deployment client to recognize an app
   or configuration content, install the app or content in the default location:
   $SPLUNK_HOME/etc/apps.
     * Note: Apps and configuration content for deployment can be in other
@@ -114,19 +123,16 @@ appEventsResyncIntervalInSecs = <number in seconds>
 * Fractional seconds are allowed.
 * Default: 10 * 'phoneHomeIntervalInSecs'
 
-# Advanced!
-# Use this property only when you have a hierarchical deployment
-# server installation, and have a Splunk instance that behaves as both a
-# DeploymentClient and a DeploymentServer.
-
-# NOTE: hierarchical deployment servers are not a currently recommended
-# configuration.  Splunk has seen problems in the field that have not yet
-# been resolved with this type of configuration.
-
 reloadDSOnAppInstall = <boolean>
 * Setting this flag to true causes the deploymentServer on this Splunk
   instance to be reloaded whenever an app is installed by this
   deploymentClient.
+* This is an advanced configuration. Only use it when you have a hierarchical
+  deployment server installation, and have a Splunk instance that behaves
+  as both a deployment client and a deployment server.
+* Do not use a hierarchical deployment server unless you have no other
+  alternative. Splunk has seen problems in the field that have not yet
+  been resolved with this kind of configuration.
 * Default: false
 
 sslVersions = <versions_list>
@@ -140,17 +146,17 @@ sslVersions = <versions_list>
   does nothing.
 * When configured in FIPS mode, ssl3 is always disabled regardless
   of this configuration.
-* Default: Value of 'sslVersions' in server.conf [sslConfig] stanza.
+* Default: The 'sslVersions' value in the server.conf file [sslConfig] stanza
 
-sslVerifyServerCert = <bool>
+sslVerifyServerCert = <boolean>
 * If this is set to true, Splunk verifies that the Deployment Server
   (specified in 'targetUri')
   being connected to is a valid one (authenticated).  Both the common
   name and the alternate name of the server are then checked for a
   match if they are specified in 'sslCommonNameToCheck' and 'sslAltNameToCheck'.
-  A certificiate is considered verified if either is matched.
-* Default: the "sslVerifyServerCert" value in the server.conf
-  [sslConfig] stanza.
+  A certificate is considered verified if either is matched.
+* Default: The 'sslVerifyServerCert' value in the server.conf file
+  [sslConfig] stanza
 
 caCertFile = <path>
 * Specifies a full path to a Certificate Authority (ca) certificate(s) PEM
@@ -158,14 +164,14 @@ caCertFile = <path>
 * The <path> must refer to a PEM format file containing one or more root CA
   certificates concatenated together.
 * Used for validating the SSL certificate from the deployment server
-* Default: the "caCertFile" value in the server.conf [sslConfig] stanza.
+* Default: The 'caCertFile' value in the server.conf file [sslConfig] stanza
 
 sslCommonNameToCheck = <commonName1>, <commonName2>, ...
 * If this value is set, and 'sslVerifyServerCert' is set to true,
   splunkd checks the common name(s) of the certificate presented by
   the Deployment Server (specified in 'targetUri') against this list of
   common names.
-* Default: the "sslCommonNameToCheck" value in the server.conf
+* Default: The 'sslCommonNameToCheck' value in the server.conf file
   [sslConfig] stanza.
 
 sslAltNameToCheck =  <alternateName1>, <alternateName2>, ...
@@ -173,7 +179,7 @@ sslAltNameToCheck =  <alternateName1>, <alternateName2>, ...
   splunkd checks the alternate name(s) of the certificate presented by
   the Deployment Server (specified in 'targetUri') against this list of
   subject alternate names.
-* Default: the "sslAltNameToCheck" value in the server.conf [sslConfig] stanza.
+* Default: The 'sslAltNameToCheck' value in the server.conf file [sslConfig] stanza
 
 cipherSuite = <cipher suite string>
 * If set, uses the specified cipher string for making outbound HTTPS connection.
@@ -189,7 +195,7 @@ ecdhCurves = <comma separated list of ec curves>
   by executing this command:
   $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
 * For example: ecdhCurves = prime256v1,secp384r1,secp521r1
-* Default: empty string.
+* Default: empty string
 
 connect_timeout = <positive integer>
 * The amount of time, in seconds, that a deployment client can take to connect

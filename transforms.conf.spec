@@ -1,10 +1,10 @@
-#   Version 7.3.6
+#   Version 8.0.0
 #
 # This file contains settings and values that you can use to configure
-# data transformations.  
+# data transformations.
 #
 # Transforms.conf is commonly used for:
-# * Configuring host and source type overrides that are based on regular 
+# * Configuring host and source type overrides that are based on regular
 #   expressions.
 # * Anonymizing certain types of sensitive incoming data, such as credit
 #   card or social security numbers.
@@ -18,9 +18,9 @@
 #   of the following:
 #   * Reuse of the same field-extracting regular expression across multiple
 #     sources, source types, or hosts.
-#   * Application of more than one regular expression to the same source, 
+#   * Application of more than one regular expression to the same source,
 #     source type, or host.
-#   * Using a regular expression to extract one or more values from the values 
+#   * Using a regular expression to extract one or more values from the values
 #     of another field.
 #   * Delimiter-based field extractions, such as extractions where the
 #     field-value pairs are separated by commas, colons, semicolons, bars, or
@@ -39,12 +39,12 @@
 #
 # There is a transforms.conf file in $SPLUNK_HOME/etc/system/default/. To
 # set custom configurations, place a transforms.conf file in
-# $SPLUNK_HOME/etc/system/local/. 
+# $SPLUNK_HOME/etc/system/local/.
 #
-# For examples of transforms.conf configurations, see the 
+# For examples of transforms.conf configurations, see the
 # transforms.conf.example file.
 #
-# You can enable configuration changes made to transforms.conf by running this 
+# You can enable configuration changes made to transforms.conf by running this
 # search in Splunk Web:
 #
 # | extract reload=t
@@ -74,7 +74,7 @@
   transforms.conf.
 * Follow this stanza name with any number of the following setting/value
   pairs, as appropriate for what you intend to do with the transform.
-* If you do not specify an entry for each setting, Splunk software uses 
+* If you do not specify an entry for each setting, Splunk software uses
   the default value.
 
 REGEX = <regular expression>
@@ -92,11 +92,6 @@ REGEX = <regular expression>
     This means that you do not need to specify the FORMAT setting for
     simple search-time field extraction cases (see the description of FORMAT,
     below).
-  * If the REGEX for a field extraction configuration does not have the
-    capturing groups referenced in the FORMAT, searches that use that
-    configuration will not return events.
-  * The REGEX must have at least one capturing group, even if the FORMAT does
-    not reference any capturing groups.
   * If the REGEX extracts both the field name and its corresponding field
     value, you can use the following special capturing groups if you want to
     skip specifying the mapping in FORMAT for search-time field extractions:
@@ -108,7 +103,7 @@ REGEX = <regular expression>
     * Without using FORMAT
       * REGEX  = (?<_KEY_1>[a-z]+)=(?<_VAL_1>[a-z]+)
     * When using either of the above formats, in a search-time extraction,
-      the regular expression attempts to match against the source text, 
+      the regular expression attempts to match against the source text,
 	  extracting as many fields as can be identified in the source text.
 * Default: empty string
 
@@ -128,9 +123,9 @@ FORMAT = <string>
   * At index time only, you can use FORMAT to create concatenated fields:
     * Example: FORMAT = ipaddress::$1.$2.$3.$4
   * When you create concatenated fields with FORMAT, "$" is the only special
-    character. It is treated as a prefix for regular expression capturing 
-	groups only if it is followed by a number and only if the number applies to 
-	an existing capturing group. So if REGEX has only one capturing group and 
+    character. It is treated as a prefix for regular expression capturing
+	groups only if it is followed by a number and only if the number applies to
+	an existing capturing group. So if REGEX has only one capturing group and
 	its value is "bar", then:
       * "FORMAT = foo$1" yields "foobar"
       * "FORMAT = foo$bar" yields "foo$bar"
@@ -142,20 +137,17 @@ FORMAT = <string>
     follows:
     * FORMAT = <field-name>::<field-value>( <field-name>::<field-value>)*
       where:
-      * field-name  = [<string>|$<capturing-group-number>]
-      * field-value = [<string>|$<capturing-group-number>]
+      * field-name  = [<string>|$<extracting-group-number>]
+      * field-value = [<string>|$<extracting-group-number>]
   * Search-time extraction examples:
       * 1. FORMAT = first::$1 second::$2 third::other-value
       * 2. FORMAT = $1::$2
-  * If the REGEX for a field extraction configuration does not have the
-    capturing groups specified in the FORMAT, searches that use that
-    configuration will not return events.
   * If you configure FORMAT with a variable <field-name>, such as in the second
-    example above, the regular expression is repeatedly applied to the source 
+    example above, the regular expression is repeatedly applied to the source
 	key to match and extract all field/value pairs in the event.
   * When you use FORMAT to set both the field and the value (such as FORMAT =
     third::other-value), and the value is not an indexed token, you must set the
-    field to INDEXED_VALUE = false in fields.conf. Not doing so can cause 
+    field to INDEXED_VALUE = false in fields.conf. Not doing so can cause
     inconsistent search results.
   * NOTE: You cannot create concatenated fields with FORMAT at search time.
     That functionality is only available at index time.
@@ -176,18 +168,18 @@ DEPTH_LIMIT = <integer>
 * Optional. Limits the amount of resources that are spent by PCRE
   when running patterns that do not match.
 * Use this to limit the depth of nested backtracking in an internal PCRE
-  function, match(). If set too low, PCRE might fail to correctly match a 
+  function, match(). If set too low, PCRE might fail to correctly match a
   pattern.
 * Default: 1000
 
 CLONE_SOURCETYPE = <string>
 * This name is wrong; a transform with this setting actually clones and
   modifies events, and assigns the new events the specified source type.
-* If CLONE_SOURCETYPE is used as part of a transform, the transform creates a 
-  modified duplicate event for all events that the transform is applied to via 
+* If CLONE_SOURCETYPE is used as part of a transform, the transform creates a
+  modified duplicate event for all events that the transform is applied to via
   normal props.conf rules.
 * Use this setting when you need to store both the original and a modified
-  form of the data in your system, or when you need to to send the original and 
+  form of the data in your system, or when you need to to send the original and
   a modified form to different outbound systems.
   * A typical example would be to retain sensitive information according to
     one policy and a version with the sensitive information removed
@@ -199,12 +191,12 @@ CLONE_SOURCETYPE = <string>
 * Specifically, for each event handled by this transform, a near-exact copy
   is made of the original event, and the transformation is applied to the
   copy. The original event continues along normal data processing unchanged.
-* The <string> used for CLONE_SOURCETYPE selects the source type that is used 
+* The <string> used for CLONE_SOURCETYPE selects the source type that is used
   for the duplicated events.
 * The new source type MUST differ from the the original source type. If the
   original source type is the same as the target of the CLONE_SOURCETYPE,
-  Splunk software makes a best effort to log warnings to splunkd.log, but this 
-  setting is silently ignored at runtime for such cases, causing the transform 
+  Splunk software makes a best effort to log warnings to splunkd.log, but this
+  setting is silently ignored at runtime for such cases, causing the transform
   to be applied to the original event without cloning.
 * The duplicated events receive index-time transformations & sed
   commands for all transforms that match its new host, source, or source type.
@@ -232,7 +224,7 @@ WRITE_META = [true|false]
 
 DEST_KEY = <KEY>
 * NOTE: This setting is only valid for index-time field extractions.
-* Specifies where Splunk software stores the expanded FORMAT results in    
+* Specifies where Splunk software stores the expanded FORMAT results in
   accordance with the REGEX match.
 * Required for index-time field extractions where WRITE_META = false or is
   not set.
@@ -249,7 +241,7 @@ DEST_KEY = <KEY>
 
 DEFAULT_VALUE = <string>
 * NOTE: This setting is only valid for index-time field extractions.
-* Optional. The Splunk software writes the DEFAULT_VALUE to DEST_KEY if the 
+* Optional. The Splunk software writes the DEFAULT_VALUE to DEST_KEY if the
   REGEX fails.
 * Default: empty string
 
@@ -280,7 +272,7 @@ SOURCE_KEY = <string>
 
 REPEAT_MATCH = [true|false]
 * NOTE: This setting is only valid for index-time field extractions.
-* Optional. When set to true, Splunk software runs the REGEX multiple 
+* Optional. When set to true, Splunk software runs the REGEX multiple
   times on the SOURCE_KEY.
 * REPEAT_MATCH starts wherever the last match stopped, and continues until
   no more matches are found. Useful for situations where an unknown number
@@ -289,8 +281,8 @@ REPEAT_MATCH = [true|false]
 
 INGEST_EVAL = <comma-separated list of evaluator expressions>
 * NOTE: This setting is only valid for index-time field extractions.
-* Optional. When you set INGEST_EVAL, this setting overrides all of the other 
-  index-time settings (such as REGEX, DEST_KEY, etc) and declares the 
+* Optional. When you set INGEST_EVAL, this setting overrides all of the other
+  index-time settings (such as REGEX, DEST_KEY, etc) and declares the
   index-time extraction to be evaluator-based.
 * The expression takes a similar format to the search-time "|eval" command.
   For example "a=b+c*d" Just like the search-time operator, you can
@@ -302,12 +294,12 @@ INGEST_EVAL = <comma-separated list of evaluator expressions>
   this event is searched ("source", "sourcetype", "host", "splunk_server",
   "linecount", "index"). Search-time calculated fields (the "EVAL-" settings
   in props.conf) are NOT available.
-* When INGEST_EVAL accesses the "_time" variable, subsecond information is 
-  included. This is unlike regular-expression-based index-time extractions, 
+* When INGEST_EVAL accesses the "_time" variable, subsecond information is
+  included. This is unlike regular-expression-based index-time extractions,
   where  "_time" values are limited to whole seconds.
 * By default, other variable names refer to index-time fields which are
-  populated in "_meta" So an expression 'event_category=if(_raw LIKE "WARN %", 
-  "warning", "normal")' would append a new indexed field to _meta like 
+  populated in "_meta" So an expression 'event_category=if(_raw LIKE "WARN %",
+  "warning", "normal")' would append a new indexed field to _meta like
   "event_category::warning".
 * You can force a variable to be treated as a direct KEY name by
   prefixing it with "pd:". You can force a variable to be always
@@ -316,35 +308,35 @@ INGEST_EVAL = <comma-separated list of evaluator expressions>
   '$field:event_category$=if($pd:_raw$ LIKE "WARN %", "warning", "normal")'
 * When writing to a _meta field, the default behavior is to add a new
   index-time field even if one exists with the same name, the same way
-  WRITE_META works for regular-expression-based extractions. For example, "a=5, 
-  a=a+2" adds two index-time fields to _meta: "a::5 a::7". You can change this 
-  by using ":=" after the variable name. For example, setting "a=5, a:=a+2" 
+  WRITE_META works for regular-expression-based extractions. For example, "a=5,
+  a=a+2" adds two index-time fields to _meta: "a::5 a::7". You can change this
+  by using ":=" after the variable name. For example, setting "a=5, a:=a+2"
   causes Splunk software to add a single "a::7" field.
-* NOTE: Replacing index-time fields is slower than adding them. It is best to 
+* NOTE: Replacing index-time fields is slower than adding them. It is best to
   only use ":=" when you need this behavior.
 * The ":=" operator can also be used to remove existing fields in _meta
   by assigning the expression null() to them.
 * When reading from an index-time field that occurs multiple times inside the
-  _meta key, normally the first value is used. You can override this by 
-  prefixing the name with "mv:" which returns all of the values into a 
-  "multival" object. For example, if _meta contains the keys "v::a v::b" then 
+  _meta key, normally the first value is used. You can override this by
+  prefixing the name with "mv:" which returns all of the values into a
+  "multival" object. For example, if _meta contains the keys "v::a v::b" then
   'mvjoin(v,",")' returns "a" while 'mvjoin($mv:v$,",")' returns "a,b".
 * Note that this "mv:" prefix does not change behavior when it writes to a
-  _meta field. If the value returned by an expression is a multivalue, it 
-  always creates multiple index-time fields. For example, 
-  'x=mvappend("a","b","c")' causes the string "x::a x::b x::c" to be appended 
+  _meta field. If the value returned by an expression is a multivalue, it
+  always creates multiple index-time fields. For example,
+  'x=mvappend("a","b","c")' causes the string "x::a x::b x::c" to be appended
   to the _meta key.
 * Internally, the _meta key can hold values with various numeric types.
-  Splunk software normally picks a type appropriate for the value that the 
-  expression returned. However, you can override this this choice by specifying 
-  a type in square brackets after the destination field name. For example, 
-  'my_len[int]=length(source)' creates a new field named "my_len" and forces it 
-  to be stored as a 64-bit integer inside _meta. You can force Splunk software 
-  to store a number as floating point by using the type "[float]". You can 
-  request a smaller, less-precise encoding by using "[float32]". If you want to 
-  store the value as floating point but also ensure that the Splunk software 
-  remembers the significant-figures information that the evaluation expression 
-  deduced, use "[float-sf]" or "[float32-sf]". Finally, you can force the 
+  Splunk software normally picks a type appropriate for the value that the
+  expression returned. However, you can override this this choice by specifying
+  a type in square brackets after the destination field name. For example,
+  'my_len[int]=length(source)' creates a new field named "my_len" and forces it
+  to be stored as a 64-bit integer inside _meta. You can force Splunk software
+  to store a number as floating point by using the type "[float]". You can
+  request a smaller, less-precise encoding by using "[float32]". If you want to
+  store the value as floating point but also ensure that the Splunk software
+  remembers the significant-figures information that the evaluation expression
+  deduced, use "[float-sf]" or "[float32-sf]". Finally, you can force the
   result to be treated as a string by specifying "[string]".
 * The capability of the search-time |eval operator to name the destination
   field based on the value of another field (like "| eval {destname}=1")
@@ -356,8 +348,8 @@ DELIMS = <quoted string list>
 * IMPORTANT: If a value may contain an embedded unescaped double quote
   character, such as "foo"bar", use REGEX, not DELIMS. An escaped double
   quote (\") is ok. Non-ASCII delimiters also require the use of REGEX.
-* Optional. Use DELIMS in place of REGEX when you are working with ASCII-only 
-  delimiter-based field extractions, where field values (or field/value pairs) 
+* Optional. Use DELIMS in place of REGEX when you are working with ASCII-only
+  delimiter-based field extractions, where field values (or field/value pairs)
   are separated by delimiters such as colons, spaces, line breaks, and so on.
 * Sets delimiter characters, first to separate data into field/value pairs,
   and then to separate field from value.
@@ -371,12 +363,12 @@ DELIMS = <quoted string list>
 * The first set of quoted delimiters extracts the field/value pairs.
 * The second set of quoted delimiters separates the field name from its
   corresponding value.
-* When the event only contains delimiter-separated values (no field names), 
-  use just one set of quoted delimiters to separate the field values. Then use 
+* When the event only contains delimiter-separated values (no field names),
+  use just one set of quoted delimiters to separate the field values. Then use
   the FIELDS setting to apply field names to the extracted values.
-  * Alternately, Splunk software reads even tokens as field names and odd   
+  * Alternately, Splunk software reads even tokens as field names and odd
     tokens as field values.
-* Splunk software consumes consecutive delimiter characters unless you 
+* Splunk software consumes consecutive delimiter characters unless you
   specify a list of field names.
 * The following example of DELIMS usage applies to an event where
   field/value pairs are separated by '|' symbols and the field names are
@@ -412,10 +404,10 @@ MV_ADD = [true|false]
 
 CLEAN_KEYS = [true|false]
 * NOTE: This setting is only valid for search-time field extractions.
-* Optional. Controls whether Splunk software "cleans" the keys (field names) it 
-  extracts at search time. "Key cleaning" is the practice of replacing any 
-  non-alphanumeric characters (characters other than those falling between the 
-  a-z, A-Z, or 0-9 ranges) in field names with underscores, as well as the 
+* Optional. Controls whether Splunk software "cleans" the keys (field names) it
+  extracts at search time. "Key cleaning" is the practice of replacing any
+  non-alphanumeric characters (characters other than those falling between the
+  a-z, A-Z, or 0-9 ranges) in field names with underscores, as well as the
   stripping of leading underscores and 0-9 characters from field names.
 * Add CLEAN_KEYS = false to your transform if you need to extract field
   names that include non-alphanumeric characters, or which begin with
@@ -424,10 +416,10 @@ CLEAN_KEYS = [true|false]
 
 KEEP_EMPTY_VALS = [true|false]
 * NOTE: This setting is only valid for search-time field extractions.
-* Optional. Controls whether Splunk software keeps field/value pairs when 
+* Optional. Controls whether Splunk software keeps field/value pairs when
   the value is an empty string.
 * This option does not apply to field/value pairs that are generated by
-  Splunk software autokv extraction. Autokv ignores field/value pairs with 
+  Splunk software autokv extraction. Autokv ignores field/value pairs with
   empty values.
 * Default: false
 
@@ -438,7 +430,7 @@ CAN_OPTIMIZE = [true|false]
 * You might use this if you are running searches under a Search Mode setting
   that disables field discovery--it ensures that Software always discovers
   specific fields.
-* Splunk software only disables an extraction if it can determine that none of 
+* Splunk software only disables an extraction if it can determine that none of
   the fields identified by the extraction will ever be needed for the successful
   evaluation of a search.
 * NOTE: This option should be rarely set to false.
@@ -474,11 +466,11 @@ max_matches = <integer>
 * The maximum number of possible matches for each input lookup value
   (range 1 - 1000).
 * If the lookup is non-temporal (not time-bounded, meaning the time_field
-  setting is not specified), Splunk software uses the first <integer> entries, 
+  setting is not specified), Splunk software uses the first <integer> entries,
   in file order.
-* If the lookup is temporal, Splunk software uses the first <integer> entries 
+* If the lookup is temporal, Splunk software uses the first <integer> entries
   in descending time order. In other words, only <max_matches> lookup entries
-  are allowed to match. If the number of lookup entries exceeds <max_matches>, 
+  are allowed to match. If the number of lookup entries exceeds <max_matches>,
   only the ones nearest to the lookup value are used.
 * Default: 100 matches if the time_field setting is not specified for the
   lookup. If the time_field setting is specified for the lookup, the default is
@@ -488,29 +480,29 @@ min_matches = <integer>
 * Minimum number of possible matches for each input lookup value.
 * Default = 0 for both temporal and non-temporal lookups, which means that
   Splunk software outputs nothing if it cannot find any matches.
-* However, if min_matches > 0, and Splunk software gets less than min_matches, 
+* However, if min_matches > 0, and Splunk software gets less than min_matches,
   it provides the default_match value provided (see below).
 
 default_match = <string>
-* If min_matches > 0 and Splunk software has less than min_matches for any 
+* If min_matches > 0 and Splunk software has less than min_matches for any
   given input, it provides this default_match value one or more times until the
   min_matches threshold is reached.
 * Defaults to empty string.
 
-case_sensitive_match = <bool>
-* NOTE: To disable case-sensitive matching with input fields and values from 
-  events, the KV Store lookup data must be entirely in lower case. The input 
+case_sensitive_match = <boolean>
+* NOTE: To disable case-sensitive matching with input fields and values from
+  events, the KV Store lookup data must be entirely in lower case. The input
   data can be of any case, but the KV Store data must be lower case.
-* If set to false, case insensitive matching is performed for all fields in a 
+* If set to false, case insensitive matching is performed for all fields in a
   lookup table
 * Defaults to true (case sensitive matching)
 
 match_type = <string>
 * A comma and space-delimited list of <match_type>(<field_name>)
   specification to allow for non-exact matching
-* The available match_type values are WILDCARD, CIDR, and EXACT. Only fields 
+* The available match_type values are WILDCARD, CIDR, and EXACT. Only fields
   that should use WILDCARD or CIDR matching should be specified in this list.
-* Default: EXACT 
+* Default: EXACT
 
 external_cmd = <string>
 * Provides the command and arguments to invoke to perform a lookup. Use this
@@ -530,26 +522,26 @@ fields_list = <string>
 index_fields_list = <string>
 * A comma- and space-delimited list of fields that need to be indexed
   for a static .csv lookup file.
-* The other fields are not indexed and not searchable. 
+* The other fields are not indexed and not searchable.
 * Restricting the fields enables better lookup performance.
-* Defaults to all fields that are defined in the .csv lookup file header. 
+* Defaults to all fields that are defined in the .csv lookup file header.
 
 external_type = [python|executable|kvstore|geo|geo_hex]
-* This setting describes the external lookup type. 
+* This setting describes the external lookup type.
 * Use 'python' for external lookups that use a python script.
-* Use 'executable' for external lookups that use a binary executable, such as a 
-  C++ executable. 
+* Use 'executable' for external lookups that use a binary executable, such as a
+  C++ executable.
 * Use 'kvstore' for KV store lookups.
 * Use 'geo' for geospatial lookups.
 * 'geo_hex' is reserved for the geo_hex H3 lookup.
 * Default: python
 
 python.version = {default|python|python2|python3}
-* ******* FOR SPLUNK 8.0 BACKWARDS COMPATIBILITY ONLY ********
-* In Splunk 8.0 this attribute allows you to select which Python version to use.
-* In this version of Splunk, this attribute is IGNORED as only Python 2 is supported
-  by the platform. Ignoring this attribute allows you to set flags in your apps
-  in anticipation of moving to 8.0 without causing startup warnings.
+* For Python scripts only, selects which Python version to use.
+* Set to either "default" or "python" to use the system-wide default Python
+  version.
+* Optional.
+* Default: Not set; uses the system-wide Python version.
 
 time_field = <string>
 * Used for temporal (time bounded) lookups. Specifies the name of the field
@@ -566,7 +558,7 @@ time_format = <string>
 max_offset_secs = <integer>
 * For temporal lookups, this is the maximum time (in seconds) that the event
   timestamp can be later than the lookup entry time for a match to occur.
-* Default: 2000000000 
+* Default: 2000000000
 
 min_offset_secs = <integer>
 * For temporal lookups, this is the minimum time (in seconds) that the event
@@ -574,24 +566,24 @@ min_offset_secs = <integer>
   occur.
 * Default: 0
 
-batch_index_query = <bool>
-* For large file-based lookups, batch_index_query determines whether queries 
+batch_index_query = <boolean>
+* For large file-based lookups, batch_index_query determines whether queries
   can be grouped to improve search performance.
 * Default is unspecified here, but defaults to true (at global level in
   limits.conf)
 
-allow_caching = <bool>
+allow_caching = <boolean>
 * Allow output from lookup scripts to be cached
 * Default: true
 
 cache_size = <integer>
-* Cache size to be used for a particular lookup. If a previously looked up 
+* Cache size to be used for a particular lookup. If a previously looked up
   value is already present in the cache, it is applied.
-* The cache size represents the number of input values for which to cache 
-  output values from a lookup table. 
-* Do not change this value unless you are advised to do so by Splunk Support or 
-  a similar authority. 
-* Default: 10000 
+* The cache size represents the number of input values for which to cache
+  output values from a lookup table.
+* Do not change this value unless you are advised to do so by Splunk Support or
+  a similar authority.
+* Default: 10000
 
 max_ext_batch = <integer>
 * The maximum size of external batch (range 1 - 1000).
@@ -600,39 +592,40 @@ max_ext_batch = <integer>
 
 filter = <string>
 * Filter results from the lookup table before returning data. Create this filter
-  like you would a typical search query using Boolean expressions and/or 
+  like you would a typical search query using Boolean expressions and/or
   comparison operators.
-* For KV Store lookups, filtering is done when data is initially retrieved to 
+* For KV Store lookups, filtering is done when data is initially retrieved to
   improve performance.
 * For CSV lookups, filtering is done in memory.
 
 feature_id_element = <string>
-* If the lookup file is a kmz file, this field can be used to specify the xml 
+* If the lookup file is a kmz file, this field can be used to specify the xml
   path from placemark down to the name of this placemark.
 * This setting applies only to geospatial lookup configurations.
 * Default: /Placemark/name
 
-check_permission = <bool>
-* Specifies whether the system can verify that a user has write permission to a 
-  lookup file when that user uses the outputlookup command to modify that file. 
-  If the user does not have write permissions, the system prevents the 
+check_permission = <boolean>
+* Specifies whether the system can verify that a user has write permission to a
+  lookup file when that user uses the outputlookup command to modify that file.
+  If the user does not have write permissions, the system prevents the
   modification.
-* The check_permission setting is only respected when output_check_permission
-  is set to "true" in limits.conf. 
-* You can set lookup table file permissions in the .meta file for each lookup 
-  file, or through the Lookup Table Files page in Settings. By default, only 
+* The check_permission setting is only respected when you set
+  'outputlookup_check_permission'
+  to "true" in limits.conf.
+* You can set lookup table file permissions in the .meta file for each lookup
+  file, or through the Lookup Table Files page in Settings. By default, only
   users who have the admin or power role can write to a shared CSV lookup file.
 * This setting applies only to CSV lookup configurations.
 * Default: false
 
 replicate = true|false
 * Indicates whether to replicate CSV lookups to indexers.
-* When false, the CSV lookup is replicated only to search heads in a search 
-  head cluster so that input lookup commands can use this lookup on the search 
+* When false, the CSV lookup is replicated only to search heads in a search
+  head cluster so that input lookup commands can use this lookup on the search
   heads.
 * When true, the CSV lookup is replicated to both indexers and search heads.
 * Only for CSV lookup files.
-* Note that replicate=true works only if it is included in replication 
+* Note that replicate=true works only if it is included in replication
   whitelist, See distSearch.conf/[replicationWhitelist] option.
 * Default: true
 
@@ -647,13 +640,13 @@ replicate = true|false
 [statsd-dims:<unique_transforms_stanza_name>]
 * 'statsd-dims' prefix indicates this stanza is applicable only to statsd metric
   type input data.
-* This stanza is used to define regular expression to match and extract 
+* This stanza is used to define regular expression to match and extract
   dimensions out of statsd dotted name segments.
 * By default, only the unmatched segments of the statsd dotted name segment
   become the metric_name.
 
 REGEX = <regular expression>
-* Splunk software supports a named capturing group extraction format to provide 
+* Splunk software supports a named capturing group extraction format to provide
   dimension names of the corresponding values being extracted out. For example:
     (?<dim1>group)(?<dim2>group)..
 
@@ -664,25 +657,25 @@ REMOVE_DIMS_FROM_METRIC_NAME = <boolean>
 * Default: true
 
 [metric-schema:<unique_transforms_stanza_name>]
-* The 'metric-schema' stanza transforms index-time field extractions from a
-  single log event into metrics.
-* Each metric created has its own metric_name and _value.
-* The other fields extracted from the log event become dimensions in the
-  generated metrics.
+* Helps in transformation of index-time field extractions from a log events
+  into a metrics data point with a required measurement fields.
+* The other extracted fields from the log event become dimensions in the
+  generated metrics data point.
 * You must provide one of the following two settings:
   METRIC-SCHEMA-MEASURES-<unique_metric_name_prefix> or METRIC-SCHEMA-MEASURES. These
-  settings determine how values for the metric_name and _value fields are obtained.
+  settings are required and will inform which measurement indexed-time fields get
+  created with key::value = metric_name:<metric_name>::<measurement>
 
 METRIC-SCHEMA-MEASURES-<unique_metric_name_prefix> = (_ALLNUMS_ | (_NUMS_EXCEPT_ )? <field1>, <field2>,... )
 * Optional.
 * <unique_metric_name_prefix> should match the value of a field extracted from
   the event.
-* If this setting is exactly equal to _ALLNUMS_, the Splunk software treats 
+* If this setting is exactly equal to _ALLNUMS_, the Splunk software treats
   all numeric fields as measures.
 * If this setting starts with _NUMS_EXCEPT_, the Splunk software treats all
   numerical fields except those that match the given field names as  measures.
   * NOTE: a space is required between the '_NUMS_EXCEPT_' prefix and '<field1>'.
-* Otherwise, the Splunk software treats all fields that are listed and which 
+* Otherwise, the Splunk software treats all fields that are listed and which
   have a numerical value as measures.
 * If the value of the 'metric_name' index-time extraction matches with the
   <unique_metric_name_prefix>, the Splunk platform:
@@ -860,12 +853,12 @@ MetaData:Source     : The source associated with the event.
 MetaData:Sourcetype : The source type of the event.
                       The value must be prefixed by "sourcetype::"
 
-_TCP_ROUTING        : Comma separated list of tcpout group names (from   
-                      outputs.conf) 
+_TCP_ROUTING        : Comma separated list of tcpout group names (from
+                      outputs.conf)
 					  Defaults to groups present in 'defaultGroup' for [tcpout].
 
-_SYSLOG_ROUTING     : Comma separated list of syslog-stanza  names (from 
-                      outputs.conf) 
+_SYSLOG_ROUTING     : Comma separated list of syslog-stanza  names (from
+                      outputs.conf)
 					  Defaults to groups present in 'defaultGroup' for [syslog].
 
 * NOTE: Any KEY (field name) prefixed by '_' is not indexed by Splunk software,   in general.
@@ -875,10 +868,10 @@ _SYSLOG_ROUTING     : Comma separated list of syslog-stanza  names (from
 <name> = <key>
 
 * Modifies the list of valid SOURCE_KEY and DEST_KEY values. Splunk software
-  checks the SOURCE_KEY and DEST_KEY values in your transforms against this 
+  checks the SOURCE_KEY and DEST_KEY values in your transforms against this
   list when it performs index-time field transformations.
 * Add entries to [accepted_keys] to provide valid keys for specific
-  environments, apps, or similar domains. 
+  environments, apps, or similar domains.
 * The 'name' element disambiguates entries, similar to -class entries in
   props.conf.
 * The 'name' element can be anything you choose, including a description of

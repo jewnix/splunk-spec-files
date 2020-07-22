@@ -1,4 +1,4 @@
-#   Version 7.3.6
+#   Version 8.0.0
 #
 # This file configures the KV Store collections for a given app in Splunk.
 #
@@ -18,7 +18,7 @@ enforceTypes = true|false
 
 field.<name> = number|bool|string|time
 * Field type for a field called <name>.
-* If the data type is not provided, it is inferred from the provided JSON
+* If the data type is not provided, the data type is inferred from the provided JSON
   data type.
 
 accelerated_fields.<name> = <json>
@@ -37,7 +37,7 @@ accelerated_fields.<name> = <json>
 * An acceleration is always created on the _key.
 * The order of accelerations is important. For example, an acceleration of
   { "a":1, "b":1 } speeds queries on "a" and "a" + "b", but not on "b"
-   lone.
+   alone.
 * Multiple separate accelerations also speed up queries. For example,
   separate accelerations { "a": 1 } and { "b": 1 } will speed up queries on
   "a" + "b", but not as well as a combined acceleration { "a":1, "b":1 }.

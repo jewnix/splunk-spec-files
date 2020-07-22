@@ -1,4 +1,4 @@
-#   Version 7.3.4.2
+#   Version 7.3.5
 ############################################################################
 # This file contains settings and values to configure server options
 # in server.conf.
@@ -428,8 +428,6 @@ sslCommonNameToCheck = <commonName1>, <commonName2>, ...
   splunkd limits most outbound HTTPS connections to hosts which
   use a certificate with one of the listed common names.
 * The most important scenario is distributed search.
-* This feature does not work with the deployment server and client
-  communication over SSL.
 * Optional.
 * Default: No common name checking.
 
@@ -449,8 +447,6 @@ sslAltNameToCheck = <alternateName1>, <alternateName2>, ...
 * Accepts a comma-separated list of Subject Alternate Names to
   consider as valid.
 * Items in this list are never validated against the SSL Common Name.
-* This feature does not work with the deployment server and client
-  communication over SSL.
 * Optional.
 * Default: No alternate name checking.
 

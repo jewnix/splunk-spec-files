@@ -1,4 +1,4 @@
-#   Version 8.0.4
+#   Version 8.0.5
 #
 # Forwarders require outputs.conf. Splunk instances that do not forward
 # do not use it. Outputs.conf determines how the forwarder sends data to

@@ -1,4 +1,4 @@
-#   Version 8.0.4
+#   Version 8.0.5
 #
 # This file contains possible attribute/value pairs for creating roles in
 # authorize.conf.  You can configure roles and granular access controls by
@@ -683,6 +683,9 @@ disabled = <boolean>
 
 [capability::run_debug_commands]
 * Lets a user run debugging commands, for example 'summarize'.
+
+[capability::run_walklex]
+* Lets a user run the 'walklex' command even if they have a role with a search filter.
 
 [capability::schedule_rtsearch]
 * Lets a user schedule real-time saved searches.

@@ -1,4 +1,4 @@
-#   Version 8.0.4
+#   Version 8.0.5
 #
 ############################################################################
 # OVERVIEW
@@ -1769,6 +1769,18 @@ shared_provider_cache_size = <integer>
   a similar authority.
 * Default: 209715200
 
+input_errors_fatal = <boolean>
+* This setting determines whether certain inputlookup or inputcsv command
+  errors cause searches to fail or return a warning message.
+* When set to true, this setting causes inputlookup and inputcsv errors to make
+  an entire search fail. This happens even when the errors take place in a
+  subsearch.
+* When set to false, this setting returns a warning message for many
+  inputlookup and inputcsv error conditions.
+* Certain kinds of errors cause searches to fail no matter how this setting is
+  set.
+* Default: false
+
 [metadata]
 
 bucket_localize_max_lookahead = <integer>
@@ -1826,6 +1838,27 @@ honor_action = <boolean>
   action ttl when an action is triggered.
 * If there are multiple actions, the largest action ttl wins.
 * Default: false
+
+
+[msearch]
+
+chunk_size = <unsigned integer>
+* Specifies the default value of the 'chunk_size' argument for the 'msearch'
+  command.
+* When you run an 'msearch' search, the search head returns batches of metric
+  time series until the search result set is complete.
+* This argument sets a limit for the number of metric time series that the
+  search head can gather in a single batch from a single MSIDX file. For
+  example, when 'chunk_size=100', the search head can return 100 metric time
+  series worth of metric data points in batches until the search is complete.
+* Lower this value when 'msearch' searches use too much memory, or when they
+  infrequently return events.
+* Larger 'chunk_size' values can improve search performance, with the tradeoff
+  of using more memory per search.
+* Smaller 'chunk_size' values can reduce search performance, with the tradeoff
+  of using less memory per search.
+* This setting cannot be set lower than 10.
+* Default: 1000
 
 
 [mvexpand]
@@ -2865,6 +2898,12 @@ time_format_reject = <regular expression>
 * Default: [<>!] , which means that the less-than '<', greater-than '>', and
   exclamation point '!' are not allowed.
 
+restprocessor_errors_fatal = <boolean>
+* Determines whether to return a hard error for REST command usages that are
+  invalid.
+* An invalid REST command usage is a REST request that returns an HTTP status
+  outside the range of [200, 300].
+* Default: false
 
 [reversedns]
 

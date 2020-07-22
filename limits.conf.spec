@@ -205,6 +205,15 @@ ttl = <integer>
   details on how the ttl is computed.
 * Default: 300 (5 minutes)
 
+subsearch_artifacts_delete_policy = [immediate|ttl]
+* How subsearch artifacts are deleted after a sub search completes.
+* Set to `immediate` to have subsearch artifacts remove immediately after a
+  subsearch completes.
+* Set to 'ttl' to have subsearch artifacts delete after the time-to-live of
+  the subsearch has been reached.
+* For example, you could use '|noop subsearch_artifacts_delete_policy = [immediate|ttl]'
+  to overwrite the setting for a particular search.
+* Default: ttl
 
 ############################################################################
 # SEARCH COMMAND
@@ -1135,6 +1144,30 @@ search_process_mode = [auto|traditional|debug <debugging-command> <debugging-arg
         $SPLUNK_HOME/bin/scripts/search-debugger.sh 5 splunkd search \
         --id=... --maxbuckets=... --ttl=... [...]
 * Default: auto
+
+############################################################################
+# search_messages.log
+############################################################################
+
+log_search_messages = <boolean>
+* Specifies whether splunkd promotes user-facing search messages
+  from $SPLUNK_HOME/var/run/splunk/dispatch/<sid>/info.csv to
+  $SPLUNK_HOME/var/log/splunk/search_messages.log.
+* Splunkd does not promote messages with a severity that is ranked
+  lower than the value of search_messages_severity.
+* Splunkd promotes messages only after search has been audited.
+* The search_messages.log file follows this format when it logs messages:
+  orig_component="..." sid="..." peer_name="..." message=...
+* Default: false
+
+search_messages_severity = <string>
+* When 'log_search_messages = true', this setting specifies the lowest
+  severity of message that splunkd logs to search_messages.log.
+  The processor ignores all messages with a lower severity.
+* Possible values in ascending order: DEBUG, INFO, WARN, ERROR
+  * For example, when 'search_messages_severity = WARN', splunkd logs
+    only messages with 'WARN' and 'ERROR' severities.
+* Default: WARN
 
 ############################################################################
 # Search reuse
@@ -2236,6 +2269,20 @@ perf_warn_limit = <integer>
   events
 * When set to “0”: Specifies for no message (message is always INFO level)
 * Default: 10000
+
+[auth]
+* Settings for managing auth features.
+
+enable_install_apps = <boolean>
+* Whether or not the "install_apps" capability is enabled for app installation,
+  uninstallation, creation, and update.
+* If set to "true", you must be assigned a role that holds the 'install_apps'
+  capability to access the 'apps/local' REST endpoint for app installation,
+  uninstallation, creation, and update.
+* If set to "false", you must be assigned a role that holds either the
+  'admin_all_objects' or 'edit_local_apps' capabilities for app installation,
+  uninstallation, creation, and update.
+* Default: false
 
 
 [http_input]

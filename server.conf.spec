@@ -2624,6 +2624,9 @@ auto_rebalance_primaries = <boolean>
 * Default: true
 
 rebalance_primaries_execution_limit = <non-negative integer>
+* DEPRECATED. Use the 'rebalance_primaries_execution_limit_ms' setting instead.
+
+rebalance_primaries_execution_limit_ms = <non-negative integer>
 * Only valid for 'mode=master'.
 * Specifies, in milliseconds, the maximum period for one execution
   of the rebalance primary operation.
@@ -2857,6 +2860,16 @@ recreate_bucket_attempts_from_remote_storage = <positive integer>
        of additional peers to match the replication and search factors.
 * If set to 0, disables the re-creation of the bucket.
 * Default: 10
+
+recreate_bucket_max_per_service = <positive integer>
+* Only valid for 'mode=master'.
+* Only applies when using remote storage enabled indexes.
+* Controls the maximum number of buckets that the cluster can recreate
+  during a service interval.
+* Do not change the value from the default unless instructed by
+  Splunk Support.
+* If set to 0, recreating buckets will go at full speed.
+* Default: 0
 
 recreate_bucket_fetch_manifest_batch_size = <positive integer>
 * Only valid for 'mode=master'.
@@ -4002,6 +4015,13 @@ retry_autosummarize_or_data_model_acceleration_jobs = <boolean>
   auto-summarized or data model acceleration job, if the first attempt to
   delegate the job fails.
 * Default: true
+
+deployerPushThreads = <positive integer>|auto
+* The maximum number of threads to use when performing a deployer bundle push
+  to target members.
+* If set to "auto", the deployer auto-tunes the number of threads it uses
+  for a deployer bundle push. There will be one thread per target member.
+* Default: 1
 
 [replication_port://<port>]
 ############################################################################

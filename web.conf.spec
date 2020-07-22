@@ -490,6 +490,22 @@ dashboard_html_allow_inline_styles = <boolean>
   to prevent potential attacks.
 * Default: true
 
+dashboard_html_allow_embeddable_content = <boolean>
+* Whether or not to allow <embed> and <iframe> HTML elements in dashboards.
+* If set to the default value of "true", <embed> and <iframe> HTML elements in dashboards will not be removed 
+  and can lead to a potential security risk.
+* If set to "false", <embed> and <iframe> HTML elements will be stripped
+  from the dashboard HTML.
+* Default: true
+
+dashboard_html_wrap_embed = <boolean>
+* Whether or not to wrap <embed> HTML elements in dashboards with an <iframe>.
+* If set to "false", <embed> HTML elements in dashboards will not be wrapped, leading to
+  a potential security risk.
+* If set to "true", <embed> HTML elements will be wrapped by an <iframe sandbox> element to help
+  mitigate potential security risks.
+* Default: false
+
 dashboard_html_allow_iframes = <boolean>
 * Whether or not to allow iframes from HTML elements in dashboards.
 * If "false", iframes from HTML elements in dashboards will be removed to prevent
@@ -871,17 +887,18 @@ tools.encode.encoding = <codec>
 * Default: utf-8
 
 tools.proxy.on = <boolean>
-* Used for running Apache as a proxy for Splunk Web, typically for SSO
-  configurations. 
-* Search the CherryPy website for "apache proxy" for more
-  information.
-* For Apache 1.x proxies only, set to "true". This configuration tells
-  CherryPy (the Splunk Web HTTP server) to look for an incoming
-  X-Forwarded-Host header and to use the value of that header to
-  construct canonical redirect URLs that include the proper host name. For
-  more information, refer to the CherryPy documentation on running behind an
-  Apache proxy. This setting is only necessary for Apache 1.1 proxies. 
-* For all other proxies, you must set to "false".
+* Whether or not the Splunk platform instance is behind a reverse proxy server.
+* If set to "true", the instance assumes that it is behind a reverse proxy and
+  uses HTTP header information from the proxy to log access requests, secure
+  its cookies properly, and generate valid URLs for redirect responses.
+* All of the instance's HTTP services will use information from
+  "X-Forwarded-*", "Front-End-Https", and "X-Url-Scheme" headers, where
+  available, to override what it receives from proxied requests.
+* If you set this to "true", you must also set 'tools.proxy.base' to a valid
+  host name and network port.
+* If set to "false", the instance relies on its own internal HTTP server
+  settings and the immediate client's HTTP headers for the information needed
+  for access request logging, cookie securing, and redirect URL generation.
 * Default: false
 
 tools.proxy.base = <scheme>://<URL>

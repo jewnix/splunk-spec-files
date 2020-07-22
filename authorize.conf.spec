@@ -381,6 +381,10 @@ disabled = <boolean>
 [capability::edit_local_apps]
 * Lets a user edit apps on the local Splunk instance through the
   local apps endpoint.
+* For full access to app management, also add the 'install_apps'
+  capability to the role.
+* To enable enforcement of the "install_apps" capability, see the
+  "enable_install_apps" setting in limits.conf.
 
 [capability::edit_monitor]
 * Lets a user add inputs and edit settings for monitoring files.
@@ -525,6 +529,14 @@ disabled = <boolean>
 [capability::input_file]
 * Lets a user add a file as an input through the inputcsv command (except for
   dispatch=t mode) and the inputlookup command.
+
+[capability::install_apps]
+* Lets a user install, uninstall, create, and update apps on the local
+  Splunk platform instance through the apps/local endpoint.
+* For full access to app management, also add the 'edit_local_apps'
+  capability to the role.
+* To enable enforcement of the "install_apps" capability, see the
+  "enable_install_apps" setting in limits.conf.
 
 [capability::license_tab]
 * Lets a user access and change the license.

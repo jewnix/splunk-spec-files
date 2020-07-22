@@ -1927,7 +1927,8 @@ maxVolumeDataSizeMB = <positive integer>
 * The highest legal value is 4294967295.
 * The lowest legal value is 1.
 * Optional.
-* This setting is ignored when 'storageType' is set to "remote".
+* This setting is ignored when 'storageType' is set to "remote" or
+  when set to "local" and the volume contains any remote-storage enabled indexes.
 
 rotatePeriodInSecs = <nonnegative integer>
 * Optional, ignored for storageType=remote

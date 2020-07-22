@@ -683,6 +683,9 @@ disabled = <boolean>
 [capability::run_debug_commands]
 * Lets a user run debugging commands, for example 'summarize'.
 
+[capability::run_walklex]
+* Lets a user run the 'walklex' command even if they have a role with a search filter.
+
 [capability::schedule_rtsearch]
 * Lets a user schedule real-time saved searches.
 * You must enable the 'scheduled_search' and 'rtsearch' capabilities for the role.

@@ -161,7 +161,7 @@ enable_secure_entity_move = <boolean>
     an entity from one app to another.
 * If set to "false", you can perform both HTTP GET and POST requests against the
   "move" endpoint of an entity.
-* Default: false
+* Default: true
 
 simple_error_page = <boolean>
 * Whether or not to display a simplified error page for HTTP errors that only contains the error status.

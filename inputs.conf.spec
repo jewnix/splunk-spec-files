@@ -1,4 +1,4 @@
-#   Version 7.3.5
+#   Version 7.3.6
 
 # This file contains possible settings you can use to configure inputs,
 # distributed inputs such as forwarders, and file system monitoring in
@@ -1617,6 +1617,21 @@ crossOriginSharingPolicy = <origin_acl> ...
       matching one host in a domain.
 * "*" matches all origins.
 * Default: empty string.
+
+crossOriginSharingHeaders = <string>
+* A list of the HTTP headers to which splunkd sets
+  "Access-Control-Allow-Headers" when replying to
+  Cross-Origin Resource Sharing (CORS) preflight requests.
+* The "Access-Control-Allow-Headers" header is used in response to
+  a CORS preflight request to tell browsers which HTTP headers can be
+  used during the actual request.
+* A CORS preflight request is a CORS request that checks to see if
+  the CORS protocol is understood and a server is aware of using
+  specific methods and headers.
+* This setting can take a list of acceptable HTTP headers, separated
+  by commas.
+* A single "*" can also be used to match all headers.
+* Default: Empty string.
 
 forceHttp10 = [auto|never|always]
 * Whether or not the REST HTTP server forces clients that connect

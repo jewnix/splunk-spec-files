@@ -1,4 +1,4 @@
-#   Version 7.3.5
+#   Version 7.3.6
 #
 # This file contains all possible options for an indexes.conf file.  Use
 # this file to configure Splunk's indexes and their properties.
@@ -1928,7 +1928,8 @@ maxVolumeDataSizeMB = <positive integer>
 * The highest legal value is 4294967295.
 * The lowest legal value is 1.
 * Optional.
-* This setting is ignored when 'storageType' is set to "remote".
+* This setting is ignored when 'storageType' is set to "remote" or
+  when set to "local" and the volume contains any remote-storage enabled indexes.
 
 rotatePeriodInSecs = <nonnegative integer>
 * Optional, ignored for storageType=remote

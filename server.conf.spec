@@ -1,4 +1,4 @@
-#   Version 7.3.5
+#   Version 7.3.6
 ############################################################################
 # This file contains settings and values to configure server options
 # in server.conf.
@@ -279,6 +279,16 @@ pipelineSetNumTrackingPeriods = <number>
 * This information is used as a heuristic to calculate the pipeline set weights
   at every expiry of pipelineSetWeightsUpdatePeriod.
 * Default: 5
+
+pipelineSetChannelSetCacheSize = <integer>
+* Maximum number of inactive channels to be stored in the per-pipeline set
+  cache to reduce load in the configuration management system.
+* Currently only affects ingestion via the HTTP Event Collector.
+* Increasing this setting should reduce the number of created channels
+  reported in metrics.log under the 'channel_cache' group. If neither that
+  group nor the 'created' field exists in metrics.log, increasing this
+  value has no effect.
+* Default: 12
 
 instanceType = <string>
 * Should not be modified by users.
@@ -1116,6 +1126,21 @@ crossOriginSharingPolicy = <origin_acl> ...
   matching one host in a domain
 * A single "*" can also be used to match all origins
 * No default.
+
+crossOriginSharingHeaders = <string>
+* A list of the HTTP headers to which splunkd sets
+  "Access-Control-Allow-Headers" when replying to
+  Cross-Origin Resource Sharing (CORS) preflight requests.
+* The "Access-Control-Allow-Headers" header is used in response to
+  a CORS preflight request to tell browsers which HTTP headers can be
+  used during the actual request.
+* A CORS preflight request is a CORS request that checks to see if
+  the CORS protocol is understood and a server is aware of using
+  specific methods and headers.
+* This setting can take a list of acceptable HTTP headers, separated
+  by commas.
+* A single "*" can also be used to match all headers.
+* Default: Empty string.
 
 x_frame_options_sameorigin = <boolean>
 * Adds a X-Frame-Options header set to "SAMEORIGIN" to every response

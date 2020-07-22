@@ -1,4 +1,4 @@
-#   Version 8.0.3
+#   Version 8.0.4
 #
 # This file contains possible attributes and values for defining server
 # classes to which deployment clients can belong. These attributes and

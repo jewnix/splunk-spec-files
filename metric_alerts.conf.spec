@@ -1,4 +1,4 @@
-#   Version 8.0.3
+#   Version 8.0.4
 #
 # This file contains possible setting/value pairs for metric alert entries in the
 # metric_alerts.conf file. You can configure metric alerts by creating your own

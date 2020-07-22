@@ -1,4 +1,4 @@
-#   Version 8.0.3
+#   Version 8.0.4
 #
 ############################################################################
 # OVERVIEW
@@ -289,6 +289,16 @@ pipelineSetNumTrackingPeriods = <number>
 * This information is used as a heuristic to calculate the pipeline set weights
   at every expiry of pipelineSetWeightsUpdatePeriod.
 * Default: 5
+
+pipelineSetChannelSetCacheSize = <integer>
+* Maximum number of inactive channels to be stored in the per-pipeline set
+  cache to reduce load in the configuration management system.
+* Currently only affects ingestion via the HTTP Event Collector.
+* Increasing this setting should reduce the number of created channels
+  reported in metrics.log under the 'channel_cache' group. If neither that
+  group nor the 'created' field exists in metrics.log, increasing this
+  value has no effect.
+* Default: 12
 
 instanceType = <string>
 * Should not be modified by users.

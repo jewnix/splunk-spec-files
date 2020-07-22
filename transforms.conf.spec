@@ -1,4 +1,4 @@
-#   Version 8.0.3
+#   Version 8.0.4
 #
 # This file contains settings and values that you can use to configure
 # data transformations.
@@ -92,6 +92,11 @@ REGEX = <regular expression>
     This means that you do not need to specify the FORMAT setting for
     simple search-time field extraction cases (see the description of FORMAT,
     below).
+  * If the REGEX for a field extraction configuration does not have the
+    capturing groups referenced in the FORMAT, searches that use that
+    configuration will not return events.
+  * The REGEX must have at least one capturing group, even if the FORMAT does
+    not reference any capturing groups.
   * If the REGEX extracts both the field name and its corresponding field
     value, you can use the following special capturing groups if you want to
     skip specifying the mapping in FORMAT for search-time field extractions:
@@ -137,11 +142,14 @@ FORMAT = <string>
     follows:
     * FORMAT = <field-name>::<field-value>( <field-name>::<field-value>)*
       where:
-      * field-name  = [<string>|$<extracting-group-number>]
-      * field-value = [<string>|$<extracting-group-number>]
+      * field-name  = [<string>|$<capturing-group-number>]
+      * field-value = [<string>|$<capturing-group-number>]
   * Search-time extraction examples:
       * 1. FORMAT = first::$1 second::$2 third::other-value
       * 2. FORMAT = $1::$2
+  * If the REGEX for a field extraction configuration does not have the
+    capturing groups specified in the FORMAT, searches that use that
+    configuration will not return events.
   * If you configure FORMAT with a variable <field-name>, such as in the second
     example above, the regular expression is repeatedly applied to the source
 	key to match and extract all field/value pairs in the event.

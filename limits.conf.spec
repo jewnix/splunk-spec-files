@@ -1,4 +1,4 @@
-#   Version 8.0.3
+#   Version 8.0.4
 #
 ############################################################################
 # OVERVIEW
@@ -3339,6 +3339,16 @@ stale_lock_seconds = <integer>
   and removes it.
 * Default: 600
 
+tscollect_queue_size = <unsigned integer>
+* This setting sets the size (in bytes) of the internal producer-consumer
+  queue. Accelerated data model summary creation searches use this queue to
+  speed up the summarization task.
+* Setting this to a non-zero value reduces the memory usage of the data model
+  acceleration search process while accelerating large buckets of events.
+* A value of 0 represents no bound on the queue size.
+* CAUTION: Do not change this setting without consulting Splunk Support.
+  Changing it may slow down the accelerated data model summary creation search.
+* Default: 0
 
 [system_checks]
 

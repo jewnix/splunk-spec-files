@@ -1,4 +1,4 @@
-#   Version 7.3.3
+#   Version 7.3.4
 #
 # This file contains all possible options for an indexes.conf file.  Use
 # this file to configure Splunk's indexes and their properties.
@@ -1173,6 +1173,16 @@ datatype = <event|metric>
 * Use the "metric" data type only for metric sourcetypes like statsd.
 * Optional.
 * Default: event
+
+waitPeriodInSecsForManifestWrite = <nonnegative integer>
+* This setting specifies the minimum interval, in seconds, between periodic
+  updates of an index's manifest file.
+* Setting to a lower value can reduce the performance of bucket operations like
+  fix-ups, freezes, etc.
+* Do not increase this value beyond the default except through consultation with
+  Splunk Support. Increasing the value can lead to inconsistencies in data.
+* The highest legal value is 4294967295.
+* Default: 60 (1 min)
 
 #**************************************************************************
 # PER PROVIDER FAMILY OPTIONS

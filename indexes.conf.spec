@@ -1241,6 +1241,16 @@ datatype = <event|metric>
 * Optional.
 * Default: event
 
+waitPeriodInSecsForManifestWrite = <nonnegative integer>
+* This setting specifies the minimum interval, in seconds, between periodic
+  updates of an index's manifest file.
+* Setting to a lower value can reduce the performance of bucket operations like
+  fix-ups, freezes, etc.
+* Do not increase this value beyond the default except through consultation with
+  Splunk Support. Increasing the value can lead to inconsistencies in data.
+* The highest legal value is 4294967295.
+* Default: 60 (1 min)
+
 #**************************************************************************
 # PER PROVIDER FAMILY OPTIONS
 # A provider family is a way of collecting properties that are common to

@@ -981,6 +981,13 @@ replicateCertificates = <boolean>
 * This setting is optional.
 * Default: true
 
+allowPartialSignatures = <boolean>
+* When enabled, the Splunk authentication system only requires the SAML assertion block to be
+  signed (but not necessarily the entire SAML response) when logging in through the HTTP POST
+  binding.
+* When disabled, the entire SAML response must be signed for the login to succeed.
+* This setting is optional.
+* Default: true
 
 #####################
 # Map roles

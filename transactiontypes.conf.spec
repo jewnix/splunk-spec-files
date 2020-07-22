@@ -1,4 +1,4 @@
-#   Version 8.0.0
+#   Version 8.0.1
 #
 # This file contains all possible attributes and value pairs for a
 # transactiontypes.conf file.  Use this file to configure transaction searches

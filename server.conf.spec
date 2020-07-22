@@ -1,4 +1,4 @@
-#   Version 8.0.0
+#   Version 8.0.1
 #
 ############################################################################
 # OVERVIEW
@@ -2279,6 +2279,8 @@ rep_max_send_timeout = <integer>
 * If cumulative 'rep_send_timeout' exceeds 'rep_max_send_timeout',
   replication
   fails.
+* This setting is dynamically reloadable and does not require restart
+  of cluster peer.
 * Default: 180 (3 minutes)
 
 rep_max_rcv_timeout = <integer>
@@ -2287,6 +2289,8 @@ rep_max_rcv_timeout = <integer>
 * On 'rep_rcv_timeout' source peer determines if total
   receive timeout has exceeded 'rep_max_rcv_timeout'.
   If so, replication fails.
+* This setting is dynamically reloadable and does not require restart
+  of cluster peer.
 * Default: 180 (3 minutes)
 
 multisite = <boolean>
@@ -2518,6 +2522,8 @@ max_replication_errors = <integer>
   replication occurs to this target from this source.
 * The special value of 0 turns off this safeguard; so the source
   always rolls hot buckets on streaming error to any target.
+* This setting is dynamically reloadable and does not require restart
+  of cluster peer.
 * Default: 3
 
 searchable_targets = <boolean>
@@ -2544,6 +2550,8 @@ target_wait_time = <positive integer>
 * Specifies the time, in seconds, that the master waits for the
   target of a replication to register itself before it services
   the bucket again and potentially schedules another fixup.
+* This setting is dynamically reloadable and does not require restart
+  of cluster master.
 * Default: 150 (2 minutes 30 seconds)
 
 summary_wait_time = <positive integer>
@@ -2798,6 +2806,8 @@ remote_storage_upload_timeout = <non-zero positive integer>
   in seconds, after which target peers assume responsibility for
   uploading a bucket to the remote storage, if they do not hear from
   the source peer.
+* This setting is dynamically reloadable and does not require restart
+  of cluster peer.
 * Default: 60 (1 minute)
 
 report_remote_storage_bucket_upload_to_targets = <boolean>
@@ -2816,6 +2826,8 @@ remote_storage_retention_period = <non-zero positive integer>
 * Controls the length, in seconds, of peer-node retention for buckets in
   remote storage enabled indexes. When this length is exceeded, the master
   freezes the buckets on the peer nodes.
+* This setting is dynamically reloadable and does not require restart
+  of cluster master.
 * Default: 900 (15 minutes)
 
 recreate_bucket_attempts_from_remote_storage = <positive integer>
@@ -2897,6 +2909,8 @@ use_batch_remote_rep_changes = <boolean>
 * This is applicable to buckets belonging to
   remote storage enabled indexes only.
 * Do not change this setting without consulting with Splunk Support.
+* This setting is dynamically reloadable and does not require restart
+  of cluster master.
 * Default: false
 
 buckets_status_notification_batch_size = <positive integer>

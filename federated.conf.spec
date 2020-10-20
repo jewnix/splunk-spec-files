@@ -26,19 +26,19 @@ type = [splunk]
 
 ip = <IP address>
 * Identifies the IP address of the federated provider.
-* Default: No default.
+* No default.
 
 splunk.port = <port>
 * Identifies the splunkd REST port on the remote Splunk deployment.
-* Default: No default.
+* No default.
 
 splunk.serviceAccount = <user>
 * Identifies an authorized user on the remote Splunk deployment.
 * The security credentials associated with this account are managed securely in
   fshpasswords.conf.
-* Default: No default.
+* No default.
 
 splunk.app = <string>
 * The name of the Splunk application on the remote Splunk deployment in which
 * to perform the search.
-* Default: No default.
+* No default.

@@ -14,14 +14,17 @@
 #### find out if this file is still being used.
 
 [<stanza name>]
-* Name of the filter being defined.
+* The name of the filter being defined.
 
 proc = <string>
-* Regex specifying process image that you want Splunk to monitor.
+* A regular expression that specifies process image that you want
+  the Splunk platform to monitor.
+* No default.
 
 type = <string>
-* Regex specifying the type(s) of process event that you want Splunk to
-  monitor.
+* A regular expression that specifies the type(s) of process events
+  that you want the Splunk platform to monitor.
+* No default
 
 hive = <string>
 * Not used in this context, but should always have value ".*"

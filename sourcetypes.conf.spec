@@ -32,6 +32,5 @@ _sourcetype = <value>
 * Future sources that match the model will receive a sourcetype of this new
   name.
 
-
 _source = <value>
 * Specifies the source (filename) for the model.

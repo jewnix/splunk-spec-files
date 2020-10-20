@@ -29,3 +29,4 @@ queueing = <boolean>
 * If set to "false", you must add an inputs.conf stanza to tail the
   audit log for the events reach your index.
 * Default: true
+

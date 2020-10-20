@@ -1,4 +1,4 @@
-# Version 8.0.5.1
+# Version 8.1.0
 #
 # This file contains possible attribute/value pairs for configuring tags. Set
 # any number of tags for indexed or extracted fields.
@@ -28,5 +28,5 @@
   assigned to the same field/value combination), only one tag is allowed per
   stanza line. In other words, you can't have a list of tags on one line of the
   stanza.
-* WARNING: Do not put the <tag> value in quotes. For example, 
+* CAUTION: Do not put the <tag> value in quotes. For example,
   use foo=enabled, not "foo"=enabled.

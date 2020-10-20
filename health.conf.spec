@@ -1,4 +1,4 @@
-#   Version 8.0.5.1
+#   Version 8.1.0
 #
 # This file sets the default thresholds for Splunk Enterprise's built
 # in Health Report.
@@ -21,10 +21,12 @@
 # http://docs.splunk.com/Documentation/Splunk/latest/Admin/Aboutconfigurationfiles
 
 [distributed_health_reporter]
-disabled = [0|1]
-* A value of 1 disables the distributed health report on this Splunk instance.
-  When disabled, the instance does not call connected search peers to retrieve
-  health report information.
+disabled = <boolean>
+* Whether or not this Splunk platform instance calls connected search peers to
+  retrieve health report information.
+* A value of 1 disables the distributed health report on this Splunk platform
+  instance. When disabled, the instance does not call connected search peers
+  to retrieve health report information.
 * Default: 1 (disabled)
 
 [health_reporter]
@@ -47,7 +49,7 @@ alert.actions = <string>
 * The alert actions that will run when an alert is fired.
 
 alert.min_duration_sec = <integer>
-* The minimum amount of time, in seconds, that the health status color must 
+* The minimum amount of time, in seconds, that the health status color must
   persist within threshold_color before triggering an alert.
 * Default: 60.
 
@@ -60,16 +62,25 @@ alert.suppress_period = <integer>[m|s|h|d]
   elapse between each fired alert.
 * Alerts that occur earlier will be sent as a batch after this time period
   elapses.
-* Default: 10 minutes.
+* Default: 10m
 
 [clustering]
 health_report_period = <number>
 * The amount of time, in seconds, that elapses between each Clustering
   health report run.
 * Default: 20.
-disabled = [0|1]
+
+disabled = <boolean>
+* Whether or not the clustering feature health check is disabled.
 * A value of 1 disables the clustering feature health check.
 * Default: 0 (enabled)
+
+[tree_view:health_subset]
+* Defines a tree view for health features.
+* Users with 'list_health_subset' capability can view features belonging
+  to this tree view.
+* Users with 'edit_health_subset' capability can edit thresholds for features
+  belonging to this tree view.
 
 [feature:*]
 suppress_status_update_ms = <number>
@@ -81,7 +92,8 @@ suppress_status_update_ms = <number>
 display_name = <string>
 * A human readable name for the feature.
 
-alert.disabled = [0|1]
+alert.disabled = <boolean>
+* Whether or not alerting is disabled for this feature.
 * A value of 1 disables alerting for this feature.
 * If alerting is disabled in the [health_reporter] stanza, alerting for this feature is disabled,
   regardless of the value set here.
@@ -89,7 +101,7 @@ alert.disabled = [0|1]
 * Default: 0 (enabled)
 
 alert.min_duration_sec = <integer>
-* The minimum amount of time, in seconds, that the health status color must 
+* The minimum amount of time, in seconds, that the health status color must
   persist within threshold_color before triggering an alert.
 
 alert.threshold_color = [yellow|red]
@@ -114,11 +126,14 @@ alert:<indicator name>.disabled = [0|1]
 * Default: 0 (enabled)
 
 alert:<indicator name>.min_duration_sec = <integer>
-* The minimum amount of time, in seconds, that the health status color must 
+* The minimum amount of time, in seconds, that the health status color must
   persist within threshold_color before triggering an alert.
 
 alert:<indicator name>.threshold_color = [yellow|red]
 * The health status color to trigger an alert.
+
+tree_view:health_subset = [enabled | disabled]
+* Indicates that this feature belongs to the 'health_subset' tree view.
 
 [alert_action:*]
 disabled = [0|1]

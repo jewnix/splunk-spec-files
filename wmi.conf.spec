@@ -1,4 +1,4 @@
-#   Version 8.0.5.1
+#   Version 8.1.0
 #
 # This file contains possible setting/value pairs for configuring Windows
 # Management Instrumentation (WMI) access from Splunk Enterprise.
@@ -7,7 +7,7 @@
 # configurations, place a wmi.conf in $SPLUNK_HOME\etc\system\local\. For
 # examples, see wmi.conf.example.
 #
-# You must restart Splunk to enable configurations.
+# You must restart Splunk Enterprise to enable configurations.
 #
 # To learn more about configuration files (including precedence) please see
 # the documentation located at
@@ -15,10 +15,10 @@
 
 ###################################################################
 #----GLOBAL SETTINGS-----
-###################################################################
+ ###################################################################
 
 [settings]
-* The 'settings' stanza specifies various parameters for the WMI input.
+* Specifies parameters for the WMI input.
 * The entire stanza and every parameter within it is optional.
 * If the stanza is missing, Splunk Enterprise assumes system defaults.
 
@@ -36,9 +36,9 @@ max_backoff = <integer>
 
 max_retries_at_max_backoff = <integer>
 * When the WMI input has connection errors to the WMI provider, it
-  backs off attempting to connect by doubling the amount of time it
-  waits between connection attempts from an initial interval of
-  'initial_backoff' seconds to a maximum backoff of 'max_backoff'
+  backs off connection attempts by doubling the amount of time it
+  waits between connection attempts. It modifies attempts from an initial interval of
+  'initial_backoff' seconds to an interval specified 'max_backoff'
   seconds.
 * After the input has waited 'max_backoff' seconds between connection
   attempts, and while connection errors persist, this setting tells
@@ -60,11 +60,11 @@ checkpoint_sync_interval = <integer>
 
 [WMI:<name>]
 * There are two types of WMI input stanza:
-  * Event log stanza: Used for collecting Windows Event Logs. You must configure the
+  * Event log stanza: Used to collect Windows Event Logs. You must configure the
     'event_log_file' setting.
-  * Windows Query Language (WQL): Used for issuing raw Windows Query Language (WQL)
+  * Windows Query Language (WQL): Used to issue raw Windows Query Language (WQL)
     requests. You must configure the 'wql' setting.
-* Do not use both the 'event_log_file' or 'wql' attributes. Use one or the other.
+* Do not use both the 'event_log_file' amd 'wql' attributes. Use one or the other.
 
 server = <comma-separated strings>
 * A comma-separated list of WMI providers (Windows machines) from which to get data.
@@ -72,8 +72,8 @@ server = <comma-separated strings>
 
 interval = <integer>
 * How often, in seconds, to poll the WMI provider for new data.
-* This setting is required, and the input does not run if the setting is
-  not present.
+* You must supply this setting. No default is supplied and the input does not run if the setting is
+  not specified.
 * No default.
 
 disabled = <boolean>
@@ -120,7 +120,7 @@ use_old_eventlog_api = <boolean>
 
 use_threads = <integer>
 * The number of threads, in addition to the default writer thread, that can
-  be created to filter events with the blacklist/whitelist regular expression.
+  be created to filter events with the deny list or allow list regular expression.
 * This is an advanced setting. Contact Splunk Support before you change it.
 * The maximum number of threads is 15.
 * Default: 0
@@ -139,21 +139,21 @@ suppress_checkpoint = <boolean>
 
 suppress_sourcename = <boolean>
 * Whether or not to exclude the 'sourcename' field from events.
-* When set to "true", the input excludes the 'sourcename' field from events and thruput performance
+* When set to "true", the input excludes the 'sourcename' field from events and throughput performance
   (the number of events processed per second) improves.
 * This is an advanced setting. Contact Splunk Support before you change it.
 * Default: false
 
 suppress_keywords = <boolean>
 * Whether or not to exclude the 'keywords' field from events.
-* When set to "true", the input excludes the 'keywords' field from events and thruput performance
+* When set to "true", the input excludes the 'keywords' field from events and throughput performance
   (the number of events processed per second) improves.
 * This is an advanced setting. Contact Splunk Support before you change it.
 * Default: false
 
 suppress_type = <boolean>
 * Whether or not to exclude the 'type' field from events.
-* When set to true, the input excludes the 'type' field from events and thruput performance
+* When set to true, the input excludes the 'type' field from events and throughput performance
   (the number of events processed per second) improves.
 * This is an advanced setting. Contact Splunk Support before you change it.
 * Default: false
@@ -167,7 +167,7 @@ suppress_task = <boolean>
 
 suppress_opcode = <boolean>
 * Whether or not to exclude the 'opcode' field from events.
-* When set to "true", the input excludes the 'opcode' field from events and thruput performance
+* When set to "true", the input excludes the 'opcode' field from events and throughput performance
   (the number of events processed per second) improves.
 * This is an advanced setting. Contact Splunk Support before you change it.
 * Default: false
@@ -230,7 +230,7 @@ wql = <string>
   * For example,
     SELECT * FROM Win32_PerfFormattedData_PerfProc_Process WHERE Name = "splunkd".
 * If you want to use event notification queries, you must also set the
-  "current_only" attribute to 1 within the stanza, and your query must be
+  "current_only" attribute to "1" within the stanza, and your query must be
   appropriately structured for event notification (meaning its WQL string
   must contain one or more of the GROUP, WITHIN or HAVING clauses.)
   * For example,

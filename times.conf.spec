@@ -1,4 +1,4 @@
-#   Version 8.0.5.1
+#   Version 8.1.0
 #
 ############################################################################
 # OVERVIEW
@@ -66,7 +66,7 @@ latest_time = <string>
 * Optional.
 * NOTE: events that occur in the future (relative to the server timezone)
         might be returned.
-* No default (No latest time bound is used)  
+* No default (No latest time bound is used)
 
 order = <integer>
 * The key on which all custom time ranges are sorted, ascending.
@@ -89,32 +89,32 @@ is_sub_menu = <boolean>
 [settings]
 * List of flags that modify the panels that are displayed in the time range picker.
 
-show_advanced = [true|false]
+show_advanced = <boolean>
 * Specifies if the 'Advanced' panel should be displayed in the time range picker.
 * Optional.
 * Default: true
 
-show_date_range = [true|false]
+show_date_range = <boolean>
 * Specifies if the 'Date Range' panel should be displayed in the time range picker.
 * Optional.
 * Default: true
 
-show_datetime_range = [true|false]
+show_datetime_range = <boolean>
 * Specifies if the 'Date & Time Range' panel should be displayed in the time range picker.
 * Optional.
 * Default: true
 
-show_presets = [true|false]
+show_presets = <boolean>
 * Specifies if the 'Presets' panel should be displayed in the time range picker.
 * Optional.
 * Default: true
 
-show_realtime = [true|false]
+show_realtime = <boolean>
 * Specifies if the 'Realtime' panel should be displayed in the time range picker.
 * Optional.
 * Default: true
 
-show_relative = [true|false]
+show_relative = <boolean>
 * Specifies if the 'Relative' panel should be displayed in the time range picker.
 * Optional.
 * Default: true

@@ -1,4 +1,4 @@
-#   Version 8.0.5.1
+#   Version 8.1.0
 #
 # This file contains possible attributes and values you can use to configure
 # auditing and event signing in audit.conf.
@@ -30,3 +30,4 @@ queueing = <boolean>
 * If set to "false", you must add an inputs.conf stanza to tail the
   audit log for the events reach your index.
 * Default: true
+

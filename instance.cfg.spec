@@ -1,4 +1,4 @@
-#   Version 8.0.5.1
+#   Version 8.1.0
 #
 # This file contains the set of attributes and values you can expect to find in
 # the SPLUNK_HOME/etc/instance.cfg file; the instance.cfg file is not to be

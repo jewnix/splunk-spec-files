@@ -1,4 +1,4 @@
-#   Version 8.0.5.1
+#   Version 8.1.0
 #
 ############################################################################
 # OVERVIEW
@@ -47,24 +47,24 @@
 [deployment-client]
 
 disabled = <boolean>
-* Enable or disable a deployment client
+* Whether or not a deployment client is disabled.
 * Default: false
 
 clientName = deploymentClient
-* A name the deployment server can filter on
-* Takes precedence over DNS names
+* A name that the deployment server can filter on.
+* This setting takes precedence over DNS names.
 * Default: deploymentClient
 
 workingDir = $SPLUNK_HOME/var/run
-* Temporary folder that the deploymentClient uses to download apps and
-  configuration content
+* The temporary folder that the deploymentClient uses to download apps and
+  configuration content.
 
 repositoryLocation = $SPLUNK_HOME/etc/apps
-* The location where content installs when downloaded from a deployment server
-* For the Splunk software instance on the deployment client to recognize an app
+* The location where content installs when downloaded from a deployment server.
+* For the Splunk platform instance on the deployment client to recognize an app
   or configuration content, install the app or content in the default location:
   $SPLUNK_HOME/etc/apps.
-    * Note: Apps and configuration content for deployment can be in other
+    * NOTE: Apps and configuration content for deployment can be in other
       locations on the deployment server. Set both 'repositoryLocation' and
       'serverRepositoryLocationPolicy' explicitly to ensure that the content
       installs on the deployment client in the correct location, which is
@@ -73,14 +73,15 @@ repositoryLocation = $SPLUNK_HOME/etc/apps
       to determine the value of 'repositoryLocation'.
 
 serverRepositoryLocationPolicy = [acceptSplunkHome|acceptAlways|rejectAlways]
-* Specifies the value of 'repositoryLocation'for the deployment client to use
-* acceptSplunkHome: Only accept the value of 'repositoryLocation' the
-  deployment server supplies if it is rooted by $SPLUNK_HOME.
-* acceptAlways: Always accept the 'repositoryLocation' the deployment server
-  supplies.
-* rejectAlways: Always reject the 'repositoryLocation' the deployment server
-  supplies. Use the 'repositoryLocation'
-  the local deploymentclient.conf specifies.
+* The value of 'repositoryLocation' for the deployment client to use.
+* This setting accepts only the following values:
+  * "acceptSplunkHome": Only accept the value of 'repositoryLocation' the
+    deployment server supplies if it begins with $SPLUNK_HOME.
+  * "acceptAlways": Always accept the 'repositoryLocation' that the deployment server
+    supplies.
+  * "rejectAlways": Always reject the 'repositoryLocation' that the deployment server
+    supplies, and instead use the 'repositoryLocation' that the local
+    deploymentclient.conf file specifies.
 * Default: acceptSplunkHome
 
 endpoint=$deploymentServerUri$/services/streams/deployment?name=$serverClassName$:$appName$
@@ -101,31 +102,33 @@ serverEndpointPolicy = [acceptAlways|rejectAlways]
   preceding endpoint definition.
 * Default: acceptAlways
 
-phoneHomeIntervalInSecs = <number in seconds>
-* Determines how frequently, in seconds, this deployment client should
+phoneHomeIntervalInSecs = <decimal>
+* How frequently, in seconds, this deployment client should
   check for new content.
 * Fractional seconds are allowed.
 * Default: 60.
 
-handshakeRetryIntervalInSecs = <number in seconds>
-* This sets the handshake retry frequency, in seconds.
-* Could be used to tune the initial connection rate on a new server
-* Default: One fifth of 'phoneHomeIntervalInSecs'
+handshakeRetryIntervalInSecs = <integer>
+* The handshake retry frequency, in seconds.
+* Could be used to tune the initial connection rate on a new server.
+* Default: The value of 'phoneHomeIntervalInSecs' / 5
 
 handshakeReplySubscriptionRetry = <integer>
-* If splunk is unable to complete the handshake, it will retry subscribing to
-  the handshake channel after this many handshake attempts
+* If the Splunk platform is unable to complete the handshake, it will retry subscribing to
+  the handshake channel after this many handshake attempts.
 * Default: 10
 
 appEventsResyncIntervalInSecs = <number in seconds>
 * This sets the interval at which the client reports back its app state
   to the server.
 * Fractional seconds are allowed.
-* Default: 10 * 'phoneHomeIntervalInSecs'
+* Default: 10 * the value of 'phoneHomeIntervalInSecs'
 
 reloadDSOnAppInstall = <boolean>
+* Whether or not the deployment server on this instance reloads after an app
+  is installed by this deployment client.
 * Setting this flag to true causes the deploymentServer on this Splunk
-  instance to be reloaded whenever an app is installed by this
+  platform instance to be reloaded whenever an app is installed by this
   deploymentClient.
 * This is an advanced configuration. Only use it when you have a hierarchical
   deployment server installation, and have a Splunk instance that behaves
@@ -216,8 +219,8 @@ recv_timeout = <positive integer>
 
 [target-broker:deploymentServer]
 
-targetUri= <uri>
-* URI of the deployment server.
+targetUri= <string>
+* The target URI of the deployment server.
 * An example of <uri>: <scheme>://<deploymentServer>:<mgmtPort>
 
 connect_timeout = <positive integer>

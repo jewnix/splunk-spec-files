@@ -1,4 +1,4 @@
-#   Version 8.0.5.1
+#   Version 8.1.0
 #
 # This file contains possible attribute/value pairs for configuring
 # data models.  To configure a datamodel for an app, put your custom
@@ -7,7 +7,7 @@
 # For examples, see datamodels.conf.example.  You must restart Splunk to
 # enable configurations.
 
-# To learn more about configuration files (including precedence) please see
+# To learn more about configuration files (including precedence) see
 # the documentation located at
 # http://docs.splunk.com/Documentation/Splunk/latest/Admin/Aboutconfigurationfiles
 
@@ -15,11 +15,11 @@
 # Use the [default] stanza to define any global settings.
 #   * You can also define global settings outside of any stanza, at the top
 #     of the file.
-#   * Each conf file should have at most one default stanza. If there are
+#   * Each conf file should have, at most, one default stanza. If there are
 #     multiple default stanzas, attributes are combined. In the case of
 #     multiple definitions of the same attribute, the last definition in the
 #     file wins.
-#   * If an attribute is defined at both the global level and in a specific
+#   * If an attribute is defined at both the global level, and in a specific
 #     stanza, the value in the specific stanza takes precedence.
 
 
@@ -27,93 +27,97 @@
 * Each stanza represents a data model. The data model name is the stanza name.
 
 acceleration = <boolean>
-* Set "acceleration" to 'true' to enable automatic acceleration of this data 
-  model.
+* Whether or not the Splunk platform automatically accelerates this data model.
 * Automatic acceleration creates auxiliary column stores for the fields
   and values in the events for this data model on a per-bucket basis.
 * These column stores take additional space on disk, so be sure you have the
   proper amount of disk space. Additional space required depends on the
   number of events, fields, and distinct field values in the data.
-* The Splunk software creates and maintains these column stores on a schedule 
-  you can specify with 'acceleration.cron_schedule'. You can search them with 
+* Set to 'true' to enable automatic acceleration of this data model.
+* The Splunk platform creates and maintains these column stores on a schedule
+  you can specify with 'acceleration.cron_schedule'. You can search them with
   the 'tstats' command.
 * Default: false
 
 acceleration.earliest_time = <relative time string>
-* Specifies how far back in time the Splunk software keeps the column stores 
+* Specifies how far back in time the Splunk platform keeps the column stores
   for an accelerated data model.
-  * Also specifies when the Splunk software should create the column stores, 
+  * Also specifies when the Splunk platform should create the column stores,
     when you do not have a setting for acceleration.backfill_time.
-* Specified by a relative time string. For example, "-7d" means "accelerate 
+* Specified by a relative time string. For example, "-7d" means "accelerate
   data within the last 7 days".
-* Default: empty string. 
+* Default: empty string.
   * An empty string for this setting means "keep these stores for all time".
 
 acceleration.backfill_time = <relative time string>
-* ADVANCED: Specifies how far back in time the Splunk software creates its 
+* Specifies how far back in time the Splunk platform creates its
   column stores.
-* ONLY set this parameter if you want to backfill less data than the
+* This is an advanced setting.
+* Only set this parameter if you want to backfill less data than the
   retention period set by 'acceleration.earliest_time'. You might want to use
-  this parameter to limit your time window for column store creation in a large 
-  environment where initial creation of a large set of column stores is an 
+  this parameter to limit your time window for column store creation in a large
+  environment where initial creation of a large set of column stores is an
   expensive operation.
-* WARNING: Do not set 'acceleration.backfill_time' to a narrow time window. If 
-  one of your indexers is down for a period longer than this backfill time, you 
-  may miss accelerating a window of your incoming data. 
-* This setting MUST be set to a time that is more recent than  
-  'acceleration.earliest_time'. For example, if you set 
-  'acceleration.earliest_time' to "-1y" to retain your column stores for a one 
-  year window, you can set 'acceleration.backfill_time' to "-20d" to create 
-  column stores that cover only the last 20 days. However, you should not set 
-  'acceleration.backfill_time' to "-2y", because that setting goes farther back 
+* CAUTION: Do not set 'acceleration.backfill_time' to a narrow time window. If
+  one of your indexers is down for a period longer than this backfill time, you
+  may miss accelerating a window of your incoming data.
+* This setting MUST be set to a time that is more recent than
+  'acceleration.earliest_time'. For example, if you set
+  'acceleration.earliest_time' to "-1y" to retain your column stores for a one
+  year window, you can set 'acceleration.backfill_time' to "-20d" to create
+  column stores that cover only the last 20 days. However, you should not set
+  'acceleration.backfill_time' to "-2y", because that setting goes farther back
   in time than the 'acceleration.earliest_time' setting of "-1y".
-* Default: empty string. 
-  * When 'acceleration.backfill_time' is unset, the Splunk software backfills 
+* Default: empty string.
+  * When 'acceleration.backfill_time' is unset, the Splunk platform backfills
     fully to 'acceleration.earliest_time'.
 
 acceleration.max_time = <unsigned integer>
-* The maximum amount of time, in seconds, that the column store creation search 
+* The maximum amount of time, in seconds, that the column store creation search
   can run.
 * NOTE: This is an approximate time.
-* An 'acceleration.max_time' setting of "0" indicates that there is no time 
+* An 'acceleration.max_time' setting of "0" indicates that there is no time
   limit.
 * Default: 3600
 
 acceleration.poll_buckets_until_maxtime = <boolean>
-* In a distributed environment consisting of machines with varying amounts of 
-  free storage capacity and processing speed, summarizations might complete 
-  sooner on machines with less data and faster resources. After the 
-  summarization search is finished with all of the buckets, it is complete. The 
-  overall search runtime is determined by the slowest machine in the 
-  environment. 
-* When this setting is set to "true", all of the machines run for "max_time" 
-  (approximately). The Splunk software repeatedly polls the buckets for new 
+* In a distributed environment consisting of machines with varying amounts of
+  free storage capacity and processing speed, summarizations might complete
+  sooner on machines with less data and faster resources. After the
+  summarization search is finished with all of the buckets, it is complete. The
+  overall search runtime is determined by the slowest machine in the
+  environment.
+* When this setting is set to "true", all of the machines run for "max_time"
+  (approximately). The Splunk platform repeatedly polls the buckets for new
   data to summarize.
-* Set 'poll_buckets_until_maxtime' to "true" if your data model is sensitive to 
+* Set 'poll_buckets_until_maxtime' to "true" if your data model is sensitive to
   summarization latency delays.
-* When 'poll_buckets_until_maxtime' is set to "true", the Splunk software 
-  counts the summarization search against the number of concurrent searches you 
+* When 'poll_buckets_until_maxtime' is set to "true", the Splunk platform
+  counts the summarization search against the number of concurrent searches you
   can run until "max_time" is reached.
 * Default: false
 
 acceleration.cron_schedule = <cron-string>
-* This setting provides the cron schedule that the Splunk software follows when 
+* This setting provides the cron schedule that the Splunk platform follows when
   it probes or generates the column stores of this data model.
 * Default: */5 * * * *
 
-acceleration.manual_rebuilds = <bool>
-* ADVANCED: When set to "true", this setting prevents outdated summaries from 
-  being rebuilt by the 'summarize' command.
-* Normally, during the creation phase, the 'summarize' command automatically 
-  rebuilds summaries that are considered to be out-of-date, such as when the 
+acceleration.manual_rebuilds = <boolean>
+* Whether or not the Splunk platform is prohibited from automatically rebuilding
+  outdated summaries using the 'summarize' command.
+* This is an advanced setting.
+* Normally, during the creation phase, the 'summarize' command automatically
+  rebuilds summaries that are considered to be out-of-date, such as when the
   configuration backing the data model changes.
-* The Splunk software considers a summary to be outdated when either of these 
+* The Splunk platform considers a summary to be outdated when either of these
   conditions are present:
-  * The data model search stored in its metadata no longer matches its current 
+  * The data model search stored in its metadata no longer matches its current
 	data model search.
   * The data model search stored in its metadata cannot be parsed.
-* NOTE: If the Splunk software finds a partial summary be outdated, it always 
-  rebuilds that summary so that a bucket summary only has results corresponding 
+* When set to "true", the Splunk platform does not rebuild outdated summaries
+  using the 'summarize' command.
+* NOTE: If the Splunk platform finds a partial summary to be outdated, it always
+  rebuilds that summary so that a bucket summary only has results corresponding
   to one data model search.
 * Default: false
 
@@ -140,8 +144,8 @@ acceleration.allow_skew = <percentage>|<duration-specifier>
   the search.
 * An integer value followed by '%' (percent) specifies the maximum amount of
   time to skew as a percentage of the scheduled search period.
-* Otherwise, use <integer><unit> to specify a maximum duration. Relevant units 
-  are: m, min, minute, mins, minutes, h, hr, hour, hrs, hours, d, day, days. 
+* Otherwise, use <integer><unit> to specify a maximum duration. Relevant units
+  are: m, min, minute, mins, minutes, h, hr, hour, hrs, hours, d, day, days.
   The <unit> may be omitted only when the <integer> is 0.
 * Examples:
     100% (for an every-5-minute search) = 5 minutes maximum
@@ -166,22 +170,22 @@ acceleration.schedule_priority = default | higher | highest
       > DMAS(h) > DMAS(d)
 * The scheduler honors a non-default priority only when the search owner has
   the 'edit_search_schedule_priority' capability.
-* Default: default
-* WARNING: Having too many searches with a non-default priority impedes the 
-  ability of the scheduler to minimize search starvation. Use this setting 
+* CAUTION: Having too many searches with a non-default priority impedes the
+  ability of the scheduler to minimize search starvation. Use this setting
   only for mission-critical searches.
+* Default: default
 
-acceleration.allow_old_summaries = <bool>
+acceleration.allow_old_summaries = <boolean>
 * Sets the default value of 'allow_old_summaries' for this data model.
 * Only applies to accelerated data models.
-* When you use commands like 'datamodel', 'from', or 'tstats' to run a search 
-  on this data model, allow_old_summaries=false causes the Splunk software to
-  verify that the data model search in each bucket's summary metadata matches 
+* When you use commands like 'datamodel', 'from', or 'tstats' to run a search
+  on this data model, allow_old_summaries=false causes the Splunk platform to
+  verify that the data model search in each bucket's summary metadata matches
   the scheduled search that currently populates the data model summary.
-  Summaries that fail this check are considered "out of date" and are not used 
+  Summaries that fail this check are considered "out of date" and are not used
   to deliver results for your events search.
 * This setting helps with situations where the definition of an accelerated
-  data model has changed, but the Splunk software has not yet updated its
+  data model has changed, but the Splunk platform has not yet updated its
   summaries to reflect this change. When allow_old_summaries=false for a data
   model, an event search of that data model returns results only from bucket
   summaries that match the current definition of the data model.
@@ -204,7 +208,7 @@ acceleration.source_guid = <string>
   * Searches of this data model draw upon the summaries related to the provided
     GUID when possible. You cannot edit this data model in Splunk Web while a
     source GUID is specified for it.
-  * The Splunk software ignores 'acceleration.enabled' and similar acceleration
+  * The Splunk platform ignores 'acceleration.enabled' and similar acceleration
     settings for your data model.
   * Summaries for this data model cease to be created on the indexers of the
     local deployment even if the model is accelerated.
@@ -220,18 +224,17 @@ acceleration.source_guid = <string>
 * Default: not set
 
 acceleration.hunk.compression_codec = <string>
-* Applicable only to Hunk Data models. Specifies the compression codec to
-  be used for the accelerated orc/parquet files.
+* The compression codec to be used for the accelerated orc/parquet files.
+* Applicable only to Hunk data models.
 
 acceleration.hunk.dfs_block_size = <unsigned integer>
-* Applicable only to Hunk data models. Specifies the block size in bytes for
-  the compression files.
+* The block size, in bytes, for the compression files.
+* Applicable only to Hunk data models.
 
 acceleration.hunk.file_format = [orc|parquet]
-* Applicable only to Hunk data models. 
+* Applicable only to Hunk data models.
 
-acceleration.workload_pool = <name of workload pool>
-* Optional.
+acceleration.workload_pool = <string>
 * Sets the workload pool to be used by this search.
 * There are multiple workload pools defined in workload_pools.conf.
   Each workload pool has resource limits associated with it. For example,
@@ -239,15 +242,16 @@ acceleration.workload_pool = <name of workload pool>
 * The specific workload_pool to use is defined in workload_pools.conf.
 * The search process for this search runs in the specified workload_pool.
 * If workload management is enabled and you have not specified a workload_pool,
-  the Splunk software puts the search into a proper pool as specified by the 
-  workload rules defined in workload_rules.conf. If you have not defined a rule 
-  for this search, the Splunk software uses the default_pool defined in
+  the Splunk platform puts the search into a proper pool as specified by the
+  workload rules defined in workload_rules.conf. If you have not defined a rule
+  for this search, the Splunk platform uses the default_pool defined in
   workload_pools.conf.
+* Optional.
 
 
 #******** Dataset-Related Attributes ******
-# These attributes affect your interactions with datasets in Splunk Web and 
-# should not be changed under normal conditions. Do not modify them unless you 
+# These attributes affect your interactions with datasets in Splunk Web and
+# should not be changed under normal conditions. Do not modify them unless you
 # are sure you know what you are doing.
 
 dataset.description = <string>
@@ -256,16 +260,16 @@ dataset.description = <string>
 dataset.type = [datamodel|table]
 * The type of dataset:
   * "datamodel": An individual data model dataset.
-  * "table": A special root data model dataset with a search where the dataset 
+  * "table": A special root data model dataset with a search where the dataset
     is defined by the dataset.commands attribute.
 * Default: datamodel
 
 dataset.commands = [<object>(, <object>)*]
-* When the dataset.type = "table" this stringified JSON payload is created by 
+* When the dataset.type = "table" this stringified JSON payload is created by
   the table editor and defines the dataset.
 
 dataset.fields = [<string>(, <string>)*]
-* Automatically generated JSON payload when dataset.type = "table" and the 
+* Automatically generated JSON payload when dataset.type = "table" and the
   search for the root data model dataset has been updated.
 
 dataset.display.diversity = [latest|random|diverse|rare]
@@ -277,11 +281,11 @@ dataset.display.diversity = [latest|random|diverse|rare]
 * Default: latest
 
 dataset.display.sample_ratio = <integer>
-* The integer value used to calculate the sample ratio for the dataset 
+* The integer value used to calculate the sample ratio for the dataset
   diversity. The formula is 1 / <integer>.
-* The sample ratio specifies the likelihood of any event being included in the 
+* The sample ratio specifies the likelihood of any event being included in the
   sample.
-* For example, if sample_ratio = 500, each event has a 1/500 chance of being 
+* For example, if sample_ratio = 500, each event has a 1/500 chance of being
   included in the sample result set.
 * Default: 1
 
@@ -299,15 +303,15 @@ dataset.display.mode = [table|datasummary]
 * Default: table
 
 dataset.display.datasummary.earliestTime = <time-string>
-* The earliest time used for the search that powers the datasummary view of 
+* The earliest time used for the search that powers the datasummary view of
   the dataset.
 
 dataset.display.datasummary.latestTime = <time-string>
-* The latest time used for the search that powers the datasummary view of 
+* The latest time used for the search that powers the datasummary view of
   the dataset.
 
 strict_fields = <boolean>
-* Sets the default value for the 'strict_fields' argument when you use
+* The default value for the 'strict_fields' argument when you use
   '| datamodel' in a search.
   * When you set 'strict_fields' to 'true', the search returns only the fields
     specified in the constraints for the data model.
@@ -317,24 +321,23 @@ strict_fields = <boolean>
     calculation, and lookup matching.
 * You can override this setting by specifying the 'strict_fields' argument for
   a '| datamodel' search.
-* This setting also applies to the 'from' command. When you use '| from' to 
-  search a data model that has 'strict_fields=true', the search returns only 
+* This setting also applies to the 'from' command. When you use '| from' to
+  search a data model that has 'strict_fields=true', the search returns only
   those fields that are defined in the constraints for the data model.
 * Default: true
 
-tags_whitelist = <list-of-tags>
-* A comma-separated list of tag fields that the data model requires 
+tags_whitelist = <comma-separated list>
+* A comma-separated list of tag fields that the data model requires
   for its search result sets.
-* This is a search performance setting. Apply it only to data models 
-  that use a significant number of tag field attributes in their 
-  definitions. Data models without tag fields cannot use this setting. 
-  This setting does not recognize tags used in constraint searches.
-* Only the tag fields identified by tag_whitelist (and the event types 
-  tagged by them) are loaded when searches are performed with this 
-  data model.
-* When you update tags_whitelist for an accelerated data model, 
-  the Splunk software rebuilds the data model unless you have 
-  enabled accleration.manual_rebuild for it.
-* If tags_whitelist is empty, the Splunk software attempts to optimize 
-  out unnecessary tag fields you perform searches with this data model.
+* This is a search performance setting. Apply it only to data models that use a 
+  significant number of tag field attributes in their definitions. Data models
+  without tag fields cannot use this setting. This setting does not recognize
+  tags used in constraint searches.
+* Only the tag fields identified in this allow list (and the event types tagged
+  by them) are loaded when you perform searches with this data model.
+* When you update this setting for an accelerated data model, the Splunk
+  software rebuilds the data model unless you have enabled
+  accleration.manual_rebuild for it.
+* If this setting is not set, the Splunk platform attempts to optimize out
+  unnecessary tag fields when you perform searches with this data model.
 * Default: empty (not set)

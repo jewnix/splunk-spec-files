@@ -1,4 +1,4 @@
-#   Version 8.0.5.1
+#   Version 8.1.0
 #
 # This file contains possible attributes and values you can use to configure
 # distributed search.
@@ -30,11 +30,12 @@
 * Set distributed search configuration options under this stanza name.
 * Follow this stanza name with any number of the following attribute/value
   pairs.
-* If you do not set any attribute, Splunk software uses the default value
+* If you do not set any attribute, the Splunk platform uses the default value
   (if there is one listed).
 
 disabled = <boolean>
-* Toggle distributed search off ("true") and on ("false").
+* Whether or not distributed search is disabled.
+* To turn distributed search off, set to "true". To turn on, set to "false".
 * Default: false (distributed search is enabled by default)
 
 heartbeatMcastAddr = <IP address>
@@ -50,11 +51,11 @@ heartbeatFrequency = <integer>
 * DEPRECATED.
 
 statusTimeout = <integer>
-* Set connection timeout when gathering a search peer's basic
-  info (/services/server/info).
+* The connection timeout when gathering a search peer's basic
+  info using the /services/server/info REST endpoint.
 * Increasing this value on the Distributed Monitoring Console (DMC) can result
   in fewer peers showing up as "Down" in /services/search/distributed/peers/.
-* Note: Read/write timeouts are automatically set to twice this value.
+* NOTE: Read/write timeouts are automatically set to twice this value.
 * Default: 10
 
 removedTimedOutServers = <boolean>
@@ -106,7 +107,7 @@ quarantined_servers = <comma-separated list>
 
 useDisabledListAsBlacklist = <boolean>
 * Whether or not the search head treats the 'disabled_servers' setting as
-  a blacklist.
+  a deny list.
 * If set to “true”, search peers that appear in both the 'servers'
   and 'disabled_servers' lists are disabled and do not participate in search.
 * If set to “false”, search peers that appear in both lists are enabled
@@ -210,6 +211,29 @@ genKeyScript = <string>
 * The command used to generate the two files above.
 * Default: $SPLUNK_HOME/bin/splunk, createssl, audit-keys
 
+minKeyLength = <integer>
+* The minimum key length, in bits, that this Splunk platform instance accepts
+  when you configure it as a search peer.
+* Typical key lengths are 1024 or 2048, but the 'genKeyScript' can be configured
+  to generate 3072- and 4096-bit keys.
+* Example: 2048
+* Optional.
+* No default.
+
+legacyKeyLengthAuthPolicy = [ warn | reject ]
+* This setting applies to existing search heads that were added prior to
+  the configuration of a 'minKeyLength' value on this search peer.
+* When set to 'warn', this search peer fulfills an authentication token request
+  from a search head that supplies a key that is shorter than 'minKeyLength'
+  bits, after it first writes a warning message to splunkd.log.
+* When set to 'reject', this search peer refuses an authentication token request
+  from a search head that supplies a key whose length is too short. It writes
+  an error message to splunkd.log about this rejection. This prevents search
+  heads from running searches on this search peer when their key lengths
+  are not long enough.
+* Optional.
+* No default.
+
 #******************************************************************************
 # REPLICATION SETTING OPTIONS
 #******************************************************************************
@@ -269,13 +293,30 @@ maxBundleSize = <integer>
 * The maximum bundle size, in megabytes, for which replication can occur.
 * If a bundle is larger than this value, bundle replication does not occur and
   Splunk logs an error message.
+* The maximum value is 102400 (100 GB).
+* If the bundle exceed 'maxBundleSize', you must increase this value or remove
+  files from the bundle to resume normal system operation.
+* This value must be larger than the current bundle size. Do not decrease
+  it to a value less than the most recent bundle size.
+* Bundles reside in the $SPLUNK_HOME/var/run directory on the search head.
+  Check the size of the most recent full bundle in that directory.
 * Default: 2048 (2GB)
+
+warnMaxBundleSizePerc = <integer>
+* The search head sends warnings when the knowledge bundle size exceeds this setting's
+  percentage of maxBundleSize.
+* For example, if maxBundleSize is 2GB and this setting is 50, the search head sends
+  warnings when the bundle size exceeds 1GB (2GB * 50%).
+* Supported values range from 1 to 100.
+* Default: 75
 
 concerningReplicatedFileSize = <integer>
 * The maximum allowable file size, in megabytes, within a bundle.
 * Any individual file within a bundle that is larger than this value
   triggers a splunkd.log message.
-* Where possible, avoid replicating such files by customizing your blacklists.
+* If excludeReplicatedLookupSize is enabled with a value less than or equal to
+  concerningReplicatedFileSize, no warning message will be displayed.
+* Where possible, avoid replicating such files by customizing your deny lists.
 * Default: 500
 
 excludeReplicatedLookupSize = <integer>
@@ -312,6 +353,17 @@ statusQueueSize = <integer>
 * The maximum number of knowledge bundle replication cycle status values that the
   search head maintains in memory. These status values remain accessible by queries.
 * Default: 5
+
+allowDeltaIndexing = <boolean>
+* Specifies whether to enable delta indexing for knowledge bundle replication.
+* Delta indexing causes the indexer to index only those lookup files that have
+  changed since the previous bundle, thus reducing the time and resources needed
+  to create a new bundle.
+* Delta indexing also keeps the bundle compact by using hard links for files that
+  have not changed since the previous bundle, instead of copying those files to the
+  new bundle.
+* Do not change this setting unless instructed to do so by Splunk Support.
+* Default: true
 
 ################################################################
 # CASCADING BUNDLE REPLICATION-SPECIFIC SETTINGS
@@ -451,6 +503,10 @@ remote.s3.supports_versioning = <boolean>
   in the same bucket on the remote storage. While versioning is not used by
   RFS bundle replication, this much match the configuration of the S3 bucket
   for bundle reaping to work correctly.
+* This setting determines how splunkd removes data from remote storage.
+  If set to true, splunkd will delete all versions of objects at
+  time of data removal. Otherwise, if set to false, splunkd will use a simple DELETE
+  (See https://docs.aws.amazon.com/AmazonS3/latest/dev/DeletingObjectVersions.html).
 * Optional.
 * Default: true
 
@@ -484,37 +540,37 @@ bundles_location = <path>
 [replicationSettings:refineConf]
 
 replicate.<conf_file_name> = <boolean>
-* Controls whether Splunk software replicates a particular type of
+* Whether or not the Splunk platform replicates a particular type of
   *.conf file, along with any associated permissions in *.meta files.
 * These settings on their own do not cause files to be replicated. You must
-  still whitelist a file (via the 'replicationWhitelist' setting) in order for
+  still allow list a file (via the 'replicationWhitelist' setting) in order for
   it to be eligible for inclusion via these settings.
 * In a sense, these settings constitute another level of filtering that applies
   specifically to *.conf files and stanzas with *.meta files.
 * Default: false
 
 #******************************************************************************
-# REPLICATION WHITELIST OPTIONS
+# REPLICATION ALLOW LIST OPTIONS
 #******************************************************************************
 
 [replicationWhitelist]
 
-<name> = <whitelist_pattern>
-* Controls Splunk software's search-time configuration replication from
+<name> = <string>
+* Controls the Splunk platform search-time configuration replication from
   search heads to search peers.
-* Only files that match a whitelist entry are replicated.
-* Conversely, files that do not match a whitelist entry are not replicated.
+* Only files that match an allow list entry are replicated.
+* Conversely, files that do not match an allow list entry are not replicated.
 * Only files located under $SPLUNK_HOME/etc will ever be replicated in this way.
   * The regex is matched against the file name, relative to $SPLUNK_HOME/etc.
     Example: For a file "$SPLUNK_HOME/etc/apps/fancy_app/default/inputs.conf",
-             this whitelist should match "apps/fancy_app/default/inputs.conf"
+             this allow list should match "apps/fancy_app/default/inputs.conf"
   * Similarly, the etc/system files are available as system/...
     User-specific files are available as users/username/appname/...
 * The 'name' element is generally descriptive, with one exception:
-  If <name> begins with "refine.", files whitelisted by the given pattern will
+  If <name> begins with "refine.", files allow listed by the given pattern will
   also go through another level of filtering configured in the
   [replicationSettings:refineConf] stanza.
-* The whitelist_pattern is the Splunk style pattern matching, which is
+* The allow list pattern is the Splunk style pattern matching, which is
   primarily regex-based with special local behavior for '...' and '*'.
   * '...' matches anything, while '*' matches anything besides
     directory separators. See props.conf.spec for more detail on these.
@@ -524,15 +580,15 @@ replicate.<conf_file_name> = <boolean>
   pull in only your intended files.
 
 #******************************************************************************
-# REPLICATION BLACKLIST OPTIONS
+# REPLICATION DENY LIST OPTIONS
 #******************************************************************************
 
 [replicationBlacklist]
 
-<name> = <blacklist_pattern>
-* All comments from the replication whitelist notes above also apply here.
-* Replication blacklist takes precedence over the whitelist, meaning that a
-  file that matches both the whitelist and the blacklist is NOT replicated.
+<name> = <string>
+* All comments from the replication allow list notes above also apply here.
+* Replication deny list takes precedence over the allow list, meaning that a
+  file that matches both the allow list and the deny list is NOT replicated.
 * Use this setting to prevent unwanted bundle replication in two common
   scenarios:
     * Very large files which part of an application might not want to be
@@ -540,16 +596,16 @@ replicate.<conf_file_name> = <boolean>
     * Frequently updated files (for example, some lookups) will trigger
       retransmission of all search head data.
 * These lists are applied globally across all configuration data. Especially
-  for blacklisting, be sure to constrain your blacklist to match only data
+  for deny listing, be sure to constrain your deny list to match only data
   that your application does not need.
 
 #******************************************************************************
-# BUNDLE ENFORCER WHITELIST OPTIONS
+# BUNDLE ENFORCER ALLOW LIST OPTIONS
 #******************************************************************************
 
 [bundleEnforcerWhitelist]
 
-<name> = <whitelist_pattern>
+<name> = <string>
 * Peers use this setting to make sure knowledge bundles sent by search heads and
   masters do not contain alien files.
 * If this stanza is empty, the receiver accepts the bundle unless it contains
@@ -563,12 +619,12 @@ replicate.<conf_file_name> = <boolean>
 * No default.
 
 #******************************************************************************
-# BUNDLE ENFORCER BLACKLIST OPTIONS
+# BUNDLE ENFORCER DENY LIST OPTIONS
 #******************************************************************************
 
 [bundleEnforcerBlacklist]
 
-<name> = <blacklist_pattern>
+<name> = <string>
 * Peers use this setting to make sure knowledge bundle sent by search heads and
   masters do not contain alien files.
 * This list overrides the [bundleEnforceWhitelist] stanza above. This means that

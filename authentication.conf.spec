@@ -1,6 +1,6 @@
-#   Version 8.0.5.1
+#   Version 8.1.0
 #
-# This file contains possible attributes and values for configuring
+# This file contains possible settings and values for configuring
 # authentication via authentication.conf.
 #
 # There is an authentication.conf file in $SPLUNK_HOME/etc/system/default/.  To
@@ -77,8 +77,8 @@ defaultRoleIfMissing = <splunk role>
 
 externalTwoFactorAuthVendor = <string>
 * A valid multifactor vendor string enables multifactor authentication
-  and loads support for the corresponding vendor if supported by the Splunk software.
-* An empty string disables multifactor authentication in the Splunk software.
+  and loads support for the corresponding vendor if supported by the the Splunk platform.
+* An empty string disables multifactor authentication in the the Splunk platform.
 * Currently Splunk supports Duo and RSA as multifactor authentication vendors.
 * This setting is optional.
 * No default.
@@ -115,7 +115,7 @@ SSLEnabled = [0|1]
 * Default: 0 (disabled)
 
 port = <integer>
-* The port that Splunk software should use to connect to your LDAP server.
+* The port that the Splunk platform should use to connect to your LDAP server.
 * This setting is optional.
 * Default (non-SSL): 389
 * Default (SSL): 636
@@ -156,7 +156,7 @@ userNameAttribute = <string>
 * This is the username.
 * NOTE: This setting should use case insensitive matching for its values,
   and the values should not contain whitespace
-    * Usernames are case insensitive in the Splunk software
+    * Usernames are case insensitive in the the Splunk platform
 * In Active Directory, this is 'sAMAccountName'
 * Required.
 * A typical value is 'uid'.
@@ -203,7 +203,7 @@ groupBaseDN = [<string>;<string>;...]
 * No default.
 
 groupBaseFilter = <string>
-* The LDAP search filter Splunk software uses when searching for static groups
+* The LDAP search filter the Splunk platform uses when searching for static groups
 * Like 'userBaseFilter', this is highly recommended to speed up LDAP queries
 * See Request for Comments (RFC) 2254 on the Internet Engineering Task Force
   (IETF) website for more information.
@@ -211,7 +211,7 @@ groupBaseFilter = <string>
 * Default: empty string (no filtering).
 
 dynamicGroupFilter = <string>
-* The LDAP search filter Splunk software uses when searching for dynamic groups.
+* The LDAP search filter the Splunk platform uses when searching for dynamic groups.
 * Configure this setting only if you intend to retrieve dynamic groups
   on your LDAP server.
 * Example: '(objectclass=groupOfURLs)'
@@ -246,7 +246,7 @@ groupMemberAttribute = <string>
 * Default: empty string
 
 nestedGroups = <boolean>
-* Controls whether Splunk software expands nested groups using the
+* Controls whether the Splunk platform expands nested groups using the
   'memberof' extension.
 * Set to 1 if you have nested groups you want to expand and the 'memberof'
   extension on your LDAP server.
@@ -264,16 +264,16 @@ charset = <string>
 anonymous_referrals = [0|1]
 * Set this to 0 to turn off referral chasing
 * Set this to 1 to turn on anonymous referral chasing
-* NOTE: Splunk software only chases referrals using anonymous bind.
+* NOTE: the Splunk platform only chases referrals using anonymous bind.
         It does not support rebinding using credentials.
 * If you do not need referral support, set this to 0.
-* If you wish to make referrals work, set this to 1 and conirm your server
+* If you wish to make referrals work, set this to 1 and confirm your server
   allows anonymous searching
 * This setting is optional.
 * Default: 1
 
 sizelimit = <integer>
-* Limits the amount of entries that Splunk software requests in LDAP search.
+* Limits the amount of entries that the Splunk platform requests in LDAP search.
 * NOTE: The max entries returned is still subject to the maximum
         imposed by your LDAP server.
   * Example: If you set this to 5000 and the server limits it to 1000,
@@ -305,7 +305,7 @@ enableRangeRetrieval = <boolean>
 * Default: false
 
 timelimit = <integer>
-* Limits the amount of time, in seconds, that Splunk software waits for an LDAP search
+* Limits the amount of time, in seconds, that the Splunk platform waits for an LDAP search
   request to complete.
 * If your searches finish quickly, lower this value from the default.
 * Maximum value is 30 seconds
@@ -322,7 +322,7 @@ network_timeout = <integer>
 * Default: 20
 
 ldap_negative_cache_timeout = <nonnegative decimal>
-* The amount of time, in seconds, that Splunk software remembers that a non-existent
+* The amount of time, in seconds, that the Splunk platform remembers that a non-existent
   user on an LDAP provider does not exist.
 * This setting is useful when you want to avoid frequent LDAP queries for users
   that do not exist on the LDAP provider.
@@ -369,7 +369,7 @@ scriptSearchFilters = [1|0]
 * Default: 0
 
 [cacheTiming]
-* Use these settings to adjust how long Splunk software uses the answers returned
+* Use these settings to adjust how long the Splunk platform uses the answers returned
   from script functions before calling them again.
 * All timeouts can be expressed in seconds or as a search-like time range
 * Examples include "30" (30 seconds), "2mins" (2 minutes), "24h" (24 hours), etc.
@@ -421,7 +421,7 @@ minPasswordLength = <positive integer>
 minPasswordUppercase = <positive integer>
 * Specifies the minimum permitted uppercase characters when passwords are set
   or modified.
-* Splunk software ignores negative values.
+* The Splunk platform ignores negative values.
 * This setting is optional.
 * Password modification attempts which do not meet this requirement are
   explicitly rejected.
@@ -430,7 +430,7 @@ minPasswordUppercase = <positive integer>
 minPasswordLowercase = <positive integer>
 * Specifies the minimum permitted lowercase characters when passwords are set
   or modified.
-* Splunk software ignores negative values.
+* The the Splunk platform ignores negative values.
 * This setting is optional.
 * Password modification attempts which do not meet this requirement are
   explicitly rejected.
@@ -439,7 +439,7 @@ minPasswordLowercase = <positive integer>
 minPasswordDigit = <positive integer>
 * Specifies the minimum permitted digit or number characters when passwords are
   set or modified.
-* Splunk software ignores negative values.
+* The Splunk platform ignores negative values.
 * This setting is optional.
 * Password modification attempts which do not meet this requirement are
   explicitly rejected.
@@ -449,7 +449,7 @@ minPasswordSpecial = <positive integer>
 * Specifies the minimum permitted special characters when passwords are set
   or modified.
 * The semicolon character is not allowed.
-* Splunk software ignores negative values.
+* The Splunk platform ignores negative values.
 * This setting is optional.
 * Password modification attempts which do not meet this requirement are
   explicitly rejected.
@@ -459,7 +459,7 @@ expirePasswordDays = <positive integer>
 * Specifies the number of days before the password expires after a reset.
 * Minimum value: 0
 * Maximum value: 3650
-* Splunk software ignores negative values.
+* the Splunk platform ignores negative values.
 * This setting is optional.
 * Default: 90
 
@@ -467,7 +467,7 @@ expireAlertDays = <positive integer>
 * Specifies the number of days to issue alerts before password expires.
 * Minimum value: 0
 * Maximum value: 120
-* Splunk software ignores negative values.
+* The Splunk platform ignores negative values.
 * This setting is optional.
 * Alerts appear in splunkd.log.
 * Default: 15
@@ -524,7 +524,7 @@ lockoutThresholdMins = <positive integer>
 
 enablePasswordHistory = <boolean>
 * Specifies whether password history is enabled.
-* When set to "true", Splunk software maintains a history of passwords
+* When set to "true", the Splunk platform maintains a history of passwords
   that have been used previously.
 * This setting is optional.
 * Default: false
@@ -540,10 +540,15 @@ passwordHistoryCount = <positive integer>
 
 constantLoginTime = <decimal>
 * The amount of time, in seconds, that the authentication manager
-* waits before returning any kind of response to a login request.
-* When you set this setting, login is guaranteed to take the
-* amount of time you specify. If necessary, the authentication manager
-* adds a delay to the actual response time to keep this guarantee.
+  waits before returning any kind of response to a login request.
+* This setting helps mitigate login timing attacks. If you want to use the
+  setting, test it in your environment first to determine the appropriate
+  value.
+* When you configure this setting, login is guaranteed to take at least the
+  amount of time you specify. The authentication manager
+  adds a delay to the actual response time to keep this guarantee.
+* The values can use decimals. "0.025" would make responses take a
+  consistent 25 milliseconds or slightly more.
 * This setting is optional.
 * Minimum value: 0 (Disables login time guarantee)
 * Maximum value: 5.0
@@ -552,9 +557,9 @@ constantLoginTime = <decimal>
 verboseLoginFailMsg = <boolean>
 * Specifies whether or not the login failure message explains
   the failure reason.
-* When set to true, Splunk software displays a message on login
+* When set to true, the Splunk platform displays a message on login
   along with the failure reason.
-* When set to false, Splunk software displays a generic failure
+* When set to false, the Splunk platform displays a generic failure
   message without a specific failure reason.
 * This setting is optional.
 * Default: true
@@ -570,12 +575,12 @@ verboseLoginFailMsg = <boolean>
 
 fqdn = <string>
 * The fully qualified domain name where this splunk instance is running.
-* If this value is not specified, Splunk software uses the value specified
+* If this value is not specified, the Splunk platform uses the value specified
   in server.conf.
 * If this value is specified and 'http://' or 'https://' prefix is not
-  present, Splunk software uses the SSL setting for Splunk Web.
+  present, the Splunk platform uses the SSL setting for Splunk Web.
 * This setting is optional.
-* Splunk software uses this information to populate the 'assertionConsumerServiceUrl'.
+* the Splunk platform uses this information to populate the 'assertionConsumerServiceUrl'.
 * Default: empty string
 
 redirectPort = <port number>
@@ -601,14 +606,14 @@ idpAttributeQueryUrl = <url>
 * Attribute queries can be used to get the latest 'role' information,
   if there is support for Attribute queries on the IDP.
 * This setting is optional.
-* When this setting is absent, Splunk software caches the role information
+* When this setting is absent, the Splunk platform caches the role information
   from the SAML assertion and use it to run saved searches.
 * No default.
 
 idpCertPath = <string>
 * This value is relative to $SPLUNK_HOME/etc/auth/idpCerts.
 * The value for this setting can be the name of the certificate file or a directory.
-* If it is empty, Splunk software automatically verify with certificates in all
+* If it is empty, the Splunk platform automatically verify with certificates in all
   subdirectories present in $SPLUNK_HOME/etc/auth/idpCerts.
 * If the SAML response is to be verified with a IdP (Identity Provider) certificate that
   is self signed, then this setting holds the filename of the certificate.
@@ -638,7 +643,7 @@ idpSLOUrl = <string>
 errorUrl = <string>
 * The URL to be displayed for a SAML error.
 * Errors may be due to erroneous or incomplete configuration in either
-  the IDP or Splunk software.
+  the IDP or the Splunk platform.
 * This URL can be absolute or relative.
   * Absolute URLs should follow the pattern
     <protocol>:[//]<host> e.g. https://www.external-site.com.
@@ -665,20 +670,21 @@ issuerId = <string>
 * If you configure SAML using IdP metadata, this field is extracted from
   the metadata.
 * If you configure SAML manually, then you must configure this setting.
-* When Splunk software tries to verify the SAML response, the issuerId
+* When the Splunk platform tries to verify the SAML response, the issuerId
   specified here must match the 'Issuer' field in the SAML response. Otherwise,
   validation of the SAML response fails.
 
 signAuthnRequest = <boolean>
-* Whether or not Splunk software should sign AuthNRequests.
+* Whether or not the Splunk platform should sign AuthNRequests.
 * This setting is optional.
 * Default: true
 
 signedAssertion = <boolean>
-* Whether or not thee SAML assertion has been signed by the IDP.
-* If set to false, Splunk software does not verify the signature
+* Whether or not the SAML assertion has been signed by the IDP.
+* If set to false, the Splunk platform does not verify the signature
   of the assertion using the certificate of the IDP.
-* Currently, the software accepts only signed assertions.
+* The software accepts both signed and encrypted assertions.
+* Changing this to false will not affect encrypted assertions.
 * This setting is optional.
 * Default: true
 
@@ -703,10 +709,23 @@ attributeQueryRequestSigned = <boolean>
 
 attributeQueryResponseSigned = <boolean>
 * Specifies whether attribute query responses are signed.
-* If set to false, Splunk software does not verify the signature in
+* If set to false, the Splunk platform does not verify the signature in
   the response using the certificate of the IDP.
 * This setting is optional.
 * Default: true
+
+partialChainCertVerification = <boolean>
+* Whether or not authentication uses the OpenSSL X509_V_FLAG_PARTIAL_CHAIN
+* flag when performing validation on a SAML certificate chain.
+* Configuring this setting to "true" lets verification of SAML certificates
+* succeed even in cases where a complete certificate chain cannot be built
+* back to a self-signed trust anchor certificate.
+* When set to "true", intermediate certificates in the trust store are
+* treated as trust-anchors in the same way as self-signed root certificate
+* authority certificates.
+* Uses X509_V_FLAG_PARTIAL_CHAIN flag during certificate verification.
+* This setting is optional.
+* Default: false
 
 redirectAfterLogoutToUrl = <string>
 * The user is redirected to this url after logging out of the Splunk platform.
@@ -716,8 +735,8 @@ redirectAfterLogoutToUrl = <string>
 * No default.
 
 defaultRoleIfMissing = <string>
-* If the IDP does not return any AD groups or Splunk roles as a part of the
-  assertion, Splunk software uses this value if provided.
+* If the IdP does not return any AD groups or Splunk roles as a part of the
+  assertion, the Splunk platform uses this value if provided.
 * This setting is optional.
 * No default.
 
@@ -744,9 +763,9 @@ maxAttributeQueryQueueSize = <integer>
 * Default: 50
 
 attributeQueryTTL = <integer>
-* Determines the time for which Splunk software caches the user and role
+* Determines the time for which the Splunk platform caches the user and role
   information (time to live).
-* After the ttl expires, Splunk software makes an attribute query request to
+* After the ttl expires, the Splunk platform makes an attribute query request to
   retrieve the role information.
 * This setting is optional.
 * Default: 3600
@@ -782,9 +801,19 @@ scriptTimeout = <string>
 scriptFunctions = <semicolon-separated list>
 * Script functions to be enabled for authentication extensions.
 * Expressed as a list.
-* Supported values are 'getUserInfo' and 'login'.
+* Supported values are 'getUsers', 'getUserInfo', and 'login'.
+* To use the 'getUsers' function, you must also enable the 'getUserInfo' function.
 * You must set this if you define 'scriptPath'.
 * No default.
+
+getUsersPrecacheLimit = <integer>
+* The number of users to pre-cache on startup for the 'getUsers' script function.
+* If you enable the 'getUsers' function, the script executes when splunkd starts up.
+* As part of startup, splunkd caches user information that the 'getUsers' script returns,
+  and this setting specifies how many users to cache.
+* If you set 'getUsersPrecacheLimit' to 0, splunkd caches all user information that
+  the 'getUsers' function returns.
+* Default: 1000
 
 getUserInfoTTL = <string>
 * When you configure the auth system to use SAML as an authentication method,
@@ -815,10 +844,10 @@ scriptSecureArguments = <key:value>;[<key:value>;]...
 * No default.
 
 assertionTimeSkew = <integer>
-* The amount of clock skew, in seconds, that can occur between Splunk software and
+* The amount of clock skew, in seconds, that can occur between the Splunk platform and
   an identity provider that presents SAML assertions that contain 'NotBefore'
   and 'NotOnOrAfter' attributes.
-* If you set this, Splunk software accepts a SAML assertion as valid if
+* If you set this, the Splunk platform accepts a SAML assertion as valid if
   the clock skew between the assertion validity interval and the system time on the
   Splunk instance is not greater than the value of this setting.
 * NOTE: Setting this to too high a value can allow for replay attacks and is a security risk.
@@ -832,11 +861,11 @@ allowSslCompression = <boolean>
 * Default: The value of 'allowSslCompression' in the server.conf file
 
 cipherSuite = <cipher suite string>
-* If set, Splunk software uses the specified cipher string for the HTTP server.
+* If set, the Splunk platform uses the specified cipher string for the HTTP server.
 * Attribute query requests might fail if the IDP requires a relaxed
   ciphersuite.
 * Use "openssl s_client -cipher 'TLSv1+HIGH:@STRENGTH' -host <IDP host> -port 443"
-  to determine if Splunk software can connect to the IDP.
+  to determine if the Splunk platform can connect to the IDP.
 * This setting is optional.
 * Default: The value or 'cipherSuite' in the server.conf file
 
@@ -869,7 +898,7 @@ ecdhCurves = <comma separated list>
 * The curves should be specified in the order of preference.
 * The client sends these curves as a part of Client Hello.
 * The server supports only the curves specified in the list.
-* Splunk software only supports named curves that have been
+* The Splunk platform only supports named curves that have been
   specified by their SHORT names.
 * The list of valid named curves by their short/long names can be obtained
   by executing this CLI command:
@@ -879,7 +908,7 @@ ecdhCurves = <comma separated list>
 
 clientCert = <path>
 * Full path to the client certificate Privacy-Enhanced Mail (PEM) format file.
-* Certificates are auto-generated upon first starting Splunk software.
+* Certificates are auto-generated upon first starting the Splunk platform.
 * You may replace the auto-generated certificate with your own.
 * If not set, Splunk uses the setting specified in
   server.conf/[sslConfig]/'serverCert'.
@@ -892,7 +921,7 @@ sslKeysfile = <filename>
 
 sslPassword = <password>
 * The server certificate password.
-* If not set, Splunk software uses the setting specified in server.conf.
+* If not set, the Splunk platform uses the setting specified in server.conf.
 * This setting is optional.
 * Default: password
 
@@ -901,7 +930,7 @@ sslKeysfilePassword = <password>
 
 caCertFile = <filename>
 * The public key of the signing authority.
-* If not set, Splunk software uses the setting specified in server.conf.
+* If not set, the Splunk platform uses the setting specified in server.conf.
 * This setting is optional.
 * Default: cacert.pem
 
@@ -914,19 +943,19 @@ caPath = <path>
 sslVerifyServerCert = <boolean>
 * Used by distributed search: when making a search request to another
   server in the search cluster.
-* If not set, Splunk software uses the setting specified in server.conf.
+* If not set, the Splunk platform uses the setting specified in server.conf.
 * This setting is optional.
 * No default.
 
 blacklistedAutoMappedRoles = <comma separated list of roles>
-* Comma separated list of splunk roles that should be blacklisted
+* Comma separated list of splunk roles that should be prevented
   from being auto-mapped by splunk from the IDP Response.
 * This setting is optional.
 * No default.
 
 blacklistedUsers = <comma separated list of user names>
 * Comma separated list of user names from the IDP response to be
-  blacklisted by splunk platform.
+  excluded by splunk platform.
 * This setting is optional.
 * No default.
 
@@ -951,28 +980,37 @@ sloBinding = <string>
 * This setting is optional.
 * Default: HTTPPost
 
-signatureAlgorithm = RSA-SHA1 | RSA-SHA256
+signatureAlgorithm = RSA-SHA1 | RSA-SHA256 | RSA-SHA384 | RSA-SHA512
 * The signature algorithm that is used for outbound SAML messages,
   for example, SP-initiated SAML request.
 * This setting is only used when 'signAuthnRequest' is set to "true".
 * This setting is applicable for both HTTP POST and HTTP Redirect binding.
 * RSA-SHA1 corresponds to 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'.
-* RSA-SHA256 corresponds to 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'.
+* RSA-SHA256, RSA-SHA384, and RSA-SHA512 correspond to 'http://www.w3.org/2001/04/xmldsig-more'.
 * This algorithm is sent as a part of 'sigAlg'.
-* For improved security, set to "RSA-SHA256".
+* For improved security, set to "RSA-SHA256", "RSA-SHA384", or "RSA-SHA512".
 * This setting is optional.
 * Default: RSA-SHA1
 
-inboundSignatureAlgorithm = RSA-SHA1;RSA-SHA256
-* Allows only SAML responses that are signed using any one of the specified
-  algorithms.
+inboundSignatureAlgorithm = RSA-SHA1;RSA-SHA256;RSA-SHA384;RSA-SHA512
+* A semicolon-separated list of signature algorithms for the SAML responses
+  that you want Splunk Web to accept.
+* The Splunk platform rejects any SAML responses that are not signed by
+  any one of the specified algorithms.
 * This setting is applicable for both HTTP POST and HTTP Redirect binding.
-* Provide a semicolon-separated list of signature algorithms for the SAML responses
-  that you want Splunk Web to accept. Splunk software rejects any SAML responses
-  that are not signed by the specified algorithms.
-* For improved security, set it to "RSA-SHA256".
+* For improved security, set to "RSA-SHA256", "RSA-SHA384", or "RSA-SHA512".
 * This setting is optional.
-* Default: RSA-SHA1;RSA-SHA256
+* Default: RSA-SHA1;RSA-SHA256;RSA-SHA384;RSA-SHA512
+
+inboundDigestMethod = SHA1;SHA256;SHA384;SHA512
+* A semicolon-separated list of digest methods for the SAML responses
+  that you want Splunk Web to accept.
+* The Splunk platform rejects any SAML responses that are not hashed by
+  any one of the specified methods.
+* This setting is applicable for HTTP POST binding only.
+* For improved security, set to "SHA256", "SHA384", or "SHA512".
+* This setting is optional.
+* Default: SHA1;SHA256;SHA384;SHA512
 
 replicateCertificates = <boolean>
 * If set to "true", IdP certificate files are replicated across search head cluster setup.
@@ -982,13 +1020,60 @@ replicateCertificates = <boolean>
 * This setting is optional.
 * Default: true
 
-allowPartialSignatures = <boolean>
-* When enabled, the Splunk authentication system only requires the SAML assertion block to be
-  signed (but not necessarily the entire SAML response) when logging in through the HTTP POST
-  binding.
-* When disabled, the entire SAML response must be signed for the login to succeed.
-* This setting is optional.
+lockRoleToFullDN = <boolean>
+* Determines how the auth system handles authentication when it receives a
+  Security Assertion Markup Language (SAML) assertion from an identity
+  provider (IdP) in specific cases.
+* This setting applies only under the following conditions:
+  * You have configured a Common Name (CN) mapping to a Splunk role
+    under a [roleMap_SAML] stanza in authentication.conf. The auth system
+    ignores this setting if you have configured a full Distinguished Name (DN)
+    role mapping.
+  * The IdP returns a full DN as part of the SAML assertion. The auth system
+    ignores this setting if the IdP does not return a full DN in the assertion.
+* If set to "false", the auth system uses the first part of the DN that the IdP
+  provides in the assertion, and ignores the rest of the DN.
+* If set to "true", the auth system does the following:
+  * If you have configured a role mapping under the [roleMap_SAML] stanza that
+    contains the full DN, the auth system uses the DN and logs the user in.
+  * If you have configured a role mapping under the [roleMap_SAML] stanza that
+    contains the CN, but not the full DN, the auth system successfully logs in
+    the first user whose CN matches the role mapping, and records the full
+    DN into a [lockedRoleToFullDNMap_SAML] stanza in authentication.conf.
+  * The auth system then rejects subsequent authentication attempts by users
+    that have a matching CN but do not have a full DN. It logs such rejections
+    in splunkd.log.
+  * To stop authentication failures in this case, as a Splunk admin, you must
+    add the DN to the [roleMap_SAML] stanza in authentication.conf. Editing the
+    [lockedRoleToFullDNMap_SAML] stanza to have different DNs with identical CNs
+    map to different roles is not supported.
+* Example: if this setting is "true" and you map a role in authentication.conf
+  as follows:
+
+  [roleMap_SAML]
+  power=CN=PowerUsers
+
+  and later, a SAML assertion arrives with the following DN:
+  CN=PowerUsers,OU=Americas,DC=splunkcorp,DC=com
+
+  then the auth system logs in the user who presented this assertion,
+  writes an entry to authentication.conf like the following:
+
+  [lockedRoleToFullDNMap_SAML]
+  power=CN=PowerUsers,OU=Americas,DC=splunkcorp,DC=com
+
+  and rejects further login attempts from users that present an assertion with
+  the same CN ("CN=PowerUsers"), that is part of a different DN (for example,
+  "CN=PowerUsers,OU=EMEA,DC=splunkcorp,DC=com",
+  rather than "CN=PowerUsers,OU=Americas,DC=splunkcorp,DC=com").
 * Default: true
+
+allowPartialSignatures = <boolean>
+* OPTIONAL
+* When enabled, the Splunk authentication system only requires the SAML assertion block to be
+  signed (but not necessarily the entire SAML response).
+* When disabled, the entire SAML response must be signed for the login to succeed.
+* Defaults to 'true'
 
 #####################
 # Map roles
@@ -1028,11 +1113,47 @@ allowPartialSignatures = <boolean>
 * The Splunk Roles string, Realname and Email are :: delimited (no spaces).
 
 #####################
+# Locked up map of roles to SAML group DNs
+#####################
+
+[lockedRoleToFullDNMap_<saml-authSettings-key>]
+* This stanza is an output stanza that the Splunk auth system creates
+  only under certain conditions.
+* The stanza applies only if you have set 'lockRoleToFullDN' to "true".
+  Nothing happens if 'lockRoleToFullDN' is "false".
+* See the 'lockRoleToFullDN' setting for information on the acronyms that
+  are used in this setting description.
+* When the auth system receives a SAML assertion from an IdP that includes
+  a group DN, it performs several checks:
+  * First, it checks to see if the CN portion of the group DN that the IdP
+    provided in the assertion is a match to any CN that you have configured
+    in authentication.conf under the '[roleMap_SAML]' stanza.
+  * If a CN matches, and you have not previously performed a mapping
+    of SAML group DN to Splunk role, the auth system creates an entry underneath
+    this stanza, in the following format:
+
+    <Splunk role name> = <SAML group DN string>
+  * This means that the auth system has locked the Splunk role name that
+    you configured in the '[roleMap_SAML]' stanza to the DN that the IdP
+    provided in the assertion.
+  * After creating the entry, the auth system maps a user with the group
+    DN that the IdP provided to the corresponding Splunk role and lets this
+    user - and only this user - log in.
+  * It then rejects users that present the same CN, but that do not provide a
+    DN that exactly matches what was written under this stanza, for this
+    Splunk role, on future login attempts.
+  * It also writes a warning message to splunkd.log stating that the DN that
+    the IdP presented has already been locked to a Splunk role.
+  * Entries in this stanza map a Splunk role to a semicolon separated list of
+    group DNs. DNs referenced in this stanza are enforced to have unique CNs
+    (a CN cannot map to multiple DNs).
+
+#####################
 # Authentication Response Attribute Map
 #####################
 
 [authenticationResponseAttrMap_SAML]
-* Splunk software expects emails, real names, and roles to be returned as SAML
+* The Splunk platform expects emails, real names, and roles to be returned as SAML
   attributes in SAML assertion. This stanza can be used to map attribute names
   to what is expected. These are optional settings, and are only needed for
   certain IDPs.
@@ -1084,21 +1205,21 @@ mail = <string>
 * No default.
 
 [proxysso-authsettings-key]
-* Follow this stanza name with the attribute/value pairs listed below.
+* Follow this stanza name with the setting/value pairs listed below.
 
 defaultRoleIfMissing = <splunk role>
-* If Splunk roles cannot be determined based on role mapping, Splunk software
+* If Splunk roles cannot be determined based on role mapping, the Splunk platform
   uses the default configured splunk role.
 * This setting is optional.
 
 blacklistedAutoMappedRoles = <comma separated list of roles>
-* Comma-separated list of splunk roles that should be blacklisted
-  from being auto-mapped by splunk from the proxy server headers.
+* Comma-separated list of Splunk roles that should be prevented
+  from being auto-mapped by the Splunk platform from the proxy server headers.
 * This setting is optional.
 
 blacklistedUsers = <comma separated list of user names>
 * Comma-separated list of user names from the proxy server headers to be
-  blacklisted by splunk platform.
+  excluded by the Splunk platform.
 * This setting is optional.
 
 #####################
@@ -1157,21 +1278,21 @@ apiHostname = <string>
 * No default.
 
 integrationKey = <string>
-* Duo's integration key for Splunk software.
+* Duo's integration key for the Splunk platform.
 * Must be of size = 20.
 * Integration key is obfuscated before being saved here for security.
 * Required.
 * No default.
 
 secretKey = <string>
-* Duo's secret key for Splunk software.
+* Duo's secret key for the Splunk platform.
 * Must be of size = 40.
 * Secret key is obfuscated before being saved here for security.
 * Required.
 * No default.
 
 appSecretKey = <string>
-* Splunk application specific secret key which should be random and locally generated.
+* The Splunk application specific secret key which should be random and locally generated.
 * Must be at least of size = 40 or longer.
 * This secret key is not shared with Duo.
 * Application secret key is obfuscated before being saved here for security.
@@ -1179,7 +1300,7 @@ appSecretKey = <string>
 * No default.
 
 failOpen = <boolean>
-* If set to "true", Splunk software bypasses Duo multifactor authentication when
+* If set to "true", the Splunk platform bypasses Duo multifactor authentication when
   the service is unavailable.
 * This setting is optional.
 * Default: false
@@ -1206,7 +1327,7 @@ ecdhCurves = <comma separated list of ec curves>
 * Default: The value of 'ecdhCurves' in the server.conf file
 
 sslVerifyServerCert = <boolean>
-* If set to true, Splunk software confirms the server that is
+* If set to true, the Splunk platform confirms the server that is
   being connected to is a valid server (authenticated).
 * Both the common name and the alternate name of the server are then
   checked for a match, if they are specified in this configuration file.
@@ -1215,14 +1336,14 @@ sslVerifyServerCert = <boolean>
 * Default: false
 
 sslCommonNameToCheck = <commonName1>, <commonName2>, ...
-* If set, Splunk software limits outbound Duo HTTPS connections
+* If set, the Splunk platform limits outbound Duo HTTPS connections
   to a host which use a certificate with one of the listed common names.
 * 'sslVerifyServerCert' must be set to "true" for this setting to work.
 * This setting is optional.
 * No default.
 
 sslAltNameToCheck =  <alternateName1>, <alternateName2>, ...
-* If set, the Splunk software limits outbound duo HTTPS connections
+* If set, the Splunk platform limits outbound duo HTTPS connections
   to host which use a certificate with one of the listed alternate names.
 * 'sslVerifyServerCert' must be set to true for this setting to work.
 * This setting is optional.
@@ -1240,7 +1361,7 @@ useClientSSLCompression = <boolean>
 * Whether or not compression is enabled between the Splunk instance and a Duo server.
 * If set to "true" on client side, compression is enabled between the server and client
   as long as the server also supports it.
-* If not set, Splunk software uses the client SSL compression setting provided in server.conf
+* If not set, the Splunk platform uses the client SSL compression setting provided in server.conf
 * This setting is optional.
 * Default: false
 
@@ -1257,13 +1378,13 @@ useClientSSLCompression = <boolean>
 
 authManagerUrl = <string>
 * URL of the REST endpoint of RSA Authentication Manager.
-* Splunk software sends authentication requests to this URL.
-* Specify a HTTPS-based URL. Splunk software does not support communication over HTTP.
+* The Splunk platform sends authentication requests to this URL.
+* Specify a HTTPS-based URL. the Splunk platform does not support communication over HTTP.
 * Required.
 * No default.
 
 accessKey = <string>
-* Access key needed by Splunk software to communicate with RSA Authentication Manager.
+* Access key needed by the Splunk platform to communicate with RSA Authentication Manager.
 * Required.
 * No default.
 
@@ -1273,7 +1394,7 @@ clientId = <string>
 * No default.
 
 failOpen = <boolean>
-* Whether or not Splunk software allows login if the RSA MFA server is unavailable.
+* Whether or not the Splunk platform allows login if the RSA MFA server is unavailable.
 * If set to "true", allow login in case authentication server is unavailable.
 * This setting is optional.
 * Default: false
@@ -1285,7 +1406,7 @@ timeout = <integer>
 * Default: 5
 
 messageOnError = <string>
-* The message that Splunk software shows to the user in the case of a login failure.
+* The message that the Splunk platform shows to the user in the case of a login failure.
 * You can specify contact of admin or link to a diagnostic page.
 * This setting is optional.
 * No default.
@@ -1293,13 +1414,13 @@ messageOnError = <string>
 sslVersions = <versions_list>
 * Comma-separated list of SSL versions to support for incoming connections.
 * The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
-* If not set, Splunk software uses the value of 'sslVersions' in server.conf.
+* If not set, the Splunk platform uses the value of 'sslVersions' in server.conf.
 * This setting is optional.
 * Default: tls1.2
 
 cipherSuite = <cipher suite string>
-* If set, Splunk software uses the specified cipher string for the HTTP server.
-* If not set, Splunk software uses the value for 'cipherSuite' specified in server.conf
+* If set, the Splunk platform uses the specified cipher string for the HTTP server.
+* If not set, the Splunk platform uses the value for 'cipherSuite' specified in server.conf
 * This setting is optional.
 
 ecdhCurves = <comma separated list of ec curves>
@@ -1318,14 +1439,14 @@ sslVerifyServerCert = <boolean>
 * Default: true
 
 sslCommonNameToCheck = <commonName1>, <commonName2>, ...
-* If this value is set, Splunk software limits outbound RSA HTTPS connections
+* If this value is set, the Splunk platform limits outbound RSA HTTPS connections
   to host which use a cert with one of the listed common names.
 * 'sslVerifyServerCert' must be set to true for this setting to work.
 * This setting is optional.
 * No default.
 
 sslAltNameToCheck =  <alternateName1>, <alternateName2>, ...
-* If this value is set, Splunk software limits outbound RSA HTTPS connections
+* If this value is set, the Splunk platform limits outbound RSA HTTPS connections
   to host which use a cert with one of the listed alternate names.
 * 'sslVerifyServerCert' must be set to true for this setting to work.
 * This setting is optional.

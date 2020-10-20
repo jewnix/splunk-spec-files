@@ -1,4 +1,4 @@
-#   Version 8.0.5.1
+#   Version 8.1.0
 #
 #
 # *.meta files contain ownership information, access controls, and export
@@ -26,6 +26,11 @@
   * write access to the app
 * If users do not have write access to the app, an attempt to add or remove an
   object will fail.
+
+* By default, objects are only visible within the app in which they were created.
+  To make an object available to all apps, set the object's 'export' setting to
+  "system".
+  * export = system
 
 * Objects that are exported to other apps, or to system context, have no change
   to their accessibility rules.  Users must still have read access to the

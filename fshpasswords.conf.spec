@@ -1,4 +1,4 @@
-#   Version 8.0.5.1
+#   Version 8.1.0
 #
 # This file maintains the credential information associated with a federated provider.
 #
@@ -14,5 +14,5 @@
 [credential:<federated-provider>:<username>:]
 password = <password>
 * Password that corresponds to the service account for the given federated provider.
-* The password can be in clear text, however when saved from splunkd the
-  password will always be encrypted
+* The password can be in clear text, however when saved from splunkd, the
+  password will always be encrypted.

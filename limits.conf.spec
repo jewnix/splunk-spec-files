@@ -1,4 +1,4 @@
-#   Version 8.1.0
+#   Version 8.1.2
 #
 ############################################################################
 # OVERVIEW
@@ -1884,6 +1884,16 @@ input_errors_fatal = <boolean>
   set.
 * Default: false
 
+enable_splunkd_kv_lookup_indexing = <boolean>
+* This setting determines whether KV Store lookup indexing is performed 
+  during bundle replication.
+* When set to true, KVStore lookup indexing occurs on the main splunkd process, 
+  asynchronous to searches.
+* When set to false, KV Store lookup indexing is triggered by the search 
+  process, potentially slowing search performance.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: false
+
 [metadata]
 
 bucket_localize_max_lookahead = <integer>
@@ -3157,6 +3167,18 @@ alerts_scoping = host|splunk_server|all
   host=<search-head-host-name>, and all will have no scoping added to the
   search query.
 * Default: splunk_server
+
+async_saved_search_fetch = <boolean>
+* Enables a separate thread that will fetch scheduled or auto-summarized saved
+  searches asynchronously.
+* Do not change this setting unless instructed to do so by Splunk support.
+* Default: false
+
+async_saved_search_interval = <integer>
+* The interval, in seconds, that scheduled or auto-summarized saved searches
+  will be fetched asynchronously.
+* Has no effect if async_saved_search_fetch is set to false.
+* Default: 30
 
 auto_summary_perc = <integer>
 * The maximum number of concurrent searches to be allocated for auto

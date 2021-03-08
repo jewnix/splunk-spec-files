@@ -1,4 +1,4 @@
-#   Version 8.1.0
+#   Version 8.1.2
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.
@@ -390,13 +390,22 @@ userLoginTTL = <time range string>
 * These return values are cached on a per-user basis.
 * Default: 0 (no caching)
 
+userInfoTTL = <time range string>
+* How long the auth system caches information that it retrieves with the
+  'getUserInfo' and 'getUsers' scripts.
+* These return values are cached on a per-user basis.
+* Default (if you have configured either 'getUserInfoTTL' or 'getUsersTTL'): the larger value of these settings
+* Default (otherwise): 10s
+
 getUserInfoTTL = <time range string>
+* DEPRECATED; use 'userInfoTTL' instead.
 * How long the auth system caches information that it retrieves with the
   'getUserInfo' script.
 * These return values are cached on a per-user basis.
 * Default: 10s
 
 getUsersTTL = <time range string>
+* DEPRECATED; use 'userInfoTTL' instead.
 * The timeout for the getUsers script function.
 * There is only one global getUsers cache (it is not tied to a
   specific user).
@@ -773,15 +782,7 @@ attributeQueryTTL = <integer>
 scriptPath = <string>
 * The name of the authentication extension script to run.
 * The auth system expects the script to be in Python version 3, and looks for
-  it in the $SPLUNK_HOME/etc/auth/scripts directory. You might
-  need to create this directory before you install your script there.
-* You must copy the 'commonAuth.py' script from the shared script
-  examples directory to this directory after you install your script.
-  The script relies on 'commonAuth.py' to run successfully.
-* The shared script examples directory is typically located at
-  $SPLUNK_HOME/share/splunk/authScriptSamples, but you can
-  perform a search on your Splunk Enterprise installation package
-  contents for the exact location of the 'commonAuth.py' file.
+  it in the $SPLUNK_HOME/etc/auth/scripts directory.
 * No default.
 
 python.version = {default|python|python2|python3}

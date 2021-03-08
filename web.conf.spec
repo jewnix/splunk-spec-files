@@ -1,4 +1,4 @@
-#   Version 8.1.0
+#   Version 8.1.2
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -1285,10 +1285,29 @@ loginDocumentTitleText = <document_title_text>
 * Text only.
 * To display, the parameter 'loginDocumentTitleOption' must be set to "custom".
 
+firstTimeLoginMessageOption = [default | custom | none]
+* Controls display of the first time login message of the login page.
+* "default" displays: "If you installed this instance, use the username and password you created at installation.
+   Otherwise, use the username and password that your Splunk administrator gave you. If you've forgotten your 
+   credentials, contact your Splunk administrator."
+* "none" removes the branding on the first time message of the login page: "".
+* "custom" uses the document title text defined by the firstTimeLoginMessage setting.
+* CAUTION: This setting is only configurable for original equipment manufacturer (OEM) customers that participate
+  in the Splunk OEM Partner Program. It is subject to the terms of the Master OEM Agreement. If you are not
+  a member of this program, you MUST NOT remove or alter any Splunk copyright, trademark, and/or other intellectual
+  property or proprietary rights notices that Splunk embeds into any of its material. This action includes but
+  is not limited to configuring this setting.
+* Default: default
+
+firstTimeLoginMessage = <document_title_text>
+* The text to display in the first time message of the login page.
+* Text only.
+* To display this message, you must first set 'firstTimeLoginMessageOption' to "custom".
+
 loginPasswordHint = <default_password_hint>
 * The text to display the password hint at first time login on the login page.
 * Text only.
-* Default: "changeme"
+* Default: "The password you created when you installed this instance"
 
 appNavReportsLimit = <integer>
 * Maximum number of reports to fetch to populate the navigation drop-down

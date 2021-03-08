@@ -1,4 +1,4 @@
-#   Version 8.1.0
+#   Version 8.1.2
 #
 # This file contains possible setting/value pairs for configuring Splunk
 # software's processing properties through props.conf.
@@ -547,6 +547,20 @@ TIME_FORMAT = <strptime-style format>
 * For good results, the <strptime-style format> should describe the day of
   the year and the time of day.
 * Default: empty string
+
+DETERMINE_TIMESTAMP_DATE_WITH_SYSTEM_TIME = <boolean>
+* Whether or not the Splunk platform uses the current system time to
+  determine the date of an event timestamp that has no date.
+* If set to "true", the platform uses the system time to determine the
+  date for an event that has a timestamp without a date.
+  * If the future event has a timestamp that is less than three hours
+    later than the current system time, then the platform presumes
+    that the timestamp date for that event is the current date.
+  * Otherwise, it presumes that the timestamp date is in the future, and
+    uses the previous day's date instead.
+* If set to "false", the platform uses the last successfully-parsed
+  timestamp to determine the timestamp date for the event.
+* Default: false
 
 TZ = <timezone identifier>
 * The algorithm for determining the time zone for a particular event is as

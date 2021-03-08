@@ -552,7 +552,10 @@ disabled = <boolean>
 * Replaced with the 'license_edit' capability.
 
 [capability::license_edit]
-* Lets a user access and change the license.
+* Users with this capability can access and change license attributes and related information.
+
+[capability::license_read]
+* Users with this capability can access license attributes and related information.
 
 [capability::license_view_warnings]
 * Lets a user see if they are exceeding limits or reaching the expiration

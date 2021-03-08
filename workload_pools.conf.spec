@@ -1,4 +1,4 @@
-#   Version 8.0.8
+#   Version 8.1.0.1
 #
 ############################################################################
 # OVERVIEW
@@ -75,7 +75,7 @@ cpu_weight = <number>
 * Specifies the cpu weight to be used by this workload pool.
 * This is a percentage of the total cpu resources available to the category to
   which the pool belongs.
-* Default is unset
+* Default: not set
 
 mem_weight = <number>
 * Specifies the memory weight to be used by this workload pool.
@@ -83,7 +83,7 @@ mem_weight = <number>
   which the pool belongs.
 * This is a mandatory parameter for the creation of a workload pool and only
   allows positive integral values.
-* Default is unset
+* Default: not set
 
 category = <string>
 * Specifies the category to which this workload pool belongs.
@@ -91,7 +91,7 @@ category = <string>
 * Valid categories are "search","misc" and "ingest".
 * The "ingest" and "misc" categories each contain one pool only, which is the
   default_pool for the respective category.
-* Default is unset.
+* Default: not set
 
 default_category_pool = <boolean>
 * Specifies if this pool is the default pool for its category.
@@ -100,7 +100,7 @@ default_category_pool = <boolean>
 * The first pool that is added to a category has this value set to 1.
 * All other pools have this value set to 0.
 * Required if workload management is enabled.
-* Default: false.
+* Default: false
 
 [workload_category:<category>]
 * Specifies the resource allocation for workload pools in this category.

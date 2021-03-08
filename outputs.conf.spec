@@ -1,4 +1,4 @@
-#   Version 8.0.8
+#   Version 8.1.0.1
 #
 # Forwarders require outputs.conf. Splunk instances that do not forward
 # do not use it. Outputs.conf determines how the forwarder sends data to
@@ -49,6 +49,32 @@
 # settings, which you can set at any of the three levels.
 # Default: true
 # If set to 'true', prevents the logs from being forwarder to the indexing tiers.
+
+[httpout]
+
+httpEventCollectorToken = <string>
+* The value of the HEC token.
+* HEC uses this token to authenticate inbound connections.
+* No default.
+
+uri = <uri>
+* The URI and management port of the Http Event Collector(HEC) end point.
+* For example, https://SplunkHEC01.example.com:8088
+* No default.
+
+batchSize = <integer>
+* The size of the HTTP OUT send buffer, in bytes.
+* HTTP OUT batch pipeline data before sending out.
+* If current buffer size is greater than batchSize(in bytes),
+* the data will be send out immediately.
+* Default = 65536
+
+batchTimeout = <integer>
+* How often ( in seconds) to send out pipeline data.
+* HTTP OUT batch pipeline data before sending out.
+* If the wait time is greater than batchTimeout (in seconds),
+* the data will be send out immediately.
+* Default = 30
 
 #----TCP Output Global Configuration -----
 # You can overwrite the global configurations specified here in the
@@ -309,9 +335,11 @@ maxQueueSize = [<integer>|<integer>[KB|MB|GB]|auto]
   * if 'useACK' is set to "true" and this setting is set to "auto", then
     the output queue is 7MB and the wait queue is 21MB.
 
-dropEventsOnQueueFull = <integer>
-* The number of seconds to wait before the output queue throws out all
+dropEventsOnQueueFull = <integer>[ms|s|m]
+* The amount of time to wait before the output queue throws out all
   new events until it has space.
+* If set to 0ms(milliseconds) or 0s(seconds) or 0m(minutes),
+  the queue throws out all new events immediately until it has space.
 * If set to a positive number, the queue waits 'dropEventsonQueueFull'
   seconds before throwing out all new events.
 * If set to -1 or 0, the output queue blocks when it is full. This further
@@ -325,9 +353,10 @@ dropEventsOnQueueFull = <integer>
   MONITORING FILES.
 * Default: -1
 
-dropClonedEventsOnQueueFull = <integer>
-* The amount of time, in seconds, to wait before dropping events from
-  the group.
+dropClonedEventsOnQueueFull = <integer>[ms|s|m]
+* The amount of time to wait before dropping events from the group.
+* If set to 0ms(milliseconds) or 0s(seconds) or 0m(minutes),
+  the queue throws out all new events immediately until it has space.
 * If set to a positive number, the queue does not block completely, but
   waits up to 'dropClonedEventsOnQueueFull' seconds to queue events to a
   group.
@@ -338,7 +367,7 @@ dropClonedEventsOnQueueFull = <integer>
 * If set to -1, the TcpOutputProcessor ensures that each group
   receives all of the events. If one of the groups is down, the
   TcpOutputProcessor blocks everything.
-* Default: 5
+* Default: 5 seconds
 
 #######
 # Backoff Settings When Unable To Send Events to Indexer
@@ -900,23 +929,28 @@ master_uri = <uri>
 * This section explains possible settings for configuring a remote queue.
 * Each remote_queue stanza represents an individually configured remote
   queue output.
+* Note that only ONE remote queue stanza is supported as an
+  output queue.
 
 remote_queue.* = <string>
-* A way to pass configuration information to a remote storage system.
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * Optional.
-* With remote queues, communication between the forwarder and the remote queue
-  system might require additional configuration, specific to the type of remote
-  queue. You can pass configuration information to the storage system by
-  specifying this settings through the following schema:
+* This section explains possible settings for configuring a remote queue.
+* With remote queues, the splunk indexer might require additional configuration,
+  specific to the type of remote queue. You can pass configuration information
+  to the splunk indexer by specifying the settings through the following schema:
   remote_queue.<scheme>.<config-variable> = <value>.
   For example:
   remote_queue.sqs.access_key = ACCESS_KEY
+* This setting is optional.
+* No default.
 
-remote_queue.type = sqs|kinesis
+remote_queue.type = sqs|kinesis|sqs_smartbus
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Required.
-* Specifies the remote queue type, either SQS or Kinesis.
+* Specifies the remote queue type, either SQS or Kinesis or SQS Smartbus.
 
 compressed = <boolean>
 * See the description for TCPOUT SETTINGS in outputs.conf.spec.
@@ -1289,3 +1323,200 @@ remote_queue.kinesis.tenantId = <string>
   written to the remote queue.
 * If not specified, the messages do not belong to any tenant.
 * Default: not set
+
+####
+# Simple Queue Service Smartbus (SQS Smartbus) specific settings
+####
+
+remote_queue.sqs_smartbus.access_key = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* The access key to use when authenticating with the remote queue
+  system that supports the SQS API.
+* If not specified, the splunk instance looks for the environment variables
+  AWS_ACCESS_KEY_ID or AWS_ACCESS_KEY (in that order). If the environment
+  variables are not set and the forwarder is running on EC2, the splunk instance
+  attempts to use the secret key from the IAM (Identity and Access
+  Management) role.
+* Default: not set
+
+remote_queue.sqs_smartbus.secret_key = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Specifies the secret key to use when authenticating with the remote queue
+  system supporting the SQS API.
+* If not specified, the splunk instance looks for the environment variables
+  AWS_SECRET_ACCESS_KEY or AWS_SECRET_KEY (in that order). If the environment
+  variables are not set and the forwarder is running on EC2, the splunk instance
+  attempts to use the secret key from the IAM (Identity and Access
+  Management) role.
+* Default: not set
+
+remote_queue.sqs_smartbus.auth_region = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* The authentication region to use when signing the requests while interacting
+  with the remote queue system supporting the Simple Queue Service (SQS) API.
+* If not specified and the splunk instance is running on EC2, the auth_region is
+  constructed automatically based on the EC2 region of the instance where the
+  the splunk instance is running.
+* Default: not set
+
+remote_queue.sqs_smartbus.endpoint = <URL>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* The URL of the remote queue system supporting the Simple Queue Service (SQS) API.
+* Use the scheme, either http or https, to enable or disable SSL connectivity
+  with the endpoint.
+* If not specified, the endpoint is constructed automatically based on the
+  auth_region as follows: https://sqs.<auth_region>.amazonaws.com
+* If specified, the endpoint must match the effective auth_region, which is
+  either a value specified via the 'remote_queue.sqs.auth_region' setting
+  or a value constructed automatically based on the EC2 region of the
+  running instance.
+* Example: https://sqs.us-west-2.amazonaws.com/
+
+remote_queue.sqs_smartbus.message_group_id = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Specifies the Message Group ID for Amazon Web Services Simple Queue Service
+  (SQS) First-In, First-Out (FIFO) queues.
+* Setting a Message Group ID controls how messages within an AWS SQS queue are
+  processed.
+* For information on SQS FIFO queues and how messages in those queues are
+  processed, see "Recommendations for FIFO queues" in the AWS SQS Developer
+  Guide.
+* If you configure this setting, Splunk software assumes that the SQS queue is
+  a FIFO queue, and that messages in the queue should be processed first-in,
+  first-out.
+* Otherwise, Splunk software assumes that the SQS queue is a standard queue.
+* Can be between 1-128 alphanumeric or punctuation characters.
+* NOTE: FIFO queues must have Content-Based De-duplication enabled.
+* Default: not set
+
+remote_queue.sqs_smartbus.retry_policy = max_count|none
+* Sets the retry policy to use for remote queue operations.
+* Optional.
+* A retry policy specifies whether and how to retry file operations that fail
+  for those failures that might be intermittent.
+* Retry policies:
+  + "max_count": Imposes a maximum number of times a queue operation is
+    retried upon intermittent failure. Set max_count with the
+    'max_count.max_retries_per_part' setting.
+  + "none": Do not retry file operations upon failure.
+* Default: max_count
+
+remote_queue.sqs_smartbus.max_count.max_retries_per_part = <unsigned integer>
+* When the 'remote_queue.sqs_smartbus.retry_policy' setting is "max_count", sets the
+  maximum number of times a queue operation will be retried upon intermittent
+  failure.
+* Optional.
+* Default: 3
+
+remote_queue.sqs_smartbus.timeout.connect = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Sets the connection timeout, in milliseconds, to use when interacting with
+  the SQS for this queue.
+* Default: 5000
+
+remote_queue.sqs_smartbus.timeout.read = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Sets the read timeout, in milliseconds, to use when interacting with the
+  SQS for this queue.
+* Default: 60000
+
+remote_queue.sqs_smartbus.timeout.write = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* Sets the write timeout, in milliseconds, to use when interacting with
+  the SQS for this queue.
+* Default: 60000
+
+remote_queue.sqs_smartbus.large_message_store.endpoint = <URL>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* The URL of the remote storage system supporting the S3 API.
+* Use the scheme, either http or https, to enable or disable SSL connectivity
+  with the endpoint.
+* If not specified, the endpoint is constructed automatically based on the
+  auth_region as follows: https://s3-<auth_region>.amazonaws.com
+* If specified, the endpoint must match the effective auth_region, which is
+  either a value specified via 'remote_queue.sqs_smartbus.auth_region' or a value
+  constructed automatically based on the EC2 region of the running instance.
+* Example: https://s3-us-west-2.amazonaws.com/
+* Default: not set
+
+remote_queue.sqs_smartbus.large_message_store.path = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* The remote storage location where messages larger than the underlying
+  queue's maximum message size will reside.
+* The format for this value is: <scheme>://<remote-location-specifier>
+  * The "scheme" identifies a supported external storage system type.
+  * The "remote-location-specifier" is an external system-specific string for
+    identifying a location inside the storage system.
+* The following external systems are supported:
+  * Object stores that support AWS's S3 protocol. These stores use the scheme
+    "s3". For example, "path=s3://mybucket/some/path".
+* If not specified, the queue drops messages exceeding the underlying queue's
+  maximum message size.
+* Default: not set
+
+remote_queue.sqs_smartbus.send_interval = <number><unit>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* The interval that the remote queue output processor waits for data to
+  arrive before sending a partial batch to the remote queue.
+* Examples: 30s, 1m
+* Default: 10s
+
+remote_queue.sqs_smartbus.max_queue_message_size = <integer>[KB|MB|GB]
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The maximum message size for batched events for upload to the remote queue.
+* Queue messages contain a series of one or more events. When an event causes the message
+  size to exceed this setting, the message is sent to the remote queue.
+* Specify this value as an integer followed by KB, MB, or GB (for example,
+  10MB is 10 megabytes)
+* Default: 10MB
+
+remote_queue.sqs_smartbus.enable_data_integrity_checks = <boolean>
+* If "true", Splunk software sets the data checksum in the metadata field of
+  the HTTP header during upload operation to S3.
+* The checksum is used to verify the integrity of the data on uploads.
+* Default: false
+
+remote_queue.sqs_smartbus.enable_signed_payloads  = <boolean>
+* If "true", Splunk software signs the payload during upload operation to S3.
+* This setting is valid only for remote.s3.signature_version = v4
+* Default: true
+
+remote_queue.sqs_smartbus.executor_max_workers_count = <positive integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The maximum number of worker threads available per pipeline set to execute SQS output
+  worker tasks.
+* A value of 0 is equivalent to 1.
+* The maximum value for this setting is 20.
+* Default: 4
+
+remote_queue.sqs_smartbus.executor_max_jobs_count = <positive integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The maximum number of jobs that each worker thread per pipeline set can queue.
+* A value of 0 is equivalent to 1.
+* The maximum value for this setting is 20.
+* Default: 8

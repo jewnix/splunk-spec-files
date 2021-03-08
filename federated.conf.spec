@@ -1,4 +1,4 @@
-#   Version 8.0.8
+#   Version 8.1.0.1
 #
 # This file contains possible setting and value pairs for federated provider entries
 # for use in Data Fabric Search (DFS), when the federated search functionality is
@@ -27,19 +27,19 @@ type = [splunk]
 
 ip = <IP address>
 * Identifies the IP address of the federated provider.
-* Default: No default.
+* No default.
 
 splunk.port = <port>
 * Identifies the splunkd REST port on the remote Splunk deployment.
-* Default: No default.
+* No default.
 
 splunk.serviceAccount = <user>
 * Identifies an authorized user on the remote Splunk deployment.
 * The security credentials associated with this account are managed securely in
   fshpasswords.conf.
-* Default: No default.
+* No default.
 
 splunk.app = <string>
 * The name of the Splunk application on the remote Splunk deployment in which
 * to perform the search.
-* Default: No default.
+* No default.

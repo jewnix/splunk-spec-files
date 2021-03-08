@@ -1,4 +1,4 @@
-#   Version 8.0.8
+#   Version 8.1.0.1
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -55,13 +55,13 @@ appServerPorts = <positive integer>[, <positive integer>, <positive integer> ...
 splunkdConnectionTimeout = <integer>
 * The amount of time, in seconds, to wait before timing out when communicating with
   splunkd.
-* Must be at least 30. If not
+* Must be at least 30.
 * Values smaller than 30 will be ignored, resulting in the use of the
   default value
 * Default: 30
 
 enableSplunkWebClientNetloc = <boolean>
-* Control if the splunk web client can override the client network location
+* Control if the Splunk Web client can override the client network location.
 * Default: false
 
 enableSplunkWebSSL = <boolean>
@@ -131,7 +131,7 @@ sslAltNameToCheck = <alternateName1>, <alternateName2>, ...
 * Default: empty string (no alternate name checking).
 
 serviceFormPostURL = http://docs.splunk.com/Documentation/Splunk
-* DEBPRECATED.
+* DEPRECATED.
 * This setting has been deprecated since Splunk Enterprise version 5.0.3.
 
 userRegistrationURL = https://www.splunk.com/page/sign_up
@@ -163,6 +163,12 @@ enable_secure_entity_move = <boolean>
 * If set to "false", you can perform both HTTP GET and POST requests against the
   "move" endpoint of an entity.
 * Default: true
+
+enable_insecure_pdfgen = <boolean>
+* Whether or not the "/services/pdfgen/render" REST endpoint allows GET requests.
+* If "true", allows PDFs to be generated using GET or POST requests.
+* If "false", only allows PDFs to be generated using POST requests.
+* Default: false
 
 simple_error_page = <boolean>
 * Whether or not to display a simplified error page for HTTP errors that only contains the error status.
@@ -508,6 +514,35 @@ dashboard_html_allow_iframes = <boolean>
   potential attacks.
 * Default: true
 
+dashboard_html_allowed_domains = <string> [, <string>]
+* A comma-separated list of allowed domains for inline iframe element 
+  source ('<iframe src="<URL>">') attributes in dashboards.
+* If the domain for an <iframe> src attribute is not an allowed 
+  domain, the Simple XML dashboard adds the 'sandbox' attribute to 
+  the <iframe>, which further restricts the content within the <iframe> 
+  by treating it as coming from a unique origin. Simple XML dashboards 
+  will allow <iframe> src attributes by default if the src is the same 
+  hostname and port number as the Splunk Web server's hostname and port number.
+* You can specify these domains as a hostname or an IPV4 address or an IPV6 address.
+* You can configure a hostname as a full name or with a wildcard 
+  to allow for any subdomains. For example, *.example.com would 
+  allow for any subdomain of example.com as well as example.com itself.
+* You can specify an IPV4 address as an exact address or:
+  * You can use an asterisk to specify a wildcard (Example: 192.168.1.*).
+    Asterisks allow for any address within that byte segment.
+  * You can use a dash to specify a range of addresses (Example: 192.168.1.1-99).
+    Dashes will only match IP addresses within that range.
+* You can specify an IPV6 address either as an exact address or with
+  a subnet mask. If you specify a subnet mask, any IPV6 address within
+  the subnet will be an allowed domain.
+* You can specify a port number for any of the domains. If you do, the '<iframe src>'
+  must match the port number as well.
+* Additional configuration examples:
+  * Hostname: docs.splunk.com, *.splunk.com
+  * IPV4: 127.0.0.1, 127.0.0.*, 127.0-10.0.*, 127.0.0.1:8000
+  * IPV6: ::1, [::1]:8000, 2001:db8:abcd:12::, 2001:db8::/32
+* Default: not set 
+
 splunk_dashboard_app_name = <string>
 * Please do not change.
 * Set the name for the Splunk Dashboard App.
@@ -693,20 +728,13 @@ export_timeout = <integer>
 #
 
 server.thread_pool = <integer>
-* The minimum number of threads the appserver is allowed to maintain.
-* Default: 20
-
-server.thread_pool_max = <integer>
-* The maximum number of threads the appserver is allowed to maintain.
-* Default: -1 (unlimited)
-
-server.thread_pool_min_spare = <integer>
-* The minimum number of spare threads the appserver keeps idle.
-* Default: 5
-
-server.thread_pool_max_spare = <integer>
-* The maximum number of spare threads the appserver keeps idle.
-* Default: 10
+* Determines the minimum number of threads the appserver is allowed to maintain.
+* The default value of this setting provides acceptable performance for most use
+  cases.
+* If you are experiencing issues with UI latency, you can increase the value
+  based on need, to a maximum value of 200.
+* Values that exceed 200 can cause memory spikes.
+* Default: 50
 
 server.socket_host = <ip_address>
 * Host values may be any IPv4 or IPv6 address, or any valid hostname.
@@ -1067,6 +1095,33 @@ sendStrictTransportSecurityHeader = <boolean>
 * Enable this setting with caution.
 * Default: false
 
+includeSubDomains = <boolean>
+* Whether or not the REST interface includes the "includeSubDomains" 
+  directive in the "Strict-Transport-Security" header with all responses
+  to requests made over SSL.
+* If set to "true", all subdomains of the current domain name will be 
+  enforced with the same HTTP Strict-Transport-Security (HSTS) policy.
+* Can only be enabled if 'sendStrictTransportSecurityHeader' is set
+  to "true".
+* Enable this setting with caution. Enabling 'includeSubDomains' can have
+  consquences by blocking access to subdomains that can only be served
+  over HTTP.
+* Default: false
+
+preload = <boolean>
+* Whether or not the REST interface includes the "preload" directive in the
+  "Strict-Transport-Security" header with all responses to requests made
+  over SSL.
+* If set to "true", domains can be loaded on the HSTS preload list service
+  that the Chromium project maintains for Google Chrome and various other
+  browsers.
+* Can only be enabled if 'sendStrictTransportSecurityHeader' is set
+  to "true".
+* Enable this setting with caution. Enabling 'preload' can have
+  consequences by preventing users from accessing your domain and
+  subdomains in the case of switching back to HTTP.
+* Default: false
+
 dedicatedIoThreads = <integer>
 * The number of dedicated threads to use for HTTP input/output operations.
 * If set to zero, HTTP I/O is performed in the same thread
@@ -1108,7 +1163,7 @@ appServerProcessShutdownTimeout = <nonnegative integer>[smhd]
   process to handle outstanding or existing requests.
 * If a Python-based application server process "outlives" this timeout,
   splunkd forcibly terminates the process.
-* Default: '10m' (10 minutes).
+* Default: '30s' (30 seconds).
 
 appServerProcessLogStderr = <boolean>
 * If set to true, messages written to the standard error stream by the
@@ -1126,8 +1181,8 @@ enableWebDebug = <boolean>
 * Default: false
 
 allowableTemplatePaths =  <directory> [, <directory>]...
-* A comma-separated list of template paths that may be added to
-  the template lookup whitelist.
+* A comma-separated list of template paths that might be added to
+  the template lookup allow list.
 * Paths are relative to $SPLUNK_HOME.
 * Default: empty string
 
@@ -1142,7 +1197,7 @@ enableSearchJobXslt = <boolean>
   to format search results.
 * If set to "false", the search job request does not accept XSL as input
   to format search results.
-* Default: false
+* Default: true
 
 customFavicon = <pathToMyFile, myApp:pathToMyFile, or blank for default>
 * Customizes the favicon image across the entire application.
@@ -1230,29 +1285,10 @@ loginDocumentTitleText = <document_title_text>
 * Text only.
 * To display, the parameter 'loginDocumentTitleOption' must be set to "custom".
 
-firstTimeLoginMessageOption = [default | custom | none]
-* Controls display of the first time login message of the login page.
-* "default" displays: "If you installed this instance, use the username and password you created at installation.
-   Otherwise, use the username and password that your Splunk administrator gave you. If you've forgotten your 
-   credentials, contact your Splunk administrator."
-* "none" removes the branding on the first time message of the login page: "".
-* "custom" uses the document title text defined by the firstTimeLoginMessage setting.
-* CAUTION: This setting is only configurable for original equipment manufacturer (OEM) customers that participate
-  in the Splunk OEM Partner Program. It is subject to the terms of the Master OEM Agreement. If you are not
-  a member of this program, you MUST NOT remove or alter any Splunk copyright, trademark, and/or other intellectual
-  property or proprietary rights notices that Splunk embeds into any of its material. This action includes but
-  is not limited to configuring this setting.
-* Default: default
-
-firstTimeLoginMessage = <document_title_text>
-* The text to display in the first time message of the login page.
-* Text only.
-* To display this message, you must first set 'firstTimeLoginMessageOption' to "custom".
-
 loginPasswordHint = <default_password_hint>
 * The text to display the password hint at first time login on the login page.
 * Text only.
-* Default: "The password you created when you installed this instance"
+* Default: "changeme"
 
 appNavReportsLimit = <integer>
 * Maximum number of reports to fetch to populate the navigation drop-down

@@ -1,151 +1,160 @@
-#   Version 8.0.8
+#   Version 8.1.0.1
 #
 # This file contains definitions for visualizations an app makes available
-# to the system. An app intending to share visualizations with the system
-# should include a visualizations.conf in $SPLUNK_HOME/etc/apps/<appname>/default
-#
-# visualizations.conf should include one stanza for each visualization to be shared
+# to the system. If you want your app to share visualizations with the system, 
+# include a visualizations.conf in $SPLUNK_HOME/etc/apps/<appname>/default
+# Within the file, include one stanza for each visualization to be shared.
 #
 # To learn more about configuration files (including precedence) please see
 # the documentation located at
 # http://docs.splunk.com/Documentation/Splunk/latest/Admin/Aboutconfigurationfiles
 
 #*******
-# The possible attribute/value pairs for visualizations.conf are:
+# The following attribute/value pairs are possible for stanzas in visualizations.conf:
 #*******
 
 [<stanza name>]
-* Create a unique stanza name for each visualization. It should match the name
-  of the visualization 
+* Create a unique stanza name for each visualization that matches the visualization's name.
 * Follow the stanza name with any number of the following attribute/value
   pairs.
-* If you do not specify an attribute, Splunk uses the default.
+* If you don't specify an attribute, Splunk uses the default.
 
-disabled = <bool>
-* Optional.
+disabled = <boolean>
 * Disable the visualization by setting to true.
-* If set to true, the visualization is not available anywhere in Splunk
-* Defaults to false.
-
-allow_user_selection = <bool>
 * Optional.
-* Whether the visualization should be available for users to select
-* Defaults to true
+* If set to true, the visualization is not available anywhere in Splunk
+* Default: false.
+
+allow_user_selection = <boolean>
+* Whether the visualization is available for users to select.
+* Optional.
+* Default: true
 
 label = <string>
+* The human-readable label or title of the visualization.
 * Required.
-* The human-readable label or title of the visualization
-* Will be used in dropdowns and lists as the name of the visualization
-* Defaults to <app_name>.<viz_name>
+* The label is used in dropdowns and lists as the name of the visualization.
+* Default: <app_name>.<viz_name>
 
 description = <string>
+* A short description that appears in the visualizations picker.
 * Required.
-* The short description that will show up in the visualization picker
-* Defaults to ""
+* Default: ""
 
 search_fragment = <string>
+* An example part of a search that formats the data correctly for the visualization. 
 * Required.
-* An example part of a search that formats the data correctly for the viz. Typically the last pipe(s) in a search query.
-* Defaults to ""
+* Typically the last pipe or pipes in a search query.
+* Default: ""
 
-default_height = <int>
+default_height = <integer>
+* The default height of the visualization, in pixels.
 * Optional.
-* The default height of the visualization in pixels
-* Defaults to 250
+* Default: 250
 
-default_width = <int>
+default_width = <integer>
+* The default width of the visualization, in pixels
 * Optional.
-* The default width of the visualization in pixels
-* Defaults to 250
+* Default: 250
 
-min_height = <int>
+min_height = <integer>
+* The minimum height the visualizations can be rendered in, in pixels.
 * Optional.
-* The minimum height the visualizations can be rendered in.
-* Defaults to 50.
+* Default: 50
 
-min_width = <int>
+min_width = <integer>
+* The minimum width the visualizations can be rendered in, in pixels.
 * Optional.
-* The minimum width the visualizations can be rendered in.
-* Defaults to 50.
+* Default: 50
 
-max_height = <int>
-* The maximum height the visualizations supports.
+max_height = <integer>
+* The maximum height the visualizations can be rendered in, in pixels.
 * Optional.
-* Default is unbounded.
+* Default: unbounded
 
-max_width = <int>
-* The maximum width the visualizations supports.
+max_width = <integer>
+* The maximum width the visualizations can be rendered in, in pixels.
 * Optional.
-* Default is unbounded.
+* Default: unbounded.
 
-trellis_default_height = <int>
-* Default is 400
+trellis_default_height = <integer>
+* The default height of the visualization if using trellis layout.
+* Default: 400
 
 trellis_min_widths = <string>
-* Default is undefined
+* The minimum width of a visualization if using trellis layout.
+* Default: undefined
 
 trellis_per_row = <string>
-* Default is undefined
+* The number of trellises per row.
+* Default: undefined
 
-# Define data sources supported by the visualization and their initial fetch params for search results data
+# The following settings define data sources supported by the visualization and their initial fetch parameters for search results data:
 
-data_sources = <csv-list>
-* Comma separated list of data source types supported by the visualization.
-* Currently the visualization system provides these types of data sources:
+data_sources = <comma-separated list>
+* A list of data source types supported by the visualization.
+* The visualization system currently provides the following types of data sources:
 * - primary: Main data source driving the visualization.
 * - annotation: Additional data source for time series visualizations to show discrete event annotation on the time axis.
-* Defaults to "primary"
+* Default: primary
 
 data_sources.<data-source-type>.params.output_mode = [json_rows|json_cols|json]
+* The data format that the visualization expects. Must be one of the following:
+  - "json_rows": corresponds to SplunkVisualizationBase.ROW_MAJOR_OUTPUT_MODE
+  - "json_cols": corresponds to SplunkVisualizationBase.COLUMN_MAJOR_OUTPUT_MODE
+  - "json": corresponds to SplunkVisualizationBase.RAW_OUTPUT_MODE
 * Optional.
-* the data format that the visualization expects. One of:
-*  - "json_rows": corresponds to SplunkVisualizationBase.ROW_MAJOR_OUTPUT_MODE
-*  - "json_cols": corresponds to SplunkVisualizationBase.COLUMN_MAJOR_OUTPUT_MODE
-*  - "json": corresponds to SplunkVisualizationBase.RAW_OUTPUT_MODE
-* Defaults to undefined and requires the javascript implementation to supply initial data params.
+* Requires the javascript implementation to supply initial data parameters.
+* Default: undefined 
 
-data_sources.<data-source-type>.params.count = <int>
+data_sources.<data-source-type>.params.count = <integer>
+* How many rows of results to request
 * Optional.
-* How many rows of results to request, default is 1000
+* Default: 1000
 
-data_sources.<data-source-type>.params.offset = <int>
+data_sources.<data-source-type>.params.offset = <integer>
+* The index of the first requested result row.
 * Optional.
-* The index of the first requested result row, default is 0
+* Default: 0
 
 data_sources.<data-source-type>.params.sort_key = <string>
+* The field name to sort the results by.
 * Optional.
-* The field name to sort the results by
 
 data_sources.<data-source-type>.params.sort_direction = [asc|desc]
+* The direction of the sort:
+  - asc: Sort in ascending order
+  - desc: Sort in descending order
 * Optional.
-* The direction of the sort
-* - asc: sort in ascending order
-* - desc: sort in descending order
-* Defaults to desc
+* Default: desc
 
 data_sources.<data-source-type>.params.search = <string>
+* A post-processing search to apply to generate the results.
 * Optional.
-* A post-processing search to apply to generate the results
+* There is no default.
 
-data_sources.<data-source-type>.mapping_filter = <bool>
+data_sources.<data-source-type>.mapping_filter = <boolean>
+
 data_sources.<data-source-type>.mapping_filter.center = <string>
+
 data_sources.<data-source-type>.mapping_filter.zoom = <string>
 
-supports_trellis = <bool>
+supports_trellis = <boolean>
+* Whether trellis layout is available for this visualization.
 * Optional.
-* Indicates whether trellis layout is available for this visualization
-* Defaults to false
+* Default: false
 
-supports_drilldown = <bool>
+supports_drilldown = <boolean>
+* Whether the visualization supports drilldown.
 * Optional.
-* Indicates whether the visualization supports drilldown (responsive actions triggered when users click on the visualization).
-* Defaults to false
+* A drilldown is a responsive actions triggered when users click on the visualization.
+* Default: false
 
-supports_export = <bool>
+supports_export = <boolean>
+* Whether the visualization supports being exported as a PDF.
 * Optional.
-* Indicates whether the visualization supports being exported to PDF.
-* This setting has no effect in third party visualizations. 
-* Defaults to false
+* This setting has no effect in third-party visualizations. 
+* Default: false
 
 # Internal settings for bundled visualizations. They are ignored for third party visualizations.
 core.type = <string>

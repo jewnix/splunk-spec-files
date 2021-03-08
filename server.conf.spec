@@ -1,4 +1,4 @@
-#   Version 8.0.8
+#   Version 8.1.0.1
 #
 ############################################################################
 # OVERVIEW
@@ -52,12 +52,19 @@ serverName = <ASCII string>
   underscore.
 * Default: <hostname>-<user_running_splunk>
 
-hostnameOption = <ASCII string>
-* This option lets you specify the details in the server name that
-  identifies this Splunk instance.
-* Applies to Windows only.
-* Can be one of the following: "fullyqualifiedname", "clustername", "shortname".
+hostnameOption = [ fullyqualifiedname | clustername | shortname ]
+* The type of information to use to determine how splunkd sets the 'host' value for a Windows
+  Splunk platform instance when you specify an input stanza with 'host = $decideOnStartup'.
+* Applies only to Windows hosts, and only for input stanzas that use the
+  "host = $decideOnStartup" setting and value.
+* Valid values are "fullyqualifiedname", "clustername", and "shortname".
+* The value returned for the 'host' field depends on Windows DNS, NETBIOS,
+  and what the name of the host is.
+  * 'fullyqualifiedname' uses Windows DNS to return the fully qualified host name as the value.
+  * 'clustername' also uses Windows DNS, but sets the value to the domain and machine name.
+  * 'shortname' returns the NETBIOS name of the machine.
 * Cannot be an empty string.
+* Default: shortname
 
 sessionTimeout = <nonnegative integer>[s|m|h|d]
 * The amount of time before a user session times out, expressed as a
@@ -113,7 +120,7 @@ pass4SymmKey = <password>
   * Deployment server (DS) and its deployment clients (DCs).
 * When authenticating members of a cluster, clustering might override the
   passphrase specified in the clustering stanza. A clustering searchhead
-  connecting to multiple masters might further override in the
+  connecting to multiple managers might further override in the
   [clustermaster:stanza1] stanza.
 * When authenticating deployment servers and clients, by default, DS-DCs
   passphrase authentication is disabled. To enable DS-DCs passphrase
@@ -126,6 +133,16 @@ pass4SymmKey = <password>
     - clustering in case of the [clustering] stanza)
 * Unencrypted passwords must not begin with "$1$". This is used by
   Splunk software to determine if the password is already encrypted.
+
+pass4SymmKey_minLength = <integer>
+* The minimum length, in characters, that a 'pass4SymmKey' should be for a particular stanza.
+* When you start the Splunk platform, if the 'pass4SymmKey' is shorter in length than
+  what you specify with this setting, the platform warns you and advises that you
+  change the pass4SymKey.
+* If you use the CLI to modify 'pass4SymmKey' to a value that is shorter than what
+  you specify with this setting, the platform warns you and advises that you
+  change the pass4SymKey.
+* Default: 12
 
 listenOnIPv6 = no|yes|only
 * By default, splunkd listens for incoming connections (both REST and
@@ -305,7 +322,7 @@ instanceType = <string>
 * Informs components (such as the Splunk Web Manager section) which
   environment the Splunk server is running in, to allow for more
   customized behaviors.
-* Default: "download"
+* Default: download
 
 requireBootPassphrase = <boolean>
 * Prompt the user for a boot passphrase when starting splunkd.
@@ -315,6 +332,11 @@ requireBootPassphrase = <boolean>
   $SPLUNK_HOME/etc/system/README/authentication.conf.spec.
 * Default (if Common Criteria mode is enabled): true
 * Default (if Common Criteria mode is disabled): false
+
+numThreadsForIndexInitExecutor = <positive integer>
+* Number of threads that can be used by the index init thread pool.
+* Maximum accepted value for this setting is 32.
+* Default: 16
 
 remoteStorageRecreateIndexesInStandalone = <boolean>
 * Controls re-creation of remote storage enabled indexes in standalone mode.
@@ -341,13 +363,29 @@ splunkd_stop_timeout = <positive_integer>
   complete before splunkd forces a stop.
 * Default: 360 (6 minutes)
 
+decommission_search_jobs_wait_secs = <unsigned integer>
+* The maximum time, in seconds, that splunkd waits for running searches to complete
+  during a shutdown_decommission_search.
+* To trigger this type of shudown, post to 'services/server/control/shutdown_decommission_search'
+* If set to 0, splunkd does not wait, and all searches in progress will fail.
+* If this search head is a member of a search head cluster, use 'decommission_search_jobs_wait_secs'
+  in the [shclustering] stanza instead.
+* NOTE: If this search head is a node of an indexer cluster, use 'decommission_search_jobs_wait_secs'
+  in the [clustering] stanza instead.
+* Default: 0
+
 python.version = {python2|python3|force_python3}
 * For Python scripts only, sets the default Python version to use.
 * Can be overridden by other 'python.version' values elsewhere, with the
   following exception:
 * If you set to "force_python3", the system always uses Python 3, and ignores
   'python.version' values that you set elsewhere.
-* Default: python2
+* Default: python3
+
+roll_and_wait_for_uploads_at_shutdown_secs = <non-negative number>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Default: 0 (disabled)
 
 ############################################################################
 # Deployment Configuration details
@@ -366,6 +404,16 @@ pass4SymmKey = <passphrase string>
     * NOTE: Unencrypted passwords must not begin with "$1$", because this is
             used by Splunk software to determine if the password is already
             encrypted.
+
+pass4SymmKey_minLength = <integer>
+* The minimum length, in characters, that a 'pass4SymmKey' should be for a particular stanza.
+* When you start the Splunk platform, if the 'pass4SymmKey' is shorter in length than
+  what you specify with this setting, the platform warns you and advises that you
+  change the pass4SymKey.
+* If you use the CLI to modify 'pass4SymmKey' to a value that is shorter than what
+  you specify with this setting, the platform warns you and advises that you
+  change the pass4SymKey.
+* Default: 12
 
 ############################################################################
 # SSL Configuration details
@@ -544,7 +592,7 @@ sslKeysfile = <filename>
 
 sslPassword = <password>
 * Server certificate password.
-* Default: "password"
+* Default: password
 
 sslKeysfilePassword = <password>
 * DEPRECATED. Use the 'sslPassword' setting instead.
@@ -1101,7 +1149,7 @@ keepAliveIdleTimeout = <integer>
 * How long, in seconds, that the Splunkd HTTP server allows a keep-alive
   connection to remain idle before forcibly disconnecting it.
 * If this number is less than 7200, it is set to 7200.
-* Default: 7200 (12 minutes)
+* Default: 7200 (120 minutes)
 
 busyKeepAliveIdleTimeout = <integer>
 * How long, in seconds, that the Splunkd HTTP server allows a keep-alive
@@ -1121,7 +1169,7 @@ forceHttp10 = auto|never|always
   in its HTTP/1.1 support.
 * When set to "never" it always allows HTTP 1.1, even to
   clients it suspects may be buggy.
-* Default: "auto"
+* Default: auto
 
 crossOriginSharingPolicy = <origin_acl> ...
 * List of the HTTP Origins for which to return Access-Control-Allow-* (CORS)
@@ -1196,7 +1244,7 @@ basicAuthRealm = <string>
   asking for the username and password.
 * This can be used to display a short message describing the
   server and/or its access policy.
-* Default: "/splunk"
+* Default: /splunk
 
 allowCookieAuth = <boolean>
 * Allows clients to request an HTTP cookie from the /services/auth/login
@@ -1218,14 +1266,47 @@ cookieAuthSecure = <boolean>
   interface has SSL disabled
 * Default: true
 
-dedicatedIoThreads = <integer>
-* If set to zero, HTTP I/O is performed in the same thread
-  that accepted the TCP connection.
-* If set set to a non-zero value, separate threads are run
-  to handle the HTTP I/O, including SSL encryption.
-* Typically this setting does not need to be changed.  For most usage
-  scenarios using the same the thread offers the best performance.
-* Default: 0
+dedicatedIoThreads = [<integer>|auto]
+* The number of threads that splunkd dedicates to handling HTTP I/O requests.
+* This setting controls thread usage for all HTTP requests through splunkd,
+  including SSL encryption.
+* If you set this to "0", splunkd uses the same thread that accepted the initial
+  connection over TCP to perform the HTTP I/O.
+* If you set this to a number other than "0", splunkd creates that number of
+  threads to handle HTTP I/O.
+* If you set this to "auto", splunkd uses the number of CPU cores on the
+  machine to determine the number of threads available for HTTP I/O as
+  follows:
+    * Number of CPU cores available  | 'dedicatedIoThreads'
+                   0 - 16            |    0
+                  17 - 48            |    2
+                  49 - 128           |    4
+                 129 - 192           |    6
+                 193 and higher      |    8
+
+* You do not usually need to change this setting.
+* Default: auto
+
+dedicatedIoThreadsSelectionPolicy = <round_robin | weighted_random>
+* Specifies the I/O threads selection policy to use while selecting I/O thread
+  for new connection.
+* If set to "round_robin", the incoming connections are assigned to I/O threads
+  in a round robin fashion.
+* If set to "weighted_random", the connections are assigned to I/O threads using
+  a weighted random scheme designed to even out the CPU usage of each I/O thread.
+* NOTE: This setting only takes effect when dedicatedIoThreads is greater than 1.
+* Default: round_robin
+
+dedicatedIoThreadsWeightsUpdatePeriod = <number>
+* The interval, in seconds, when I/O thread weights are recalculated for the
+  "weighted_random" selection policy.
+* Reducing this interval causes the weights to be re-evaluated more
+  frequently, thereby enabling the system to react more quickly to changes
+  in relative thread load.
+* Increasing this interval causes the weights to be re-evaluated less
+  frequently, thereby reducing the ability of the system to respond to
+  bursty events.
+* Default: 30
 
 replyHeader.<name> = <string>
 * Add a static header to all HTTP responses this server generates
@@ -1680,12 +1761,12 @@ components = <comma separated list>
                     Includes server status messages (system banners),
                     licenser banners, configured monitor inputs & tailing
                     file status (progress reading input files).
-                    * On cluster masters, also gathers master info, fixups,
+                    * On cluster managers, also gathers manager info, fixups,
                       current peer list, clustered index info, current
                       generation, & buckets in bad stats
-                    * On cluster slaves, also gathers local buckets & local
-                      slave info, and the master information remotely from
-                      the configured master.
+                    * On cluster peers, also gathers local buckets & local
+                      peer info, and the manager information remotely from
+                      the configured manager.
   * kvstore       : Directory listings of the KV Store data directory
                     contents are gathered, in order to see filenames,
                     directory names, sizes, and timestamps.
@@ -1897,22 +1978,33 @@ disabled = <boolean>
 ############################################################################
 
 [license]
+
 master_uri = [self|<uri>]
-* An example of <uri>: <scheme>://<hostname>:<port>
+* The URI of the license master that a license slave connects to.
+* If set to a URI, the instance attempts to connect to the license master at the URI you specify.
+* A URI consists of the following: <scheme>://<hostname>:<port>
+* For example, if you set "master_uri = https://example.con:8089", then the instance attempts
+  a connection to the instance at "http://example.com:8089" to get licensing information.
+* No default.
 
 active_group = Enterprise|Trial|Forwarder|Free
-* These timeouts only matter if you have a master_uri set to remote master
-connection_timeout = 30
-* Maximum time, in seconds, to wait before connection to master times out.
+* If the instance is a license master, the license type will be set in 'active_group'.
+* Default: <empty>
+
+connection_timeout = <integer>
+ * Maximum time, in seconds, to wait before sending data to master times out
+ * This timeout applies only if 'master_uri' is set.
+ * Default: 30
 
 send_timeout = <integer>
-* Maximum time, in seconds, to wait before sending data to master times out
-* Default: 30
+ * Maximum time, in seconds, to wait before sending data to master times out
+ * This timeout applies only if 'master_uri' is set.
+ * Default: 30
 
 receive_timeout = <integer>
-* Maximum time, in seconds, to wait before receiving data from master times
-  out
-* Default: 30
+ * Maximum time, in seconds, to wait before receiving data from master times out
+ * This timeout applies only if 'master_uri' is set.
+ * Default: 30
 
 squash_threshold = <positive integer>
 * Advanced setting.  Periodically the indexer must report to license manager
@@ -2045,21 +2137,24 @@ poll.blacklist.<name> = <regex>
 
 [clustering]
 
-mode = [master|slave|searchhead|disabled]
+mode = [manager|peer|searchhead|disabled]
 * Sets operational mode for this cluster node.
-* Only one master may exist per cluster.
+* Only one manager may exist per cluster.
+* Note: "manager" and "peer" replace the prior 'mode' values of
+  "master" and "slave". The prior values are currently still supported,
+  but they will be removed from the product in a future release.
 * Default: disabled
 
 master_uri = [<uri> | clustermaster:stanzaName1, clustermaster:stanzaName2]
-* Only valid for 'mode=slave' or 'mode=searchhead'.
-* The URI of the cluster master that this slave or search head
+* Only valid for 'mode=peer' or 'mode=searchhead'.
+* The URI of the cluster manager that this peer or search head
   should connect to.
 * An example of <uri>: <scheme>://<hostname>:<port>
 * Only for 'mode=searchhead' - If the search head is a part of multiple
-  clusters, the master URIs can be specified by a comma separated list.
+  clusters, the manager URIs can be specified by a comma separated list.
 
 advertised_disk_capacity = <integer>
-* Percentage to use when advertising disk capacity to the cluster master.
+* Percentage to use when advertising disk capacity to the cluster manager.
   This is useful for modifying weighted load balancing in indexer discovery.
 * For example, if you set this attribute to 50 for an indexer with a
   500GB disk, the indexer advertises its disk size as 250GB, not 500GB.
@@ -2068,25 +2163,35 @@ advertised_disk_capacity = <integer>
 
 pass4SymmKey = <password>
 * Secret shared among the nodes in the cluster to prevent any
-  arbitrary node from connecting to the cluster. If a slave or
-  search head is not configured with the same secret as the master,
-  it is not able to communicate with the master.
+  arbitrary node from connecting to the cluster. If a peer or
+  search head is not configured with the same secret as the manager,
+  it is not able to communicate with the manager.
 * If it is not set in the [clustering] stanza, the key
   is looked in the [general] stanza
 * Unencrypted passwords must not begin with "$1$", as this is used by
   Splunk software to determine if the password is already encrypted.
 * No default.
 
+pass4SymmKey_minLength = <integer>
+* The minimum length, in characters, that a 'pass4SymmKey' should be for a particular stanza.
+* When you start the Splunk platform, if the 'pass4SymmKey' is shorter in length than
+  what you specify with this setting, the platform warns you and advises that you
+  change the pass4SymKey.
+* If you use the CLI to modify 'pass4SymmKey' to a value that is shorter than what
+  you specify with this setting, the platform warns you and advises that you
+  change the pass4SymKey.
+* Default: 12
+
 service_interval = <zero or positive integer>
-* Only valid when "mode=master".
-* Specifies, in seconds, how often the master runs its service
-  loop. In its service loop, the master checks the state of the
+* Only valid when 'mode=manager'.
+* Specifies, in seconds, how often the manager runs its service
+  loop. In its service loop, the manager checks the state of the
   peers and the buckets in the cluster and also schedules
   corrective action, if possible, for buckets that are not in
   compliance with replication policies.
 * A special default value of 0 indicates an auto mode where the service
   interval for the next service call is determined by the time taken by
-  previous call.
+  previous call. It also sets the minimum service interval to be 0.5 second.
 * Service interval is bounded by the values 1 and
   the 'max_auto_service_interval' setting.
   If previous service call takes more than 'max_auto_service_interval'
@@ -2094,8 +2199,17 @@ service_interval = <zero or positive integer>
   'max_auto_service_interval' seconds.
 * Default: 0
 
+service_execution_threshold_ms = <zero or positive integer>
+* Only valid when 'mode=manager'.
+* Specifies, in milliseconds, the maximum period for one execution
+  of the manager's service loop.
+* This setting is useful for large clusters with large numbers of
+  buckets, to prevent the service loop from blocking
+  other operations for significant amounts of time.
+* Default: 1500
+
 deferred_cluster_status_update = <boolean>
-* Only valid when "mode=master"
+* Only valid when 'mode=manager'
 * If set to true (default), SF/RF met (complete cluster state) checks are
   performed lazily for optimal performance, only when CM is busy with
   cluster maintenance operations (e.g peer addition, fix ups, data rebalance).
@@ -2106,8 +2220,18 @@ deferred_cluster_status_update = <boolean>
   and buckets.
 * Default: true
 
+deferred_rest_api_update = <boolean>
+* Only valid when 'mode=manager'
+* If set to true (default), the manager responds to a REST API call from a source
+  peer immediately. It might defer part of the actions related to the call until
+  it completes already pending work.
+* If set to false, the manager finishes all work for a received REST API call
+  and only then responds to the source peer. The response might be delayed
+  if the manager is busy with other work.
+* Default: true
+
 max_fixup_time_ms = <zero or positive integer>
-* Only valid for 'mode=master'.
+* Only valid for 'mode=manager'.
 * Specifies, in milliseconds, how long each fixup level runs before
   short circuiting to continue to the next fixup level. This
   introduces an upper-bound on each service level, and likewise
@@ -2116,7 +2240,19 @@ max_fixup_time_ms = <zero or positive integer>
   buckets, where service() calls can consume a significant amount
   of time blocking other operations.
 * 0 denotes that there is no max fixup timer.
-* Default: 5000
+* Default: 1000
+
+max_delayed_updates_time_ms = <zero or positive integer>
+* Only valid for 'mode=manager'.
+* Specifies, in milliseconds, how long cluster manager can continuously
+  serves the delayed jobs before quitting to run other jobs.
+* This setting is useful for larger clusters that have a large number of
+  peer nodes and indexes, where customer manager could occasionally receive
+  thousands of REST APIs in a short period.
+* Do not change this setting without first consulting with Splunk Support.
+* 0 denotes that there is no limit to how long the delayed jobs thread
+  can run continuously.
+* Default: 1000
 
 cxn_timeout = <integer>
 * Lowlevel timeout, in seconds, for establishing connection between
@@ -2137,6 +2273,7 @@ rep_cxn_timeout = <integer>
 * Default: 5
 
 rep_send_timeout = <integer>
+* Only valid for 'mode=peer'
 * Lowlevel timeout, in seconds, for sending replication slice data between
   cluster nodes.
 * This is a soft timeout. When this timeout is triggered on source peer,
@@ -2147,6 +2284,7 @@ rep_send_timeout = <integer>
 * Default: 5
 
 rep_rcv_timeout = <integer>
+* Only valid for 'mode=peer'
 * Lowlevel timeout, in seconds, for receiving acknowledgment data from peers.
 * This is a soft timeout. When this timeout is triggered on source peer,
   it tries to determine if target is still alive. If it is still alive,
@@ -2167,28 +2305,32 @@ search_files_retry_timeout = <integer>
 * Default: 600 (10 minutes)
 
 re_add_on_bucket_request_error = <boolean>
-* Valid only for 'mode=slave'.
-* If set to true, slave re-adds itself to the cluster master if
-  cluster master returns an error on any bucket request. On re-add,
-  slave updates the master with the latest state of all its buckets.
-* If set to false, slave doesn't re-add itself to the cluster master.
-  Instead, it updates the master with those buckets that master
+* Valid only for 'mode=peer'.
+* If set to true, peer re-adds itself to the cluster manager if
+  cluster manager returns an error on any bucket request. On re-add,
+  peer updates the manager with the latest state of all its buckets.
+* If set to false, peer doesn't re-add itself to the cluster manager.
+  Instead, it updates the manager with those buckets that manager
   returned an error.
 * Default: false
 
-decommission_search_jobs_wait_secs = <integer>
-* Valid only for mode=slave
+decommission_search_jobs_wait_secs = <unsigned integer>
+* Valid only for 'mode=peer'.
 * Determines maximum time, in seconds, that a peer node waits for search
-  jobs to finish before it transitions to the down (or) GracefulShutdown
+  jobs to finish before it transitions to the down (or) 'GracefulShutdown'
   state, in response to the 'splunk offline' (or)
   'splunk offline --enforce-counts' command.
+* Note: When using this setting, the 'decommission_search_jobs_wait_secs'
+  setting in the '[general]' stanza must remain set to its default value.
+* You do not need to restart the cluster peer when making changes to
+  this setting. This setting reloads automatically.
 * Default: 180 (3 minutes)
 
 decommission_node_force_timeout = <seconds>
-* Valid only for mode=slave and during node offline operation
+* Valid only for 'mode=peer' and during node offline operation
 * The maximum time, in seconds, that a peer node waits for searchable copy
   reallocation jobs to finish before it transitions to the down (or)
-  GracefulShutdown state.
+  'GracefulShutdown' state.
 * This period begins after the peer node receives a 'splunk offline' command
   or its '/cluster/slave/control/control/decommission' REST endpoint
   is accessed.
@@ -2197,16 +2339,16 @@ decommission_node_force_timeout = <seconds>
 * Default: 300 seconds
 
 decommission_force_finish_idle_time = <zero or positive integer>
-* Valid only for mode=master.
-* Time in minutes the master waits before forcibly finishing the
+* Valid only for 'mode=manager'.
+* Time in minutes the manager waits before forcibly finishing the
   decommissioning of a peer when there is no progress in the associated
   fixup activity.
-* A value of zero (0) means that the master does not forcibly finish
+* A value of zero (0) means that the manager does not forcibly finish
   decommissioning.
 * Default: 0
 
 rolling_restart = restart|shutdown|searchable|searchable_force
-* Only valid for 'mode=master'.
+* Only valid for 'mode=manager'.
 * Determines whether indexer peers restart or shutdown during a rolling
   restart.
 * If set to restart, each peer automatically restarts during a rolling
@@ -2218,29 +2360,52 @@ rolling_restart = restart|shutdown|searchable|searchable_force
   from peers that are about to restart to other searchable peers, and
   performing a health check to ensure that a searchable rolling restart is
   possible.
-* If set to searchable_force, the cluster performs a searchable
+* If set to 'searchable_force', the cluster performs a searchable
   rolling restart, but overrides the health check and enforces
   'decommission_force_timeout' and 'restart_inactivity_timeout'.
-* If set to searchable or searchable_force, scheduled searches
+* If set to 'searchable' or 'searchable_force', scheduled searches
   are deferred or run during the rolling restart based on the
-  'defer_scheduled_searchable_idx' setting in savedsearches.conf.
+  'defer_scheduled_searchable_idx' setting in 'savedsearches.conf'.
+* You do not need to restart the cluster manager when making changes to
+  this setting. This setting reloads automatically.
 * Default: restart
 
+rolling_restart_condition = up|batch_adding|starting
+* Only valid for 'mode=manager'.
+* Determines the target peer status the manager waits for, when restarting
+  a peer during a rolling restart, before it restarts other peers.
+* If set to 'up', the manager will wait for a restarting peer to reach the
+  'Up' status before restarting other peers. A peer reaches 'Up' status
+  when it has finished reporting all of its buckets to the manager. This
+  option will always respect 'percent_peers_to_restart'.
+* If set to 'batch_adding', the manager will wait for a restarting peer to
+  reach the 'BatchAdding' status before restarting other peers. A peer
+  reaches 'BatchAdding' status when it is in the process of reporting its
+  buckets to the manager. This option will respect 'percent_peers_to_restart'
+  as long as the current restarting peer finishes adding before the next
+  restarting peer finishes shutting down, which is extremely likely.
+* If set to 'starting', the manager will wait for a restarting peer to
+  reach the 'Starting' status before restarting other peers. A peer
+  reaches 'Starting' status when it first starts up and is in the process
+  of scanning its buckets on disk. This option is the fastest, but may
+  not always respect 'percent_peers_to_restart'.
+* Default: batch_adding
+
 site_by_site = <boolean>
-* Only valid for mode=master and multisite=true.
-* If set to true, the master restarts peers from one site at a time,
+* Only valid for 'mode=manager' and 'multisite=true'.
+* If set to true, the manager restarts peers from one site at a time,
   waiting for all peers from a site to restart before moving on to another
   site, during a rolling restart.
-* If set to false, the master randomly selects peers to restart, from
+* If set to false, the manager randomly selects peers to restart, from
   across all sites, during a rolling restart.
 * Default: true
 
 decommission_force_timeout = <zero or positive integer>
-* Only valid for rolling_restart=searchable_force
-* The amount of time, in seconds, the cluster master waits for a
+* Only valid for 'rolling_restart=searchable_force'
+* The amount of time, in seconds, the cluster manager waits for a
   peer in primary decommission status to finish primary reassignment
   and restart, during a searchable rolling restart with timeouts.
-* Differs from decommission_force_finish_idle_time in its default value
+* Differs from 'decommission_force_finish_idle_time' in its default value
   and its presence only during a searchable rolling restart with timeouts.
 * If you set this parameter to 0, it is automatically reset
   to default value.
@@ -2248,63 +2413,70 @@ decommission_force_timeout = <zero or positive integer>
 * Default: 180 (3 minutes)
 
 restart_inactivity_timeout = <zero or positive integer>
-* Only valid for rolling_restart=searchable_force
-* The amount of time, in seconds, that the master waits for a peer to
+* Only valid for 'rolling_restart=searchable_force'
+* The amount of time, in seconds, that the manager waits for a peer to
   restart and rejoin the cluster before it considers the restart a failure
   and proceeds to restart other peers.
-* More specifically, the amount of time that the master waits for a peer in
+* More specifically, the amount of time that the manager waits for a peer in
   the 'Down' status to transition to 'BatchAdding' or 'Up' status.
-* A value of zero (0) means that the master waits indefinitely for a peer
+* A value of zero (0) means that the manager waits indefinitely for a peer
   to restart.
 * Default: 600 (10 minutes)
 
 rebalance_pipeline_batch_size = <integer>
-* Valid only for 'mode=master'.
+* Valid only for 'mode=manager'.
 * Valid only for 'searchable_rebalance=true'.
 * The maximum number of buckets for a batch entering the excess bucket removal
   phase of the rebalance pipeline.
+* You do not need to restart the cluster manager when making changes to
+  this setting. This setting reloads automatically.
 * Default: 60
 
 rebalance_primary_failover_timeout = <zero or positive integer>
-* Valid only for 'mode=master'.
+* Valid only for 'mode=manager'.
 * Valid only for 'searchable_rebalance=true'.
-* The maximum length of time, in seconds, that the master waits for primacy to
+* The maximum length of time, in seconds, that the manager waits for primacy to
   be reassigned from the batch of excess buckets to other buckets.
 * Default: 75
 
 rebalance_newgen_propagation_timeout = <zero or positive integer>
-* Valid only for 'mode=master'.
+* Valid only for 'mode=manager'.
 * Valid only for 'searchable_rebalance=true'.
-* The amount of time, in seconds, that the master waits for the search heads to
+* The amount of time, in seconds, that the manager waits for the search heads to
   get the newly committed generation after the discarded buckets' primacy has
   been reassigned.
 * Default: 60 (1 minute)
 
 rebalance_search_completion_timeout = <integer>
-* Valid only for 'mode=master'.
+* Valid only for 'mode=manager'.
 * Valid only for 'searchable_rebalance=true'.
-* The amount of time, in seconds, that the master waits for older generation
+* The amount of time, in seconds, that the manager waits for older generation
   searches on indexers to complete before removing any excess buckets.
+* You do not need to restart the cluster manager when making changes to
+  this setting. This setting reloads automatically.
 * Default: 180 (3 minute)
 
 searchable_rebalance = <boolean>
-* Valid only for 'mode=master'.
+* Valid only for 'mode=manager'.
 * Controls whether searches can continue uninterrupted during data rebalancing.
+* You do not need to restart the cluster manager when making changes to
+  this setting. This setting reloads automatically.
 * Default: false
 
 rep_max_send_timeout = <integer>
+* Only valid for 'mode=peer'
 * Maximum send timeout, in seconds, for sending replication slice
   data between cluster nodes.
 * On rep_send_timeout source peer determines if total send timeout has
   exceeded 'rep_max_send_timeout'. If so, replication fails.
 * If cumulative 'rep_send_timeout' exceeds 'rep_max_send_timeout',
-  replication
-  fails.
+  replication fails.
 * This setting is dynamically reloadable and does not require restart
   of cluster peer.
 * Default: 180 (3 minutes)
 
 rep_max_rcv_timeout = <integer>
+* Only valid for 'mode=peer'
 * Maximum cumulative receive timeout, in seconds, for receiving
   acknowledgment data from peers.
 * On 'rep_rcv_timeout' source peer determines if total
@@ -2315,20 +2487,20 @@ rep_max_rcv_timeout = <integer>
 * Default: 180 (3 minutes)
 
 multisite = <boolean>
-* Turns on the multisite feature for this master.
+* Turns on the multisite feature for this manager.
 * Make sure you set site parameters on the peers when you turn this to true.
 * Default: false
 
 replication_factor = <positive integer>
-* Only valid for mode=master.
+* Only valid for 'mode=manager'.
 * Determines how many copies of rawdata are created in the cluster.
-* Use site_replication_factor instead of this in case 'multisite'
+* Use 'site_replication_factor' instead of this in case 'multisite'
   is turned on.
 * Must be greater than 0.
 * Default: 3
 
 site_replication_factor = <comma-separated string>
-* Only valid for 'mode=master' and is only used if 'multisite=true'.
+* Only valid for 'mode=manager' and is only used if 'multisite=true'.
 * This specifies the per-site replication policy for any given
   bucket represented as a comma-separated list of per-site entries.
 * Currently specified globally and applies to buckets in all
@@ -2362,14 +2534,14 @@ site_replication_factor = <comma-separated string>
 * Default: origin:2, total:3
 
 search_factor = <positive integer>
-* Only valid for 'mode=master'.
+* Only valid for 'mode=manager'.
 * Determines how many buckets have index structures pre-built.
 * Must be less than or equal to the 'replication_factor' setting and
   greater than 0.
 * Default: 2
 
 site_search_factor = <comma-separated string>
-* Only valid for 'mode=master' and is only used if 'multisite=true'.
+* Only valid for 'mode=manager' and is only used if 'multisite=true'.
 * This specifies the per-site policy for searchable copies for any
   given bucket represented as a comma-separated list of per-site
   entries.
@@ -2378,14 +2550,14 @@ site_search_factor = <comma-separated string>
 * Default: origin:1, total:2
 
 available_sites = <comma-separated string>
-* Only valid for 'mode=master' and is only used if 'multisite=true'.
+* Only valid for 'mode=manager' and is only used if 'multisite=true'.
 * This is a comma-separated list of all the sites in the cluster.
 * If 'multisite=true' then 'available_sites' must be
   explicitly set.
 * Default: an empty string
 
 forwarder_site_failover = <comma-separated string>
-* Only valid for mode=master and is only used if 'multisite=true'.
+* Only valid for 'mode=manager' and is only used if 'multisite=true'.
 * This is a comma-separated list of pair of sites, "site1:site2",
   in the cluster.
 * If 'multisite' is turned on 'forwarder_site_failover' must be
@@ -2393,7 +2565,7 @@ forwarder_site_failover = <comma-separated string>
 * Default: an empty string
 
 site_mappings = <comma-separated string>
-* Only valid for mode=master
+* Only valid for 'mode=manager'.
 * When you decommission a site, you must update this attribute so that the
   origin bucket copies on the decommissioned site are mapped to a remaining
   active site. This attribute maps decommissioned sites to active sites.
@@ -2434,7 +2606,7 @@ site_mappings = <comma-separated string>
 * Default: an empty string
 
 constrain_singlesite_buckets = <boolean>
-* Only valid for mode=master and is only used if multisite is true.
+* Only valid for 'mode=manager' and is only used if multisite is true.
 * Specifies whether the cluster keeps single-site buckets within one site
   in multisite clustering.
 * When this setting is "true", buckets in a single site cluster do not
@@ -2448,58 +2620,73 @@ constrain_singlesite_buckets = <boolean>
 * Default: true
 
 heartbeat_timeout = <positive integer>
-* Only valid for 'mode=master'.
-* Specifies, in seconds, when the master considers a slave down. After a
-  slave is down, the master initiates fixup steps to replicate
-  buckets from the dead slave to its peers.
+* Only valid for 'mode=manager'.
+* Specifies, in seconds, when the manager considers a peer down. After a
+  peer is down, the manager initiates fixup steps to replicate
+  buckets from the dead peer to its peers.
 * Default: 60
 
 access_logging_for_heartbeats = <boolean>
-* Only valid for 'mode=master'.
+* Only valid for 'mode=manager'.
 * Enables/disables logging to the splunkd_access.log file for peer
   heartbeats.
-* NOTE: you do not have to restart master to set this config parameter.
-  Simply run the cli command on master:
+* NOTE: you do not have to restart manager to set this config parameter.
+  Simply run the cli command on manager:
     % splunk edit cluster-config -access_logging_for_heartbeats <<boolean>>
 * Default: false (logging disabled)
 
 
 restart_timeout = <positive integer>
-* Only valid for 'mode=master'.
-* This is the amount of time, in seconds, the master waits for a peer
+* Only valid for 'mode=manager'.
+* This is the amount of time, in seconds, the manager waits for a peer
   to come back when the peer is restarted (to avoid the overhead of
   trying to fixup the buckets that were on the peer).
-* More specifically, the amount of time that the master waits for a
+* More specifically, the amount of time that the manager waits for a
   peer in the 'Restarting' status to transition to the 'Down' status.
 * Note that this only works with the offline command or if the peer
   is restarted vi the UI.
+* You do not need to restart the cluster manager when making changes to
+  this setting. This setting reloads automatically.
+* Default: 60
+
+streaming_replication_wait_secs = <positive integer>
+* Only valid for 'mode=manager'.
+* The amount of time, in seconds, that a peer node waits to restart after
+  receiving a restart request from the manager. During this period, the node
+  remains in the eRestartRequested state. This time allows the ongoing
+  replications on the peer to complete.
 * Default: 60
 
 quiet_period = <positive integer>
-* Only valid for 'mode=master'.
-* This setting determines the amount of time, in seconds, that the master is
+* Only valid for 'mode=manager'.
+* This setting determines the amount of time, in seconds, that the manager is
   quiet upon start-up.
-* However, if peers are still registering themselves with the master after
-  the initial quiet_period has elapsed, the master continues to remain
+* However, if peers are still registering themselves with the manager after
+  the initial quiet_period has elapsed, the manager continues to remain
   quiet until all peers finish registering, up to a total quiet time not to
   exceed 3x the specified 'quiet_period', including the initial quiet time.
-* During the quiet time, the master does not initiate any actions. At the end of
-  this period, the master builds its view of the cluster based on the
+* During the quiet time, the manager does not initiate any actions. At the end of
+  this period, the manager builds its view of the cluster based on the
   registered information. It then starts normal operations.
+* You do not need to restart the cluster manager when making changes to
+  this setting. This setting reloads automatically.
 * Default: 60
 
 reporting_delay_period = <positive integer>
-* Only valid for 'mode=master'.
+* Only valid for 'mode=manager'.
 * The acceptable amount of delay, in seconds, for reporting both unmet
   search and unmet replication factors for newly created buckets.
 * This setting helps provide more reliable cluster status reporting
   by limiting updates to the specified granularity.
+* You do not need to restart the cluster manager when making changes to
+  this setting. This setting reloads automatically.
 * Default: 30
 
 generation_poll_interval = <positive integer>
-* How often, in seconds, the search head polls the master for
+* How often, in seconds, the search head polls the manager for
   generation information.
-* This setting is valid only if 'mode=master' or 'mode=searchhead'.
+* This setting is valid only if 'mode=manager' or 'mode=searchhead'.
+* This setting reloads automatically and does not require a restart.
 * Default: 5
 
 max_peer_build_load = <integer>
@@ -2532,7 +2719,7 @@ max_nonhot_rep_kBps = <integer>
 * Default: 0
 
 max_replication_errors = <integer>
-* Only valid for 'mode=slave'.
+* Only valid for 'mode=peer'.
 * This is the maximum number of consecutive replication errors
   (currently only for hot bucket replication) from a source peer
   to a specific target peer. Until this limit is reached, the
@@ -2548,14 +2735,14 @@ max_replication_errors = <integer>
 * Default: 3
 
 searchable_targets = <boolean>
-* Only valid for 'mode=master'.
-* Tells the master to make some replication targets searchable
+* Only valid for 'mode=manager'.
+* Tells the manager to make some replication targets searchable
   even while the replication is going on. This only affects
   hot bucket replication for now.
 * Default: true
 
 searchable_target_sync_timeout = <integer>
-* Only valid for 'mode=slave'.
+* Only valid for 'mode=peer'.
 * If a hot bucket replication connection is inactive for this time,
   in seconds, a searchable target flushes out any pending search
   related in-memory files.
@@ -2567,17 +2754,17 @@ searchable_target_sync_timeout = <integer>
 * Default: 60
 
 target_wait_time = <positive integer>
-* Only valid for 'mode=master'.
-* Specifies the time, in seconds, that the master waits for the
+* Only valid for 'mode=manager'.
+* Specifies the time, in seconds, that the manager waits for the
   target of a replication to register itself before it services
   the bucket again and potentially schedules another fixup.
 * This setting is dynamically reloadable and does not require restart
-  of cluster master.
+  of cluster manager.
 * Default: 150 (2 minutes 30 seconds)
 
 summary_wait_time = <positive integer>
-* Only valid when 'mode=master' and 'summary_replication=true'.
-* Specifies the time, in seconds, that the master waits before
+* Only valid when 'mode=manager' and 'summary_replication=true'.
+* Specifies the time, in seconds, that the manager waits before
   scheduling fixups for a newly 'done' summary that transitioned
   from 'hot_done'. This allows for other copies of the 'hot_done'
   summary to also make their transition into 'done', avoiding
@@ -2585,11 +2772,11 @@ summary_wait_time = <positive integer>
 * Default: 660 (11 minutes)
 
 commit_retry_time = <positive integer>
-* Only valid for 'mode=master'.
+* Only valid for 'mode=manager'.
 * Specifies the interval, in seconds, after which, if the last
-  generation commit failed, the master forces a retry. A retry is usually
+  generation commit failed, the manager forces a retry. A retry is usually
   automatically kicked off after the appropriate events. This is just
-  a backup to make sure that the master does retry no matter what.
+  a backup to make sure that the manager does retry no matter what.
 * Default: 300 (5 minutes)
 
 percent_peers_to_restart = <integer between 0-100>
@@ -2599,20 +2786,20 @@ percent_peers_to_restart = <integer between 0-100>
 * Regardless of setting, a minimum of 1 peer is restarted per round.
 
 max_peers_to_download_bundle = <positive integer>
-* Only valid for mode=master
+* Only valid for 'mode=manager'
 * Maximum no. of peers to simultaneously download the configuration bundle
-  from the master, in response to the 'splunk apply cluster-bundle' command.
+  from the manager, in response to the 'splunk apply cluster-bundle' command.
 * When a peer finishes the download, the next waiting peer, if any, begins
   its download.
 * If set to 0,  all peers try to download at once.
 * Default: 5
 
 auto_rebalance_primaries = <boolean>
-* Only valid for 'mode=master'.
-* Specifies if the master should automatically rebalance bucket
+* Only valid for 'mode=manager'.
+* Specifies if the manager should automatically rebalance bucket
   primaries on certain triggers. Currently the only defined
-  trigger is when a peer registers with the master. When a peer
-  registers, the master redistributes the bucket primaries so the
+  trigger is when a peer registers with the manager. When a peer
+  registers, the manager redistributes the bucket primaries so the
   cluster can make use of any copies in the incoming peer.
 * Default: true
 
@@ -2620,60 +2807,64 @@ rebalance_primaries_execution_limit = <non-negative integer>
 * DEPRECATED. Use the 'rebalance_primaries_execution_limit_ms' setting instead.
 
 rebalance_primaries_execution_limit_ms = <non-negative integer>
-* Only valid for 'mode=master'.
+* Only valid for 'mode=manager'.
 * Specifies, in milliseconds, the maximum period for one execution
   of the rebalance primary operation.
 * This setting is useful for large clusters with large numbers of
   buckets, to prevent the primary rebalance operation from blocking
   other operations for significant amounts of time.
 * The default value of 0 signifies auto mode.  In auto mode, the cluster
-  master uses the value of the 'service_interval' setting to determine the
+  manager uses the value of the 'service_interval' setting to determine the
   maximum time for the operation.
 * Default: 0
 
 commit_generation_execution_limit_ms = <non-negative integer>
-* Only valid for 'mode=master'.
+* Only valid for 'mode=manager'.
 * Specifies, in milliseconds, the maximum period for one execution
   of the committing pending generation.
 * This setting is useful for large clusters with large numbers of
   buckets, to prevent the commit-geenration operation from blocking
   other operations for significant amounts of time.
 * The default value of 0 signifies auto mode.  In auto mode, the cluster
-  master uses the value of the 'service_interval' setting to determine the
+  manager uses the value of the 'service_interval' setting to determine the
   maximum time for the operation.
 * If 'service_interval' is auto, the range of this value will be within the
   range of 10ms and 25ms.
 * Default: 0
 
 idle_connections_pool_size = <integer>
-* Only valid for 'mode=master'.
+* Only valid for 'mode=manager'.
 * Specifies how many idle http(s) connections that should be kept
   alive to reuse.
 * Reusing connections improves the time it takes to send messages to peers
   in the cluster.
-* -1 corresponds to "auto", letting the master determine the
+* -1 corresponds to "auto", letting the manager determine the
   number of connections to keep around based on the number of peers in the
   cluster.
 * Default: -1
 
 use_batch_mask_changes = <boolean>
-* Only valid for mode=master
-* Specifies if the master should process bucket mask changes in
+* Only valid for 'mode=manager'
+* Specifies if the manager should process bucket mask changes in
   batch or individually one by one.
-* Set to false when there are version 6.1 peers in the cluster for backwards
-  compatibility.
+* Set to 'false' when there are version 6.1 peers in the cluster for
+  backwards compatibility.
+* You do not need to restart the cluster manager when making changes to
+  this setting. This setting reloads automatically.
 * Default: true
 
 service_jobs_msec = <positive integer>
-* Only valid for 'mode=master'.
-* Max time, in milliseconds, that the cluster master spends in servicing
-  finished jobs for each service call. Increase this if the metrics.log file
-  has very high 'current_size' values.
+* Only valid for 'mode=manager'.
+* Max time, in milliseconds, that the cluster manager spends in servicing
+  finished jobs for each service call. Increase this if the 'metrics.log'
+  file has very high 'current_size' values.
+* You do not need to restart the cluster manager when making changes to
+  this setting. This setting reloads automatically.
 * Default: 100 (0.1 seconds)
 
 summary_replication = true|false|disabled
-* Valid for both 'mode=master' and 'mode=slave'.
-* Cluster Master:
+* Valid for both 'mode=manager' and 'mode=peer'.
+* Cluster Manager:
   If set to true, summary replication is enabled.
   If set to false, summary replication is disabled, but can be enabled
   at runtime.
@@ -2681,20 +2872,21 @@ summary_replication = true|false|disabled
   cannot be enabled at runtime.
 * Peers:
   If set to true or false, there is no effect. The indexer follows
-  whatever setting is on the Cluster Master.
+  whatever setting is on the Cluster Manager.
   If set to disabled, summary replication is disabled. The indexer does
   no scanning of summaries (increased performance during peers joing
   the cluster for large clusters).
-* Default: false (for both Cluster Master and Peers)
+* Default: false (for both Cluster Manager and Peers)
 
 rebalance_threshold = <number between 0.10 and 1.00>
-* Only valid for mode=master'.
+* Only valid for 'mode=manager'.
 * During rebalancing buckets amongst the cluster, this threshold is
   used as a percentage to determine when the cluster is balanced.
 * 1.00 is 100% indexers fully balanced.
+* Default: 0.90
 
 max_auto_service_interval = <positive integer>
-* Only valid for 'mode=master'.
+* Only valid for 'mode=manager'.
 * Only valid when 'service_interval' is in auto mode.
   For example service_interval=0.
 * Indicates the maximum value, in seconds, that service interval is
@@ -2702,14 +2894,12 @@ max_auto_service_interval = <positive integer>
   previous service call took more than 'max_auto_service_interval'
   seconds, the next service call runs after 'max_auto_service_interval'
   seconds.
-* NOTE: It is highly recommended that you choose a value that is one-half
-  of the smaller of 'heartbeat_timeout' or 'restart_timeout'. For example,
-  the default value of 30 is based on the default value of 60 for both
-  'heartbeat_timeout' and 'restart_timeout'.
-* Default: 30
+* You do not need to restart the cluster manager when making changes to
+  this setting. This setting reloads automatically.
+* Default: 1
 
 buckets_to_summarize = <primaries|primaries_and_hot|all>
-* Only valid for 'mode=master'.
+* Only valid for 'mode=manager'.
 * Determines which buckets are sent to '| summarize' searches (searches that
   build report acceleration and data models).
 * Set to "primaries" to apply only to primary buckets.
@@ -2722,107 +2912,118 @@ buckets_to_summarize = <primaries|primaries_and_hot|all>
 * Default: primaries
 
 maintenance_mode = <boolean>
-* Only valid for 'mode=master'.
-* To preserve the maintenance mode setting in case of master
-  restart, the master automatically updates this setting in the
+* Only valid for 'mode=manager'.
+* To preserve the maintenance mode setting in case of manager
+  restart, the manager automatically updates this setting in the
   etc/system/local/server.conf file whenever the user enables or disables
   maintenance mode using CLI or REST.
 * NOTE: Do not manually update this setting. Instead use CLI or REST
   to enable or disable maintenance mode.
 
 backup_and_restore_primaries_in_maintenance = <boolean>
-* Only valid for 'mode=master'.
-* Determines whether the master performs a backup/restore of bucket
+* Only valid for 'mode=manager'.
+* Determines whether the manager performs a backup/restore of bucket
   primary masks during maintenance mode or rolling-restart of cluster peers.
 * If set to true, restoration of primaries occurs automatically when the peers
   rejoin the cluster after a scheduled restart or upgrade.
 * Default: false
 
 max_primary_backups_per_service = <zero or positive integer>
-* Only valid for 'mode=master'.
+* Only valid for 'mode=manager'.
 * For use with the 'backup_and_restore_primaries_in_maintenance' setting.
-* Determines the number of peers for which the master backs up primary
+* Determines the number of peers for which the manager backs up primary
   masks for each service call.
-* The special value of 0 causes the master to back up the primary masks for
+* The special value of 0 causes the manager to back up the primary masks for
   all peers in a single service call.
 * Default: 10
 
 allow_default_empty_p4symmkey = <boolean>
-* Only valid for 'mode=master'.
-* Affects behavior of master during start-up, if 'pass4SymmKey'resolves
+* Only valid for 'mode=manager'.
+* Affects behavior of manager during start-up, if 'pass4SymmKey'resolves
   to the null string or the default password ("changeme").
-* If set to true, the master posts a warning but still launches.
-* If set to false, the master posts a warning and stops.
+* If set to true, the manager posts a warning but still launches.
+* If set to false, the manager posts a warning and stops.
 * Default: true
 
 register_replication_address = <IP address or fully qualified machine/domain name>
-* Only valid for 'mode=slave'.
-* This is the address on which a slave is available for accepting
-  replication data. This is useful in the cases where a slave host machine
+* Only valid for 'mode=peer'.
+* This is the address on which a peer is available for accepting
+  replication data. This is useful in the cases where a peer host machine
   has multiple interfaces and only one of them can be reached by another
   splunkd instance
 
 register_forwarder_address = <IP address or fully qualified machine/domain name>
-* Only valid for 'mode=slave'.
-* This is the address on which a slave is available for accepting
+* Only valid for 'mode=peer'.
+* This is the address on which a peer is available for accepting
   data from forwarder.This is useful in the cases where a splunk host
   machine has multiple interfaces and only one of them can be reached by
   another splunkd instance.
 
 register_search_address = <IP address, or fully qualified machine/domain name>
-* Only valid for 'mode=slave'
-* This is the address on which a slave is available as search head.
+* Only valid for 'mode=peer'
+* This is the address on which a peer is available as search head.
   This is useful in the cases where a splunk host machine has multiple
   interfaces and only one of them can be reached by another splunkd
   instance.
 
 executor_workers = <positive integer>
-* Only valid if 'mode=master' or 'mode=slave'.
+* Only valid if 'mode=manager' or 'mode=peer'.
 * Number of threads that can be used by the clustering thread pool.
 * A value of 0 defaults to 1.
 * Default: 10
+* This setting reloads automatically and does not require a restart.
 
 local_executor_workers = <positive integer>
-* Only valid if 'mode=slave'
-* Number of threads that can be used by the local clustering thread pool.
-* executor_workers is used mostly for communication between the peer
-  and the master. local_executor_workers are used for any jobs that
-  must be spawned to take care of housekeeping tasks only related
-  to the peer such as a peer synchronizing itself with remote storage.
-* A value of 0 defaults to 1.
-* Default: 10
+* DEPRECATED.
 
 manual_detention = on|on_ports_enabled|off
-* Only valid for 'mode=slave'.
+* Only valid for 'mode=peer'.
 * Puts this peer node in manual detention.
 * Default: off
 
 allowed_hbmiss_count = <non-zero positive integer>
-* Only valid for 'mode=slave'.
+* Only valid for 'mode=peer'.
 * Sets the count of number of heartbeat failures before the peer node
-  disconnects from the master.
+  disconnects from the manager.
 * Default: 3
 
 buckets_per_addpeer = <non-negative integer>
-* Only valid for 'mode=slave'.
+* Only valid for 'mode=peer'.
 * Controls the number of buckets for each add peer request.
-* When a peer is added or re-added to the cluster, it sends the master
+* When a peer is added or re-added to the cluster, it sends the manager
   information for each of its buckets. Depending on the number of buckets,
   this could take a while. For example, a million buckets could require
-  more than a minute of the master's processing time. To prevent the master
+  more than a minute of the manager's processing time. To prevent the manager
   from being occupied by this single task too long, you can use this setting to
   split large numbers of buckets into several"batch-add-peer" requests.
 * If it is invalid or non-existant, the peer uses the default setting instead.
 * If it is set to 0, the peer sends only one request with all buckets
   instead of batches.
+* You do not need to restart the cluster peer when making changes to
+  this setting. This setting reloads automatically.
 * Default: 1000
 
 heartbeat_period = <non-zero positive integer>
-* Only valid for 'mode=slave'.
-* Controls the frequency the slave attempts to send heartbeats.
+* Only valid for 'mode=peer'.
+* Controls the frequency the peer attempts to send heartbeats.
+
+bucketsize_mismatch_strategy = smallest | largest
+* Only valid for 'mode=manager'.
+* This setting determines how the manager decides which target peer's bucket copy
+  is retained on the cluster when the source peer is not present at the time
+  that a hot bucket is rolled, and there is a bucket size mismatch between
+  the target peers
+* When "largest" is selected, the largest copy of the bucket on any target
+  peer gets propagated to the other peers through fixups, overwriting all other
+  copies.
+* When "smallest" is selected, the smallest copy of the bucket on any target
+  peer gets propagated to the other peers through fixups, overwriting all other
+  copies.
+* Do not alter this value without contacting Splunk Support.
+* Default: largest
 
 remote_storage_upload_timeout = <non-zero positive integer>
-* Only valid for 'mode=slave'.
+* Only valid for 'mode=peer'.
 * For a remote storage enabled index, this attribute specifies the interval
   in seconds, after which target peers assume responsibility for
   uploading a bucket to the remote storage, if they do not hear from
@@ -2832,7 +3033,7 @@ remote_storage_upload_timeout = <non-zero positive integer>
 * Default: 60 (1 minute)
 
 report_remote_storage_bucket_upload_to_targets = <boolean>
-* Only valid for 'mode=slave'.
+* Only valid for 'mode=peer'.
 * For a remote storage enabled index, this attribute specifies whether
   the source peer reports the successful bucket upload to target peers.
   This notification is used by target peers to cancel their upload timers
@@ -2840,40 +3041,46 @@ report_remote_storage_bucket_upload_to_targets = <boolean>
   storage.
 * Do not change the value from the default unless instructed by
   Splunk Support.
+* You do not need to restart the cluster manager when making changes to
+  this setting. This setting reloads automatically.
 * Default: false
 
 remote_storage_retention_period = <non-zero positive integer>
-* Only valid for 'mode=master'.
-* Controls the length, in seconds, of peer-node retention for buckets in
-  remote storage enabled indexes. When this length is exceeded, the master
-  freezes the buckets on the peer nodes.
+* Only valid for 'mode=manager'.
+* The interval, in seconds, after which the manager checks buckets
+  in remote storage enabled indexes against the retention policy.
+  It then triggers freeze operations on the cluster peers as necessary.
+* This setting also determines the time that the manager waits
+  following a restart before checking retention policy.
+* For details on retention policies, examine the
+  'maxGlobalDataSizeMB' and 'frozenTimePeriodInSecs' settings.
 * This setting is dynamically reloadable and does not require restart
-  of cluster master.
+  of cluster manager.
 * Default: 900 (15 minutes)
 
 recreate_bucket_attempts_from_remote_storage = <positive integer>
-* Only valid for 'mode=master'.
-* Controls the number of attempts the master makes to recreate the
+* Only valid for 'mode=manager'.
+* Controls the number of attempts the manager makes to recreate the
   bucket of a remote storage enabled index on a random peer node
   in these scenarios:
-    * Master detects that the bucket is not present on any peers.
-    * A peer informs the master about the bucket as part of the
+    * Manager detects that the bucket is not present on any peers.
+    * A peer informs the manager about the bucket as part of the
       re-creation of an index.
       See recreate_index_attempts_from_remote_storage attribute.
 * Re-creation of the bucket involves the following steps:
-    1. Master provides a random peer with the bucket ID of the bucket that
+    1. Manager provides a random peer with the bucket ID of the bucket that
        needs to be recreated.
     2. Peer fetches the metadata of the bucket corresponding to this
        bucket ID from the remote storage.
     3. Peer creates a bucket with the fetched metadata locally and informs
-       the master that a new bucket has been added.
-    4. Master initiates fix-ups to add the bucket on the necessary number
+       the manager that a new bucket has been added.
+    4. Manager initiates fix-ups to add the bucket on the necessary number
        of additional peers to match the replication and search factors.
 * If set to 0, disables the re-creation of the bucket.
 * Default: 10
 
 recreate_bucket_max_per_service = <positive integer>
-* Only valid for 'mode=master'.
+* Only valid for 'mode=manager'.
 * Only applies when using remote storage enabled indexes.
 * Controls the maximum number of buckets that the cluster can recreate
   during a service interval.
@@ -2883,68 +3090,160 @@ recreate_bucket_max_per_service = <positive integer>
 * Default: 20000
 
 recreate_bucket_fetch_manifest_batch_size = <positive integer>
-* Only valid for 'mode=master'.
-* Controls the maximum number of bucket IDs for which a slave
+* Only valid for 'mode=manager'.
+* Controls the maximum number of bucket IDs for which a peer
   attempts to initiate a parallel fetch of manifests at a time
   in the process of recreating buckets that have been
-  requested by the master.
-* The master sends this setting to all the slaves that are
+  requested by the manager.
+* The manager sends this setting to all the peers that are
   involved in the process of recreating the buckets.
 * Default: 50
 
 recreate_index_attempts_from_remote_storage = <positive integer>
-* Only valid for 'mode=master'.
-* Controls the number of attempts the master makes to recreate
-  a remote storage enabled index on a random peer node when the master
+* Only valid for 'mode=manager'.
+* Controls the number of attempts the manager makes to recreate
+  a remote storage enabled index on a random peer node when the manager
   is informed about the index by a peer.
 * Re-creation of an index involves the following steps:
-    1. Master pushes a bundle either when it is ready for service or
+    1. Manager pushes a bundle either when it is ready for service or
        when requested by the user.
-    2. Master waits for the bundle to be applied successfully on the
+    2. Manager waits for the bundle to be applied successfully on the
        peer nodes.
-    3. Master requests that a random peer node provide it with the list
+    3. Manager requests that a random peer node provide it with the list
        of newly added remote storage enabled indexes.
-    4. Master distributes a subset of indexes from this list to
+    4. Manager distributes a subset of indexes from this list to
        random peer nodes.
     5. Each of those peer nodes fetches the list of bucket IDs for the
        requested index from the remote storage and provides it
-       to the master.
-    6. The master uses the list of bucket IDs to recreate the buckets.
+       to the manager.
+    6. The manager uses the list of bucket IDs to recreate the buckets.
        See recreate_bucket_attempts_from_remote_storage.
 * If set to 0, disables the re-creation of the index.
 * Default: 10
 
 recreate_index_fetch_bucket_batch_size = <positive integer>
-* Only valid for 'mode=master'.
-* Controls the maximum number of bucket IDs that the master
+* Only valid for 'mode=manager'.
+* Controls the maximum number of bucket IDs that the manager
   requests a random peer node to fetch from remote storage as part of
   a single transaction for a remote storage enabled index.
-  The master uses the bucket IDs for re-creation of the index.
+  The manager uses the bucket IDs for re-creation of the index.
   See the 'recreate_index_attempts_from_remote_storage' setting.
 * Default: 2000
 
-use_batch_remote_rep_changes = <boolean>
-* Only valid for 'mode=master'.
-* Specifies whether the master processes bucket copy changes (to meet
+use_batch_remote_rep_changes = <boolean> or <positive integer>
+* Only valid for 'mode=manager'.
+* Specifies whether the manager processes bucket copy changes (to meet
   replication_factor and search_factor) in batch or individually.
+* Also controls the maximum number of bucket replications that are processed in
+  one replication batch.
 * This is applicable to buckets belonging to
   remote storage enabled indexes only.
 * Do not change this setting without consulting with Splunk Support.
 * This setting is dynamically reloadable and does not require restart
-  of cluster master.
+  of cluster manager.
+* If 'false' is specified, batching of buckets would be turned off
+* If 'true' is specified, batching of buckets would be turned on, the maximum
+  number of buckets processed per batch would be the system default (1000)
+* If 0 is specified, batching of buckets would be turned off
+* If <any non zero positive integer> is specified, batching of buckets
+  would be turned on, and the maximum number of buckets processed per batch
+  would be the value of the integer specified
+* Default: 1000
+
+max_peer_batch_rep_load = <positive integer>
+* Only valid for 'mode=manager'.
+* This setting is applicable to buckets belonging to
+  remote storage enabled indexes only.
+* Only valid when 'use_batch_remote_rep_changes=true'
+* This setting specifies the maximum number of concurrent batch replications
+  that a peer node can take part in, as a source.
+* Default: 5
+
+enable_primary_fixup_during_maintenance = <boolean>
+* Only valid for 'mode=manager'.
+* Specifies whether the manager performs primary fixups during
+  maintenance mode. This gets overridden by searchable rolling restart.
+* This setting is dynamically reloadable and does not require restart
+  of cluster manager.
+* Default: true
+
+freeze_during_maintenance = <boolean>
+* Only valid for 'mode=manager'.
+* Specifies whether the manager will tell peers to freeze buckets during
+  maintenance mode.
+* This setting is dynamically reloadable and does not require restart
+  of cluster manager.
 * Default: false
 
+assign_primaries_to_all_sites = <boolean>
+* Only valid for 'mode=manager' and 'multisite=true'
+* Controls how the manager assigns bucket primary copies on a
+  multisite cluster.
+* If set to 'true', the manager assigns a primary copy to each site
+  defined in 'available_sites', as well as site0.
+* If set to 'false':
+  * The manager assigns a primary copy only to sites with a search head.
+  * Sites without search heads do not get primary copies.
+  * When a new site with a search head joins the cluster, or an existing
+    site attains its first search head, the cluster manager gradually
+    adds all buckets in the cluster to its fixup list to ensure that the
+    site will be populated with primaries.
+  * If a site loses its search heads, no action is taken to remove
+    existing primaries from the site.
+* Setting this parameter to 'false' can significantly reduce the work of primary
+  assignments, especially if search heads are only on site0 and
+  search affinity is disabled.
+* Default: false
+
+log_bucket_during_addpeer = <boolean>
+* Only valid for 'mode=manager'
+* Controls the log level for bucket information during add-peer activities.
+* If set to 'true', the manager logs bucket information to INFO level under
+  CMMaster componenet during add-peer.
+* If set to 'false', the manager logs bucket information to DEBUG level under
+  CMMaster component during add-peer.
+* Set to 'false' for large clusters with large numbers of buckets.
+* Default: false
+
+max_concurrent_peers_joining = <nonzero integer>
+* Only valid for 'mode=manager'.
+* Limits the number of peers that are allowed to join the cluster at one time.
+* The peer reports its buckets to the cluster manager upon first establishing a
+  connection with the manager, and it finishes joining the cluster when all of
+  its buckets have been reported.
+* Once this limit is hit, any remaining peers check at one second intervals
+  for an available slot to join the cluster.
+* By limiting the number of peers that can join simultaneously, this setting
+  can facilitate faster restart for some peers, thus more quickly restoring
+  partial ingest to the cluster.
+* Default: 10
+
+enable_parallel_add_peer = <bool>
+* Only valid for 'mode=manager'.
+* Enables the cluster manager to accept and process multiple 'add peer' requests
+  in parallel.
+* The upper limit of concurrent 'add peer' requests that the manager can handle is
+  limited by the 'max_concurrent_peers_joining setting'.
+* When this feature is enabled, the largest recommended value for
+  'max_concurrent_peers_joining' is half the number of CPU cores of
+  the indexer. For example, if the indexer has 24 CPU cores, the largest
+  recommended value for 'max_concurrent_peers_joining' is 12.
+* This setting is useful for clusters with large numbers of buckets
+  and large numbers of indexers.  It also improves the responsiveness
+  of the cluster manager, helping to prevent unnecessary timeouts.
+* Default: true
+
 buckets_status_notification_batch_size = <positive integer>
-* Only valid for 'mode=slave'.
-* Controls the number of existing buckets IDs that the slave
-  reports to the master every notify_scan_period seconds.
-  The master then initiates fix-ups for these buckets.
+* Only valid for 'mode=peer'.
+* Controls the number of existing buckets IDs that the peer
+  reports to the manager every notify_scan_period seconds.
+  The manager then initiates fix-ups for these buckets.
 * CAUTION: Do not modify this setting without guidance from
   Splunk personnel.
 * Default: 1000
 
 notify_scan_period = <non-zero positive integer>
-* Only valid for 'mode=slave'.
+* Only valid for 'mode=peer'.
 * Controls the frequency, in seconds, that the indexer handles
   the following options:
   1. summary_update_batch_size
@@ -2954,7 +3253,7 @@ notify_scan_period = <non-zero positive integer>
 * Default: 10
 
 notify_scan_min_period = <non-zero positive integer>
-* Only valid for 'mode=slave'.
+* Only valid for 'mode=peer'.
 * Controls the highest frequency, in milliseconds, that the indexer
   scans summary folders
   for summary updates/registrations. The notify_scan_period temporarily
@@ -2966,7 +3265,7 @@ notify_scan_min_period = <non-zero positive integer>
 * Default: 10
 
 notify_buckets_period = <non-zero positive integer>
-* Only valid for 'mode=slave'.
+* Only valid for 'mode=peer'.
 * Controls the frequency, in milliseconds, that the indexer handles
   buckets_status_notification_batch_size
 * CAUTION: Do not modify this setting without guidance from
@@ -2974,23 +3273,23 @@ notify_buckets_period = <non-zero positive integer>
 * Default: 10
 
 summary_update_batch_size = <non-zero positive integer>
-* Only valid for 'mode=slave'.
+* Only valid for 'mode=peer'.
 * Controls the number of summary updates the indexer sends per batch to
-  the master every notify_scan_period.
+  the manager every notify_scan_period.
 * CAUTION: Do not modify this setting without guidance from
   Splunk personnel.
 * Default: 10
 
 summary_registration_batch_size = <non-zero positive integer>
-* Only valid for 'mode=slave'.
+* Only valid for 'mode=peer'.
 * Controls the number of summaries that get asynchronously registered
-  on the indexer and sent as a batch to the master every
+  on the indexer and sent as a batch to the manager every
   notify_scan_period.
 * Caution: Do not modify this setting without guidance from Splunk personnel.
 * Default: 1000
 
 enableS2SHeartbeat = <boolean>
-* Only valid for 'mode=slave'.
+* Only valid for 'mode=peer'.
 * Splunk software monitors each replication connection for
   presence of a heartbeat, and if the heartbeat is not seen for
   's2sHeartbeatTimeout' seconds, it closes the connection.
@@ -3005,12 +3304,12 @@ s2sHeartbeatTimeout = <seconds>
 * Default: 600 (10 minutes)
 
 throwOnBucketBuildReadError = <boolean>
-* Valid only for 'mode=slave'.
-* If set to true, index clustering slave throws an exception if it
+* Valid only for 'mode=peer'.
+* If set to true, index clustering peer throws an exception if it
   encounters a journal read error while building the bucket for a new
   searchable copy. It also throws all the search & other files generated
   so far in this particular bucket build.
-* If set to false, index clustering slave just logs the error and preserves
+* If set to false, index clustering peer just logs the error and preserves
   all the search & other files generated so far & finalizes them as it
   cannot proceed further with this bucket.
 * Default: false
@@ -3019,7 +3318,7 @@ cluster_label = <string>
 * This specifies the label of the indexer cluster
 
 warm_bucket_replication_pre_upload = <boolean>
-* Valid only for 'mode=slave'.
+* Valid only for 'mode=peer'.
 * This setting applies to remote storage enabled indexes only.
 * If set to true, the target peers replicate all warm bucket contents when necessary for
   bucket-fixing if the source peer has not yet uploaded the bucket to remote storage.
@@ -3028,19 +3327,44 @@ warm_bucket_replication_pre_upload = <boolean>
   the bucket to remote storage.
 * Default: false
 
+bucketsize_upload_preference = largest | smallest
+* Valid only for 'mode=peer'.
+* This setting applies to remote storage enabled indexes only.
+* This setting determines the criteria a target peer uses when deciding whether to
+  overwrite a bucket copy uploaded to remote storage by another target peer. Target
+  peers never overwrite copies uploaded by a source peer.
+* When "largest" is selected, the largest copy of the bucket on any target
+  peer gets uploaded.
+* When "smallest" is selected, the smallest copy of the bucket on any target
+  peer gets uploaded.
+* Note, this and "bucketsize_mismatch_strategy" should follow same scheme.
+* Do not alter this value without contacting Splunk Support.
+* Default: largest
+
+upload_rectifier_timeout_secs = <unsigned integer>
+* Valid only for 'mode=peer'.
+* This setting applies to remote storage enabled indexes only.
+* When a peer uploads a bucket copy to remote storage, it checks, after a ,
+  timeout based on the value of this setting, to determine whether another
+  peer overwrote the copy.
+* Depending on the value of "bucketsize_upload_preference" it will determine
+  if the bucket needs to be re-uploaded.
+* This setting controls the timeout that the peer waits before checking.
+* Default: 2
+
 [clustermaster:<stanza>]
 * Only valid for 'mode=searchhead' when the search head is a part of
   multiple clusters.
 
 master_uri = <uri>
 * Only valid for 'mode=searchhead' when present in this stanza.
-* URI of the cluster master that this search head should connect to.
+* URI of the cluster manager that this search head should connect to.
 
 pass4SymmKey = <password>
 * Secret shared among the nodes in the cluster to prevent any
   arbitrary node from connecting to the cluster. If a search head
-  is not configured with the same secret as the master,
-  it not be able to communicate with the master.
+  is not configured with the same secret as the manager,
+  it not be able to communicate with the manager.
 * If it is not present here, the key in the clustering stanza is used.
   If it is not present in the clustering stanza, the value in the general
   stanza is used.
@@ -3048,16 +3372,26 @@ pass4SymmKey = <password>
   Splunk software to determine if the password is already encrypted.
 * No default.
 
+pass4SymmKey_minLength = <integer>
+* The minimum length, in characters, that a 'pass4SymmKey' should be for a particular stanza.
+* When you start the Splunk platform, if the 'pass4SymmKey' is shorter in length than
+  what you specify with this setting, the platform warns you and advises that you
+  change the pass4SymKey.
+* If you use the CLI to modify 'pass4SymmKey' to a value that is shorter than what
+  you specify with this setting, the platform warns you and advises that you
+  change the pass4SymKey.
+* Default: 12
+
 site = <site-id>
-* Specifies the site this search head belongs to for this particular master
+* Specifies the site this search head belongs to for this particular manager
   when multisite is enabled (see below).
 * Valid values for site-id include site0 to site63.
 * The special value "site0" disables site affinity for a search head in a
   multisite cluster. It is only valid for a search head.
 
 multisite = <boolean>
-* Turns on the multisite feature for this master_uri for the search head.
-* Make sure the master has the multisite feature turned on.
+* Turns on the multisite feature for this manager_uri for the search head.
+* Make sure the manager has the multisite feature turned on.
 * Make sure you specify the site in case this is set to true. If no
   configuration is found in the [clustermaster] stanza, the search head defaults
   to any value for 'site' that might be defined in the [general]
@@ -3067,7 +3401,7 @@ multisite = <boolean>
 [replication_port://<port>]
 # Configure Splunk to listen on a given TCP port for replicated data from
 # another cluster member.
-# If 'mode=slave' is set in the [clustering] stanza at least one
+# If 'mode=peer' is set in the [clustering] stanza at least one
 # 'replication_port' must be configured and not disabled.
 
 disabled = <boolean>
@@ -3405,7 +3739,17 @@ collectionPeriodInSecs = <positive integer>
 * The frequency, in seconds, of distributed index data collection.
   Shorter intervals provide more accurate results, at the cost of
   greater resource consumption.
+* Must be set between 300 (5 minutes) and 86400 (24 hours).
 * Default: 3600 (60 minutes)
+
+collectLocalIndexes = <boolean>
+* This setting determines whether the search head retrieves index metadata,
+   such as current size and event count.
+* In single-instance configurations, where the instance serves as both search head and indexer,
+     set the value to "true", so that the local index metadata is retrieved.
+* In distributed search deployments, with separate search heads and indexers, set the
+     value to "false" to retrieve metadata only from indexes on the indexers.
+* Default: false
 
 ############################################################################
 # Settings used to control commands started by Splunk
@@ -3577,6 +3921,16 @@ pass4SymmKey = <password>
   Splunk software to determine if the password is already encrypted.
 * Default: The 'changeme' from the [general] stanza in the default the
   server.conf file.
+
+pass4SymmKey_minLength = <integer>
+* The minimum length, in characters, that a 'pass4SymmKey' should be for a particular stanza.
+* When you start the Splunk platform, if the 'pass4SymmKey' is shorter in length than
+  what you specify with this setting, the platform warns you and advises that you
+  change the pass4SymKey.
+* If you use the CLI to modify 'pass4SymmKey' to a value that is shorter than what
+  you specify with this setting, the platform warns you and advises that you
+  change the pass4SymKey.
+* Default: 12
 
 async_replicate_on_proxy = <boolean>
 * If the jobs/${sid}/results REST endpoint had to be proxied to a different
@@ -3791,7 +4145,7 @@ rolling_restart = restart|searchable|searchable_force
     restart|searchable|searchable_force
 * Default: restart (runs in classic rolling-restart mode)
 
-decommission_search_jobs_wait_secs = <positive integer>
+decommission_search_jobs_wait_secs = <unsigned integer>
 * The amount of time, in seconds, that a search head cluster member waits for
   existing searches to complete before restarting.
 * Applies only when rolling restart is triggered in searchable or
@@ -3801,6 +4155,8 @@ decommission_search_jobs_wait_secs = <positive integer>
   Run this CLI command from any member:
   % splunk edit shcluster-config -decommission_search_jobs_wait_secs
     <positive integer>
+* Note: If this setting is used 'decommission_search_jobs_wait_secs'
+  defined in the '[general]' stanza should be left unchanged at it default value.
 * Default: 180
 
 register_replication_address = <IP address ormachine/domain name>
@@ -3927,10 +4283,10 @@ conf_replication_include.<conf_file_name> = <boolean>
 * Default: false
 
 conf_replication_summary.whitelist.<name> = <whitelist_pattern>
-* Whitelist files to be included in configuration replication summaries.
+* Files to be included in configuration replication summaries.
 
 conf_replication_summary.blacklist.<name> = <blacklist_pattern>
-* Blacklist files to be excluded from configuration replication summaries.
+* Files to be excluded from configuration replication summaries.
 
 conf_replication_summary.concerning_file_size = <integer>
 * Any individual file within a configuration replication summary that is
@@ -4201,6 +4557,31 @@ dbPath = <path>
   location.
 * Default: $SPLUNK_DB/kvstore
 
+storageEngine = mmapv1 | wiredTiger
+* The storage engine that KV Store uses to manage its data.
+* "mmapv1" will be deprecated for KV Store. Where possible, use the "wiredTiger" option,
+  which is more performant.
+* When you upgrade the Splunk platform, you get the option to upgrade the KV Store
+  storage engine. If you choose not to, you can upgrade the engine later using the
+  'splunk migrate kvstore-storage-engine' CLI command.
+* Default: mmapv1
+
+storageEngineMigration = <boolean> 
+* Whether or not you can migrate the KV Store storage engine on this instance.
+* Migrating the storage engine means changing the engine from 'mmap' to 
+  the newer 'wiredTiger'.
+* If you set this to "true", the instance lets you migrate the engine,
+  depending on the following scenarios:
+  * If this instance is standalone, you can migrate the engine during
+    an upgrade by enabling this setting with a "true" value as part of 
+    the upgrade process and answering affirmatively when that process 
+    prompts you, or after an upgrade by using the
+    'splunk migrate kvstore-storage-engine' CLI command.
+  * If it is a part of a search head cluster, you can perform the migration using the
+    '/services/shcluster/captain/kvmigrate/start' REST endpoint.
+* If you set this to "false", you cannot migrate the storage engine.
+* Default: false
+
 oplogSize = <integer>
 * The size of the replication operation log, in megabytes, for environments
   with search head clustering or search head pooling.
@@ -4219,14 +4600,21 @@ replicationWriteTimeout = <integer>
 * Default: 1800 (30 minutes)
 
 clientConnectionTimeout = <positive integer>
-* The time, in seconds, to wait while attempting a connection to the KV Store 
-  before the attempt times out. 
+* The time, in seconds, to wait while attempting a connection to the KV Store
+  before the attempt times out.
 * Default: 10
 
 clientSocketTimeout = <positive integer>
-* The time, in seconds, to wait while attempting to send or receive on a 
-  socket before the attempt times out. 
+* The time, in seconds, to wait while attempting to send or receive on a
+  socket before the attempt times out.
 * Default: 300 (5 minutes)
+
+clientConnectionPoolSize = <positive integer>
+* The maximum number of active client connections to the KV Store.
+* When the number of active connections exceeds this value, KV Store will
+  reject new connection attempts until at least one active connection closes.
+* Do not change this setting without first consulting with Splunk Support.
+* Default: 500
 
 caCertFile = <path>
 * DEPRECATED; use '[sslConfig]/sslRootCAPath' instead.
@@ -4308,24 +4696,56 @@ modificationsMaxReadSec = <integer>
 * Default: 30
 
 initialSyncMaxFetcherRestarts = <positive integer>
-* Specifies the maximum number of query restarts an oplog fetcher can perform 
+* Specifies the maximum number of query restarts an oplog fetcher can perform
   before failing the ongoing Initial Sync attempt.
-* Increasing this value might help in dynamic deployments with very large 
+* Increasing this value might help in dynamic deployments with very large
   KV Store databases where Initial Sync might take a long time.
-* NOTE: This setting should be changed only if you have been asked to set it by 
+* NOTE: This setting should be changed only if you have been asked to set it by
   a Splunk Support engineer. It might increase KV Store cluster failover time.
 * Default: 0
+
+delayShutdownOnBackupRestoreInProgress = <boolean>
+* Whether or not splunkd should delay a shutdown if a KV Store backup or restore
+  operation is in progress.
+* If set to "true", splunkd waits until either the running backup/restore operation
+  completes, or 'splunkd_stop_timeout' seconds have elapsed since it received
+  the shutdown request.
+* NOTE: Setting this to "true" might delay splunkd shutdown for several minutes,
+  depending on the amount of data that KV Store uses and the value of
+  'splunkd_stop_timeout'.
+* Default: false
+
+percRAMForCache = <positive integer>
+* The percentage of total system memory that KV store can use.
+* Value can range from 5 to 50, inclusive.
+* If less than 1 GB of system memory is present, only 256 MB of cache will be used.
+* If you have less than 256 MB of system memory, you cannot use KVStore with wiredTiger.
+* Changing this value can affect performance on KV store,
+  Splunk Enterprise apps that use KV store, and KV store lookups.
+  For more information, search the Splunk documentation for "KV store troubleshooting tools".
+* If you are not using the WiredTiger storage engine, Splunk Enterprise ignores this setting.
+* Default: 15
 
 ############################################################################
 # Indexer Discovery configuration
 ############################################################################
 [indexer_discovery]
 pass4SymmKey = <password>
-* Security key shared between master node and forwarders.
+* Security key shared between manager node and forwarders.
 * If specified here, the same value must also be specified on all forwarders
-  connecting to this master.
+  connecting to this manager.
 * Unencrypted passwords must not begin with "$1$", as this is used by
   Splunk software to determine if the password is already encrypted.
+
+pass4SymmKey_minLength = <integer>
+* The minimum length, in characters, that a 'pass4SymmKey' should be for a particular stanza.
+* When you start the Splunk platform, if the 'pass4SymmKey' is shorter in length than
+  what you specify with this setting, the platform warns you and advises that you
+  change the pass4SymKey.
+* If you use the CLI to modify 'pass4SymmKey' to a value that is shorter than what
+  you specify with this setting, the platform warns you and advises that you
+  change the pass4SymKey.
+* Default: 12
 
 polling_rate = <integer>
 * A value between 1 to 10. This value affects the forwarder polling
@@ -4357,6 +4777,16 @@ pass4SymmKey = <password>
   Splunk software to determine if the password is already encrypted.
 * Empty passwords will not be accepted.
 * Default: None
+
+pass4SymmKey_minLength = <integer>
+* The minimum length, in characters, that a 'pass4SymmKey' should be for a particular stanza.
+* When you start the Splunk platform, if the 'pass4SymmKey' is shorter in length than
+  what you specify with this setting, the platform warns you and advises that you
+  change the pass4SymKey.
+* If you use the CLI to modify 'pass4SymmKey' to a value that is shorter than what
+  you specify with this setting, the platform warns you and advises that you
+  change the pass4SymKey.
+* Default: 12
 
 max_replication_threads = <integer>
 * Maximum threads used for replicating metadata and payload to search peers.
@@ -4467,7 +4897,9 @@ max_cache_size = <positive integer>
 * Specifies the maximum space, in megabytes, per partition, that the cache can
   occupy on disk. If this value is exceeded, the cache manager starts
   evicting buckets.
-* A value of 0 means this feature is not used, and has no maximum size.
+* A value of 0 means this setting is not used to control cache eviction.
+  Eviction will instead be based on the sum of 'minFreeSpace' and 'eviction_padding'
+  settings, which limits the size of the partition that the cache resides on.
 * Default: 0
 
 persist_pending_upload_from_external = <bool>
@@ -4499,17 +4931,58 @@ enable_open_on_stale_object = <bool>
   Otherwise, searches are not allowed to open these buckets.
 * Default: true
 
+local_delete_summary_metadata_ttl = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The local copy of a bucket needs to be synced with the copy in remote
+  storage only when the bucket switches primaries.
+* However in certain experimental modes of operation the delete journals
+  in the remote storage could be mutated without an update to the local copy.
+* Similarly, accelerated summaries in remote storage could be updated without
+  an update to the local copy.
+* This setting is meant for use in such modes. The Cache manager will make
+  a best effort to invalidate the local delete journals and summary
+  metadata files periodically.
+* The period will be controlled by this ttl. A value of 0 will disable
+  this behavior
+* Default: 0
+
 hotlist_recency_secs = <unsigned integer>
-* The cache manager attempts to defer bucket eviction until the interval
-  between the bucket's latest time and the current time exceeds this setting,
-  in seconds.
+* When a bucket is older than this value, it becomes eligible for eviction.
+  Buckets younger than this value are evicted only if there are no older
+  buckets eligible for eviction.
+* For the purpose of determining recency, the age of a bucket is calculated by
+  subtracting the time of the bucket's most recent event data from the current time.
+* For example, if the current time (expressed in UTC epoch time) is 1567891234 and
+  the bucket is named db_1567809123_1557891234_10_8A21BEE9-60D4-436B-AA6D-21B68F631A8B,
+  thus indicating that the time of the most recent event in the bucket is 1567809123,
+  then the bucket's age, in seconds, is 82111 (~23 hours).
+* Ensure that the cache is of sufficient size to handle the value of this setting.
+  Otherwise, cache eviction cannot function optimally.  In other words, do not
+  configure this setting to a size that will cause the cache to retain a quantity of
+  buckets that approach or exceed the size of the cache based on this setting
+  alone.
+* Also, consider the amount of data you're ingesting and the needs of
+  the types of searches you run. As a best practice, start with a fairly low value
+  for this setting and adjust over time.
+* For example, if the cache size is 100 GB and you typically add 10 GB of new buckets to
+  the indexer in a 24 hour period, setting this to 172800 (48 hours) would mean that
+  the cache manager will try to keep those 20 GB of recent buckets in the cache all the time.
 * This setting can be overridden on a per-index basis in indexes.conf.
 * Default: 86400 (24 hours)
 
 hotlist_bloom_filter_recency_hours = <unsigned integer>
-* The cache manager attempts to defer eviction of the non-journal and non-tsidx
-  bucket files, such as the bloomfilter file, until the interval between the
-  bucket's latest time and the current time exceeds this setting.
+* When a bucket's non-journal and non-tsidx files (such as bloomfilter files)
+  are older than this value, those files become eligible for eviction. Bloomfilter
+  and associated files younger than this value are evicted only if there are
+  no older files eligible for eviction.
+* The recency of a bloomfilter file is based on its bucket's recency and is calculated
+  in the same manner described for hotlist_recency_secs.
+* This setting works in concert with hotlist_recency_secs which is designed to be
+  configured for a shorter age. If hotlist_recency_secs leads to the eviction of a
+  bucket, the bloomfilter and associated files will continue to remain in the cache
+  until they reach the age configured by this setting. Thus, the bucket will remain
+  in cache, but without its journal and tsidx files.
 * This setting can be overridden on a per-index basis in indexes.conf.
 * Default: 360 (15 days)
 
@@ -4527,12 +5000,64 @@ max_file_exists_retry_count = <unsigned integer>
   the retry count exceeds this setting.
 * Default: 5
 
-cache_upload_backoff_sleep_secs = <unsigned_integer>
-* This setting specifies the interval, in seconds, that the cache manager waits to
-  retry an upload to the remote store after encountering a 4xx HTTP error.
-* A value of 0 causes the cache manager to continue retrying the upload without
-  performing a backoff.
-* Default: 60
+access_logging = <boolean>
+* Enables/disables logging to the splunkd_access.log file for cachemanager requests.
+* Default: true
+
+cache_usage_collection_interval_minutes = <positive integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Interval at which cache usage information is reported to metrics.log.
+* The cache usage logging reports cache usage, in bytes, broken down by
+  cache type (bid, dma, ra, metrics), index and by time range. The time
+  bins are defined by the setting 'cache_usage_collection_time_bins'.
+* A value of 0 will disable this feature.
+* Do not use a value less than 10 (minutes). Doing so can
+  affect performance.
+* Hot buckets are not managed by the cache manager and not reflected
+  in the log messages.
+* Default: 10
+
+cache_usage_collection_time_bins = <positive integer list>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* This setting is used when 'cache_usage_collection_interval_minutes' is
+  non-zero. See the 'cache_usage_collection_interval_minutes' section for
+  more information.
+* This comma-separated list of integers, representing days, are boundaries
+  to the time ranges to which the cache usage is broken down and reported.
+  There is an implicit bin, 0, that represents all data more recent than the
+  first non-zero value. The highest value specified will represent all data
+  older than that value.
+* For example, using the default "1, 3, 7, 14, 30, 60, 90", cache usage will
+  collect the size of buckets whose latest-time (endEpoch) into the following
+  bins: 0 (future-1d), 1 (1d-3d), 3 (3d-7d), 7 (7d-15d), 15 (15d-30d),
+  30 (30d-60d), 60 (60d-90d), 90 (90d and older).
+* Default: 1, 3, 7, 15, 30, 60, 90
+
+cache_usage_collection_per_index = <boolean>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Enables the reporting cache usage information by index.
+* This setting is used when 'cache_usage_collection_interval_minutes' is
+  non-zero. See the 'cache_usage_collection_interval_minutes' section for
+  more information.
+* Default: false
+
+batch_registration = <boolean>
+* This setting enables/disables batch registration of buckets upon startup of indexer.
+* If this setting is disabled, then when an indexer starts up, its cache manager registers
+  each index bucket individually.  This can slow the startup process. If an indexer is
+  experiencing long startup durations, enable this setting to register buckets in batches.
+* The size of each batch of buckets is set with 'batch_registration_size'.
+* Default: true
+
+batch_registration_size = <unsigned integer>
+* This setting specifies the size of each batch of buckets that are
+  registered.
+* This setting is used when 'batch_registration' is enabled.
+* Use the default value unless instructed otherwise by Splunk Support.
+* Default: 5000
 
 ############################################################################
 # Raft Statemachine configuration
@@ -4699,11 +5224,20 @@ forceStopOnShutdown = <boolean>
 ############################################################################
 [parallelreduce]
 pass4SymmKey = <password>
-* Security key shared between reducers and regular indexers.
-* The same value must also be specified on all intermediaries.
-* Unencrypted passwords must not begin with "$1$", as this is used by
-  Splunk software to determine if the password is already encrypted.
+* DEPRECATED. The setting is no longer required.
 
+pass4SymmKey_minLength = <integer>
+* The minimum length, in characters, that a 'pass4SymmKey' should be for a particular stanza.
+* When you start the Splunk platform, if the 'pass4SymmKey' is shorter in length than
+  what you specify with this setting, the platform warns you and advises that you
+  change the pass4SymKey.
+* If you use the CLI to modify 'pass4SymmKey' to a value that is shorter than what
+  you specify with this setting, the platform warns you and advises that you
+  change the pass4SymKey.
+* Default: 12
+@
+@
+@
 @
 @
 @
@@ -4787,6 +5321,13 @@ path = <path on server>
   remote storage feature is disabled.
 * No default.
 
+upload_archive_format = [none|tar.lz4]
+* Creates a tarball so that the entire artifact can be stored as a single object
+  on the remote storage.
+* This can reduce time to upload and artifact when the remote storage has a high
+  seek penalty and the search artifact contains more than 100 individual files
+* Default : none
+
 ############################################################################
 # S3 specific settings
 ############################################################################
@@ -4860,6 +5401,10 @@ remote.s3.supports_versioning = true | false
 * Specifies whether the remote storage supports versioning.
 * Versioning is a means of keeping multiple variants of an object
   in the same bucket on the remote storage.
+* This setting determines how splunkd removes data from remote storage.
+  If set to true, splunkd will delete all versions of objects at
+  time of data removal. Otherwise, if set to false, splunkd will use a simple DELETE
+  (See https://docs.aws.amazon.com/AmazonS3/latest/dev/DeletingObjectVersions.html).
 * Default: true
 
 remote.s3.endpoint = <URL>
@@ -5080,3 +5625,69 @@ remote.s3.kms.<ssl_settings> = <...>
   sslAltNameToCheck, sslCommonNameToCheck, cipherSuite, ecdhCurves and dhFile.
 * All of these are optional and fall back to same defaults as
   the 'remote.s3.<ssl_settings>'.
+
+
+[hot_bucket_streaming]
+
+slices_list_executor_workers = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Number of workers that do list operations to discover slices during bucket recovery.
+* Must be greater than 0.
+* Default: 4
+
+slices_download_executor_workers = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Number of workers that download slices during bucket recovery.
+* Must be greater than 0.
+* Default: 10
+
+slices_build_executor_workers = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Maximum number of parallel bucket rebuilds during bucket recovery.
+* Must be greater than 0.
+* Default: 4
+
+slices_removal_executor_workers = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Number of workers that remove slices after a bucket rolls to warm or is rebuilt.
+* Must be greater than 0.
+* Default: 2
+
+slices_upload_executor_workers = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Number of workers that upload slices from hot buckets.
+* Must be greater than 0.
+* Default: 10
+
+slices_upload_executor_capacity = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Maximum number of queued slices to be uploaded. This affects the same thread
+  pool that uses the 'slices_upload_executor_workers' setting.
+* A value of 0 means that the queue capacity is unlimited.
+* Default: 10
+
+slices_upload_send_interval = <interval><unit>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Periodic send interval, in seconds, for the slices to be uploaded.
+* Examples: 10s, 1m
+* Must not be greater than 300s or 5m
+* Default: 5s
+
+slices_upload_size_threshold = <unsigned integer>[B|KB|MB]
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Slice size threshold.
+* When this threshold is reached, slice coalescing ends and the accumulated slice is uploaded.
+* Must be a positive number followed by a size suffix.
+  * Valid suffixes: b: bytes, kb: kilobytes, mb: megabytes
+  * Suffixes are case insensitive.
+* Must not be greater than 10MB
+* Default: 1MB
+

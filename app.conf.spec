@@ -1,5 +1,8 @@
-#   Version 8.0.8
+#   Version 8.1.0.1
 #
+############################################################################
+# OVERVIEW
+############################################################################
 # This file maintains the state of a given app in the Splunk platform. It can
 # also be used to customize certain aspects of an app.
 #
@@ -11,11 +14,6 @@
 # documentation located at
 # http://docs.splunk.com/Documentation/Splunk/latest/Admin/Aboutconfigurationfiles
 
-#
-# Settings for how an app appears in the Launcher in the Splunk platform and
-# online on Splunkbase.
-#
-
 [author=<name>]
 email = <email-address>
 company = <company-name>
@@ -26,23 +24,27 @@ name = <app-name>
 version = <version-number>
 
 [launcher]
+* Settings in this stanza determine how an app appears in the Launcher in the Splunk
+  platform and online on Splunkbase.
 
-# global setting
+# Global Settings:
 
 remote_tab = <boolean>
-* Set whether the Launcher interface connects to apps.splunk.com (Splunkbase).
+* Determines whether the Launcher interface connects to apps.splunk.com
+  (Splunkbase).
 * This setting only applies to the Launcher app. Do not set it in any
   other app.
 * Default: true
 
-# per-application settings
+# Per-application Settings:
 
 version = <string>
 * Version numbers are a number followed by a sequence of dots and numbers.
 * The best practice for version numbers for releases is to use three digits
   formatted as Major.Minor.Revision.
-* Pre-release versions can append a single-word suffix like "beta" or "preview".
-* Use lower case and no spaces when designating a pre-release version.
+* Pre-release versions can append a single-word suffix like "beta" or
+  "preview".
+* Use lower case and no spaces when you designate a pre-release version.
 * Example versions:
   * 1.2.0
   * 3.2.1
@@ -52,22 +54,22 @@ version = <string>
   * 1.0preview
 
 description = <string>
-* Short explanatory string that displays below the title of the app in Launcher.
-* Descriptions that are 200 characters or less are a best practice because most
-  users won't read long descriptions.
+* A short explanatory string that appears below the title of the app in
+  Launcher.
+* Limit descriptions to 200 characters or less for user readability.
 
 author = <string>
-* For apps you intend to upload to Splunkbase, list the username of your
+* For apps that you intend to upload to Splunkbase, list the username of your
   splunk.com account.
-* For apps that are only for internal use, include your full name and/or contact
-  info (for example, email address).
+* For apps that are for internal use only, include your full name and/or contact
+  info, such as your email address.
 
 # Your app can include an icon which appears next to your app in Launcher
 # and on Splunkbase. You can also include a screenshot, which shows up on
 # Splunkbase when the user views information about your app before downloading it.
 # If you include an icon file, the file name must end with "Icon" before the
 # file extension and the "I" must be capitalized. For example, "mynewIcon.png".
-# Screenshots are optional to include.
+# Screenshots are optional.
 #
 # There is no setting in app.conf for screenshot or icon images.
 # Splunk Web places files you upload with your app into
@@ -84,24 +86,21 @@ author = <string>
 #     <app_directory>/default/static/screenshot.png
 #
 # An icon image must be a 36px by 36px PNG file.
-# An app screenshot must be 623px by 350px PNG file.
-#
-#
-# [package] defines upgrade-related metadata, and will be
-# used in future versions of Splunk Enterprise to streamline app upgrades.
-#
+# An app screenshot must be a 623px by 350px PNG file.
 
 [package]
+* This stanza defines upgrade-related metadata that streamlines app upgrade
+  to future versions of Splunk Enterprise.
 
 id = <string>
-* Omit this setting for apps that are for internal use only and are not intended
-  to be uploaded to Splunkbase.
-* id is required for all new apps uploaded to Splunkbase. Future versions of
+* Omit this setting for apps that are for internal use only and not intended
+  for upload to Splunkbase.
+* id is required for all new apps that you upload to Splunkbase. Future versions of
   Splunk Enterprise will use appid to correlate locally-installed apps and the
   same app on Splunkbase (e.g. to notify users about app updates).
 * id must be the same as the folder name in which your app lives in
   $SPLUNK_HOME/etc/apps.
-* id must adhere to cross-platform folder name restrictions:
+* id must adhere to these cross-platform folder name restrictions:
   * must contain only letters, numbers, "." (dot), and "_" (underscore)
     characters.
   * must not end with a dot character.
@@ -119,42 +118,41 @@ show_upgrade_notification = <boolean>
   Web for this app.
 * Default: false
 
-#
-# Set install settings for this app
-#
-
 [install]
+* This stanza defines install settings for this app.
 
 state = disabled | enabled
-* Set whether app is disabled or enabled in the Splunk platform.
+* Determines whether an app is disabled or enabled on the Splunk platform.
 * If an app is disabled, its configurations are ignored.
 * Default: enabled
 
 state_change_requires_restart = <boolean>
-* Set whether changing an app's state ALWAYS requires a restart of Splunk Enterprise.
+* Determines whether changing an app's state ALWAYS requires a restart of Splunk
+  Enterprise.
 * State changes include enabling or disabling an app.
 * When set to true, changing an app's state always requires a restart.
-* When set to false, modifying an app's state might or might not require a restart
-  depending on what the app contains. This setting cannot be used to avoid all
-  restart requirements.
+* When set to false, modifying an app's state might or might not require a
+  restart, depending on what the app contains. This setting cannot be used to
+  avoid all restart requirements.
 * Default: false
 
 is_configured = <boolean>
-* Stores indication of whether the application's custom setup has been performed
+* Stores an indication of whether the application's custom setup has been
+  performed.
 * Default: false
 
 build = <integer>
 * Required.
 * Must be a positive integer.
 * Increment this whenever you change files in appserver/static.
-* Every release must change both "version" and "build" settings.
+* Every release must change both 'version' and 'build' settings.
 * Ensures browsers don't use cached copies of old static files
   in new versions of your app.
-* Build is a single integer, unlike version which can be a complex string
-  like 1.5.18.
+* 'build' is a single integer, unlike 'version' which can be a complex string,
+  such as 1.5.18.
 
 allows_disable = <boolean>
-* Set whether an app allows itself to be disabled.
+* Determines whether an app allows itself to be disabled.
 * Default: true
 
 install_source_checksum = <string>
@@ -164,8 +162,9 @@ install_source_checksum = <string>
 
 install_source_local_checksum = <string>
 * Records a checksum of the tarball from which a given app's local configuration
-* was installed. Splunk Enterprise automatically populates this value upon
-* install. Do not set this value explicitly within your app!
+  was installed.
+* Splunk Enterprise automatically populates this value upon install.
+* Do not set this value explicitly within your app!
 
 python.version = {default|python|python2|python3}
 * When 'installit.py' exists, selects which Python version to use.
@@ -174,50 +173,52 @@ python.version = {default|python|python2|python3}
 * Optional.
 * Default: Not set; uses the system-wide Python version.
 
-#
-# Handle reloading of custom .conf files included in the app (4.2+ versions only)
-# Include this stanza if your app includes custom configuration files.
-#
-
 [triggers]
+* This stanza controls reloading of custom configuration files included in
+  the app (4.2+ versions only).
+* Incude this stanza if your app inculdes custom configuration files.
 
-reload.<conf_file_name> = [ simple | rest_endpoints | access_endpoints <handler_url> | http_get <handler_url> | http_post <handler_url> ]
+# Conf-level reload triggers
+reload.<conf_file_name> = [ simple | never | rest_endpoints | access_endpoints <handler_url> | http_get <handler_url> | http_post <handler_url> ]
 * Splunk Enterprise reloads app configuration after every app-state change:
   install, update, enable, and disable.
-* If your app doesn't use a custom config file (e.g. myconffile.conf)
-  then it won't need a [triggers] stanza, because
-  $SPLUNK_HOME/etc/system/default/app.conf already includes a [triggers]
-  stanza which automatically reloads config files normally used by Splunk Enterprise.
+* If your app does not use a custom config file (e.g.myconffile.conf)
+  then it does not require a [triggers] stanza. This is because
+  $SPLUNK_HOME/etc/system/default/app.conf includes a [triggers]
+  stanza, which automatically reloads config files used by Splunk Enterprise.
 * If your app uses a custom config file (e.g. myconffile.conf) and you want to
-  avoid unnecessary Splunk Enterprise restarts, you'll need to add a reload value in
+  avoid unnecessary Splunk Enterprise restarts, you can add a reload value in
   the [triggers] stanza.
-* If you don't include [triggers] settings and your app uses a custom
-  config file, a Splunk Enterprise restart will be required after every state change.
-* Specifying "simple" implies that Splunk Enterprise will take no special action to
-  reload your custom conf file.
-* Specify "access_endpoints" and a URL to a REST endpoint, and Splunk Enterprise will
-  call its _reload() method at every app state change.
-* Specify "http_get" and a URL to a REST endpoint, and Splunk Enterprise will simulate
-  an HTTP GET request against this URL at every app state change.
-* Specify "http_post" and a URL to a REST endpoint, and Splunk Enterprise will simulate
-  an HTTP POST request against this URL at every app state change.
+* If you do not include [triggers] settings and your app uses a custom config
+  file, Splunk Enterprise requires a restart after every state change.
+* If set to "simple", Splunk Enterprise takes no special action
+  to reload your custom configuration file.
+* If you specify "access_endpoints" with a URL to a REST endpoint, Splunk
+  Enterprise calls its _reload() method at every app state change.
+* If you specify "http_get" with a URL to a REST endpoint, Splunk Enterprise
+  simulates an HTTP GET request against the URL at every app state change.
+* If you specify "http_post" with a URL to a REST endpoint, Splunk Enterprise
+  simulates an HTTP POST request against the URL at every app state change.
+* If set to "never", Splunk Enterprise initiates a restart after any state change.
 * "rest_endpoints" is reserved for Splunk Enterprise internal use for reloading
   restmap.conf.
 
-* Examples:
-
-#       [triggers]
-#       # Do not force a restart of Splunk Enterprise for state changes of MyApp
-# 		# Do not run special code to tell MyApp to reload myconffile.conf
-#       # Apps with custom config files usually pick this option:
-#       reload.myconffile = simple
-#
-# 		# Do not force a restart of Splunk Enterprise for state changes of MyApp.
-# 		# Splunk Enterprise calls the /admin/myendpoint/_reload method in my custom
-# 		# EAI handler.
-# 		# Use this advanced option only if MyApp requires custom code to reload
-# 		# its configuration when its state changes
-#       reload.myotherconffile = access_endpoints /admin/myendpoint
+# Stanza-level reload triggers
+reload.<conf_file_name>.<conf_stanza_prefix> = [ simple | never | access_endpoints <handler_url> | http_get <handler_url> | http_post <handler_url> ]
+* Stanza level reload triggers for indexer-cluster slaves to reload only the
+  config file stanzas that are changed in the newly pushed cluster bundle.
+* With the stanza level reload triggers, we can have more granular control over
+  which subset of existing reload handlers to invoke depending on which stanzas
+  of a given config file have changed in the newly pushed cluster bundle. See
+  example below for more information.
+* Stanza level reload trigger values operate identically to conf-level reload
+  trigger values, i.e. "simple", "never","access_endpoints", "http_get", "http_post".
+* For any stanza of <conf_file_name> that do NOT have a correponding stanza-level
+  reload trigger listed under the [triggers] section of app.conf, cluster slave
+  will fallback to the "rolling restart behavior" upon detecting changes of those
+  "missing" stanzas in the newly pushed cluster bundle.
+* NOTE: This setting is ONLY used by cluster slave indexers and ONLY supported
+  by inputs.conf.
 
 [shclustering]
 deployer_lookups_push_mode = preserve_lookups | always_preserve | always_overwrite
@@ -236,7 +237,8 @@ deployer_lookups_push_mode = preserve_lookups | always_preserve | always_overwri
 * Default: preserve_lookups
 
 deployer_push_mode = full | merge_to_default | local_only | default_only
-* How the deployer pushes the configuration bundle to search head cluster members.
+* How the deployer pushes the configuration bundle to search head cluster
+  members.
 * If set to "full": Bundles all of the app's contents located in default/,
   local/, users/<app>/, and other app subdirs. It then pushes the bundle to
   the members. When applying the bundle on a member, the non-local and
@@ -263,21 +265,22 @@ deployer_push_mode = full | merge_to_default | local_only | default_only
 * If set to "default_only": Bundles all of the configuration files except
   for local and users/<app>/.  When applying the bundle on a member, the
   contents in the member's default folder are overwritten.
-* Default:  "merge_to_default", for all apps except built-in apps, which
-  defaults to "local_only".
+* Default (all apps except built-in apps): "merge_to_default"
+* Default (built-in apps): "local_only"
 
 #
 # Set UI-specific settings for this app
 #
 
 [ui]
+* This stanza defines UI-specific settings for this app.
 
 is_visible = <boolean>
 * Indicates if this app is visible/navigable as an app in Splunk Web.
-* Apps require at least 1 view to be available in Splunk Web.
+* Apps require at least one view to be available in Splunk Web.
 
 show_in_nav = <boolean>
-* Sets whether this app appears in the global app dropdown.
+* Determines whether this app appears in the global app dropdown.
 
 is_manageable = <boolean>
 * Support for this setting has been removed. It no longer has any effect.
@@ -294,9 +297,12 @@ label = <string>
 
 docs_section_override = <string>
 * Defines override for auto-generated app-specific documentation links.
-* If not specified, app-specific documentation link includes [<app-name>:<app-version>]
-* If specified, app-specific documentation link includes [<docs_section_override>]
-* This setting only applies to apps with documentation on the Splunk documentation site.
+* If not specified, app-specific documentation link includes
+  [<app-name>:<app-version>].
+* If specified, app-specific documentation link includes
+  [<docs_section_override>].
+* This setting only applies to apps with documentation on the Splunk
+  documentation site.
 
 attribution_link = <string>
 * URL that users can visit to find third-party software credits and attributions
@@ -306,18 +312,16 @@ attribution_link = <string>
   location strings and translated to internal documentation references.
 
 setup_view = <string>
-* Optional setting.
+* Optional.
 * Defines custom setup view found within the /data/ui/views REST endpoint.
-* If not specified, defaults to setup.xml
-
-#
-# Credential-verification scripting (4.2+ versions only)
-# Credential entries are superseded by passwords.conf from 6.3 onwards.
-# While the entries here are still honored post-6.3, updates to these occur in
-# passwords.conf, which overrides any values present here.
-#
+* Default: setup.xml
 
 [credentials_settings]
+* This stanza controls credential-verification scripting (4.2+ versions only).
+* Credential entries are superseded by passwords.conf from 6.3 onwards.
+* While the entries here are still honored post-6.3, updates to these occur in
+  passwords.conf, which overrides any values present here.
+
 verify_script = <string>
 * Optional setting.
 * Command line to invoke to verify credentials used for this app.
@@ -347,8 +351,9 @@ password = <string>
 * The password can be in clear text, but when saved from splunkd the
   password is always encrypted.
 
-# diag app extensions, 6.4+ only
 [diag]
+* This stanza applies to diag app extensions, 6.4+ only.
+
 extension_script = <filename>
 * Setting this variable declares that this app puts additional information
   into the troubleshooting & support oriented output of the 'splunk diag'

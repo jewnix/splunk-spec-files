@@ -1,6 +1,6 @@
-#   Version 8.0.8
+#   Version 8.1.0.1
 
-# This file contains possible attributes and values you can use to configure
+# This file contains possible settings and values you can use to configure
 # event discovery through the search command "typelearner."
 #
 # There is an eventdiscoverer.conf in $SPLUNK_HOME/etc/system/default/.  To set
@@ -24,12 +24,12 @@
 #   * If an attribute is defined at both the global level and in a specific
 #     stanza, the value in the specific stanza takes precedence.
 
-ignored_keywords = <comma-separated list of terms> 
+ignored_keywords = <comma-separated list of terms>
 * If you find that event types have terms you do not want considered (for
   example, "mylaptopname"), add that term to this list.
 * Terms in this list are never considered for defining an event type.
-* For more details, refer to $SPLUNK_HOME/etc/system/default/eventdiscoverer.conf).
-* Default = "sun, mon, tue,..." 
+* For more details, see $SPLUNK_HOME/etc/system/default/eventdiscoverer.conf).
+* Default = "sun, mon, tue,..."
 
 ignored_fields = <comma-separated list of fields>
 * Similar to ignored_keywords, except these are fields as defined in Splunk
@@ -37,9 +37,9 @@ ignored_fields = <comma-separated list of fields>
 * Defaults include time-related fields that would not be useful for defining an
   event type.
 
-important_keywords = <comma-separated list of terms> 
+important_keywords = <comma-separated list of terms>
 * When there are multiple possible phrases for generating an eventtype search,
-  those phrases with important_keyword terms are favored.  For example, 
+  those phrases with important_keyword terms are favored.  For example,
   "fatal error" would be preferred over "last message repeated", as "fatal" is
   an important keyword.
 * Default = "abort, abstract, accept,..."

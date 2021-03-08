@@ -1,4 +1,4 @@
-#   Version 8.0.8
+#   Version 8.1.0.1
 #
 ############################################################################
 # OVERVIEW
@@ -40,30 +40,50 @@
 #   * If an attribute is defined at both the global level and in a specific
 #     stanza, the value in the specific stanza takes precedence.
 
-[<field name>]
-* Name of the field that you are configuring.
-* Follow this stanza name with any number of the following attribute/value
+[<field name>|sourcetype::<sourcetype>::<wildcard expression>]
+* The name of the field that you are configuring. This can be a simple field name,
+  or it can be a wildcard expression that is scoped to a source type.
+* Field names can contain only "a-z", "A-Z", "0-9", "." , ":", and "_". They
+  cannot begin with a number or "_".
+  Field names cannot begin with a number "0-9" or an underscore "_".
+* Wildcard expressions have the same limitations as field names, but they can
+  also contain and/or start with a *.
+* Do not create indexed fields with names that collide with names of fields
+  that are extracted at search time.
+* A source-type-scoped wildcard expression causes all indexed fields that match
+  the wildcard expression to be scoped with the specified source type.
+  * Apply source-type-scoped wildcard expressions to all fields associated with
+    structured data source types, such as JSON-formatted data. Do not apply it
+    to mixed datatypes that contain both structured and unstructured data.
+  * When you apply this method to structured data fields, searches against
+    those fields should complete faster.
+  * Example: '[sourcetype::splunk_resource_usage::data*]' defines all fields
+    starting with "data" as indexed fields for
+    'sourcetype=splunk_resource_usage'.
+  * The Splunk software processes source-type-scoped wildcard expressions
+    before it processes source type aliases.
+  * Source-type-scoped wildcard expressions require
+  'indexed_fields_expansion = t' in limits.conf.
+* Follow the stanza name with any number of the following attribute/value
   pairs.
-* Field names can contain only a-z, A-Z, 0-9, and  _, but cannot begin with a
-  number or _
 
 # 'TOKENIZER' enables you to indicate that a field value is a smaller part of a
 # token. For example, your raw event has a field with the value "abc123", but
 # you need this field to to be a multivalue field with both "abc" and “123" as
 # values.
 TOKENIZER = <regular expression>
-* Use this setting to configure multivalue fields (refer to the online
-  documentation for multivalue fields).
 * A regular expression that indicates how the field can take on multiple values
   at the same time.
+* Use this setting to configure multivalue fields. Refer to the online
+  documentation for multivalue fields.
 * If empty, the field can only take on a single value.
 * Otherwise, the first group is taken from each match to form the set of
   values.
 * This setting is used by the "search" and "where" commands, the summary and
   XML outputs of the asynchronous search API, and by the "top", "timeline", and
   "stats" commands.
-* Tokenization of indexed fields (INDEXED = true) is not supported so this
-  attribute is ignored for indexed fields.
+* Tokenization of indexed fields is not supported. If "INDEXED = true",
+  the tokenizer attribute will be ignored.
 * No default.
 
 INDEXED = <boolean>
@@ -76,21 +96,24 @@ INDEXED = <boolean>
 INDEXED_VALUE = [true|false|<sed-cmd>|<simple-substitution-string>]
 * Set to "true" if the value is in the raw text of the event.
 * Set to "false" if the value is not in the raw text of the event.
-* Setting this to "true" expands any search for key=value into a search of
-  value AND key=value (since value is indexed).
+* Setting this to "true" expands any search for "key=value"
+  into a search for value AND key=value
+  since value is indexed.
 * For advanced customization, this setting supports sed style substitution.
-  For example, 'INDEXED_VALUE=s/foo/bar/g' would take the value of the field,
-  replace all instances of 'foo' with 'bar,' and use that new value as the
-  value to search in the index.
+  For example, 'INDEXED_VALUE=s/foo/bar/g'
+  takes the value of the field, replaces all instances of 'foo' with 'bar,'
+  and uses that new value as the value to search in the index.
 * This setting also supports a simple substitution based on looking for the
   literal string '<VALUE>' (including the '<' and '>' characters).
-  For example, 'INDEXED_VALUE=source::*<VALUE>*' would take a search for
-  'myfield=myvalue' and search for 'source::*myvalue*' in the index as a
-  single term.
+  For example, 'INDEXED_VALUE=source::*<VALUE>*'
+  takes a search for 'myfield=myvalue'
+  and searches for 'source::*myvalue*'
+  in the index as a single term.
 * For both substitution constructs, if the resulting string starts with a '[',
   Splunk interprets the string as a Splunk LISPY expression.  For example,
-  'INDEXED_VALUE=[OR <VALUE> source::*<VALUE>]' would turn 'myfield=myvalue'
-  into applying the LISPY expression '[OR myvalue source::*myvalue]' (meaning
-  it matches either 'myvalue' or 'source::*myvalue' terms).
+  'INDEXED_VALUE=[OR <VALUE> source::*<VALUE>]'
+  turns 'myfield=myvalue'
+  into applying the LISPY expression '[OR myvalue source::*myvalue]'
+  (meaning it matches either 'myvalue' or 'source::*myvalue' terms).
 * NOTE: You only need to set 'indexed_value' if "indexed = false".
 * Default: true

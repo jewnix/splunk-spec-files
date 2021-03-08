@@ -1,27 +1,37 @@
-#   Version 8.0.8
+#   Version 8.1.0.1
 #
-# This file contains possible attribute/value pairs for creating roles in
-# authorize.conf.  You can configure roles and granular access controls by
-# creating your own authorize.conf.
-
-# There is an authorize.conf in $SPLUNK_HOME/etc/system/default/. To set
-# custom configurations, place an authorize.conf in
-# $SPLUNK_HOME/etc/system/local/. For examples, see authorize.conf.example.
-# You must restart Splunk to enable configurations.
+############################################################################
+# OVERVIEW
+############################################################################
+# This file contains descriptions of the settings that you can use to
+# create roles in authorize.conf.
 #
-# To learn more about configuration files (including precedence) please see
-# the documentation located at
+# There is an authorize.conf file in the $SPLUNK_HOME/etc/system/default/ directory.
+# Never change or copy the configuration files in the default directory.
+# The files in the default directory must remain intact and in their original
+# location.
+#
+# To set custom configurations, create a new file with the name authorize.conf in
+# the $SPLUNK_HOME/etc/system/local/ directory. Then add the specific settings
+# that you want to customize to the local configuration file.
+# For examples, see authorize.conf.example. You must restart the Splunk instance
+# to enable configuration changes.
+#
+# To learn more about configuration files (including file precedence) see the
+# documentation located at
 # http://docs.splunk.com/Documentation/Splunk/latest/Admin/Aboutconfigurationfiles
-
+#
+############################################################################
 # GLOBAL SETTINGS
+############################################################################
 # Use the [default] stanza to define any global settings.
-#   * You can also define global settings outside of any stanza, at the top
-#     of the file.
+#   * You can also define global settings outside of any stanza, at the top of
+#     the file.
 #   * Each .conf file should have at most one default stanza. If there are
-#     multiple default stanzas, attributes are combined. In the case of
-#     multiple definitions of the same attribute, the last definition in
-#     the file wins.
-#   * If an attribute is defined at both the global level and in a specific
+#     multiple default stanzas, settings are combined. In the case of
+#     multiple definitions of the same setting, the last definition in the
+#     file takes precedence.
+#   * If a setting is defined at both the global level and in a specific
 #     stanza, the value in the specific stanza takes precedence.
 
 [default]
@@ -44,7 +54,7 @@ srchFilterSelecting = <boolean>
 [capability::<capability>]
 * DO NOT edit, remove, or add capability stanzas. The existing capabilities
   are the full set of Splunk system capabilities.
-* Splunk software adds all of its capabilities this way.
+* the Splunk platform adds all of its capabilities this way.
 * For the default list of capabilities and assignments, see authorize.conf
   under the 'default' directory.
 * Only alphanumeric characters and "_" (underscore) are allowed in
@@ -67,8 +77,8 @@ srchFilterSelecting = <boolean>
 * Role names cannot contain spaces, colons, semicolons, or forward slashes.
 
 importRoles = <semicolon-separated list>
-* A list of other roles and their associated capabilities that Splunk software
-  should import.
+* A list of other roles and their associated capabilities that the Splunk
+  platform should import.
 * Importing other roles also imports the other aspects of that role, such as
   allowed indexes to search.
 * Default: A role imports no other roles
@@ -141,25 +151,25 @@ srchFilter = <semicolon-delimited list>
 * A list of search filters for this role.
 * To override any search filters from imported roles, set this to "*", as
   the 'admin' role does.
-* Default: Splunk software does not perform search filtering
+* Default: the Splunk platform does not perform search filtering
 
 srchTimeWin = <integer>
 * Maximum time range, in seconds, of a search.
-* The Splunk software applies this search time range limit backwards from the 
+* The Splunk platform applies this search time range limit backwards from the
   latest time specified for a search.
-* If a user has multiple roles with distinct search time range limits, or has 
-  roles that inherit from roles with distinct search time range limits, the 
-  Splunk software applies the least restrictive search time range limits to 
-  the role. 
-  * For example, if user X has role A (srchTimeWin = 30s), role B (srchTimeWin 
-    = 60s), and role C (srchTimeWin = 3600s), user X gets a maximum search time 
-    range of 1 hour. 
-* When set to '-1', the role does not have a search time range limit. This 
-  value can be overidden by the maximum search time range value of an inherited 
-  role. 
-* When set to '0' (infinite), the role does not have a search time range limit. 
+* If a user has multiple roles with distinct search time range limits, or has
+  roles that inherit from roles with distinct search time range limits,
+  the Splunk platform applies the least restrictive search time range limits to
+  the role.
+  * For example, if user X has role A (srchTimeWin = 30s), role B (srchTimeWin
+    = 60s), and role C (srchTimeWin = 3600s), user X gets a maximum search time
+    range of 1 hour.
+* When set to '-1', the role does not have a search time range limit. This
+  value can be overidden by the maximum search time range value of an inherited
+  role.
+* When set to '0' (infinite), the role does not have a search time range limit.
   This value cannot be overidden by the maximum search time range value of an
-  inherited role. 
+  inherited role.
 * This setting does not apply to real-time searches.
 * Default: -1
 
@@ -181,12 +191,30 @@ srchDiskQuota = <integer>
 srchJobsQuota = <integer>
 * The maximum number of concurrently running historical searches that a user
   with this role can have.
+* When set to 0, this setting does not limit the number of historical search
+  jobs that can run concurrently for a user with this role.
+* When 'enable_cumulative_quota = true' in limits.conf, the
+  'cumulativeSrchJobsQuota' setting overrides this setting.
+  * For example, under this condition, if you have a role named 'foo' for which
+    'cumulativeSrchJobsQuota = 350' while 'srchJobsQuota = 100' and you have 4
+    users with the 'foo' role, those users can only run 350 searches
+    concurrently. If you set 'enable_cumulative_quota = false' those users can
+    run 400 searches concurrently.
 * This setting excludes real-time searches. See the 'rtSrchJobsQuota' setting.
 * Default: 3
 
 rtSrchJobsQuota = <integer>
 * The maximum number of concurrently running real-time searches that a user
   with this role can have.
+* When set to 0, this setting does not limit the number of real-time search
+  jobs that can run concurrently for a user with this role.
+* When 'enable_cumulative_quota = true' in limits.conf, the
+  'cumulativeRTSrchJobsQuota' setting overrides this setting.
+  * For example, under this condition, if you have a role named 'foo' for which
+    'cumulativeRTSrchJobsQuota = 350' while 'rtSrchJobsQuota = 100' and you
+    have 4 users with the 'foo' role, those users can only run 350 searches
+    concurrently. If you set 'enable_cumulative_quota = false' those users can
+    run 400 searches concurrently.
 * Default: 6
 
 srchMaxTime = <integer><unit>
@@ -219,6 +247,16 @@ srchIndexesAllowed = <semicolon-separated list>
   those values take precedence, and any wildcards you specify in this setting are lost.
 * No default.
 
+srchIndexesDisallowed = <semicolon-separated list>
+* A list of indexes that this role does not have permission to search on or delete.
+* 'srchIndexesDisallowed' takes precedence over 'srchIndexesAllowed', 'srchIndexesDefault'
+  and 'deleteIndexesAlowed'. If you specify indexes in both this setting and the
+  other settings, users will be unable to search on or delete those indexes.
+* Follows the same wildcarding semantics as the 'srchIndexesDefault' setting.
+* If you make any changes in the "Indexes" Settings panel for a role in Splunk Web,
+  those values take precedence, and any wildcards you specify in this setting are lost.
+* No default.
+
 deleteIndexesAllowed = <semicolon-separated list>
 * A list of indexes that this role is allowed to delete.
 * This setting must be used in conjunction with the 'delete_by_keyword' capability.
@@ -236,7 +274,9 @@ cumulativeSrchJobsQuota = <integer>
   the next largest quota, and so on.
 * In search head clustering environments, this setting takes effect on a
   per-member basis. There is no cluster-wide accounting.
-* No default.
+* When set to 0, this setting does not limit the number of historical search
+  jobs that can run concurrently across all users with this role.
+* Default: 0
 
 cumulativeRTSrchJobsQuota = <integer>
 * The maximum total number of concurrently running real-time searches
@@ -249,7 +289,9 @@ cumulativeRTSrchJobsQuota = <integer>
   the next largest quota, and so on.
 * In search head clustering environments, this setting takes effect
   on a per-member basis. There is no cluster-wide accounting.
-* No default.
+* When set to 0, this setting does not limit the number of historical search
+  jobs that can run concurrently across all users with this role.
+* Default: 0
 
 federatedProviders = <semicolon-separated list>
 * List of federated providers that the role can access.
@@ -311,7 +353,7 @@ disabled = <boolean>
   knowledge objects.
 * Lets a user bypass any Access Control List (ACL) restrictions, similar
   to the way root access in a *nix environment does.
-* Splunk software checks this capability when accessing manager pages and objects.
+* the Splunk platform checks this capability when accessing manager pages and objects.
 
 [capability::edit_tokens_settings]
 * Lets a user access all token auth settings in the system, such as turning the
@@ -333,6 +375,10 @@ disabled = <boolean>
 
 [capability::delete_messages]
 * Lets a user delete system messages that appear in the UI navigation bar.
+
+[capability::edit_log_alert_event]
+* Lets a user log an event when an alert condition is met. Also lets the user
+  select the "Log an event" option for an alert action in Splunk Web.
 
 [capability::dispatch_rest_to_indexers]
 * Lets a user dispatch the REST search command to indexers.
@@ -380,6 +426,12 @@ disabled = <boolean>
 [capability::edit_health]
 * Lets a user disable or enable health reporting for a feature in the splunkd
   health status tree through the server/health-config/{feature_name} endpoint.
+
+[capability::edit_health_subset]
+* Lets a user disable or enable health reporting for a feature in the
+  "health_subset" view of the health status tree.
+* Actions are performed through the server/health-config/{feature_name}
+  endpoint.
 
 [capability::edit_httpauths]
 * Lets a user edit and end user sessions through the httpauth-tokens endpoint.
@@ -462,7 +514,7 @@ disabled = <boolean>
 
 [capability::edit_search_server]
 * Lets a user edit general distributed search settings like timeouts,
-  heartbeats, and blacklists.
+  heartbeats, and deny lists.
 
 [capability::edit_server]
 * Lets a user edit general server and introspection settings, such
@@ -562,10 +614,7 @@ disabled = <boolean>
 * Replaced with the 'license_edit' capability.
 
 [capability::license_edit]
-* Users with this capability can access and change license attributes and related information.
-
-[capability::license_read]
-* Users with this capability can access license attributes and related information.
+* Lets a user access and change the license.
 
 [capability::license_view_warnings]
 * Lets a user see if they are exceeding limits or reaching the expiration
@@ -594,6 +643,12 @@ disabled = <boolean>
 [capability::list_health]
 * Lets a user monitor the health of various Splunk features
   (such as inputs, outputs, clustering, and so on) through REST endpoints.
+
+[capability::list_health_subset]
+* Lets a user monitor the health of a subset of Splunk features (such as search
+  scheduler) through REST endpoints.
+* These features are more oriented towards the end user, rather than the Splunk
+  administrator.
 
 [capability::list_httpauths]
 * Lets a user list user sessions through the httpauth-tokens endpoint.
@@ -636,6 +691,9 @@ disabled = <boolean>
 * The 'admin_all_objects' capability must be added to the role in order for the user to
   perform POST operations to the /storage/passwords endpoint.
 
+[capability::list_token_http]
+* Lets a user display settings for HTTP token input.
+
 [capability::list_tokens_all]
 * Lets a user view all tokens.
 
@@ -651,6 +709,9 @@ disabled = <boolean>
 [capability::output_file]
 * Lets a user create file outputs, including the 'outputcsv' command (except for
   dispatch=t mode) and the 'outputlookup' command.
+
+[capability::pattern_detect]
+* Controls ability to see and use the Patterns tab in the Search view.
 
 [capability::request_remote_tok]
 * Lets a user get a remote authentication token.
@@ -673,7 +734,7 @@ disabled = <boolean>
 * Lets a user edit the services/properties endpoint.
 
 [capability::restart_splunkd]
-* Lets a user restart Splunk software through the server control handler.
+* Lets a user restart the Splunk platform through the server control handler.
 
 [capability::rtsearch]
 * Lets a user run real-time searches.
@@ -683,6 +744,9 @@ disabled = <boolean>
 
 [capability::run_mcollect]
 * Lets a user run the 'mcollect' and 'meventcollect' commands.
+
+[capability::run_msearch]
+* Lets a user run the 'mpreview' and 'msearch' commands.
 
 [capability::run_debug_commands]
 * Lets a user run debugging commands, for example 'summarize'.
@@ -761,6 +825,23 @@ disabled = <boolean>
 [capability::edit_workload_rules]
 * Lets a user create and edit workload rules through the workloads/rules endpoint.
 
+[capability::list_workload_policy]
+* Lets a user view workload_policy.conf file settings through the workloads/policy endpoint.
+* For now, it is used to view 'admission_rules_enabled' setting under
+  stanza [search_admission_control].
+* admission_rules_enabled = 1 means the admission rules are enabled in
+  [[/manager/system/workload_management|Admission Rules UI]]
+
+[capability::edit_workload_policy]
+* Lets a user edit workload_policy.conf file settings through the workloads/policy endpoint.
+* For now, it used to change 'admission_rules_enabled' setting under
+  stanza [search_admission_control].
+* admission_rules_enabled = 1 means the admission rules are enabled in
+  [[/manager/system/workload_management|Admission Rules UI]]
+
 [capability::apps_restore]
 * Lets a user restore configurations from a backup archive through
   the apps/restore endpoint.
+
+[capability::edit_global_banner]
+* Lets a user enable/edit a global banner visible to all users on every page.

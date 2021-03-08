@@ -1,4 +1,4 @@
-#   Version 8.0.8
+#   Version 8.1.0.1
 #
 # This file contains possible attributes and values for defining server
 # classes to which deployment clients can belong. These attributes and
@@ -48,13 +48,13 @@
 disabled = <boolean>
 * Toggles the deployment server off and on.
 * Set to true to disable.
-* Default: false.
+* Default: false
 
 crossServerChecksum = <boolean>
 * Ensures that each app has the same checksum across different deployment
   servers.
 * Useful if you have multiple deployment servers behind a load-balancer.
-* Default: false.
+* Default: false
 
 excludeFromUpdate = <path>[,<path>]...
 * Specifies paths to one or more top-level files or directories (and their
@@ -91,7 +91,7 @@ continueMatching = <boolean>
 * Matching is done in the order in which server classes are defined.
 * A serverClass can override this property and stop the matching.
 * Can be overridden at the serverClass level.
-* Default: true.
+* Default: true
 
 endpoint = <URL template string>
 * The endpoint from which content a deployment client can download content.
@@ -113,13 +113,13 @@ filterType = whitelist | blacklist
       entry, are considered to match the stanza.
 * The blacklist setting indicates a filtering strategy that rules out a subset:
     * Items are considered to match the stanza by default.
-    * Items that match any blacklist entry are considered to not match the
+    * Items that match any deny list entry are considered to not match the
       stanza, regardless of whitelist.
 * More briefly:
-    * whitelist: default no-match -> whitelists enable -> blacklists disable
-    * blacklist: default match -> blacklists disable-> whitelists enable
+    * whitelist: default no-match
+    * blacklist: default match
 * Can be overridden at the serverClass level, and the serverClass:app level.
-* Default: whitelist.
+* Default: whitelist
 
 whitelist.<n> = <clientName> | <IP address> | <hostname> | <instanceId>
 blacklist.<n> = <clientName> | <IP address> | <hostname> | <instanceId>

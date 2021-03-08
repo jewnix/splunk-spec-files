@@ -1,4 +1,4 @@
-#   Version 8.0.8 
+#   Version 8.1.0.1 
 #
 # This file contains possible attribute/value pairs for configuring event rendering properties.
 #

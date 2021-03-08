@@ -1,4 +1,4 @@
-#   Version 8.0.8
+#   Version 8.1.0.1
 #
 ############################################################################
 # OVERVIEW
@@ -142,8 +142,7 @@ memPoolMB = <positive integer>|auto
                    8 GB or higher           |    512 MB
 * Only set this value if you are an expert user or have been advised to by
   Splunk Support.
-* CAUTION: CARELESSNESS IN SETTING THIS CAN LEAD TO PERMANENT BRAIN DAMAGE OR
-  LOSS OF JOB.
+* CAUTION: CARELESSNESS IN SETTING THIS CAN LEAD TO LOSS OF JOB.
 * Default: auto
 
 indexThreads = <nonnegative integer>|auto
@@ -157,8 +156,7 @@ indexThreads = <nonnegative integer>|auto
   this setting.
 * Only set this value if you are an expert user or have been advised to by
   Splunk Support.
-* CAUTION: CARELESSNESS IN SETTING THIS CAN LEAD TO PERMANENT BRAIN DAMAGE OR
-  LOSS OF JOB.
+* CAUTION: CARELESSNESS IN SETTING THIS CAN LEAD TO LOSS OF JOB.
 * Default: auto
 
 rtRouterThreads = 0|1
@@ -339,6 +337,11 @@ fileSystemExecutorWorkers = <positive iinteger>
   Support.
 * Highest legal value is 4294967295.
 * Default: 5
+
+hotBucketStreaming.extraBucketBuildingCmdlineArgs = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Default: empty
 
 #**************************************************************************
 # PER INDEX OPTIONS
@@ -524,14 +527,16 @@ maxBloomBackfillBucketAge = <nonnegative integer>[smhd]|infinite
 * Default: 30d
 
 hotlist_recency_secs = <unsigned integer>
-* The cache manager attempts to defer bucket eviction until the interval
-  between the bucket's latest time and the current time exceeds this setting.
+* When a bucket is older than this value, it becomes eligible for eviction.
+  Buckets younger than this value are evicted only if there are no older
+  buckets eligible for eviction.
 * Default: The global setting in the server.conf file [cachemanager] stanza
 
 hotlist_bloom_filter_recency_hours = <unsigned integer>
-* The cache manager attempts to defer eviction of the non-journal and non-tsidx
-  bucket files, such as the bloomfilter file, until the interval between the
-  bucket's latest time and the current time exceeds this setting.
+* When a bucket's non-journal and non-tsidx files (such as bloomfilter files)
+  are older than this value, those files become eligible for eviction. Bloomfilter
+  and associated files younger than this value are evicted only if there are
+  no older files eligible for eviction.
 * Default: The global setting in the server.conf file [cachemanager] stanza
 
 enableOnlineBucketRepair = <boolean>
@@ -563,7 +568,7 @@ maxTotalDataSizeMB = <nonnegative integer>
 * The maximum size of an index, in megabytes.
 * If an index grows larger than the maximum size, splunkd freezes the oldest
   data in the index.
-* This setting only applies to hot, warm, and cold buckets. It does
+* This setting applies only to hot, warm, and cold buckets. It does
   not apply to thawed buckets.
 * CAUTION: This setting takes precedence over other settings like
   'frozenTimePeriodInSecs' with regard to data retention. If the index
@@ -596,28 +601,29 @@ maxGlobalRawDataSizeMB = <nonnegative integer>
 maxGlobalDataSizeMB = <nonnegative integer>
 * The maximum size, in megabytes, for all warm buckets in a SmartStore
   index on a cluster.
-* This setting includes the sum of the size of all buckets that reside on
-  remote storage, along with any buckets that have recently rolled from hot
-  to warm on a peer node and are awaiting upload to remote storage.
-* If the total size that the warm buckets of an index occupy exceeds
-  'maxGlobalDataSizeMB', the oldest bucket in the index is frozen. For
-  example, assume that 'maxGlobalDataSizeMB' is set to 5000 for an index,
-  and the index's warm buckets occupy 4800 MB. If a 750 MB hot bucket then
-  rolls to warm, the index size now exceeds 'maxGlobalDataSizeMB', triggering
-  bucket freezing. The cluster freezes the oldest buckets on the index,
-  until the total warm bucket size falls below 'maxGlobalDataSizeMB'.
+* This setting includes the sum of the size of all buckets that reside
+  on remote storage, along with any buckets that have recently rolled
+  from hot to warm on a peer node and are awaiting upload to remote storage.
+* If the total size of the warm buckets in an index exceeds
+  'maxGlobalDataSizeMB', the oldest bucket in the index is frozen.
+  * For example, assume that 'maxGlobalDataSizeMB' is set to 5000 for
+    an index, and the index's warm buckets occupy 4800 MB. If a 750 MB
+    hot bucket then rolls to warm, the index size now exceeds
+    'maxGlobalDataSizeMB', which triggers bucket freezing. The cluster
+    freezes the oldest buckets on the index, until the total warm bucket
+    size falls below 'maxGlobalDataSizeMB'.
 * The size calculation for this setting applies on a per-index basis.
 * The calculation applies across all peers in the cluster.
 * The calculation includes only one copy of each bucket. If a duplicate
-  copy of a bucket exists on a peer node, the size calculation does not
-  include it. For example, if the bucket exists on both remote storage and
-  on a peer node's local cache, the calculation ignores the copy
-  on local cache.
-* The calculation includes only the size of the buckets themselves. It does not
-  include the size of any associated files, such as report acceleration
-  or data model acceleration summaries.
-* The highest legal value is 4294967295.
-* Default: 0 (No limit to the space that an index's warm buckets can occupy)
+  copy of a bucket exists on a peer node, the size calculation does
+  not include it.
+  * For example, if the bucket exists on both remote storage and on a peer
+    node's local cache, the calculation ignores the copy on local cache.
+* The calculation includes only the size of the buckets themselves.
+  It does not include the size of any associated files, such as report
+  acceleration or data model acceleration summaries.
+* The highest legal value is 4294967295 (4.2 petabytes.)
+* Default: 0 (No limit to the space that the warm buckets on an index can occupy.)
 
 rotatePeriodInSecs = <positive integer>
 * Controls the service period (in seconds): how often splunkd performs
@@ -642,7 +648,7 @@ frozenTimePeriodInSecs = <nonnegative integer>
 * Default: 188697600 (6 years)
 
 warmToColdScript = <script path>
-* Specifies a script to run when moving data from warm to cold.
+* Specifies a script to run when moving data from warm to cold buckets.
 * This setting is supported for backwards compatibility with versions
   older than 4.0. Migrating data across filesystems is now handled natively
   by splunkd.
@@ -659,7 +665,7 @@ warmToColdScript = <script path>
   need help configuring this setting.
 * The script must be in $SPLUNK_HOME/bin or a subdirectory thereof.
 * Splunkd ignores this setting for remote storage enabled indexes.
-* Default: empty
+* Default: empty string
 
 coldToFrozenScript = <path to script interpreter> <path to script>
 * Specifies a script to run when data is to leave the splunk index system.
@@ -668,8 +674,11 @@ coldToFrozenScript = <path to script interpreter> <path to script>
 * Add "$DIR" (including quotes) to this setting on Windows (see below
   for details).
 * Script Requirements:
-  * The script must accept one argument:
-    * An absolute path to the bucket directory to archive.
+  * The script must accept at least one argument: An absolute path to the bucket directory
+    that is to be archived.
+  * In the case of metrics indexes, the script must also accept the flag "--search-files-required",
+    to prevent the script from archiving empty rawdata files. For more details, see the entry for the
+    "metric.stubOutRawdataJournal" setting.
   * Your script should work reliably.
     * If your script returns success (0), Splunk completes deleting
       the directory from the managed index location.
@@ -746,6 +755,13 @@ coldToFrozenDir = <path to frozen archive>
 4.2 and later data:
   * To archive: remove files except for the rawdata directory, since rawdata
     contains all the facts in the bucket.
+    CAUTION: if the bucket has a stubbed-out (empty) rawdata file, then
+    all of the bucket files, not just the rawdata directory must be archived
+    to allow for data recovery. To determine whether the rawdata file is stubbed-out,
+    check whether the setting "metric.stubOutRawdataJournal" is set to "true"
+    for the index that the bucket belongs to. In addition, a stubbed-out rawdata
+    file has a very small size (around 16KB) compared with the size of a normal
+    rawdata file.
   * To restore: run splunk rebuild <bucket_dir> on the archived bucket, then
     atomically move the bucket to thawed for that index
 4.1 and earlier data:
@@ -871,26 +887,52 @@ maxHotIdleSecs = <nonnegative integer>
 * The highest legal value is 4294967295
 * Default: 0
 
-maxHotBuckets = <positive integer>
+maxHotBuckets = <positive integer> | auto
 * Maximum number of hot buckets that can exist per index.
-* When 'maxHotBuckets' is exceeded, Splunk rolls the least recently used (LRU)
-  hot bucket to warm.
+* When 'maxHotBuckets' is exceeded, the indexer rolls the hot bucket
+  containing the least recent data to warm.
 * Both normal hot buckets and quarantined hot buckets count towards this
   total.
 * This setting operates independently of maxHotIdleSecs, which can also
   cause hot buckets to roll.
-* NOTE: Splunkd applies this limit per ingestion pipeline. For more
+* NOTE: the indexer applies this limit per ingestion pipeline. For more
   information about multiple ingestion pipelines, see
   'parallelIngestionPipelines' in the server.conf.spec file.
 * With N parallel ingestion pipelines, the maximum number of hot buckets across
   all of the ingestion pipelines is N * 'maxHotBuckets', but only
   'maxHotBuckets' for each ingestion pipeline. Each ingestion pipeline
   independently writes to and manages up to 'maxHotBuckets' number of hot
-  buckets. As a consequence of this, when multiple ingestion pipelines are
-  used, there may be multiple (dependent on number of ingestion pipelines
-  configured) hot buckets with events with overlapping time ranges.
+  buckets. Consequently, when multiple ingestion pipelines are configured, there
+  may be multiple hot buckets with events on overlapping time ranges.
 * The highest legal value is 4294967295
-* Default: 3
+* If you specify "auto", the indexer sets the value to 3.
+* This setting applies only to event indexes.
+* Default: "auto"
+
+metric.maxHotBuckets = <positive integer> | auto
+* Maximum number of hot buckets that can exist per metric index
+* When 'metric.maxHotBuckets' is exceeded, the indexer rolls the hot bucket
+  containing the least recent data to warm.
+* Both normal hot buckets and quarantined hot buckets count towards this
+  total.
+* This setting operates independently of maxHotIdleSecs, which can also
+  cause hot buckets to roll.
+* NOTE: the indexer applies this limit per ingestion pipeline. For more
+  information about multiple ingestion pipelines, see
+  'parallelIngestionPipelines' in the server.conf.spec file.
+* With N parallel ingestion pipelines, the maximum number of hot buckets across
+  all of the ingestion pipelines is N * 'metric.maxHotBuckets', but only
+  'metric.maxHotBuckets' for each ingestion pipeline. Each ingestion pipeline
+  independently writes to and manages up to 'metric.maxHotBuckets' number of hot
+  buckets. Consequently, when multiple ingestion pipelines are configured, there
+  may be multiple hot buckets with events on overlapping time ranges.
+* The highest legal value is 4294967295
+* If you specify "auto", the indexer uses the value set for "maxHotBuckets".
+  For example, if "maxHotBuckets" is also set to "auto", the functional value
+  for metrics.maxHotBuckets is 6. But, if "maxHotBuckets" is set to 10, the
+  functional value for metrics.maxHotBuckets is 10.
+* This setting applies only to metric indexes.
+* Default: "auto"
 
 minHotIdleSecsBeforeForceRoll = <nonnegative integer>|auto
 * When there are no existing hot buckets that can fit new events because of
@@ -935,17 +977,29 @@ minHotIdleSecsBeforeForceRoll = <nonnegative integer>|auto
       bid=_internal~0~97597E05-7156-43E5-85B1-B0751462D16B idx=_internal
       from=hot_v1_0 to=db_1462477093_1462477093_0 size=40960 caller=lru
       maxHotBuckets=3, count=4 hot buckets,evicting_count=1 LRU hots
-* Default: "auto"
+* Default: auto
 
 splitByIndexKeys = <comma separated list>
-* By default, splunkd splits buckets by time ranges with each bucket having its
-  earliest and latest time.
-* If one or several keys are provided, splunkd splits buckets by the index key,
-  or a combination of the index keys if more than one key is provided. The
-  buckets will no longer be split by time ranges.
-* Valid values are: host, sourcetype, source, metric_name
-* This setting only applies to metric indexes.
+* By default, splunkd splits buckets by time ranges. When this happens, each
+  bucket is defined by an earliest and latest time.
+* Use this setting to optionally split buckets by one or more index key fields
+  instead of time ranges.
+* Valid key values are: host, sourcetype, source.
+* This setting applies only to event indexes and requires that the minimal
+  value of 'maxHotBuckets' is 2.
 * If not set, splunkd splits buckets by time span.
+* Default: empty string (no key)
+
+metric.splitByIndexKeys = <comma separated list>
+* By default, splunkd splits buckets by time ranges. When this happens, each
+  bucket is defined by an earliest and latest time.
+* Use this setting to optionally split buckets by one or more index key fields
+  instead of time ranges.
+* Valid key values are: host, sourcetype, source, metric_name.
+* This setting applies only to metric indexes and requires that the minimal
+  value of 'metric.maxHotBuckets' is 2.
+* If not set, the setting 'splitByIndexKeys' applies. If 'splitByIndexKeys' is
+  not set either, splunkd splits buckets by time span.
 * Default: empty string (no key)
 
 quarantinePastSecs = <positive integer>
@@ -1064,6 +1118,7 @@ isReadOnly = <boolean>
 * You must restart splunkd after changing this setting. Reloading the
   index configuration does not suffice.
 * Do not configure this setting on remote storage enabled indexes.
+* If set to 'true', replication must be turned off (repFactor=0) for the index.
 * Default: false
 
 homePath.maxDataSizeMB = <nonnegative integer>
@@ -1140,15 +1195,16 @@ journalCompression = gzip|lz4|zstd
 * Default: gzip
 
 enableTsidxReduction = <boolean>
-* Whether or not the tsidx reduction capability is enabled.
-* By enabling this setting, you turn on the tsidx reduction capability.
-  This causes the indexer to reduce the tsidx files of buckets when the
-  buckets reach the age specified  by 'timePeriodInSecBeforeTsidxReduction'.
-* CAUTION: Do not set this setting to "true" on indexes that have been
+* When set to true, this setting enables tsidx file reduction for event indexes.
+* Under tsidx file reduction, the indexer reduces the tsidx files of buckets
+  when the buckets reach the age specified by
+  'timePeriodInSecBeforeTsidxReduction'.
+* CAUTION: Do not set this setting to "true" for event indexes that are
   configured to use remote storage with the "remotePath" setting.
+* NOTE: This setting does not apply to metric indexes.
 * Default: false
 
-tsidxWritingLevel = [1|2|3]
+tsidxWritingLevel = [1|2|3|4]
 * Enables various performance and space-saving improvements for tsidx files.
 * For deployments that do not have multi-site index clustering enabled,
     set this to the highest value possible for all your indexes.
@@ -1175,6 +1231,28 @@ metric.compressionBlockSize = <integer>
 * Valid only if 'metric.enableMetricTsidxFloatingPointCompression' is set to "true".
 * Minimum value: 128 (1024 bytes)
 * Default: 1024 (8192 bytes)
+
+metric.stubOutRawdataJournal = <boolean>
+* For metrics indexes only.
+* Determines whether the data in the rawdata file is deleted when the hot bucket
+  rolls to warm. The rawdata file itself remains in place in the bucket.
+* Tsidx files are not affected by this setting.
+* This setting does not take effect for indexes that have replication enabled ("repFactor=auto")
+  in an indexer cluster deployment.
+* A change to this setting affects only future buckets or buckets that are currently hot
+  when the change occurs. It does not affect buckets already in the warm or cold state.
+* Searches over metrics indexes do not use the rawdata file. Therefore, changing this
+  setting to "true" does not affect search results.
+* The benefits of setting to true are:
+   * Reduces storage requirements, by reducing rawdata files to the minimal size.
+   * Potentially improves search time, because the maximum bucket size (controlled by "maxDataSizeMB")
+     now allows for larger tsidx files, since the rawdata file no longer occupies significant space.
+     The rawdata file size is discounted from the overall bucket size while writing continues in a hot bucket,
+     even though the rawdata file is not removed until the bucket rolls to warm. Thus, the hot bucket might
+     exceed "maxDataSizeMB", but, once the bucket rolls to warm, its size will no longer exceed "maxDataSizeMB".
+* Caution: Because setting this attribute to "true" eliminates the data in the rawdata files, those
+  files can no longer be used in bucket repair operations.
+* Default: true
 
 suspendHotRollByDeleteQuery = <boolean>
 * Whether or not splunkd rolls hot buckets upon running of the "delete"
@@ -1233,6 +1311,14 @@ metric.tsidxTargetSizeMB = <positive integer>
 * Cannot exceed 4096 MB (4 GB).
 * Default: 1500 (MB)
 
+metric.timestampResolution = <s|ms>
+* This setting specifies the timestamp resolution for metrics tsidx files.
+  Specify 's' for timestamps with second resolution. Specify 'ms' for
+  timestamps with millisecond resolution.
+* Indexes with millisecond timestamp precision have reduced search performance.
+* Optional.
+* Default: s
+
 datatype = <event|metric>
 * Determines whether the index stores log events or metric data.
 * If set to "metric", the indexer optimizes the index to store metric
@@ -1251,6 +1337,31 @@ waitPeriodInSecsForManifestWrite = <nonnegative integer>
   Splunk Support. Increasing the value can lead to inconsistencies in data.
 * The highest legal value is 4294967295.
 * Default: 60 (1 min)
+
+hotBucketStreaming.sendSlices = <boolean>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Enables uploading of journal slices of hot buckets to the remote storage.
+* Default: false
+
+hotBucketStreaming.removeRemoteSlicesOnRoll = <boolean>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Enables removal of uploaded journal slices of hot buckets from the remote
+  storage after a bucket rolls from hot to warm.
+* This setting should be enabled only if 'hotBucketStreaming.sendSlices' is
+  also enabled.
+* Default: false
+
+hotBucketStreaming.reportStatus = <boolean>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Default: false
+
+hotBucketStreaming.deleteHotsAfterRestart = <boolean>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Default: false
 
 #**************************************************************************
 # PER PROVIDER FAMILY OPTIONS
@@ -1556,8 +1667,8 @@ vix.splunk.search.recordreader.sequence.ignore.key = <boolean>
 # Avro
 #
 
-vix.splunk.search.recordreader.avro.regex = <regex>
-* Regex that files must match in order to be considered avro files.
+vix.splunk.search.recordreader.avro.regex = <string>
+* The regular expression that files must match in order to be considered avro files.
 * Optional.
 * Default: \.avro$
 
@@ -1688,7 +1799,7 @@ vix.provider = <provider_name>
 #
 
 vix.input.x.path = <path>
-* Path in a hadoop filesystem (usually HDFS or S3).
+* Path in a Hadoop filesystem (usually HDFS or S3).
 * May contain wildcards.
 * Checks the path for data recursively when ending with '...'
 * Can extract fields with ${field}. I.e: "/data/${server}/...", where server
@@ -1700,12 +1811,12 @@ vix.input.x.path = <path>
     * s3a://s3-bucket/path, will use a S3 filesystem implementation
 
 vix.input.x.accept = <regex>
-* Specifies a whitelist regex.
+* Specifies an allow list regex.
 * Only files within the location given by matching vix.input.x.path, whose
   paths match this regex, will be searched.
 
 vix.input.x.ignore = <regex>
-* Specifies a blacklist regex.
+* Specifies a deny list regex.
 * Searches will ignore paths matching this regex.
 * These matches take precedence over vix.input.x.accept matches.
 
@@ -1884,30 +1995,30 @@ archiver.selfStorageBucketFolder = <string>
 #   archiver.coldStorageRetentionPeriod = 365
 #**************************************************************************
 archiver.coldStorageProvider = <string>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
+* This feature is supported on Splunk Cloud only.
+ Do not configure this setting in a Splunk Enterprise environment.
 * Specifies the storage provider for Dynamic Data Archive.
 * Optional. Only required when using Dynamic Data Archive.
 * The only supported provider is Glacier. More providers will be added in the
   future for other cloud vendors and other storage options.
 
 archiver.coldStorageRetentionPeriod = <unsigned integer>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
+* This feature is supported on Splunk Cloud only.
+ Do not configure this setting in a Splunk Enterprise environment.
 * Defines how long Splunk will maintain data in days, including the
   archived period.
 * Optional. Only required when using Dynamic Data Archive.
 * Must be greater than 0
 
 archiver.enableDataArchive = <boolean>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
+* This feature is supported on Splunk Cloud only.
+ Do not configure this setting in a Splunk Enterprise environment.
 * If set to true, Dynamic Data Archiver is enabled for the index.
 * Default: false
 
 archiver.maxDataArchiveRetentionPeriod = <nonnegative integer>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
+* This feature is supported on Splunk Cloud only.
+ Do not configure this setting in a Splunk Enterprise environment.
 * The maximum total time in seconds, that data for the specified index is
   maintained by Splunk, including the archived period.
 * The archiver.maxDataArchiveRetentionPeriod controls the maximum value of the
@@ -1973,7 +2084,8 @@ path = <path on server>
   * The format for this setting is: <scheme>://<remote-location-specifier>
     * The "scheme" identifies a supported external storage system type.
     * The "remote-location-specifier" is an external system-specific string for
-       identifying a location inside the storage system.
+      identifying a location inside the storage system.
+    * For Google Cloud Storage, this is specified as "gs://<bucket-name>/path/to/splunk/db"
 
 maxVolumeDataSizeMB = <positive integer>
 * If set, this setting limits the total size of all databases that reside
@@ -2047,7 +2159,7 @@ remote.s3.list_objects_version = v1|v2
 remote.s3.signature_version = v2|v4
 * The signature version to use when authenticating with the remote storage
   system supporting the S3 API.
-* For 'sse-kms' and 'sse-c' server-side encryption schemes, and for 'cse' 
+* For 'sse-kms' and 'sse-c' server-side encryption schemes, and for 'cse'
   client-side encryption scheme, you must use signature_version=v4.
 * For signature_version=v2 you must set url_version=v1.
 * Optional.
@@ -2091,6 +2203,10 @@ remote.s3.supports_versioning = <boolean>
 * Specifies whether the remote storage supports versioning.
 * Versioning is a means of keeping multiple variants of an object
   in the same bucket on the remote storage.
+* This setting determines how splunkd removes data from remote storage.
+  If set to true, splunkd will delete all versions of objects at
+  time of data removal. Otherwise, if set to false, splunkd will use a simple DELETE
+  (See https://docs.aws.amazon.com/AmazonS3/latest/dev/DeletingObjectVersions.html).
 * Optional.
 * Default: true
 
@@ -2163,7 +2279,7 @@ remote.s3.retry_policy = max_count
 * Default: max_count
 
 remote.s3.max_count.max_retries_per_part = <unsigned integer>
-* When the remote.s3.retry_policy setting is max_count, sets the maximum number
+* When the 'remote.s3.retry_policy' setting is "max_count", sets the maximum number
   of times a file operation will be retried upon intermittent failure.
 * The count is maintained separately for each file part in a multipart download
   or upload.
@@ -2266,14 +2382,14 @@ remote.s3.dhFile = <path>
 
 remote.s3.encryption = sse-s3 | sse-kms | sse-c | cse | none
 * The encryption scheme to use for data buckets that are currently being stored (data at rest).
-* sse-s3: Search for "Protecting Data Using Server-Side Encryption with Amazon S3-Managed 
+* sse-s3: Search for "Protecting Data Using Server-Side Encryption with Amazon S3-Managed
           Encryption Keys" on the Amazon Web Services documentation site.
-* sse-kms: Search for "Protecting Data Using Server-Side Encryption with CMKs Stored in AWS 
+* sse-kms: Search for "Protecting Data Using Server-Side Encryption with CMKs Stored in AWS
            Key Management Service (SSE-KMS)" on the Amazon Web Services documentation site.
-* sse-c: Search for "Protecting Data Using Server-Side Encryption with Customer-Provided Encryption 
+* sse-c: Search for "Protecting Data Using Server-Side Encryption with Customer-Provided Encryption
          Keys (SSE-C)" on the Amazon Web Services documentation site.
 * cse:  Currently not supported. This setting is related to a feature that is still under development.
-* none: no server-side encryption enabled. The Splunk platform stores the data unencrypted on the 
+* none: no server-side encryption enabled. The Splunk platform stores the data unencrypted on the
   remote volume.
 * Optional.
 * Default: none
@@ -2304,7 +2420,7 @@ remote.s3.encryption.cse.algorithm = aes-256-gcm
 remote.s3.encryption.cse.key_type = kms
 * Currently not supported. This setting is related to a feature that is
   still under development.
-* The mechanism that the Splunk platform uses to generate the key 
+* The mechanism that the Splunk platform uses to generate the key
   for client-side encryption.
 * The only valid value is 'kms', indicating AWS KMS service.
 * You must specify the required KMS settings, for example, 'remote.s3.kms.key_id'
@@ -2329,8 +2445,8 @@ remote.s3.encryption.cse.tmp_dir = <path>
 
 remote.s3.kms.endpoint = <string>
 * Indicates the host name to use when server-side or client-side encryption
-  is enabled e.g. https://internal-kms.mycompany.com:8443 
-* If not set, SmartStore uses 'remote.s3.kms.auth_region' to 
+  is enabled e.g. https://internal-kms.mycompany.com:8443
+* If not set, SmartStore uses 'remote.s3.kms.auth_region' to
   determine the endpoint.
 * Optional.
 * No default.
@@ -2381,3 +2497,220 @@ remote.s3.kms.<ssl_settings> = <...>
 * All of these settings are optional.
 * All of these settings have the same defaults as
   'remote.s3.<ssl_settings>'.
+
+remote.s3.max_download_batch_size = <unsigned integer>
+* The maximum number of objects that can be downloaded in a single batch
+  from remote storage. If the number of objects to be downloaded exceeds
+  this value, the indexer downloads the objects in multiple batches.
+* Default: 50
+
+################################################################
+##### Google Cloud Storage settings
+################################################################
+
+remote.gs.credential_file = <credentials.json>
+* Name of the json file with GCS credentials.
+* For standalone indexers, this file must be located in the $SPLUNK_HOME/etc/auth
+  directory.
+* For indexer clusters, this file must be located either in the _cluster/local
+  directory of the distributed bundle or the $SPLUNK_HOME/etc/auth directory.
+  The distributed bundle location has precedence.
+* You must set either this setting or 'service_account_email' to use
+  custom credentials.
+* The indexer tries different ways of providing credentials in the following order:
+  1. This setting, for the json credential file, is used if it is set.
+  2. The 'service_account_email' setting is used if it is set.
+  3. The credential for the Compute Engine's default service_account is used.
+  The last two methods both require that the indexer is running on GCP.
+* The specified file is encrypted on startup.
+* Optional if the indexer is running on GCP.
+* Required if the indexer is not running on GCP.
+* Default: Not set.
+
+remote.gs.service_account_email = <email-address>
+* Credential of the specified custom service_account is used.
+* This service_account must be associated with every Compute Engine
+  instance used with SmartStore-enabled indexer cluster.
+* This setting uses GCP metadata server to get the credential. It requires
+  the indexer to be running on GCP.
+* This setting is used only if the 'credential_file' setting is unset. For
+  more information, see the entry for the 'credential_file' setting.
+* Optional
+* Default: Not set.
+
+remote.gs.project_id = <string>
+* The ID of the GCP project associated with the volume.
+* The project ID is a unique string across Google Cloud. It can found in GCP console.
+* Required if 'remote.gs.encryption' is set to gcp-sse-c or gcp-sse-kms.
+* Must be left unset if 'remote.gs.encryption' is set to gcp-sse-gcp.
+* Default: Not set.
+
+remote.gs.upload_chunk_size = <unsigned integer>
+* Specifies the maximum size for file chunks in a parallel upload.
+* Specify as bytes
+* Minimum value: 5242880 (5 MB)
+* Default: 33554432 (32MB)
+
+remote.gs.download_chunk_size = <unsigned integer>
+* Specifies the maximum size for file chunks in a parallel download.
+* Specify as bytes
+* Minimum value: 5242880 (5 MB)
+* Default: 33554432 (32MB)
+
+remote.gs.max_parallel_non_upload_threads = <unsigned integer>
+* Number of threads used for parallel downloads and other async gcs
+  operations, per index volume.
+* This is the total count across all such operations.
+* This does not include parallel upload operations, which are specified
+  with the 'max_threads_per_parallel_upload' setting.
+* For SmartStore, this is only used for parallel download of files.
+* Default: 250
+
+remote.gs.max_threads_per_parallel_upload = <unsigned integer>
+* Number of threads used for a single parallel upload operation.
+* Default: 64
+
+remote.gs.max_connection_pool_size = <unsigned integer>
+* Size of the connection pool to the remote storage per index volume.
+* Default: 500
+
+remote.gs.max_download_batch_size = <unsigned integer>
+* The maximum number of objects that can be downloaded in a single batch
+  from remote storage. If the number of objects to be downloaded exceeds
+  this value, the indexer downloads the objects in multiple batches.
+* Default: 50
+
+remote.gs.remove_all_versions = <boolean>
+* If true, a remove operation on an object explicitly deletes all versions
+  of that object.
+* Default: true
+
+remote.gs.use_delimiter = <boolean>
+* Specifies whether a delimiter (currently "guidSplunk") should be
+  used to list the objects that are present on the remote storage.
+* A delimiter groups objects that have the same delimiter value
+  so that the listing process can be more efficient as it
+  does not need to report similar objects.
+* Optional.
+* Default: true
+
+remote.gs.retry_policy = max_count
+* Sets the retry policy to use for remote file operations.
+* A retry policy specifies whether and how to retry file operations that fail
+  for those failures that might be intermittent.
+* Retry policies:
+  + "max_count": Imposes a maximum number of times an operation will be
+    retried upon intermittent failure
+* Default: max_count
+
+remote.gs.max_count.max_retries_per_part = <unsigned integer>
+* When the remote.gs.retry_policy setting is max_count, sets the maximum number
+  of times a file operation will be retried upon intermittent failure.
+* The count is maintained separately for each file part in a multipart download
+  or upload.
+* Default: 9
+
+remote.gs.backoff.initial_delay_ms = <unsigned integer>
+* If retries are enabled, an exponential backoff interval is used to perform
+  the retries.
+* This setting specifies the delay for the first retry, in milliseconds.
+* Default: 3000 (3s)
+
+remote.gs.backoff.max_delay_ms = <unsigned integer>
+* If retries are enabled, an exponential backoff interval is used to perform
+  the retries.
+* This setting specifies the maximum delay before the next retry, in milliseconds
+* Default: 60000 (60s)
+
+remote.gs.backoff.scaling = <unsigned integer>
+* If retries are enabled, an exponential backoff interval is used to perform
+  the retries.
+* This setting specifies the amount by which subsequent delays are scaled,
+  upto max_delay_ms.
+* Default: 2
+
+remote.gs.connectUsingIpVersion = auto|4-only|6-only
+* When making outbound connections to the storage service, this setting
+  controls whether connections are made using IPv4 or IPv6.
+* Connections to literal IPv4 or IPv6 addresses are unaffected by this setting.
+* "4-only" : Splunkd only attempts to connect to the IPv4 address.
+* "6-only" : Splunkd only attempts to connect to the IPv6 address.
+* "auto":
+    * If [general]/listenOnIPv6 in server.conf is set to "only", this defaults
+      to "6-only"
+    * Otherwise, this defaults to "4-only"
+* Default: auto
+
+remote.gs.sslVersionsForClient = ssl3|tls1.0|tls1.1|tls1.2
+* Defines the minimum ssl/tls version to use for outgoing connections.
+* Default: tls1.2
+
+remote.gs.sslVerifyServerCert = <boolean>
+* If set to true, Splunkd authenticates the certificate of the services
+  it connects to by using the configured CA.
+* Default: false.
+
+remote.gs.sslVerifyServerName = <boolean>
+* If set to true, Splunkd verifies that either the Common Name or Subject
+  Alternate Name in the server certificate matches the hostname in the url it
+  connects to.
+* Default: false.
+
+remote.gs.sslRootCAPath = <path>
+* Full path to the Certificate Authority (CA) certificate PEM format file
+  containing one or more certificates concatenated together. Google Storage and
+  related service certificates will be validated against the CAs in this file.
+* Default: value of [sslConfig]/caCertFile in server.conf
+
+remote.gs.cipherSuite = <cipher suite string>
+* If set, uses the specified cipher string for the SSL connection.
+* If not set, uses the default cipher string.
+* Default: value of [sslConfig]/cipherSuite in server.conf
+
+remote.gs.encryption = gcp-sse-c | gcp-sse-kms | gcp-sse-gcp
+* The encryption scheme to use for index buckets while stored on GCS (data-at-rest).
+* gcp-sse-c: Maps to GCP customer-supplied encryption keys. See Google Cloud documentation for details.
+* gcp-sse-kms: Maps to GCP customer-managed encryption keys. See Google Cloud documentation for details.
+* gcp-sse-gcp: Maps to GCP Google-managed encryption keys. See Google Cloud documentation for details.
+* Google Cloud always encrypts the incoming data on the server side.
+* For the gcp-sse-kms scheme, you must grant your Cloud Storage service account permission to use
+  your Cloud KMS key. For more details, search for "Assigning a Cloud KMS key to a service account"
+  on the Google Cloud documentation site. To find your Cloud Storage service account, search for
+  "Getting the Cloud Storage service account".
+* Default: gcp-sse-gcp
+
+remote.gs.encryption.gcp-sse-c.key_type = gcp_kms
+* Affects only the gcp-sse-c encryption scheme.
+* Determines the mechanism the indexer uses to generate the key for sending data to GCS.
+* The only valid value is 'gcp_kms', indicating Google Cloud Key Management Service (GCP KMS).
+* You must also specify the required KMS settings: 'remote.gs.gcp_kms.locations',
+  'remote.gs.gcp_kms.key_ring' and 'remote.gs.gcp_kms.key'. If you do not specify
+  those settings, the indexer cannot start while using gcp-sse-c.
+* Default: gcp_kms
+
+remote.gs.encryption.gcp-sse-c.key_refresh_interval = <unsigned integer>
+* Specifies the interval, in seconds, for generating a new key that is used
+  for encrypting data uploaded to GCS.
+* Default: 86400
+
+remote.gs.gcp_kms.locations = <string>
+* Required if 'remote.gs.encryption' is set to gcp-sse-c or gcp-sse-kms.
+* Specifies the geographical regions where KMS key rings and keys are stored for access.
+* Google Cloud offers three types of locations: regional ones such as "us-central1",
+  dual-regional ones such as "nam4", and multi-regional ones such as "global" and "us".
+  Search for "Cloud KMS locations" on the Google Cloud documentation site for a complete list.
+* For best performance, choose a key ring and a key in the same location as the cloud stack.
+* Default: none.
+
+remote.gs.gcp_kms.key_ring = <string>
+* Required if 'remote.gs.encryption' is set to gcp-sse-c or gcp-sse-kms.
+* Specifies the name of the  key ring used for encryption when uploading data to GCS.
+* In Google Cloud, a key ring is a grouping of keys for organizational purposes. A key ring
+  belongs to a Google Cloud Project and resides in a specific location. Search for "key ring"
+  on the Google Cloud documentation site for more details.
+* Default: none.
+
+remote.gs.gcp_kms.key = <string>
+* Required if 'remote.gs.encryption' is set to gcp-sse-c or gcp-sse-kms.
+* Specifies the name of the encryption key used for uploading data to GCS.
+* Default: none.

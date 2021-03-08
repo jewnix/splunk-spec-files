@@ -1,13 +1,14 @@
-#   Version 8.0.8
+#   Version 8.1.0.1
 #
-# This file contains possible setting/value pairs for saved search entries in the
-# savedsearches.conf file.  You can configure saved searches by creating your own
-# savedsearches.conf file.
+# This file contains possible setting/value pairs for saved search entries in
+# the savedsearches.conf file.  You can configure saved searches by creating
+# your own savedsearches.conf file.
 #
-# There is a default savedsearches.conf file in $SPLUNK_HOME/etc/system/default. To
-# set custom configurations, place a savedsearches.conf file in
-# $SPLUNK_HOME/etc/system/local/.  For examples, see the
-# savedsearches.conf.example file. You must restart Splunk to enable configurations.
+# There is a default savedsearches.conf file in
+# $SPLUNK_HOME/etc/system/default. To set custom configurations, place a
+# savedsearches.conf file in $SPLUNK_HOME/etc/system/local/. For examples, see
+# the savedsearches.conf.example file. You must restart Splunk to enable
+# configurations.
 #
 # To learn more about configuration files (including precedence) please see the
 # documentation located at
@@ -32,21 +33,21 @@
 * Follow the stanza name with any number of the following settings.
 * If you do not specify a setting, Splunk software uses the default.
 
-disabled = [0|1]
-* Disable your search by setting 'disabled=1'.
-* A disabled search cannot run until it is enabled.
+disabled = <boolean>
+* Disable your search by setting 'disabled=true'.
+* You cannot run a disabled search.
 * This setting is typically used to prevent a scheduled search from running
   on its schedule, without deleting the stanza for the search in the
   savedsearches.conf file.
-* Default: 0
+* Default: false
 
 search = <string>
 * The actual search string for the saved search.
-    For example, 'search = index::sampledata http NOT 500'.
+  * For example, 'search = index::sampledata http NOT 500'.
 * Your search can include macro searches for substitution.
-* To learn more about creating a macro search, search the documentation for
-  "macro search."
-* Multi-line search strings currently have some limitations.  For example use
+  * To learn more about creating a macro search, search the documentation for
+    "macro search."
+* Multi-line search strings currently have some limitations. For example, use
   with the search command '|savedsearch' does not currently work with multi-line
   search strings.
 * No default.
@@ -69,7 +70,9 @@ dispatchAs = [user|owner]
 # Scheduling options
 #*******
 
-enableSched = [0|1]
+enableSched = [0 | 1]
+* Specifies whether or not to run the search on a schedule.
+* The only acceptable values for this setting are 0 and 1.
 * Set this to 1 (true) to run your search on a schedule.
 * Default: 0
 
@@ -80,22 +83,22 @@ cron_schedule = <cron string>
   In particular, cron can accept this type of notation: 00,20,40 * * * *, which
   runs the search every hour at hh:00, hh:20, hh:40.
   A cron of 03,23,43 * * * * runs the search every hour at hh:03, hh:23, hh:43.
-* You should schedule your searches so that they are staggered over time.
-  This reduces system load. Running all of the saved searches every 20 minutes
-  (*/20) means all of the searches would launch at hh:00 (20, 40) and might
-  slow your system every 20 minutes.
-* The Splunk cron implementation does not currently support names of
-  months or days.
+* To reduce system load, schedule your searches so that they are staggered over
+  time. Running all of the saved searches every 20 minutes (*/20) means all of
+  the searches would launch at hh:00 (20, 40) and might slow your system every
+  20 minutes.
+* The Splunk cron implementation does not currently support names of months or
+  days.
 * No default.
 
 schedule = <cron-style string>
-* This field is DEPRECATED as of version 4.0.
+* This setting is DEPRECATED as of version 4.0.
 * For more information, see the pre-4.0 spec file.
 * Use 'cron_schedule' to define your scheduled search interval.
 
 allow_skew = <percentage>|<duration-specifier>
-* Lets the search scheduler randomly distribute scheduled searches more
-  evenly over the scheduled time periods.
+* Lets the search scheduler randomly distribute scheduled searches more evenly
+  over the scheduled time periods.
 * When set to non-zero for searches with the following cron_schedule values,
   the search scheduler randomly "skews" the second, minute, and hour that the
   search actually runs on:
@@ -109,9 +112,9 @@ allow_skew = <percentage>|<duration-specifier>
   on.
 * The amount of skew for a specific search remains constant between edits of
   the search.
-* To specify a percentage: Use an integer value followed by the percent '%' symbol.
-  This specifies the maximum amount of time to skew, as a percentage of the
-  scheduled search period.
+* To specify a percentage: Use an integer value followed by the percent '%'
+  symbol. This specifies the maximum amount of time to skew, as a percentage of
+  the scheduled search period.
 * To specify a duration: Use <integer><timescale> to specify a maximum duration.
   Supported units are:
     m, min, minute, mins, minutes
@@ -131,40 +134,41 @@ max_concurrent = <unsigned integer>
   is allowed to run.
 * Default: 1
 
-realtime_schedule = [0|1]
-* Controls the way the scheduler computes the next run time of a
-  scheduled search.
-* If set to 1, the scheduler determines the next scheduled search run time
-  based on the current time.
-    * NOTE: When set to 1, the scheduler might skip some execution periods
+realtime_schedule = <boolean>
+* Controls the way the scheduler computes the next run time of a scheduled
+  search.
+* When set to 'true', the scheduler determines the next scheduled search run
+  time based on the current time.
+    * NOTE: When set to 'true', the scheduler might skip some execution periods
       to make sure that the scheduler is executing the searches that are running
       over the most recent time range.
-* If set to 0, the scheduler determines the next scheduled search run time
-  based on the last run time for the search. This is called continuous
-  scheduling.
-    * NOTE: When set to 0, the scheduler never skips scheduled execution periods.
-      However, the execution of the saved search might fall behind
+* When set to 'false', the scheduler determines the next scheduled search run
+  time the scheduler determines the next scheduled search run time based on the
+  last run time for the search. This is called continuous scheduling.
+    * NOTE: When set to 'false', the scheduler never skips scheduled execution
+	  periods. However, the execution of the saved search might fall behind
       depending on the scheduler's load.
     * Use continuous scheduling whenever you enable the 'summary index' option.
-* The scheduler tries to run searches that have 'realtime_schedule' set to 1
+* The scheduler tries to run searches that have 'realtime_schedule' set to true
   before it runs searches that have continuous scheduling
-  (realtime_schedule = 0).
-* Default: 1
+  (realtime_schedule = false).
+* Default: true
 
 schedule_priority = [default | higher | highest]
 * Raises the scheduling priority of a search:
-  * When set to "default", specifies that there is no increase to the scheduling
-    priority.
-  * When set to "higher", specifies that the scheduling priority is higher than
-    other searches of the same scheduling tier. While there are four tiers of
-    priority for scheduled searches, only the following are affected by this
-    setting:
+  * When set to "default", this setting specifies that there is no increase to
+    the scheduling priority.
+  * When set to "higher", this setting specifies that the scheduling priority
+    is higher than other searches of the same scheduling tier. While there are
+    four tiers of priority for scheduled searches, only the following are
+    affected by this setting:
       1. Real-Time-Scheduled (realtime_schedule=1).
       2. Continuous-Scheduled (realtime_schedule=0).
-  * When set to "highest", specifies that the scheduling priority is higher
-    than other searches regardless of scheduling tier. However,
+  * When set to "highest", this setting specifies that the scheduling priority
+    is higher than other searches regardless of scheduling tier. However,
     real-time-scheduled searches with 'schedule_priority = highest' always have
-    priority over continuous scheduled searches with 'schedule_priority = highest'.
+    priority over continuous scheduled searches with 'schedule_priority =
+    highest'.
   * The high-to-low order is:
       RTSS(H) > CSS(H) > RTSS(h) > RTSS(d) > CSS(h) > CSS(d)
     Where:
@@ -175,19 +179,19 @@ schedule_priority = [default | higher | highest]
         H = highest
 * The scheduler honors a non-default priority only when the search owner has
   the 'edit_search_schedule_priority' capability.
-  * A non-default priority is mutually exclusive with a non-zero 'schedule_window'
-    (see below).  If a user specifies both for a scheduled search, the scheduler
-    honors the priority only.
-  * However, if a user specifies both settings for a search, but the search owner
-    does not have the 'edit_search_scheduler_priority' capability, then the
-    scheduler ignores the priority setting and honors the 'schedule_window'.
-* CAUTION: Having too many searches with a non-default priority will impede the
+  * A non-default priority is mutually exclusive with a non-zero
+    'schedule_window' (see below). If a user specifies both for a scheduled
+    search, the scheduler honors the priority only.
+  * However, if a user specifies both settings for a search, but the search
+    owner does not have the 'edit_search_scheduler_priority' capability, then
+    the scheduler ignores the priority setting and honors the 'schedule_window'.
+* CAUTION: Having too many searches with a non-default priority impedes the
   ability of the scheduler to minimize search starvation. Use this setting
   only for mission-critical searches.
 * Default: default
 
 schedule_window = <unsigned integer> | auto
-* When schedule_window is non-zero, it indicates to the scheduler that the
+* When 'schedule_window' is non-zero, it indicates to the scheduler that the
   search does not require a precise start time. This gives the scheduler
   greater flexibility when it prioritizes searches.
 * When 'schedule_window' is set to an integer greater than 0, it specifies the
@@ -214,15 +218,15 @@ schedule_window = <unsigned integer> | auto
 #*******
 
 workload_pool = <name of workload pool>
-* Sets the name of the workload pool to be used by this search.
+* Specifies the name of the workload pool to be used by this search.
 * There are multiple workload pools defined in the workload_pools.conf file.
-  Each workload pool has different resource limits associated with it,
-  for example, CPU, Memory, etc.
+  Each workload pool has different resource limits associated with it, for
+  example, CPU, Memory, etc.
 * The search process of this search is launched into the 'workload_pool'
   specified above.
 * The 'workload_pool' used should be defined in the workload_pools.conf file.
-* If workload management is enabled and a explicit 'workload_pool' is not specified,
-  the 'default_pool' defined in the workload_pools.conf file is used.
+* If workload management is enabled and a explicit 'workload_pool' is not
+  specified, the 'default_pool' defined in the workload_pools.conf file is used.
 
 #*******
 # Notification options
@@ -239,13 +243,14 @@ relation = greater than | less than | equal to | not equal to | drops by | rises
 * Default: empty string
 
 quantity = <integer>
-* Specifies a value for the 'counttype' and 'relation', to determine the condition
-  under which an alert is triggered by a saved search.
-* Think of it as a sentence constructed like this: <counttype> <relation> <quantity>.
+* Specifies a value for the 'counttype' and 'relation' settings, to determine
+  the condition under which an alert is triggered by a saved search.
+* Think of it as a sentence constructed like this: <counttype> <relation>
+  <quantity>.
   * For example, "number of events [is] greater than 10" sends an alert when the
     count of events is larger than by 10.
-  * For example, "number of events drops by 10%" sends an alert when the count of
-    events drops by 10%.
+  * For example, "number of events drops by 10%" sends an alert when the count
+    of events drops by 10%.
 * Default: empty string
 
 alert_condition = <search string>
@@ -256,20 +261,20 @@ alert_condition = <search string>
 
 
 #*******
-# generic action settings.
+# Generic action settings.
 # For a comprehensive list of actions and their arguments, refer to the
 # alert_actions.conf file.
 #*******
 
-action.<action_name> = 0 | 1
-* Indicates whether the action is enabled or disabled for a particular saved
+action.<action_name> = <boolean>
+* Indicates whether the action is enabled for a particular saved
   search.
 * The 'action_name' can be: email | populate_lookup | script | summary_index
 * For more about your defined alert actions see the alert_actions.conf file.
 * Default: empty string
 
 action.<action_name>.<parameter> = <value>
-* Overrides an action's parameter, defined in the alert_actions.conf file,
+* Overrides an action's <parameter> as defined in the alert_actions.conf file,
   with a new <value> for this saved search only.
 * Default: empty string
 
@@ -278,9 +283,9 @@ action.<action_name>.<parameter> = <value>
 # Settings for email action
 #******
 
-action.email = 0 | 1
-* Enables or disables the email action.
-* Default: 0 (false)
+action.email = <boolean>
+* Specifies whether the email action is enabled for this search.
+* Default: false
 
 action.email.to = <email list>
 * REQUIRED. This setting is not defined in the alert_actions.conf file.
@@ -303,22 +308,22 @@ action.email.subject = <string>
 
 action.email.mailserver = <string>
 * Set the address of the MTA server to be used to send the emails.
-* Defaults to <LOCALHOST>
+* Default: <LOCALHOST>
     (or the 'mailserver' setting in alert_actions.conf file)
 
 action.email.maxresults = <integer>
 * Set the maximum number of results to email.
-* Any alert-level results threshold greater than this number is capped at
-  this level.
+* Any alert-level results threshold greater than this number is capped at this
+  level.
 * This value affects all methods of result inclusion by email alert: inline,
   CSV, and PDF.
-* NOTE: This setting is affected globally by the 'maxresults' setting in
-  the [email] stanza of the alert_actions.conf file.
+* NOTE: This setting is affected globally by the 'maxresults' setting in the
+  [email] stanza of the alert_actions.conf file.
 * Default: 10000
 
 action.email.include.results_link = [1|0]
-* Specify whether to include a link to search results in the
-  alert notification email.
+* Specify whether to include a link to search results in the alert notification
+  email.
 * Default: 1 (true)
     (or the 'include.result.link' setting in the alert_actions.conf file)
 
@@ -337,14 +342,14 @@ action.email.include.trigger_time = [1|0]
 * Default: 0 (false) or whatever is set in the alert_actions.conf file
 
 action.email.include.view_link = [1|0]
-* Specify whether to include saved search title and a link for editing
-  the saved search.
+* Specify whether to include saved search title and a link for editing the
+  saved search.
 * Default: 1 (true)
     (or the 'include.view_link' setting in the alert_actions.conf file)
 
 action.email.inline = [1|0]
-* Specify whether to include search results in the body of the
-  alert notification email.
+* Specify whether to include search results in the body of the alert
+  notification email.
 * Default: 0 (false)
     (or the 'inline' setting in the alert_actions.conf file)
 
@@ -353,14 +358,21 @@ action.email.sendcsv = [1|0]
 * Default: 0
     (or the 'sendcsv' setting in the alert_actions.conf file)
 
+action.email.allow_empty_attachment = <boolean>
+* Specifies whether the Splunk software attaches a CSV or PDF file to an
+  alert email even when the triggering alert search does not have results.
+* Use this setting to override for specific alerts the default set for
+  email alert actions in 'alert_actions.conf'.
+* Default: set by the 'allow_empty_attachment' setting in
+           'alert_actions.conf'
+
 action.email.sendpdf = [1|0]
 * Specify whether to send results as a PDF file.
 * Default: 0 (false)
     (or the 'sendpdf' setting in the alert_actions.conf file)
 
 action.email.sendresults = [1|0]
-* Specify whether to include search results in the
-  alert notification email.
+* Specify whether to include search results in the alert notification email.
 * Default: 0 (false)
     (or the 'sendresults' setting in the alert_actions.conf file)
 
@@ -369,19 +381,17 @@ action.email.sendresults = [1|0]
 # Settings for script action
 #******
 
-action.script = 0 | 1
-* Enables or disables the script action.
-* Specify 1 to enable, 0 to disable.
-* Default: 0 (false)
+action.script = <boolean>
+* Specifies whether the script action is enabled for this search.
+* Default: false
 
 action.script.filename = <script filename>
 * The filename, with no path, of the shell script to run.
 * The script should be located in: $SPLUNK_HOME/bin/scripts/
 * For system shell scripts on UNIX, or .bat or .cmd file on Windows, there
   are no further requirements.
-* For other types of scripts, the first line should begin with a #!
-  marker, followed by a path to the interpreter that will run the
-  script.
+* For other types of scripts, the first line should begin with a #! marker,
+  followed by a path to the interpreter that will run the script.
   * Example: #!C:\Python27\python.exe
 * Default: empty string
 
@@ -389,34 +399,46 @@ action.script.filename = <script filename>
 # Settings for lookup action
 #******
 
-action.lookup = 0 | 1
-* Enables or disables the lookup action.
-* Specify 1 to enable, 0 to disable.
-* Default: 0 (false)
+action.lookup = <boolean>
+* Specifies whether the lookup action is enabled for this search.
+* Default: false
 
 action.lookup.filename = <lookup filename>
 * Provide the name of the CSV lookup file to write search results to.
   Do not provide a file path.
 * Lookup actions can only be applied to CSV lookups.
 
-action.lookup.append = 0 | 1
-* Specify whether to append results to the lookup file defined for the
+action.lookup.append = <boolean>
+* Specifies whether to append results to the lookup file defined for the
   'action.lookup.filename' setting.
-* Default: 0 (false)
+* Default: false
 
 #*******
 # Settings for summary index action
 #*******
 
-action.summary_index = 0 | 1
-* Enables or disables the summary index action.
-* Specify 1 to enable, 0 to disable.
-* Default: 0
+action.summary_index = <boolean>
+* Specifies whether the summary index action is enabled for this search.
+* Default: false.
 
 action.summary_index._name = <index>
 * Specifies the name of the summary index where the results of the scheduled
   search are saved.
 * Default: summary
+
+action.summary_index._type = [event | metric]
+* Specifies the data type of the summary index where the Splunk software saves
+  the results of the scheduled search.
+* Default: event
+
+action.summary_index._metric_dims = <comma-delimited-field-list>
+* Optional
+* Identify one or more fields with numeric values that the Splunk software
+  should convert into dimensions during the summary indexing process.
+* The Splunk software converts all fields with numeric values that are not in
+  this list into measures.
+* If you provide a list of fields, separate them with commas.
+* Default: empty string
 
 action.summary_index.inline = <boolean>
 * Specify whether to run the summary indexing action as part of the
@@ -434,7 +456,8 @@ action.summary_index.force_realtime_schedule = <boolean>
 * By default 'realtime_schedule' is false for a report configured for
   summary indexing. Set this attribute to 'true' or '1' to override the
   default behavior.
-* CAUTION: Setting this to 'true' can cause gaps in summary data as a realtime_schedule
+* CAUTION: Setting this to 'true' can cause gaps in summary data as a
+  realtime_schedule
   search is skipped if search concurrency limits are violated.
 * Default: 0 (false)
 
@@ -442,10 +465,9 @@ action.summary_index.force_realtime_schedule = <boolean>
 # Settings for lookup table population parameters
 #*******
 
-action.populate_lookup = 0 | 1
-* Enables or disables the lookup population action.
-* Specify 1 to enable, 0 to disable.
-* Default: 0
+action.populate_lookup = <boolean>
+* Specifies whether the lookup population action is enabled for this search.
+* Default: false
 
 action.populate_lookup.dest = <string>
 * Can be one of the following two options:
@@ -464,8 +486,8 @@ run_on_startup = <boolean>
 * Specifies whether this search runs when the Splunk platform starts
   or any edit that changes search related arguments happen. This includes search
   and dispatch.* arguments.
-* If set to "true", the search is run as soon as possible during startup or after
-  edit. Otherwise the search is run at the next scheduled time.
+* If set to "true", the search is run as soon as possible during startup or
+  after edit. Otherwise the search is run at the next scheduled time.
 * Set 'run_on_startup' to "true" for scheduled searches that populate
   lookup tables or generate artifacts used by dashboards.
 * Default: false
@@ -473,7 +495,7 @@ run_on_startup = <boolean>
 run_n_times = <unsigned integer>
 * Runs this search exactly the specified number of times. The search is not run
   again until the Splunk platform is restarted.
-* Default: 0 (infinite).
+* Default: 0 (infinite)
 
 
 #*******
@@ -531,7 +553,7 @@ dispatch.index_earliest= <time-str>
   absolute time.
 * If this value is an absolute time, use the 'dispatch.time_format setting
   to format the value.
-* Defaults to empty string.
+* Defaults: empty string
 
 dispatch.index_latest= <time-str>
 * Specifies the latest index time for this saved search. Can be a relative or
@@ -577,12 +599,14 @@ dispatch.rt_backfill = <boolean>
 * Default: false
 
 dispatch.indexedRealtime = <boolean>
-* Specifies whether to use 'indexed-realtime' mode when doing real-time searches.
+* Specifies whether to use 'indexed-realtime' mode when doing real-time
+  searches.
 * Overrides the setting in the limits.conf file for the
   'indexed_realtime_use_by_default' setting in the [realtime] stanza.
 * This setting applies to each job.
 * See the [realtime] stanza in the limits.conf.spec file for more information.
-* Default: The value for 'indexed_realtime_use_by_default' in the limits.conf file
+* Default: The value for 'indexed_realtime_use_by_default' in the limits.conf
+  file.
 
 dispatch.indexedRealtimeOffset = <integer>
 * Controls the number of seconds to wait for disk flushes to finish.
@@ -590,7 +614,8 @@ dispatch.indexedRealtimeOffset = <integer>
   'indexed_realtime_disk_sync_delay' setting in the [realtime] stanza.
 * This setting applies to each job.
 * See the [realtime] stanza in the limits.conf.spec file for more information.
-* Default: The value for 'indexed_realtime_disk_sync_delay' in the limits.conf file
+* Default: The value for 'indexed_realtime_disk_sync_delay' in the limits.conf
+  file.
 
 dispatch.indexedRealtimeMinSpan = <integer>
 * Minimum seconds to wait between component index searches.
@@ -598,7 +623,8 @@ dispatch.indexedRealtimeMinSpan = <integer>
   'indexed_realtime_default_span' setting in the [realtime] stanza.
 * This setting applies to each job.
 * See the [realtime] stanza in the limits.conf.spec file for more information.
-* Default: The value for 'indexed_realtime_default_span' in the limits.conf file
+* Default: The value for 'indexed_realtime_default_span' in the limits.conf
+  file.
 
 dispatch.rt_maximum_span = <integer>
 * The max seconds allowed to search data which falls behind realtime.
@@ -609,11 +635,14 @@ dispatch.rt_maximum_span = <integer>
   'indexed_realtime_maximum_span' setting in the [realtime] stanza.
 * This setting applies to each job.
 * See the [realtime] stanza in the limits.conf.spec file for more information.
-* Default: the value for 'indexed_realtime_maximum_span' in the limits.conf file
+* Default: the value for 'indexed_realtime_maximum_span' in the limits.conf
+  file.
 
 dispatch.sample_ratio = <integer>
-* The integer value used to calculate the sample ratio. The formula is 1 / <integer>.
-* The sample ratio specifies the likelihood of any event being included in the sample.
+* The integer value used to calculate the sample ratio. The formula is
+  1 / <integer>.
+* The sample ratio specifies the likelihood of any event being included in the
+  sample.
 * For example, if sample_ratio = 500, each event has a 1/500 chance of being
   included in the sample result set.
 * Default: 1
@@ -635,17 +664,17 @@ auto_summarize  = <boolean>
 * Default: false
 
 auto_summarize.command = <string>
-* A search template to use to construct the auto summarization for this
-  search.
-* DO NOT change unless you know what you're doing
+* A search template to use to construct the auto summarization for this search.
+* DO NOT change this setting unless you know what you're doing.
 
 auto_summarize.timespan = <time-specifier> (, <time-specifier>)*
-* Comma delimited list of time ranges that each summarized chunk should span.
+* Comma-delimited list of time ranges that each summarized chunk should span.
   This comprises the list of available granularity levels for which summaries
   would be available. For example, a timechart over the last month whose
   granularity is at the day level should set this to "1d". If you need
   the same data summarized at the hour level because you need to have weekly
-  charts then use: "1h;1d".
+  charts then use: "1h,1d".
+* This setting does not support "1w" timespans.
 
 auto_summarize.cron_schedule = <cron-string>
 * Cron schedule to use to probe or generate the summaries for this search.
@@ -655,12 +684,12 @@ auto_summarize.dispatch.<arg-name> = <string>
   search.
 
 auto_summarize.suspend_period = <time-specifier>
-* The amount of time to suspend summarization of this search if the summarization
-  is deemed unhelpful.
+* The amount of time to suspend summarization of this search if the
+  summarization is deemed unhelpful.
 * Default: 24h
 
 auto_summarize.max_summary_size = <unsigned integer>
-* The minimum summary size when to start testing it's helpfulness.
+* The minimum summary size when to start testing its helpfulness.
 * Default: 52428800 (5MB)
 
 auto_summarize.max_summary_ratio = <positive decimal>
@@ -695,25 +724,26 @@ auto_summarize.max_concurrent = <unsigned integer>
 * Defaults: 1
 
 auto_summarize.workload_pool = <name of workload pool>
-* Sets the name of the workload pool to be used by this auto summarization.
+* Sets the name of the workload pool that is used by this auto summarization.
 * There are multiple workload pools defined in workload_pools.conf.
   Each workload pool has different resource limits associated with it,
   for example, CPU, Memory, etc.
-* The search process of this auto summarization will be launched into the
+* The search process of this auto summarization are launched into the
   workload_pool specified above.
 * The workload_pool used should be defined in workload_pools.conf.
-* If workload management is enabled and an explicit workload_pool is not specified,
-  the workload rules defined in workload_rules.conf will try to put the search
-  into a proper pool as specified in some rule. If there is no rule defined for this
-  search, the default_pool defined in workload_pools.conf will be used.
+* If workload management is enabled and an explicit workload_pool is not
+  specified, the workload rules defined in workload_rules.conf try to put the
+  search into a proper pool as specified in some rule. If there is no rule
+  defined for this search, the default_pool defined in workload_pools.conf is
+  used.
 
 #*******
 # alert suppression/severity/expiration/tracking/viewing settings
 #*******
 
-alert.suppress = 0 | 1
+alert.suppress = <boolean>
 * Specifies whether alert suppression is enabled for this scheduled search.
-* Default: 0 (false)
+* Default: false
 
 alert.suppress.period = <time-specifier>
 * Sets the suppression period. Use [number][time-unit] to specify a time.
@@ -724,6 +754,28 @@ alert.suppress.period = <time-specifier>
 alert.suppress.fields = <comma-delimited-field-list>
 * List of fields to use when suppressing per-result alerts. This field *must*
   be specified if the digest mode is disabled and suppression is enabled.
+* Default: empty string.
+
+alert.suppress.group_name = <string>
+* Optional.
+* Use this setting to define an alert suppression group for a set of alerts
+  that are running over the same or very similar datasets. Do this to avoid
+  getting multiple triggered alert notifications for the same data.
+* All alerts with the same 'alert.suppress.group_name' value are in the same
+  alert suppression group, as long as they are all owned by the same user.
+  * Alerts belonging to different users cannot be included in the same
+    suppression group, even if they all have the same 'group_name'.
+* When an alert within an alert suppression group is triggered, all of the
+  alerts in the group are suppressed for a period of time defined by the
+  'alert.suppress.period' of the triggered alert. The triggered alert performs
+  its alert actions, if it has any. The other alerts in the group do not
+  perform their alert actions.
+  * For example, say you have an alert suppression group with five alerts. Each
+    of these alerts has a different 'alert.suppress.period' and a different
+    alert action. If one alert from the group with an 'alert.suppress.period'
+    of 5m and an email alert action is triggered, all of the alerts in the
+    group are suppressed for 5m. However, only one alert action happens: the
+    email for the triggering alert.
 * Default: empty string.
 
 alert.severity = <integer>
@@ -755,7 +807,8 @@ alert.track = <boolean> | auto
 * Default: auto
 
 alert.display_view = <string>
-* Name of the UI view where the emailed link for each result alerts should point to.
+* Name of the UI view where the emailed link for each result alerts should
+  point to.
 * If not specified, the value of the 'request.ui_dispatch_app' setting is used.
   If the 'request.ui_dispatch_app' setting is missing then "search" is used.
 * Default: empty string
@@ -806,38 +859,38 @@ request.ui_dispatch_view = <string>
 #******
 
 # General options
-display.general.enablePreview = 0 | 1
+display.general.enablePreview = [0 | 1]
 display.general.type = [events|statistics|visualizations]
-display.general.timeRangePicker.show = 0 | 1
-display.general.migratedFromViewState = 0 | 1
+display.general.timeRangePicker.show = [0 | 1]
+display.general.migratedFromViewState = [0 | 1]
 display.general.locale = <string>
 
 # Event options
 display.events.fields = [<string>(, <string>)*]
 display.events.type = [raw|list|table]
-display.events.rowNumbers = 0 | 1
+display.events.rowNumbers = [0 | 1]
 display.events.maxLines = <integer>
 display.events.raw.drilldown = [inner|outer|full|none]
 display.events.list.drilldown = [inner|outer|full|none]
-display.events.list.wrap = 0 | 1
-display.events.table.drilldown = 0 | 1
-display.events.table.wrap = 0 | 1
+display.events.list.wrap = [0 | 1]
+display.events.table.drilldown = [0 | 1]
+display.events.table.wrap = [0 | 1]
 
 # Statistics options
-display.statistics.rowNumbers = 0 | 1
-display.statistics.wrap = 0 | 1
+display.statistics.rowNumbers = [0 | 1]
+display.statistics.wrap = [0 | 1]
 display.statistics.overlay = [none|heatmap|highlow]
 display.statistics.drilldown = [row|cell|none]
-display.statistics.totalsRow = 0 | 1
-display.statistics.percentagesRow = 0 | 1
-display.statistics.show = 0 | 1
+display.statistics.totalsRow = [0 | 1]
+display.statistics.percentagesRow = [0 | 1]
+display.statistics.show = [0 | 1]
 
 # Visualization options
-display.visualizations.trellis.enabled = 0 | 1
-display.visualizations.trellis.scales.shared = 0 | 1
+display.visualizations.trellis.enabled = [0 | 1]
+display.visualizations.trellis.scales.shared = [0 | 1]
 display.visualizations.trellis.size = [small|medium|large]
 display.visualizations.trellis.splitBy = <string>
-display.visualizations.show = 0 | 1
+display.visualizations.show = [0 | 1]
 display.visualizations.type = [charting|singlevalue|mapping|custom]
 display.visualizations.chartHeight = <integer>
 display.visualizations.charting.chart = [line|area|column|bar|pie|scatter|bubble|radialGauge|fillerGauge|markerGauge]
@@ -846,8 +899,8 @@ display.visualizations.charting.chart.nullValueMode = [gaps|zero|connect]
 display.visualizations.charting.chart.overlayFields = <string>
 display.visualizations.charting.drilldown = [all|none]
 display.visualizations.charting.chart.style = [minimal|shiny]
-display.visualizations.charting.layout.splitSeries = 0 | 1
-display.visualizations.charting.layout.splitSeries.allowIndependentYRanges = 0 | 1
+display.visualizations.charting.layout.splitSeries = [0 | 1]
+display.visualizations.charting.layout.splitSeries.allowIndependentYRanges = [0 | 1]
 display.visualizations.charting.legend.mode = [standard|seriesCompare]
 display.visualizations.charting.legend.placement = [right|bottom|top|left|none]
 display.visualizations.charting.legend.labelStyle.overflowMode = [ellipsisEnd|ellipsisMiddle|ellipsisStart]
@@ -874,7 +927,7 @@ display.visualizations.charting.axisY2.minimumNumber = <decimal> | auto
 display.visualizations.charting.axisX.maximumNumber = <decimal> | auto
 display.visualizations.charting.axisY.maximumNumber = <decimal> | auto
 display.visualizations.charting.axisY2.maximumNumber = <decimal> | auto
-display.visualizations.charting.axisY2.enabled = 0 | 1
+display.visualizations.charting.axisY2.enabled = [0 | 1]
 display.visualizations.charting.chart.sliceCollapsingThreshold = <decimal>
 display.visualizations.charting.chart.showDataLabels = [all|none|minmax]
 display.visualizations.charting.gaugeColors = [<hex>(, <hex>)*]
@@ -900,33 +953,33 @@ display.visualizations.singlevalue.rangeValues = [<string>(, <string>)*]
 display.visualizations.singlevalue.rangeColors = [<string>(, <string>)*]
 display.visualizations.singlevalue.trendInterval = <string>
 display.visualizations.singlevalue.trendColorInterpretation = [standard|inverse]
-display.visualizations.singlevalue.showTrendIndicator = 0 | 1
-display.visualizations.singlevalue.showSparkline = 0 | 1
+display.visualizations.singlevalue.showTrendIndicator = [0 | 1]
+display.visualizations.singlevalue.showSparkline = [0 | 1]
 display.visualizations.singlevalue.trendDisplayMode = [percent|absolute]
 display.visualizations.singlevalue.colorBy = [value|trend]
-display.visualizations.singlevalue.useColors = 0 | 1
+display.visualizations.singlevalue.useColors = [0 | 1]
 display.visualizations.singlevalue.numberPrecision = [0|0.0|0.00|0.000|0.0000]
-display.visualizations.singlevalue.useThousandSeparators = 0 | 1
+display.visualizations.singlevalue.useThousandSeparators = [0 | 1]
 display.visualizations.mapHeight = <integer>
 display.visualizations.mapping.type = [marker|choropleth]
 display.visualizations.mapping.drilldown = [all|none]
 display.visualizations.mapping.map.center = (<decimal>,<decimal>)
 display.visualizations.mapping.map.zoom = <integer>
-display.visualizations.mapping.map.scrollZoom = 0 | 1
-display.visualizations.mapping.map.panning    = 0 | 1
+display.visualizations.mapping.map.scrollZoom = [0 | 1]
+display.visualizations.mapping.map.panning    = [0 | 1]
 display.visualizations.mapping.choroplethLayer.colorMode = [auto|sequential|divergent|categorical]
 display.visualizations.mapping.choroplethLayer.maximumColor = <string>
 display.visualizations.mapping.choroplethLayer.minimumColor = <string>
 display.visualizations.mapping.choroplethLayer.colorBins = <integer>
 display.visualizations.mapping.choroplethLayer.neutralPoint = <decimal>
 display.visualizations.mapping.choroplethLayer.shapeOpacity = <decimal>
-display.visualizations.mapping.choroplethLayer.showBorder = 0 | 1
+display.visualizations.mapping.choroplethLayer.showBorder = [0 | 1]
 display.visualizations.mapping.markerLayer.markerOpacity = <decimal>
 display.visualizations.mapping.markerLayer.markerMinSize = <integer>
 display.visualizations.mapping.markerLayer.markerMaxSize = <integer>
 display.visualizations.mapping.legend.placement = [bottomright|none]
 display.visualizations.mapping.data.maxClusters = <integer>
-display.visualizations.mapping.showTiles = 0 | 1
+display.visualizations.mapping.showTiles = [0 | 1]
 display.visualizations.mapping.tileLayer.tileOpacity = <decimal>
 display.visualizations.mapping.tileLayer.url = <string>
 display.visualizations.mapping.tileLayer.minZoom = <integer>
@@ -943,7 +996,7 @@ display.page.search.mode = [fast|smart|verbose]
 
 display.page.search.timeline.format = [hidden|compact|full]
 display.page.search.timeline.scale = [linear|log]
-display.page.search.showFields = 0 | 1
+display.page.search.showFields = [0 | 1]
 display.page.search.tab = [events|statistics|visualizations|patterns]
 # Deprecated
 display.page.pivot.dataModel = <string>
@@ -1003,8 +1056,9 @@ display.statistics.format.<index>.colorPalette.maxColor = <hex>
 # Other settings
 #*******
 
-embed.enabled = 0 | 1
+embed.enabled = [0 | 1]
 * Specifies whether a saved search is shared for access with a guestpass.
+* The only acceptable values for this setting are 0 and 1.
 * Search artifacts of a search can be viewed using a guestpass only if:
   * A token has been generated that is associated with this saved search.
     The token is associated with a particular user and app context.
@@ -1047,10 +1101,10 @@ userid = <string>
 * See saved search permissions.
 
 query = <string>
-* use the 'search' setting.
+* Use the 'search' setting.
 
 nextrun  = <integer>
-* Not used anymore, the scheduler maintains this info internally.
+* Not used anymore. The scheduler maintains this info internally.
 
 qualifiedSearch = <string>
-* Not used anymore, Splunk software computes this value during runtime.
+* Not used anymore. Splunk software computes this value during runtime.

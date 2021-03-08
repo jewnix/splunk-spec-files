@@ -1,4 +1,4 @@
-#   Version 8.0.8
+#   Version 8.1.0.1
 #
 # This file contains settings and values that you can use to configure
 # data transformations.
@@ -222,7 +222,7 @@ LOOKAHEAD = <integer>
   * You may want to increase this value if you have event line lengths that
     exceed 4096 characters (before linebreaking).
 
-WRITE_META = [true|false]
+WRITE_META = <boolean>
 * NOTE: This setting is only valid for index-time field extractions.
 * Automatically writes REGEX to metadata.
 * Required for all index-time field extractions except for those where
@@ -278,7 +278,7 @@ SOURCE_KEY = <string>
 * Default: _raw
   * This means it is applied to the raw, unprocessed text of all events.
 
-REPEAT_MATCH = [true|false]
+REPEAT_MATCH = <boolean>
 * NOTE: This setting is only valid for index-time field extractions.
 * Optional. When set to true, Splunk software runs the REGEX multiple
   times on the SOURCE_KEY.
@@ -401,7 +401,7 @@ FIELDS = <quoted string list>
     FIELDS = field1, field2, field3
 * Default: ""
 
-MV_ADD = [true|false]
+MV_ADD = <boolean>
 * NOTE: This setting is only valid for search-time field extractions.
 * Optional. Controls what the extractor does when it finds a field which
   already exists.
@@ -410,7 +410,7 @@ MV_ADD = [true|false]
   discarded.
 * Default: false
 
-CLEAN_KEYS = [true|false]
+CLEAN_KEYS = <boolean>
 * NOTE: This setting is only valid for search-time field extractions.
 * Optional. Controls whether Splunk software "cleans" the keys (field names) it
   extracts at search time. "Key cleaning" is the practice of replacing any
@@ -422,7 +422,7 @@ CLEAN_KEYS = [true|false]
   underscores or 0-9 characters.
 * Default: true
 
-KEEP_EMPTY_VALS = [true|false]
+KEEP_EMPTY_VALS = <boolean>
 * NOTE: This setting is only valid for search-time field extractions.
 * Optional. Controls whether Splunk software keeps field/value pairs when
   the value is an empty string.
@@ -431,7 +431,7 @@ KEEP_EMPTY_VALS = [true|false]
   empty values.
 * Default: false
 
-CAN_OPTIMIZE = [true|false]
+CAN_OPTIMIZE = <boolean>
 * NOTE: This setting is only valid for search-time field extractions.
 * Optional. Controls whether Splunk software can optimize this extraction out
   (another way of saying the extraction is disabled).
@@ -452,23 +452,24 @@ CAN_OPTIMIZE = [true|false]
 filename = <string>
 * Name of static lookup file.
 * File should be in $SPLUNK_HOME/etc/system/lookups/, or in
-  $SPLUNK_HOME/etc/<app_name>/lookups/ if the lookup belongs to a specific app.
+  $SPLUNK_HOME/etc/apps/<app_name>/lookups/ if the lookup belongs to a specific
+  app.
 * If file is in multiple 'lookups' directories, no layering is done.
 * Standard conf file precedence is used to disambiguate.
 * Only file names are supported. Paths are explicitly not supported. If you
   specify a path, Splunk software strips the path to use the value after
   the final path separator.
 * Splunk software then looks for this filename in
-  $SPLUNK_HOME/etc/system/lookups/ or $SPLUNK_HOME/etc/<app_name>/lookups/.
+  $SPLUNK_HOME/etc/system/lookups/ or $SPLUNK_HOME/etc/apps/<app_name>/lookups/.
 * Default: empty string
 
 collection = <string>
 * Name of the collection to use for this lookup.
-* Collection should be defined in $SPLUNK_HOME/etc/<app_name>/collections.conf
-  for some <app_name>
+* Collection should be defined in $SPLUNK_HOME/etc/apps/<app_name>/collections.conf
+  for an <app_name>
 * If collection is in multiple collections.conf file, no layering is done.
 * Standard conf file precedence is used to disambiguate.
-* Defaults to empty string (in which case the name of the stanza is used).
+* Default: empty string (in which case the name of the stanza is used).
 
 max_matches = <integer>
 * The maximum number of possible matches for each input lookup value
@@ -495,15 +496,29 @@ default_match = <string>
 * If min_matches > 0 and Splunk software has less than min_matches for any
   given input, it provides this default_match value one or more times until the
   min_matches threshold is reached.
-* Defaults to empty string.
+* Default: empty string.
 
 case_sensitive_match = <boolean>
-* NOTE: To disable case-sensitive matching with input fields and values from
-  events, the KV Store lookup data must be entirely in lower case. The input
-  data can be of any case, but the KV Store data must be lower case.
-* If set to false, case insensitive matching is performed for all fields in a
-  lookup table
-* Defaults to true (case sensitive matching)
+* NOTE: This attribute is not valid for KV Store-based lookups.
+* If set to true, Splunk software performs case sensitive matching for all
+  fields in a lookup table.
+* If set to false, Splunk software performs case insensitive matching for all
+  fields in a lookup table.
+* For field matching in reverse lookups see
+  reverse_lookup_honor_case_sensitive_match.
+* Default: true
+
+reverse_lookup_honor_case_sensitive_match = <boolean>
+* Determines whether field matching for a reverse lookup is case sensitive or
+  case insensitive.
+* When set to true, and 'case_sensitive_match' is true Splunk software performs
+  case-sensitive matching for all fields in a reverse lookup.
+* When set to true, and 'case_sensitive_match' is false Splunk software
+  performs case-insensitive matching for all fields in a reverse lookup.
+* When set to false, Splunk software performs case-insensitive matching for
+  all fields in a reverse lookup.
+* NOTE: This setting does not apply to KV Store lookups.
+* Default: true
 
 match_type = <string>
 * A comma and space-delimited list of <match_type>(<field_name>)
@@ -518,7 +533,7 @@ external_cmd = <string>
   external script rather than a lookup table.
 * This string is parsed like a shell command.
 * The first argument is expected to be a python script (or executable file)
-  located in $SPLUNK_HOME/etc/<app_name>/bin (or ../etc/searchscripts).
+  located in $SPLUNK_HOME/etc/apps/<app_name>/bin (or ../etc/searchscripts).
 * Presence of this field indicates that the lookup is external and command
   based.
 * Default: empty string
@@ -532,7 +547,7 @@ index_fields_list = <string>
   for a static .csv lookup file.
 * The other fields are not indexed and not searchable.
 * Restricting the fields enables better lookup performance.
-* Defaults to all fields that are defined in the .csv lookup file header.
+* Default: all fields that are defined in the .csv lookup file header.
 
 external_type = [python|executable|kvstore|geo|geo_hex]
 * This setting describes the external lookup type.
@@ -566,7 +581,8 @@ time_format = <string>
 max_offset_secs = <integer>
 * For temporal lookups, this is the maximum time (in seconds) that the event
   timestamp can be later than the lookup entry time for a match to occur.
-* Default: 2000000000
+* Default: 2000000000, or the offset in seconds from 0:00 UTC Jan 1, 1970.
+  Whichever is reached first.
 
 min_offset_secs = <integer>
 * For temporal lookups, this is the minimum time (in seconds) that the event
@@ -577,8 +593,8 @@ min_offset_secs = <integer>
 batch_index_query = <boolean>
 * For large file-based lookups, batch_index_query determines whether queries
   can be grouped to improve search performance.
-* Default is unspecified here, but defaults to true (at global level in
-  limits.conf)
+* Default (this level): not set
+* Default (global level, at limits.conf): true
 
 allow_caching = <boolean>
 * Allow output from lookup scripts to be cached
@@ -626,15 +642,15 @@ check_permission = <boolean>
 * This setting applies only to CSV lookup configurations.
 * Default: false
 
-replicate = true|false
+replicate = <boolean>
 * Indicates whether to replicate CSV lookups to indexers.
 * When false, the CSV lookup is replicated only to search heads in a search
   head cluster so that input lookup commands can use this lookup on the search
   heads.
 * When true, the CSV lookup is replicated to both indexers and search heads.
 * Only for CSV lookup files.
-* Note that replicate=true works only if it is included in replication
-  whitelist, See distSearch.conf/[replicationWhitelist] option.
+* Note that replicate=true works only if it is included in the replication
+  allow list. See the 'replicationWhitelist' setting in distSearch.conf.
 * Default: true
 
 #*******
@@ -700,12 +716,12 @@ METRIC-SCHEMA-MEASURES-<unique_metric_name_prefix> = (_ALLNUMS_ | (_NUMS_EXCEPT_
   'min_size_kb'. You can set a <field> value of '*_size_kb' to include all
   three of those measurement fields in the field list without listing each one
   separately.
-* Default: empty
+* Default: empty string
 
 METRIC-SCHEMA-BLACKLIST-DIMS-<unique_metric_name_prefix> = <dimension_field1>,
 <dimension_field2>,...
 * Optional.
-* This blacklist configuration allows the Splunk platform to omit unnecessary
+* This deny list configuration lets the Splunk platform omit unnecessary
   dimensions when it transforms event data to metrics data. You might set this
   up if some of the dimensions in your event data are high-cardinality and are
   unnecessary for your metrics.
@@ -725,19 +741,20 @@ METRIC-SCHEMA-BLACKLIST-DIMS-<unique_metric_name_prefix> = <dimension_field1>,
   METRIC-SCHEMA-BLACKLIST-DIMS-<unique_metric_name_prefix> and the
   METRIC-SCHEMA-WHITELIST-DIMS-<unique_metric_name_prefix>
   configurations simultaneously in a stanza:
-  * If a dimension is in the BLACKLIST, it will not be present in the resulting
-    metric data points, even if it also appears in the WHITELIST.
-  * If a dimension is not in the WHITELIST, it will not be present in the
+  * If a dimension is in the deny list (METRIC-SCHEMA-BLACKLIST-DIMS), it will
+    not be present in the resulting metric data points, even if it also appears
+    in the allow list (METRIC-SCHEMA-WHITELIST-DIMS).
+  * If a dimension is not in the allow list, it will not be present in the
     resulting metric data points, even if it also does not appear in the
-    BLACKLIST.
-* Default: empty
+    deny list.
+* Default: empty string
 
 METRIC-SCHEMA-WHITELIST-DIMS-<unique_metric_name_prefix> = <dimension_field1>,
 <dimension_field2>,...
 * Optional.
-* This whitelist configuration allows the Splunk platform to include only a
+* This allow list configuration allows the Splunk platform to include only a
   specified subset of dimensions when it transforms event data to metrics data.
-  You might include a whitelist in your log-to-metrics configuraton if many of
+  You might include an allow list in your log-to-metrics configuraton if many of
   the dimensions in your event data are high-cardinality and are unnecessary
   for your metrics.
 * Use this configuration in conjunction with a corresponding
@@ -756,13 +773,14 @@ METRIC-SCHEMA-WHITELIST-DIMS-<unique_metric_name_prefix> = <dimension_field1>,
   METRIC-SCHEMA-BLACKLIST-DIMS-<unique_metric_name_prefix> and the
   METRIC-SCHEMA-WHITELIST-DIMS-<unique_metric_name_prefix>
   configurations simultaneously in a stanza:
-  * If a dimension is in the BLACKLIST, it will not be present in the resulting
-    metric data points, even if it also appears in the WHITELIST.
-  * If a dimension is not in the WHITELIST, it will not be present in the
+  * If a dimension is in the deny list (METRIC-SCHEMA-BLACKLIST-DIMS), it will
+    not be present in the resulting metric data points, even if it also appears
+    in the allow list (METRIC-SCHEMA-WHITELIST-DIMS).
+  * If a dimension is not in the allow list, it will not be present in the
     resulting metric data points, even if it also does not appear in the
-    BLACKLIST.
-* Default: empty
-  * When the WHITELIST is empty it behaves as if it contains all fields.
+    deny list.
+* When the allow list is empty, it behaves as if it contains all fields.
+* Default: empty string
 
 METRIC-SCHEMA-MEASURES = (_ALLNUMS_ | (_NUMS_EXCEPT_ )? <field1>, <field2>,... )
 * Optional.
@@ -779,11 +797,11 @@ METRIC-SCHEMA-MEASURES = (_ALLNUMS_ | (_NUMS_EXCEPT_ )? <field1>, <field2>,... )
   'min_size_kb'. You can set a <field> value of '*_size_kb' to include all
   three of those measurement fields in the field list without listing each one
   separately.
-* Default: empty
+* Default: empty string
 
 METRIC-SCHEMA-BLACKLIST-DIMS = <dimension_field1>, <dimension_field2>,...
 * Optional.
-* This blacklist configuration allows the Splunk platform to omit unnecessary
+* This deny list configuration allows the Splunk platform to omit unnecessary
   dimensions when it transforms event data to metrics data. You might set this
   up if some of the dimensions in your event data are high-cardinality and are
   unnecessary for your metrics.
@@ -800,18 +818,19 @@ METRIC-SCHEMA-BLACKLIST-DIMS = <dimension_field1>, <dimension_field2>,...
 * The Splunk platform applies the following evaluation logic when you use the
   METRIC-SCHEMA-BLACKLIST-DIMS and the METRIC-SCHEMA-WHITELIST-DIMS
   configurations simultaneously in a stanza:
-  * If a dimension is in the BLACKLIST, it will not be present in the resulting
-    metric data points, even if it also appears in the WHITELIST.
-  * If a dimension is not in the WHITELIST, it will not be present in the
+  * If a dimension is in the deny list (METRIC-SCHEMA-BLACKLIST-DIMS), it will
+    not be present in the resulting metric data points, even if it also appears
+    in the allow list (METRIC-SCHEMA-WHITELIST-DIMS).
+  * If a dimension is not in the allow list, it will not be present in the
     resulting metric data points, even if it also does not appear in the
-    BLACKLIST.
-* Default: empty
+    deny list.
+* Default: empty string
 
 METRIC-SCHEMA-WHITELIST-DIMS = <dimension_field1>, <dimension_field2>,...
 * Optional.
-* This whitelist configuration allows the Splunk platform to include only a
+* This allow list configuration allows the Splunk platform to include only a
   specified subset of dimensions when it transforms event data to metrics data.
-  You might include a whitelist in your log-to-metrics configuraton if many of
+  You might include an allow list in your log-to-metrics configuraton if many of
   the dimensions in your event data are high-cardinality and are unnecessary
   for your metrics.
 * Use this configuration in conjunction with a corresponding
@@ -827,13 +846,14 @@ METRIC-SCHEMA-WHITELIST-DIMS = <dimension_field1>, <dimension_field2>,...
 * The Splunk platform applies the following evaluation logic when you use the
   METRIC-SCHEMA-BLACKLIST-DIMS and the METRIC-SCHEMA-WHITELIST-DIMS
   configurations simultaneously in a stanza:
-  * If a dimension is in the BLACKLIST, it will not be present in the resulting
-    metric data points, even if it also appears in the WHITELIST.
-  * If a dimension is not in the WHITELIST, it will not be present in the
+  * If a dimension is in the deny list (METRIC-SCHEMA-BLACKLIST-DIMS), it will
+    not be present in the resulting metric data points, even if it also appears
+    in the allow list (METRIC-SCHEMA-WHITELIST-DIMS).
+  * If a dimension is not in the allow list, it will not be present in the
     resulting metric data points, even if it also does not appear in the
-    BLACKLIST.
-* Default: empty
-  * When the WHITELIST is empty it behaves as if it contains all fields.
+    deny list.
+* Default: empty string
+  * When the allow list is empty it behaves as if it contains all fields.
 
 #*******
 # KEYS:
@@ -874,7 +894,6 @@ _SYSLOG_ROUTING     : Comma separated list of syslog-stanza  names (from
 [accepted_keys]
 
 <name> = <key>
-
 * Modifies the list of valid SOURCE_KEY and DEST_KEY values. Splunk software
   checks the SOURCE_KEY and DEST_KEY values in your transforms against this
   list when it performs index-time field transformations.
@@ -886,3 +905,4 @@ _SYSLOG_ROUTING     : Comma separated list of syslog-stanza  names (from
   the purpose of the key.
 * The entire stanza defaults to not being present, causing all keys not
   documented just above to be flagged.
+* Default: not set

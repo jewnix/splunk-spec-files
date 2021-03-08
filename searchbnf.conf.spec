@@ -1,4 +1,4 @@
-#   Version 7.3.9
+#   Version 8.0.6
 #
 #
 # This file contain descriptions of stanzas and attribute/value pairs for

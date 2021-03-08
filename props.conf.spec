@@ -1,4 +1,4 @@
-#   Version 7.3.9
+#   Version 8.0.6
 #
 # This file contains possible setting/value pairs for configuring Splunk
 # software's processing properties through props.conf.
@@ -689,7 +689,7 @@ INDEXED_EXTRACTIONS = <CSV|TSV|PSV|W3C|JSON|HEC>
   CSV  - Comma separated value format
   TSV  - Tab-separated value format
   PSV  - pipe ("|")-separated value format
-  W3C  - World Wide Web Consortium (W3C) Extended Extended Log File Format
+  W3C  - World Wide Web Consortium (W3C) Extended Log File Format
   JSON - JavaScript Object Notation format
   HEC  - Interpret file as a stream of JSON events in the same format
          as the HTTP Event Collector (HEC) input.
@@ -724,6 +724,25 @@ STATSD-DIM-TRANSFORMS = <statsd_dim_stanza_name1>,<statsd_dim_stanza_name2>..
 * Optional for sourcetypes which have only one transforms stanza for extracting
   dimensions, and the stanza name is the same as that of sourcetype name.
 * Default: not set
+
+STATSD_EMIT_SINGLE_MEASUREMENT_FORMAT = <boolean>
+* Valid only when 'METRICS_PROTOCOL' is set to 'statsd'.
+* This setting controls the metric data point format emitted by the statsd 
+  processor. 
+* When set to true, the statsd processor produces metric data points in 
+  single-measurement format. This format allows only one metric measurement per 
+  data point, with one key-value pair for the metric name 
+  (metric_name=<metric_name>) and another key-value pair for the measurement 
+  value (_value=<numerical_value>). 
+* When set to false, the statsd processor produces metric data points in 
+  multiple-measurement format. This format allows multiple metric measurements 
+  per data point, where each metric measurement follows this syntax:   
+  metric_name:<metric_name>=<numerical_value>
+* We recommend you set this to 'true' for statsd data, because the statsd data 
+  format is single-measurement per data point. This practice enables you to use 
+  downstream transforms to edit the metric_name if necessary. Multiple-value 
+  metric data points are harder to process with downstream transforms.
+* Default: true
 
 METRIC-SCHEMA-TRANSFORMS = <metric-schema:stanza_name>[,<metric-schema:stanza_name>]...
 * A comma-separated list of metric-schema stanza names from transforms.conf
@@ -772,6 +791,28 @@ HEADER_FIELD_DELIMITER = <character>
   the specified file or source.
 * The default can vary if 'INDEXED_EXTRACTIONS' is set.
 * Default (if 'INDEXED_EXTRACTIONS' is not set): not set
+
+HEADER_FIELD_ACCEPTABLE_SPECIAL_CHARACTERS = <string>
+* This setting specifies the special characters that are allowed in header
+  fields.
+* When this setting is not set, the processor replaces all characters in header
+  field names that are neither alphanumeric or a space (" ") with underscores.
+  * For example, if you import a CSV file, and one of the header field names is
+    "field.name", the processor replaces "field.name" with "field_name", and
+    imports the field this way.
+* If you configure this setting, the processor does not perform a character
+  replacement in header field names if the special character it encounters
+  matches one that you specify in the setting value.
+  * For example, if you configure this setting to ".", the processor does not
+    replace the "." characters in header field names with underscores.
+* This setting only supports characters with ASCII codes below 128.
+* CAUTION: Certain special characters can cause the Splunk instance to
+  malfunction.
+  * For example, the field name "fieldname=a" is currently sanitized to
+    "fieldname_a" and the search query "fieldname_a=val" works fine. If the
+    setting is set to "=" and the field name "fieldname=a" is allowed, it could
+    result in an invalid-syntax search query "fieldname=a=val".
+* Default: empty string
 
 FIELD_QUOTE = <character>
 * The character to use for quotes in the specified file

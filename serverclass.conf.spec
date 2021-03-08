@@ -1,4 +1,4 @@
-#   Version 7.3.9
+#   Version 8.0.6
 #
 # This file contains possible attributes and values for defining server
 # classes to which deployment clients can belong. These attributes and
@@ -291,7 +291,7 @@ stateOnClient = enabled | disabled | noop
 * Can be overridden at the serverClass level and the serverClass:app level.
 * Default: enabled
 
-precompressBundles = true | flase
+precompressBundles = <boolean>
 * Controls whether the deployment server generates both .bundle and
   .bundle.gz files. The pre-compressed files offer improved performance as
   the deployment server is not required to compress the bundles on the fly

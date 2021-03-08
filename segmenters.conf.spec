@@ -1,12 +1,11 @@
-#   Version 7.3.9
+#   Version 8.0.6
 #
-# This file contains possible attribute/value pairs for configuring
-# segmentation of events in segmenters.conf.
+# This file contains possible setting you can use to configure segmentation of events.
 #
-# There is a default segmenters.conf in $SPLUNK_HOME/etc/system/default. To set
+# There is a segmenters.conf in $SPLUNK_HOME/etc/system/default. To set
 # custom configurations, place a segmenters.conf in
 # $SPLUNK_HOME/etc/system/local/.  For examples, see segmenters.conf.example.
-# You must restart Splunk to enable configurations.
+# You must restart Splunk software to enable configurations.
 #
 # NOTE: Keep in mind the following limitations when working with event segmentation:
 #       1) The segmenters.conf file must not have conflicting definitions for different installed

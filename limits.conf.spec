@@ -651,6 +651,15 @@ record_search_telemetry = <boolean>
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: true
 
+search_telemetry_file_limit = <integer>
+* Sets a limit to the number of telemetry files that the Splunk software can 
+  copy to the var/run/splunk/search_telemetry/ directory, so that it may index 
+  them in the _introspection index.
+* Once this limit is reached, the Splunk software stops adding telemetry files 
+  to the directory for indexing. 
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: 30
+
 use_dispatchtmp_dir = <boolean>
 * DEPRECATED. This setting has been deprecated and has no effect.
 
@@ -2554,17 +2563,34 @@ max_threads_per_outputlookup = <unsigned integer>
 [input_channels]
 
 max_inactive = <integer>
-* Internal setting, do not change unless instructed to do so by Splunk
-  Support.
+* The Maximum number of inactive input channel configurations to keep in cache.
+* Each source/sourcetype/host combination requires an independent input
+  channel, which contains all relevant settings for ingestion.
+* When set to 'auto', the Splunk platform will tune this setting based on the
+  physical RAM present in the server at startup.
+* Increasing this number might help with low ingestion throughput when there
+  are no blocked queues (i.e., no 'blocked=true' events for 'group=queue' in
+  metrics.log), and splunkd is creating a very high number of new input
+  channels (see the value of 'new_channels' in
+  'group=map, name=pipelineinputchannel', also in metrics.log), usually in the
+  order of thousands. However, this action is only effective when those input
+  channels could have been reused: for example, the source, sourcetype, and
+  host fields are not generated randomly and tend to be reused within the
+  lifetime of cached channel entries.
+* Default: auto
 
 lowater_inactive = <integer>
-* Internal setting, do not change unless instructed to do so by Splunk
-  Support.
+* Size of the inactive input channel cache after which entries will be
+  considered for recycling: having its memory reused for storing settings
+  for a different input channel.
+* When set to 'auto', the Splunk platform will tune this setting value based
+  on the value of 'max_inactive'.
+* Default: auto
 
 inactive_eligibility_age_seconds = <integer>
-* Internal setting, do not change unless instructed to do so by Splunk
-  Support.
-
+* Time, in seconds, after which an inactive input channel will be removed from
+  the cache to free up memory.
+* Default: 330
 
 [ldap]
 

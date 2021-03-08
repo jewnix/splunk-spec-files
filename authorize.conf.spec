@@ -145,16 +145,24 @@ srchFilter = <semicolon-delimited list>
 * By default, Splunk software does not perform search filtering.
 
 srchTimeWin = <integer>
-* Maximum time span, in seconds, of a search.
-* This time window limit is applied backwards from the latest time
-  specified in a search.
-* To override any search time windows from imported roles, set this to "0"
-  (infinite), as the 'admin' role does.
-* "-1" is a special value implying that no search window has been set for
-  this role.
-    * This is equivalent to not setting the 'srchTimeWin' setting at all,
-      which means it can be easily overridden by an imported role.
-* By default, searches are not limited to any specific time window.
+* Maximum time range, in seconds, of a search.
+* The Splunk software applies this search time range limit backwards from the 
+  latest time specified for a search.
+* If a user has multiple roles with distinct search time range limits, or has 
+  roles that inherit from roles with distinct search time range limits, the 
+  Splunk software applies the least restrictive search time range limits to 
+  the role. 
+  * For example, if user X has role A (srchTimeWin = 30s), role B (srchTimeWin 
+    = 60s), and role C (srchTimeWin = 3600s), user X gets a maximum search time 
+    range of 1 hour. 
+* When set to '-1', the role does not have a search time range limit. This 
+  value can be overidden by the maximum search time range value of an inherited 
+  role. 
+* When set to '0' (infinite), the role does not have a search time range limit. 
+  This value cannot be overidden by the maximum search time range value of an
+  inherited role. 
+* This setting does not apply to real-time searches.
+* Default: -1
 
 srchDiskQuota = <integer>
 * The maximum amount of disk space, in megabytes, that can be used by search
@@ -665,6 +673,9 @@ disabled = <boolean>
 
 [capability::run_debug_commands]
 * Lets a user run debugging commands, for example 'summarize'.
+
+[capability::run_walklex]
+* Lets a user run the 'walklex' command even if they have a role with a search filter.
 
 [capability::schedule_rtsearch]
 * Lets a user schedule real-time saved searches.

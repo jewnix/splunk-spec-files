@@ -1,4 +1,4 @@
-#   Version 8.0.6
+#   Version 8.0.7
 #
 ############################################################################
 # OVERVIEW
@@ -2047,7 +2047,8 @@ remote.s3.list_objects_version = v1|v2
 remote.s3.signature_version = v2|v4
 * The signature version to use when authenticating with the remote storage
   system supporting the S3 API.
-* For 'sse-kms' server-side encryption scheme, you must use signature_version=v4.
+* For 'sse-kms' and 'sse-c' server-side encryption schemes, and for 'cse' 
+  client-side encryption scheme, you must use signature_version=v4.
 * For signature_version=v2 you must set url_version=v1.
 * Optional.
 * Default: v4
@@ -2263,20 +2264,24 @@ remote.s3.dhFile = <path>
 * Optional.
 * No default.
 
-remote.s3.encryption = sse-s3 | sse-kms | sse-c | none
-* Specifies the scheme to use for Server-side Encryption (SSE) for data-at-rest.
-* sse-s3: Check http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html
-* sse-kms: Check http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingKMSEncryption.html
-* sse-c: Check http://docs.aws.amazon.com/AmazonS3/latest/dev/ServerSideEncryptionCustomerKeys.html
-* none: no Server-side encryption enabled. Data is stored unencrypted on the
-  remote storage.
+remote.s3.encryption = sse-s3 | sse-kms | sse-c | cse | none
+* The encryption scheme to use for data buckets that are currently being stored (data at rest).
+* sse-s3: Search for "Protecting Data Using Server-Side Encryption with Amazon S3-Managed 
+          Encryption Keys" on the Amazon Web Services documentation site.
+* sse-kms: Search for "Protecting Data Using Server-Side Encryption with CMKs Stored in AWS 
+           Key Management Service (SSE-KMS)" on the Amazon Web Services documentation site.
+* sse-c: Search for "Protecting Data Using Server-Side Encryption with Customer-Provided Encryption 
+         Keys (SSE-C)" on the Amazon Web Services documentation site.
+* cse:  Currently not supported. This setting is related to a feature that is still under development.
+* none: no server-side encryption enabled. The Splunk platform stores the data unencrypted on the 
+  remote volume.
 * Optional.
 * Default: none
 
 remote.s3.encryption.sse-c.key_type = kms
 * Determines the mechanism Splunk uses to generate the key for sending over to
   S3 for SSE-C.
-* The only valid value is 'kms', indicating AWS KMS service.
+* The only valid value is 'kms', indicating Amazon Web Services Key Management Service (AWS KMS).
 * One must specify required KMS settings: e.g. remote.s3.kms.key_id
   for Splunk to start up while using SSE-C.
 * Optional.
@@ -2288,8 +2293,50 @@ remote.s3.encryption.sse-c.key_refresh_interval = <unsigned integer>
 * Optional.
 * Default: 86400
 
+remote.s3.encryption.cse.algorithm = aes-256-gcm
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The encryption algorithm to use for bucket encryption while
+  client-side encryption is enabled.
+* Optional.
+* Default: aes-256-gcm
+
+remote.s3.encryption.cse.key_type = kms
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The mechanism that the Splunk platform uses to generate the key 
+  for client-side encryption.
+* The only valid value is 'kms', indicating AWS KMS service.
+* You must specify the required KMS settings, for example, 'remote.s3.kms.key_id'
+  for the Splunk platform to start with client-side encryption active.
+* Optional.
+* Default: kms
+
+remote.s3.encryption.cse.key_refresh_interval = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The interval, in seconds, at which the Splunk platform generates a new key and uses
+  it to encrypt any data that it uploads to S3 when client-side encryption is active.
+* Optional.
+* Default: 86400
+
+remote.s3.encryption.cse.tmp_dir = <path>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The full path to the directory where the Splunk platform temporarily stores encrypted files.
+* Optional.
+* Default: $SPLUNK_HOME/var/run/splunk/cse-tmp
+
+remote.s3.kms.endpoint = <string>
+* Indicates the host name to use when server-side or client-side encryption
+  is enabled e.g. https://internal-kms.mycompany.com:8443 
+* If not set, SmartStore uses 'remote.s3.kms.auth_region' to 
+  determine the endpoint.
+* Optional.
+* No default.
+
 remote.s3.kms.key_id = <string>
-* Required if remote.s3.encryption = sse-c | sse-kms
+* Required if remote.s3.encryption = sse-c | sse-kms | cse
 * Specifies the identifier for Customer Master Key (CMK) on KMS. It can be the
   unique key ID or the Amazon Resource Name (ARN) of the CMK or the alias
   name or ARN of an alias that refers to the CMK.

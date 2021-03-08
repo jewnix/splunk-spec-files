@@ -1,4 +1,4 @@
-#   Version 8.1.0.1
+#   Version 8.1.1
 ############################################################################
 # OVERVIEW
 ############################################################################
@@ -140,7 +140,6 @@ run_in_preview = <boolean>
 
 enableheader = <boolean>
 * Whether or not your script expects header information.
-* Currently, the only thing in the header information is an authentication token.
 * If set to "true" it will expect as input a head section + '\n' then the CSV input.
 * NOTE: Should be set to "true" if you use splunk.Intersplunk
 * Default: true
@@ -276,6 +275,16 @@ chunked = <boolean>
   * 'run_in_preview'.
 * If set to "false", this command uses the legacy custom search command
   protocol supported by Intersplunk.py.
+* Default: false
+
+pass_timezone = <boolean>
+* Specify whether or not splunkd passes the serialized timezone information
+  of the user to the script as part of the header. The serialized timezone
+  information can be used to convert time to match the user's timezone.
+* If set to "true", when an alert action generates a PDF file, the user's
+  timezone is used when rendering the charts in the PDF.
+* Valid only when 'enableheader' is set to "true". If 'enableheader' is set to "false",
+  'pass_timezone' is set "false" as well.
 * Default: false
 
 maxwait = <integer>

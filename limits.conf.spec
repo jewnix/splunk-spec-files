@@ -1,4 +1,4 @@
-#   Version 8.1.0.1
+#   Version 8.1.1
 #
 ############################################################################
 # OVERVIEW
@@ -3157,6 +3157,18 @@ alerts_scoping = host|splunk_server|all
   host=<search-head-host-name>, and all will have no scoping added to the
   search query.
 * Default: splunk_server
+
+async_saved_search_fetch = <boolean>
+* Enables a separate thread that will fetch scheduled or auto-summarized saved
+  searches asynchronously.
+* Do not change this setting unless instructed to do so by Splunk support.
+* Default: false
+
+async_saved_search_interval = <integer>
+* The interval, in seconds, that scheduled or auto-summarized saved searches
+  will be fetched asynchronously.
+* Has no effect if async_saved_search_fetch is set to false.
+* Default: 30
 
 auto_summary_perc = <integer>
 * The maximum number of concurrent searches to be allocated for auto

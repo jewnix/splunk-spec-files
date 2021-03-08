@@ -1883,6 +1883,16 @@ input_errors_fatal = <boolean>
   set.
 * Default: false
 
+enable_splunkd_kv_lookup_indexing = <boolean>
+* This setting determines whether KV Store lookup indexing is performed 
+  during bundle replication.
+* When set to true, KVStore lookup indexing occurs on the main splunkd process, 
+  asynchronous to searches.
+* When set to false, KV Store lookup indexing is triggered by the search 
+  process, potentially slowing search performance.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: false
+
 [metadata]
 
 bucket_localize_max_lookahead = <integer>

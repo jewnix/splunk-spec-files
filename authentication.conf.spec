@@ -1,4 +1,4 @@
-#   Version 8.1.1
+#   Version 8.1.2
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.
@@ -782,15 +782,7 @@ attributeQueryTTL = <integer>
 scriptPath = <string>
 * The name of the authentication extension script to run.
 * The auth system expects the script to be in Python version 3, and looks for
-  it in the $SPLUNK_HOME/etc/auth/scripts directory. You might
-  need to create this directory before you install your script there.
-* You must copy the 'commonAuth.py' script from the shared script
-  examples directory to this directory after you install your script.
-  The script relies on 'commonAuth.py' to run successfully.
-* The shared script examples directory is typically located at
-  $SPLUNK_HOME/share/splunk/authScriptSamples, but you can
-  perform a search on your Splunk Enterprise installation package
-  contents for the exact location of the 'commonAuth.py' file.
+  it in the $SPLUNK_HOME/etc/auth/scripts directory.
 * No default.
 
 python.version = {default|python|python2|python3}

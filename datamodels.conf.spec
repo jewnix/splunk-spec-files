@@ -1,4 +1,4 @@
-#   Version 7.2.10.1
+#   Version 7.3.7
 #
 # This file contains possible attribute/value pairs for configuring
 # data models.  To configure a datamodel for an app, put your custom
@@ -188,6 +188,19 @@ acceleration.hunk.dfs_block_size = <unsigned int>
 acceleration.hunk.file_format = <string>
 * Applicable only to Hunk data models. Valid options are "orc" and "parquet"
 
+acceleration.workload_pool = <name of workload pool>¬
+* Optional.
+* Sets the workload pool to be used by this search.
+* There are multiple workload pools defined in workload_pools.conf.
+  Each workload pool has resource limits associated with it. For example,
+  CPU, Memory, etc.
+* The specific workload_pool to use is defined in workload_pools.conf.
+* The search process for this search runs in the specified workload_pool.
+* If workload management is enabled and a workload_pool is not specified,
+  the search is put into a proper pool as specified by the workload rules defined
+  in workload_rules.conf. If there is no rule defined for this search, the
+  default_pool defined in workload_pools.conf is used.
+
 
 #******** Dataset Related Attributes ******
 # These attributes affect your interactions with datasets in Splunk Web and should
@@ -249,7 +262,23 @@ dataset.display.datasummary.earliestTime = <time-str>
 dataset.display.datasummary.latestTime = <time-str>
 * The latest time used for the search that powers the datasummary view of 
   the dataset.
-  
+
+strict_fields = <boolean>
+* Sets the default value for the 'strict_fields' argument when you use
+  '| datamodel' in a search.
+  * When you set 'strict_fields' to 'true', the search returns only the fields
+    specified in the constraints for the data model.
+  * When you set 'strict_fields' to 'false', the search returns all fields,
+    including fields inherited from parent datasets and fields derived through
+    search-time processes such as field extraction, eval-based field
+    calculation, and lookup matching.
+* You can override this setting by specifying the 'strict_fields' argument for
+  a '| datamodel' search.
+* This setting also applies to the 'from' command. When you use '| from' to 
+  search a data model that has 'strict_fields=true', the search returns only 
+  those fields that are defined in the constraints for the data model.
+* Default: true
+
 tags_whitelist = <list-of-tags>
 * A comma-separated list of tag fields that the data model requires 
   for its search result sets.

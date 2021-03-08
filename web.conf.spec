@@ -1,4 +1,4 @@
-#   Version 7.2.10.1
+#   Version 7.3.7
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -155,6 +155,21 @@ enable_insecure_login = <boolean>
 http://localhost:8000/en-US/account/insecurelogin?loginType=splunk&username=noc&password=XXXXXXX
 * If "false", only the main /account/login endpoint is available
 * Default: false
+
+enable_secure_entity_move = <boolean>
+* Whether or not you can perform an HTTP GET request on the "move" REST endpoint
+  for any entity that has such an endpoint, to move that entity from one Splunk app
+  to another.
+* Entities are configurable components of the Splunk Web framework, such as views,
+  styles, and drilldown actions. This is not an exhaustive list.
+* If set to "true", you can perform only HTTP POST requests against the "move" endpoint
+  for an entity.
+  * For example, if you have an endpoint "/en_US/manager/launcher/data/ui/views/move",
+    you can only perform an HTTP POST request to access that endpoint to move
+    an entity from one app to another.
+* If set to "false", you can perform both HTTP GET and POST requests against the
+  "move" endpoint of an entity.
+* Default: true
 
 simple_error_page = <boolean>
 * Whether or not to display a simplified error page for HTTP errors that only contains the error status.
@@ -490,6 +505,22 @@ dashboard_html_allow_inline_styles = <boolean>
 * If "false", style attributes from inline HTML elements in dashboards will be removed
   to prevent potential attacks.
 * Default: true
+
+dashboard_html_allow_embeddable_content = <boolean>
+* Whether or not to allow <embed> and <iframe> HTML elements in dashboards.
+* If set to the default value of "true", <embed> and <iframe> HTML elements in dashboards will not be removed
+  and can lead to a potential security risk.
+* If set to "false", <embed> and <iframe> HTML elements will be stripped
+  from the dashboard HTML.
+* Default: true
+
+dashboard_html_wrap_embed = <boolean>
+* Whether or not to wrap <embed> HTML elements in dashboards with an <iframe>.
+* If set to "false", <embed> HTML elements in dashboards will not be wrapped, leading to
+  a potential security risk.
+* If set to "true", <embed> HTML elements will be wrapped by an <iframe sandbox> element to help
+  mitigate potential security risks.
+* Default: false
 
 dashboard_html_allow_iframes = <boolean>
 * Whether or not to allow iframes from HTML elements in dashboards.
@@ -1022,6 +1053,21 @@ crossOriginSharingPolicy = <origin_acl> ...
 * "*" can also be used to match all origins.
 * Default: empty string
 
+crossOriginSharingHeaders = <string>
+* A list of the HTTP headers to which splunkd sets
+  "Access-Control-Allow-Headers" when replying to
+  Cross-Origin Resource Sharing (CORS) preflight requests.
+* The "Access-Control-Allow-Headers" header is used in response to
+  a CORS preflight request to tell browsers which HTTP headers can be
+  used during the actual request.
+* A CORS preflight request is a CORS request that checks to see if
+  the CORS protocol is understood and a server is aware of using
+  specific methods and headers.
+* This setting can take a list of acceptable HTTP headers, separated
+  by commas.
+* A single "*" can also be used to match all headers.
+* Default: Empty string.
+
 allowSslCompression = <boolean>
 * Whether or not the server lets clients negotiate SSL-layer data
   compression.
@@ -1238,22 +1284,9 @@ appNavReportsLimit = <integer>
   available reports in the drop-down menu.
 * Default: 500
 
-[framework]
-# Put App Framework settings here
-django_enable = <boolean>
-* Specifies whether Django should be enabled or not
-* Default: True
-* Django will not start unless an app requires it
-
-django_path = <filepath>
-* Specifies the root path to the new App Framework files,
-  relative to $SPLUNK_HOME
-* Default: etc/apps/framework
-
-django_force_enable = <boolean>
-* Specifies whether to force Django to start, even if no app requires it
-* Default: False
-
+# The Django bindings component and all associated [framework] settings have been
+# removed. Configuring these settings no longer has any effect, and Splunk Enterprise
+# ignores any existing settings that are related to the component.
 
 #
 # custom cherrypy endpoints

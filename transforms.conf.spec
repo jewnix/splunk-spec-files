@@ -1,4 +1,4 @@
-#   Version 7.2.10.1
+#   Version 7.3.7
 #
 # This file contains settings and values that you can use to configure
 # data transformations.  
@@ -92,6 +92,11 @@ REGEX = <regular expression>
     This means that you do not need to specify the FORMAT setting for
     simple search-time field extraction cases (see the description of FORMAT,
     below).
+  * If the REGEX for a field extraction configuration does not have the
+    capturing groups referenced in the FORMAT, searches that use that
+    configuration will not return events.
+  * The REGEX must have at least one capturing group, even if the FORMAT does
+    not reference any capturing groups.
   * If the REGEX extracts both the field name and its corresponding field
     value, you can use the following special capturing groups if you want to
     skip specifying the mapping in FORMAT for search-time field extractions:
@@ -137,11 +142,14 @@ FORMAT = <string>
     follows:
     * FORMAT = <field-name>::<field-value>( <field-name>::<field-value>)*
       where:
-      * field-name  = [<string>|$<extracting-group-number>]
-      * field-value = [<string>|$<extracting-group-number>]
+      * field-name  = [<string>|$<capturing-group-number>]
+      * field-value = [<string>|$<capturing-group-number>]
   * Search-time extraction examples:
       * 1. FORMAT = first::$1 second::$2 third::other-value
       * 2. FORMAT = $1::$2
+  * If the REGEX for a field extraction configuration does not have the
+    capturing groups specified in the FORMAT, searches that use that
+    configuration will not return events.
   * If you configure FORMAT with a variable <field-name>, such as in the second
     example above, the regular expression is repeatedly applied to the source 
 	key to match and extract all field/value pairs in the event.
@@ -472,7 +480,7 @@ max_matches = <integer>
   in descending time order. In other words, only <max_matches> lookup entries
   are allowed to match. If the number of lookup entries exceeds <max_matches>, 
   only the ones nearest to the lookup value are used.
-* Default = 100 matches if the time_field setting is not specified for the
+* Default: 100 matches if the time_field setting is not specified for the
   lookup. If the time_field setting is specified for the lookup, the default is
   1 match.
 
@@ -526,21 +534,22 @@ index_fields_list = <string>
 * Restricting the fields enables better lookup performance.
 * Defaults to all fields that are defined in the .csv lookup file header. 
 
-external_type = [python|executable|kvstore|geo]
+external_type = [python|executable|kvstore|geo|geo_hex]
 * This setting describes the external lookup type. 
 * Use 'python' for external lookups that use a python script.
 * Use 'executable' for external lookups that use a binary executable, such as a 
   C++ executable. 
 * Use 'kvstore' for KV store lookups.
 * Use 'geo' for geospatial lookups.
+* 'geo_hex' is reserved for the geo_hex H3 lookup.
 * Default: python
 
 python.version = {default|python|python2|python3}
 * ******* FOR SPLUNK 8.0 BACKWARDS COMPATIBILITY ONLY ********
 * In Splunk 8.0 this attribute allows you to select which Python version to use.
 * In this version of Splunk, this attribute is IGNORED as only Python 2 is supported
-* by the platform. Ignoring this attribute allows you to set flags in your apps
-* in anticipation of moving to 8.0 without causing startup warnings.
+  by the platform. Ignoring this attribute allows you to set flags in your apps
+  in anticipation of moving to 8.0 without causing startup warnings.
 
 time_field = <string>
 * Used for temporal (time bounded) lookups. Specifies the name of the field
@@ -664,58 +673,166 @@ REMOVE_DIMS_FROM_METRIC_NAME = <boolean>
   METRIC-SCHEMA-MEASURES-<unique_metric_name_prefix> or METRIC-SCHEMA-MEASURES. These
   settings determine how values for the metric_name and _value fields are obtained.
 
-METRIC-SCHEMA-MEASURES-<unique_metric_name_prefix> = <measure_field1>, <measure_field2>,...
+METRIC-SCHEMA-MEASURES-<unique_metric_name_prefix> = (_ALLNUMS_ | (_NUMS_EXCEPT_ )? <field1>, <field2>,... )
 * Optional.
 * <unique_metric_name_prefix> should match the value of a field extracted from
   the event.
-* <measure_field> should match the name of a field with a numeric value
-  extracted from the event.
+* If this setting is exactly equal to _ALLNUMS_, the Splunk software treats 
+  all numeric fields as measures.
+* If this setting starts with _NUMS_EXCEPT_, the Splunk software treats all
+  numerical fields except those that match the given field names as  measures.
+  * NOTE: a space is required between the '_NUMS_EXCEPT_' prefix and '<field1>'.
+* Otherwise, the Splunk software treats all fields that are listed and which 
+  have a numerical value as measures.
 * If the value of the 'metric_name' index-time extraction matches with the
   <unique_metric_name_prefix>, the Splunk platform:
-  * Creates a metric with a new metric_name for each <measure_field> where the
-    metric_name value is the <measure_field> prefixed by the
+  * Creates a metric with a new metric_name for each measure field where the
+    metric_name value is the name of the field prefixed by the
     <unique_metric_name_prefix>.
-  * Saves the corresponding numeric value for each <measure_field> as '_value'
+  * Saves the corresponding numeric value for each measure field as '_value'
     within each metric.
 * The Splunk platform saves the remaining index-time field extractions as
   dimensions in each of the created metrics.
+* Use the wildcard character ("*") to match multiple similar <field>
+  values in your event data. For example, say your event data contains the
+  following measurement fields: 'current_size_kb', 'max_size_kb', and
+  'min_size_kb'. You can set a <field> value of '*_size_kb' to include all
+  three of those measurement fields in the field list without listing each one
+  separately.
 * Default: empty
 
-METRIC-SCHEMA-BLACKLIST-DIMS-<unique_metric_name_prefix> = <dimension_field1>, <dimension_field2>,...
-* Optional
-* This configuration enables the Splunk platform to omit unnecessary dimensions
-  when it transforms log data to metrics data. You might set this up if you
-  have high-cardinality dimensions that are unnecessary for your metrics.
+METRIC-SCHEMA-BLACKLIST-DIMS-<unique_metric_name_prefix> = <dimension_field1>,
+<dimension_field2>,...
+* Optional.
+* This blacklist configuration allows the Splunk platform to omit unnecessary
+  dimensions when it transforms event data to metrics data. You might set this
+  up if some of the dimensions in your event data are high-cardinality and are
+  unnecessary for your metrics.
 * Use this configuration in conjunction with a corresponding
   METRIC-SCHEMA-MEASURES-<unique_metric_name_prefix> configuration.
 * <unique_metric_name_prefix> should match the value of a field extracted from
   the log event.
 * <dimension_field> should match the name of a field in the log event that is
-  not extracted as a <measure_field> in the corresponding METRIC-SCHEMA-
+  not extracted as a measure field in the corresponding METRIC-SCHEMA-
   MEASURES-<unique_metric_name_prefix> configuration.
+* Use the wildcard character ("*") to match multiple similar <dimension_field>
+  values in your event data. For example, say your event data contains the
+  following dimensions: 'customer_id', 'employee_id', and 'consultant_id'. You
+  can set a <dimension_name> value of '*_id' to include all three of those
+  dimensions in the dimension field list without listing each one separately.
+* The Splunk platform applies the following evaluation logic when you use the
+  METRIC-SCHEMA-BLACKLIST-DIMS-<unique_metric_name_prefix> and the
+  METRIC-SCHEMA-WHITELIST-DIMS-<unique_metric_name_prefix>
+  configurations simultaneously in a stanza:
+  * If a dimension is in the BLACKLIST, it will not be present in the resulting
+    metric data points, even if it also appears in the WHITELIST.
+  * If a dimension is not in the WHITELIST, it will not be present in the
+    resulting metric data points, even if it also does not appear in the
+    BLACKLIST.
 * Default: empty
 
-METRIC-SCHEMA-MEASURES = <measure_field1>, <measure_field2>,...
+METRIC-SCHEMA-WHITELIST-DIMS-<unique_metric_name_prefix> = <dimension_field1>,
+<dimension_field2>,...
+* Optional.
+* This whitelist configuration allows the Splunk platform to include only a
+  specified subset of dimensions when it transforms event data to metrics data.
+  You might include a whitelist in your log-to-metrics configuraton if many of
+  the dimensions in your event data are high-cardinality and are unnecessary
+  for your metrics.
+* Use this configuration in conjunction with a corresponding
+  METRIC-SCHEMA-MEASURES-<unique_metric_name_prefix> configuration.
+* <unique_metric_name_prefix> should match the value of a field extracted from
+  the log event.
+* <dimension_field> should match the name of a field in the log event that is
+  not extracted as a measure field in the corresponding METRIC-SCHEMA-
+  MEASURES-<unique_metric_name_prefix> configuration.
+* Use the wildcard character ("*") to match multiple similar <dimension_field>
+  values in your event data. For example, say your event data contains the
+  following dimensions: 'customer_id', 'employee_id', and 'consultant_id'. You
+  can set a <dimension_name> value of '*_id' to include all three of those
+  dimensions in the dimension field list without listing each one separately.
+* The Splunk platform applies the following evaluation logic when you use the
+  METRIC-SCHEMA-BLACKLIST-DIMS-<unique_metric_name_prefix> and the
+  METRIC-SCHEMA-WHITELIST-DIMS-<unique_metric_name_prefix>
+  configurations simultaneously in a stanza:
+  * If a dimension is in the BLACKLIST, it will not be present in the resulting
+    metric data points, even if it also appears in the WHITELIST.
+  * If a dimension is not in the WHITELIST, it will not be present in the
+    resulting metric data points, even if it also does not appear in the
+    BLACKLIST.
+* Default: empty
+  * When the WHITELIST is empty it behaves as if it contains all fields.
+
+METRIC-SCHEMA-MEASURES = (_ALLNUMS_ | (_NUMS_EXCEPT_ )? <field1>, <field2>,... )
 * Optional.
 * This configuration has a lower precedence over METRIC-SCHEMA-MEASURES-<unique_metric_name_prefix>
   if event has a match for unique_metric_name_prefix
 * When no prefix can be identified, this configuration is active
-  to create a new metric for each <measure_field> in the event data.
+  to create a new metric for each measure field in the event data, as defined
+  in the previous description for METRIC-SCHEMA-MEASURES-<unique_metric_name_prefix>
 * The Splunk platform saves the remaining index-time field extractions as
   dimensions in each of the created metrics.
+* Use the wildcard character ("*") to match multiple similar <field>
+  values in your event data. For example, say your event data contains the
+  following measurement fields: 'current_size_kb', 'max_size_kb', and
+  'min_size_kb'. You can set a <field> value of '*_size_kb' to include all
+  three of those measurement fields in the field list without listing each one
+  separately.
 * Default: empty
 
 METRIC-SCHEMA-BLACKLIST-DIMS = <dimension_field1>, <dimension_field2>,...
-* Optional
-* This configuration enables the Splunk platform to omit unnecessary dimensions
-  when it transforms log data to metrics data. You might set this up if you
-  have high-cardinality dimensions that are unnecessary for your metrics.
+* Optional.
+* This blacklist configuration allows the Splunk platform to omit unnecessary
+  dimensions when it transforms event data to metrics data. You might set this
+  up if some of the dimensions in your event data are high-cardinality and are
+  unnecessary for your metrics.
 * Use this configuration in conjunction with a corresponding
   METRIC-SCHEMA-MEASURES configuration.
 * <dimension_field> should match the name of a field in the log event that is
   not extracted as a <measure_field> in the corresponding METRIC-SCHEMA-
   MEASURES configuration.
+* Use the wildcard character ("*") to match multiple similar <dimension_field>
+  values in your event data. For example, say your event data contains the
+  following dimensions: 'customer_id', 'employee_id', and 'consultant_id'. You
+  can set a <dimension_name> value of '*_id' to include all three of those
+  dimensions in the dimension field list without listing each one separately.
+* The Splunk platform applies the following evaluation logic when you use the
+  METRIC-SCHEMA-BLACKLIST-DIMS and the METRIC-SCHEMA-WHITELIST-DIMS
+  configurations simultaneously in a stanza:
+  * If a dimension is in the BLACKLIST, it will not be present in the resulting
+    metric data points, even if it also appears in the WHITELIST.
+  * If a dimension is not in the WHITELIST, it will not be present in the
+    resulting metric data points, even if it also does not appear in the
+    BLACKLIST.
 * Default: empty
+
+METRIC-SCHEMA-WHITELIST-DIMS = <dimension_field1>, <dimension_field2>,...
+* Optional.
+* This whitelist configuration allows the Splunk platform to include only a
+  specified subset of dimensions when it transforms event data to metrics data.
+  You might include a whitelist in your log-to-metrics configuraton if many of
+  the dimensions in your event data are high-cardinality and are unnecessary
+  for your metrics.
+* Use this configuration in conjunction with a corresponding
+  METRIC-SCHEMA-MEASURES configuration.
+* <dimension_field> should match the name of a field in the log event that is
+  not extracted as a <measure_field> in the corresponding METRIC-SCHEMA-
+  MEASURES configuration.
+* Use the wildcard character ("*") to match multiple similar <dimension_field>
+  values in your event data. For example, say your event data contains the
+  following dimensions: 'customer_id', 'employee_id', and 'consultant_id'. You
+  can set a <dimension_name> value of '*_id' to include all three of those
+  dimensions in the dimension field list without listing each one separately.
+* The Splunk platform applies the following evaluation logic when you use the
+  METRIC-SCHEMA-BLACKLIST-DIMS and the METRIC-SCHEMA-WHITELIST-DIMS
+  configurations simultaneously in a stanza:
+  * If a dimension is in the BLACKLIST, it will not be present in the resulting
+    metric data points, even if it also appears in the WHITELIST.
+  * If a dimension is not in the WHITELIST, it will not be present in the
+    resulting metric data points, even if it also does not appear in the
+    BLACKLIST.
+* Default: empty
+  * When the WHITELIST is empty it behaves as if it contains all fields.
 
 #*******
 # KEYS:

@@ -1,4 +1,4 @@
-#   Version 7.2.10.1
+#   Version 7.3.7
 #
 ############################################################################
 # OVERVIEW
@@ -40,10 +40,18 @@
 
 [workload_rule:<rule_name>]
 predicate = <string>
-* Specifies the predicate of this workload classification rule. The format is <type>=<value>.
-  The valid <type> are "app", and "role". The <value> is the the exact value of the <type>.
-* For example, for "app" type, the value is the name of "app", say "search". For "role" type, the value
-  can be "admin".
+* Specifies the predicate of this workload classification rule.
+* The format is logical expression with predicate as <type>=<value>.
+* For example, "app=search AND (NOT role=power)".
+* The valid <type> are "app", "role", "user", and
+  "index". The <value> is the exact value of the <type>.
+* For "app" type, the value is the name of the app. For example, "app=search".
+* For "role" type, the value is the name of the role. For example, "role=admin".
+* For "index" type, the value is the name of the index. For example,
+  "index=_internal". Note that the value can refer to an internal or public index.
+* For "user" type, the value is the name of any valid user. For example,
+  "user=bob". Note that the reserved internal user "noboby" is invalid; the
+  reserved internal user "splunk-system-user" is valid.
 * Required.
 
 workload_pool = <string>

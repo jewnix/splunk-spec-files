@@ -1,4 +1,4 @@
-#   Version 7.3.8
+#   Version 7.3.9
 ############################################################################
 # This file contains settings and values to configure server options
 # in server.conf.
@@ -330,6 +330,13 @@ splunkd_stop_timeout = <positive_integer>
 * The maximum time, in seconds, that splunkd waits for a graceful shutdown to
   complete before splunkd forces a stop.
 * Default: 360 (6 minutes)
+
+regex_cache_hiwater = <integer>
+* A threshold for the number of entries in the regex cache. If the regex cache
+  grows larger than this, splunkd server will purge some of the older entries.
+* When set to a negative value, no purge occurs, no matter how large
+  the cache.
+* Default: 2500
 
 ############################################################################
 # Deployment Configuration details

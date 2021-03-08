@@ -1,4 +1,4 @@
-#   Version 7.2.10
+#   Version 7.2.10.1
 #
 # This file documents the syntax of default-mode.conf for comprehension and
 # troubleshooting purposes.

@@ -1,4 +1,4 @@
-#   Version 8.0.7
+#   Version 8.0.8
 #
 ############################################################################
 # OVERVIEW
@@ -867,11 +867,6 @@ max_rawsize_perchunk = <integer>
 * When set to “0”: Specifies that there is no size limit.
 * This setting is not affected by the “chunk_multiplier” setting.
 * Default: 100000000 (100MB)
-
-max_results_perchunk = <integer>
-* The maximum number of results to emit for each call to the preview data
-  generator.
-* Default: 2500
 
 max_results_perchunk = <integer>
 * Maximum results for each call to search (in dispatch).
@@ -2997,6 +2992,18 @@ alerts_scoping = host|splunk_server|all
   host=<search-head-host-name>, and all will have no scoping added to the
   search query.
 * Default: splunk_server
+
+async_saved_search_fetch = <boolean>
+* Enables a separate thread that will fetch scheduled or auto-summarized saved
+  searches asynchronously.
+* Do not change this setting unless instructed to do so by Splunk support.
+* Default: false
+
+async_saved_search_interval = <integer>
+* The interval, in seconds, that scheduled or auto-summarized saved searches
+  will be fetched asynchronously.
+* Has no effect if async_saved_search_fetch is set to false.
+* Default: 30
 
 auto_summary_perc = <integer>
 * The maximum number of concurrent searches to be allocated for auto

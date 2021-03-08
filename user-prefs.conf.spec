@@ -1,4 +1,4 @@
-#   Version 7.3.7
+#   Version 7.3.7.1
 #
 # This file describes some of the settings that are used, and
 # can be configured on a per-user basis for use by the Splunk Web UI.

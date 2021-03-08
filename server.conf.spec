@@ -4526,6 +4526,13 @@ max_file_exists_retry_count = <unsigned integer>
   the retry count exceeds this setting.
 * Default: 5
 
+cache_upload_backoff_sleep_secs = <unsigned_integer>
+* This setting specifies the interval, in seconds, that the cache manager waits to
+  retry an upload to the remote store after encountering a 4xx HTTP error.
+* A value of 0 causes the cache manager to continue retrying the upload without
+  performing a backoff.
+* Default: 60
+
 ############################################################################
 # Raft Statemachine configuration
 ############################################################################

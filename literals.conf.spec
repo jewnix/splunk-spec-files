@@ -1,4 +1,4 @@
-#   Version 7.3.7.1
+#   Version 7.3.8
 #
 # This file and all forms of literals.conf are now deprecated.
 # Instead, use the messages.conf file which is documented

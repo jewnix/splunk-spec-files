@@ -1,4 +1,4 @@
-#   Version 7.3.7.1
+#   Version 7.3.8
 #
 # This file contains possible attribute/value pairs for creating roles in
 # authorize.conf.  You can configure roles and granular access controls by
@@ -553,7 +553,10 @@ disabled = <boolean>
 * Replaced with the 'license_edit' capability.
 
 [capability::license_edit]
-* Lets a user access and change the license.
+* Users with this capability can access and change license attributes and related information.
+
+[capability::license_read]
+* Users with this capability can access license attributes and related information.
 
 [capability::license_view_warnings]
 * Lets a user see if they are exceeding limits or reaching the expiration

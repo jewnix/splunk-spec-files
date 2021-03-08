@@ -1,4 +1,4 @@
-#   Version 7.3.7.1
+#   Version 7.3.8
 #
 # This file contains possible attributes and values for configuring
 # authentication via authentication.conf.
@@ -675,10 +675,11 @@ signAuthnRequest = <boolean>
 * Default: true
 
 signedAssertion = <boolean>
-* Whether or not thee SAML assertion has been signed by the IDP.
-* If set to false, Splunk software does not verify the signature 
+* Whether or not the SAML assertion has been signed by the IDP.
+* If set to false, Splunk software does not verify the signature
   of the assertion using the certificate of the IDP.
-* Currently, the software accepts only signed assertions.
+* The software accepts both signed and encrypted assertions.
+* Changing this to false will not affect encrypted assertions.
 * This setting is optional.
 * Default: true
 

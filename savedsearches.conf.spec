@@ -1,4 +1,4 @@
-#   Version 7.3.7.1
+#   Version 7.3.8
 #
 # This file contains possible setting/value pairs for saved search entries in the
 # savedsearches.conf file.  You can configure saved searches by creating your own

@@ -1,10 +1,10 @@
-#   Version 8.1.0
+#   Version 7.2.9
 #
 # This file documents the syntax of default-mode.conf for comprehension and
 # troubleshooting purposes.
 
 # default-mode.conf is a file that exists primarily for Splunk Support and
-# Services to configure the Splunk platform.
+# Services to configure splunk.
 
 # CAVEATS:
 
@@ -12,15 +12,16 @@
 # Support or Services.  End-user changes to default-mode.conf are not
 # supported.
 #
-# default-mode.conf *will* be removed in a future version of the Splunk platform,
-# along with the entire configuration scheme that it affects. Any settings present
+# default-mode.conf *will* be removed in a future version of Splunk, along
+# with the entire configuration scheme that it affects. Any settings present
 # in default-mode.conf files will be completely ignored at this point.
 #
-# Settings in default-mode.conf affect how pieces of code communicate.
-# Configuration changes in default-mode.conf might fail to work,
-# behave unexpectedly, or harm your deployment. Any changes must be made
-# only under the guidance of Splunk Support or Services staff for
-# use in a specific deployment of Splunk Enterprise.
+# Any number of seemingly reasonable configurations in default-mode.conf
+# might fail to work, behave bizarrely, corrupt your data, iron your cat,
+# cause unexpected rashes, or order unwanted food delivery to your house.
+# Changes here alter the way that pieces of code will communicate which are
+# only intended to be used in a specific configuration.
+
 
 # INFORMATION:
 
@@ -37,13 +38,13 @@
 # SYNTAX:
 
 [pipeline:<string>]
-disabled = <boolean>
+disabled = true | false
 disabled_processors = <string>
 
 
 [pipeline:<string>]
 * Refers to a particular Splunkd pipeline.
-* The set of named pipelines is a splunk-internal design. That does not
+* The set of named pipelines is a splunk-internal design.  That does not
   mean that the Splunk design is a secret, but it means it is not external
   for the purposes of configuration.
 * Useful information on the data processing system of splunk can be found
@@ -51,12 +52,11 @@ disabled_processors = <string>
   http://docs.splunk.com/Documentation/Splunk/latest/Deploy/Datapipeline
 
 
-disabled = <boolean>
-* Whether or not the Splunk platform loads the specified pipeline.
+disabled = true | false
 * If set to true on a specific pipeline, the pipeline will not be loaded in
   the system.
 
 disabled_processors = <processor1>, <processor2>
 * Processors which normally would be loaded in this pipeline are not loaded
-  if they appear in this list.
-* The set of named processors is again a Splunk-internal design component.
+  if they appear in this list
+* The set of named procoessors is again a splunk-internal design component.

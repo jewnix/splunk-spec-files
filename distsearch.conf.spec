@@ -1,4 +1,4 @@
-#   Version 8.1.0
+#   Version 7.2.9
 #
 # This file contains possible attributes and values you can use to configure
 # distributed search.
@@ -30,161 +30,143 @@
 * Set distributed search configuration options under this stanza name.
 * Follow this stanza name with any number of the following attribute/value
   pairs.
-* If you do not set any attribute, the Splunk platform uses the default value
-  (if there is one listed).
+* If you do not set any attribute, Splunk uses the default value (if there
+  is one listed).
 
-disabled = <boolean>
-* Whether or not distributed search is disabled.
-* To turn distributed search off, set to "true". To turn on, set to "false".
-* Default: false (distributed search is enabled by default)
+disabled = [true|false]
+* Toggle distributed search off (true) and on (false).
+* Defaults to false (your distributed search stanza is enabled by default).
 
 heartbeatMcastAddr = <IP address>
-* DEPRECATED.
+* This setting is deprecated
 
 heartbeatPort = <port>
-* DEPRECATED.
+* This setting is deprecated
 
 ttl = <integer>
-* DEPRECATED.
+* This setting is deprecated
 
-heartbeatFrequency = <integer>
-* DEPRECATED.
+heartbeatFrequency = <int, in seconds>
+* This setting is deprecated
 
-statusTimeout = <integer>
-* The connection timeout when gathering a search peer's basic
-  info using the /services/server/info REST endpoint.
-* Increasing this value on the Distributed Monitoring Console (DMC) can result
-  in fewer peers showing up as "Down" in /services/search/distributed/peers/.
-* NOTE: Read/write timeouts are automatically set to twice this value.
-* Default: 10
+statusTimeout = <int, in seconds>
+* Set connection timeout when gathering a search peer's basic
+  info (/services/server/info).
+* Note: Read/write timeouts are automatically set to twice this value.
+* Defaults to 10.
 
-removedTimedOutServers = <boolean>
+removedTimedOutServers = [true|false]
 * This setting is no longer supported, and will be ignored.
 
-checkTimedOutServersFrequency = <integer>
+checkTimedOutServersFrequency = <integer, in seconds>
 * This setting is no longer supported, and will be ignored.
 
-autoAddServers = <boolean>
-* DEPRECATED.
+autoAddServers = [true|false]
+* This setting is deprecated
 
-bestEffortSearch = <boolean>
-* This setting determines whether a search peer that's missing the
-  knowledge bundle participates in the search.
-* If set to "true", the peer participates in the search even if it
-  doesn't have the knowledge bundle. The peers that don't have any
-  common bundles are simply not searched.
-* Default: false
+bestEffortSearch = [true|false]
+* Whether to remove a peer from search when it does not have any of our
+  bundles.
+* If set to true searches will never block on bundle replication, even when a
+  peer is first added - the peers that don't have any common bundles will
+  simply not be searched.
+* Defaults to false
 
-skipOurselves = <boolean>
-* DEPRECATED.
+skipOurselves = [true|false]
+* This setting is deprecated
 
-servers = <comma-separated list>
-* An initial list of servers.
-* Each member of this list must be a valid URI in the format of
-  scheme://hostname:port
+servers = <comma separated list of servers>
+* Initial list of servers.
+* Each member of this list must be a valid uri in the format of scheme://hostname:port
 
-disabled_servers = <comma-separated list>
-* A list of disabled search peers. Peers in this list are not monitored
-  or searched.
-* Each member of this list must be a valid URI in the format of
-  scheme://hostname:port
+disabled_servers = <comma separated list of servers>
+* A list of disabled search peers. Peers in this list are not monitored or searched.
+* Each member of this list must be a valid uri in the format of scheme://hostname:port
 
-quarantined_servers = <comma-separated list>
+quarantined_servers = <comma separated list of servers>
 * A list of quarantined search peers.
-* Each member of this list must be a valid URI in the format of
-  scheme://hostname:port
-* The admin might quarantine peers that seem unhealthy and are degrading search
-  performance of the whole deployment.
+* Each member of this list must be a valid uri in the format of scheme://hostname:port
+* The admin may quarantine peers that seem unhealthy and are degrading search
+  performancce of the whole deployment.
 * Quarantined peers are monitored but not searched by default.
-* A user might use the splunk_server arguments to target a search
-  to quarantined peers at the risk of slowing the search.
-* When you quarantine a peer, any real-time searches that are running are NOT
-  restarted. Currently running real-time searches continue to return results
-  from the quarantined peers. Any real-time searches started after the peer
-  has been quarantined will not contact the peer.
-* Whenever a quarantined peer is excluded from search, appropriate warnings
-  are displayed in the search.log and in the Job Inspector.
+* A user may use the splunk_server arguments to target a search to qurantined peers
+  at the risk of slowing the search.
+* When a peer is quarantined, running realtime searches will NOT be restarted. Running
+  realtime searches will continue to return results from the quarantined peers. Any
+  realtime searches started after the peer has been quarantined will not contact the peer.
+* Whenever a quarantined peer is excluded from search, appropriate warnings will be displayed
+  in the search.log and Job Inspector
 
 useDisabledListAsBlacklist = <boolean>
-* Whether or not the search head treats the 'disabled_servers' setting as
-  a deny list.
-* If set to “true”, search peers that appear in both the 'servers'
-  and 'disabled_servers' lists are disabled and do not participate in search.
-* If set to “false”, search peers that appear in both lists are enabled
-  and participate in search.
+* Whether or not the search head treats the ‘disabled_servers’ setting as a blacklist.
+* If set to “true”, search peers that appear in both the ‘servers’ and ‘disabled_servers’
+  lists are disabled and do not participate in search.
+* If set to “false”, search peers that appear in both lists are treated as enabled, despite
+   being in the ‘disabled_servers’ list. These search peers do participate in search.
 * Default: false
 
-shareBundles = <boolean>
-* DEPRECATED.
+shareBundles = [true|false]
+* Indicates whether this server will use bundle replication to share search
+  time configuration with search peers.
+* If set to false, the search head assumes that all the search peers can access
+  the correct bundles via share storage and have configured the options listed
+  under "SEARCH HEAD BUNDLE MOUNTING OPTIONS".
+* Defaults to true.
 
-useSHPBundleReplication =[true|false|always]
-* Whether the search heads in the pool compete with each other to decide which
-  one handles the bundle replication (every time bundle replication needs
-  to happen), or whether each of them individually replicates the bundles.
-* This setting is only relevant in search head pooling environments.
-* When set to "always" and you have configured mounted bundles, use the
-  search head pool GUID rather than each individual server name to identify
-  bundles (and search heads to the remote peers).
-* Default: true
+useSHPBundleReplication = <bool>|always
+* Relevant only in search head pooling environments. Whether the search heads
+  in the pool should compete with each other to decide which one should handle
+  the bundle replication (every time bundle replication needs to happen) or
+  whether each of them should individually replicate the bundles.
+* When set to always and bundle mounting is being used then use the search head
+  pool guid rather than  each individual server name to identify bundles (and
+  search heads to the remote peers).
+* Defaults to true
 
-trySSLFirst = <boolean>
+trySSLFirst = <bool>
 * This setting is no longer supported, and will be ignored.
 
-peerResolutionThreads = <integer>
+peerResolutionThreads = <int>
 * This setting is no longer supported, and will be ignored.
 
 defaultUriScheme = [http|https]
-* The default URI scheme to use if you add a new peer without specifying
-  a scheme for the URI to its management port.
-* Default: https
+* When a new peer is added without specifying a scheme for the uri to its management
+  port we will use this scheme by default.
+* Defaults to https
 
-serverTimeout = <integer>
-* This setting is no longer supported, and will be ignored.
-* It has been replaced by the following settings:
-  'connectionTimeout', 'sendTimeout', 'receiveTimeout'.
+serverTimeout = <int, in seconds>
+* REMOVED, this setting is now ignored and has been replaced by
+  connectionTimeout, sendTimeout, receiveTimeout
 
-connectionTimeout = <integer>
-* The maximum amount of time to wait, in seconds, when the search head
-  is attempting to establish a connection to the search peer.
+connectionTimeout = <int, in seconds>
+* Amount of time in seconds to use as a timeout during search peer connection
+  establishment.
 
-sendTimeout = <integer>
-* The maximum amount of time to wait, in seconds, when the search head
-  is attempting to write or send data to a search peer.
+sendTimeout = <int, in seconds>
+* Amount of time in seconds to use as a timeout while trying to write/send data
+  to a search peer.
 
-receiveTimeout = <integer>
-* The maximum amount of time to wait, in seconds, when the search head
-  is attempting to read or receive data from a search peer.
+receiveTimeout = <int, in seconds>
+* Amount of time in seconds to use as a timeout while trying to read/receive
+  data from a search peer.
 
-authTokenConnectionTimeout = <integer>
-* The maximum amount of time to wait, in seconds, for the search head
-  to connect to a remote search peer when reading its authentication token.
-* Fractional seconds are allowed (for example, 10.5 seconds).
-* Default: 5
+authTokenConnectionTimeout = <number, in seconds>
+* Maximum number of seconds to connect to a remote search peer, when getting
+  its auth token
+* Fractional seconds are allowed
+* Default is 5
 
-authTokenSendTimeout = <integer>
-* The maximum amount of time to wait, in seconds, for the search head
-  to send a request to a remote peer when getting its authentication token.
-* Fractional seconds are allowed (for example, 10.5 seconds).
-* Default: 10
+authTokenSendTimeout = <number, in seconds>
+* Maximum number of seconds to send a request to the remote peer, when getting
+  its auth token
+* Fractional seconds are allowed
+* Default is 10
 
-authTokenReceiveTimeout = <integer>
-* The maximum amount of time to wait, in seconds, for the search head to
-  receive a response from a remote peer when getting its authentication token.
-* Fractional seconds are allowed (for example, 10.5 seconds).
-* Default: 10
-
-bcs = <string>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* A string that represents the URL for the Bucket Catalog Service.
-* Optional.
-* There is no default.
-
-bcsPath = <path>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* Optional.
-* Default: /bcs/v1/buckets
+authTokenReceiveTimeout = <number, in seconds>
+* Maximum number of seconds to receive a response from a remote peer, when
+  getting its auth token
+* Fractional seconds are allowed
+* Default is 10
 
 #******************************************************************************
 # DISTRIBUTED SEARCH KEY PAIR GENERATION OPTIONS
@@ -193,46 +175,19 @@ bcsPath = <path>
 [tokenExchKeys]
 
 certDir = <directory>
-* This directory contains the local Splunk Enterprise instance's distributed
-  search key pair.
+* This directory contains the local Splunk instance's distributed search key
+  pair.
 * This directory also contains the public keys of servers that distribute
-  searches to this Splunk Enterprise instance.
-* Default: $SPLUNK_HOME/etc/auth/distServerKeys
+  searches to this Splunk instance.
 
-publicKey = <string>
-* The name of the public key file for this Splunk Enterprise instance.
-* Default: trusted.pem
+publicKey = <filename>
+* Name of public key file for this Splunk instance.
 
-privateKey = <string>
-* The name of private key file for this Splunk Enterprise instance.
-* Default: private.pem
+privateKey = <filename>
+* Name of private key file for this Splunk instance.
 
-genKeyScript = <string>
-* The command used to generate the two files above.
-* Default: $SPLUNK_HOME/bin/splunk, createssl, audit-keys
-
-minKeyLength = <integer>
-* The minimum key length, in bits, that this Splunk platform instance accepts
-  when you configure it as a search peer.
-* Typical key lengths are 1024 or 2048, but the 'genKeyScript' can be configured
-  to generate 3072- and 4096-bit keys.
-* Example: 2048
-* Optional.
-* No default.
-
-legacyKeyLengthAuthPolicy = [ warn | reject ]
-* This setting applies to existing search heads that were added prior to
-  the configuration of a 'minKeyLength' value on this search peer.
-* When set to 'warn', this search peer fulfills an authentication token request
-  from a search head that supplies a key that is shorter than 'minKeyLength'
-  bits, after it first writes a warning message to splunkd.log.
-* When set to 'reject', this search peer refuses an authentication token request
-  from a search head that supplies a key whose length is too short. It writes
-  an error message to splunkd.log about this rejection. This prevents search
-  heads from running searches on this search peer when their key lengths
-  are not long enough.
-* Optional.
-* No default.
+genKeyScript = <command>
+* Command used to generate the two files above.
 
 #******************************************************************************
 # REPLICATION SETTING OPTIONS
@@ -240,228 +195,139 @@ legacyKeyLengthAuthPolicy = [ warn | reject ]
 
 [replicationSettings]
 
-replicationPolicy = [classic | cascading | rfs | mounted]
-* The strategy used by the search head to replicate knowledge bundle across all
-  search peers.
-* When set to 'classic', the search head replicates bundle to all search peers.
-* When set to 'cascading', the search head replicates bundle to select few
-  search peers who in turn replicate to other peers. For tuning parameters for
-  cascading replication, refer to the `cascading_replication` stanza in
-  server.conf.
-* When set to 'rfs', the search head uploads the bundle to the configured remote
-  file system like Amazon S3. Note that this policy is not supported for
-  on-premise Splunk Enterprise deployments.
-* When set to 'mounted', the search head assumes that all the search peers can
-  access the correct bundles via shared storage and have configured the
-  options listed under the "SEARCH HEAD BUNDLE MOUNTING OPTIONS" heading.
-  The 'mounted' option replaces the 'shareBundles' setting, which is no longer
-  available. The functionality remains unchanged.
-* Default: classic
+connectionTimeout = <int, in seconds>
+* The maximum number of seconds to wait before timing out on initial connection
+  to a peer.
 
-#******************************************************************************
-# 'classic' REPLICATION-SPECIFIC SETTINGS
-#******************************************************************************
+sendRcvTimeout = <int, in seconds>
+* The maximum number of seconds to wait for the sending of a full replication
+  to a peer.
 
-connectionTimeout = <integer>
-* The maximum amount of time to wait, in seconds, before a search head's initial
-  connection to a peer times out.
-* Default: 60
+replicationThreads = <positive int>|auto
+* The maximum number of threads to use when performing bundle replication to peers.
+* If you configure this setting to "auto", the peer autotunes the number of threads it uses for bundle replication.
+** If the peer has less than 4 CPUs, it allocates 2 threads.
+** If the peer has 4 or more, but less than 8 CPUs, it allocates up to '# of CPUs - 2' threads.
+** If the peer has 8 or more, but less than 16 CPUs, it allocates up to '# of CPUs - 3' threads.
+** If the peer has 16 or more CPUs, it allocates up to '# of CPUs - 4' threads.
+* Defaults to 5.
 
-sendRcvTimeout = <integer>
-* The maximum amount of time to wait, in seconds, when a search head is sending
-  a full replication to a peer.
-* Default: 60
+maxMemoryBundleSize = <int>
+* The maximum size (in MB) of bundles to hold in memory. If the bundle is
+  larger than this the bundles will be read and encoded on the fly for each
+  peer the replication is taking place.
+* Defaults to 10
 
-replicationThreads = <positive integer>|auto
-* The maximum number of threads to use when performing bundle replication
-  to peers.
-* If set to "auto", the peer auto-tunes the number of threads it uses for
-  bundle replication.
-    * If the peer has 3 or fewer CPUs, it allocates 2 threads.
-    * If the peer has 4-7 CPUs, it allocates up to '# of CPUs - 2' threads.
-    * If the peer has 8-15 CPUs, it allocates up to '# of CPUs - 3' threads.
-    * If the peer has 16 or more CPUs, it allocates up to
-      '# of CPUs - 4' threads.
-* This setting is applicable only when replicationPolicy is set to 'classic'.
-* Maximum accepted value for this setting is 16.
-* Default: auto
+maxBundleSize = <int>
+* The maximum size (in MB) of the bundle for which replication can occur. If
+  the bundle is larger than this  bundle replication will not occur and an
+  error message will be logged.
+* Defaults to: 2048 (2GB)
 
-maxMemoryBundleSize = <integer>
-* UNSUPPORTED: This setting is no longer supported
+concerningReplicatedFileSize = <int>
+* Any individual file within a bundle that is larger than this value (in MB)
+  will trigger a splunkd.log message.
+* Where possible, avoid replicating such files, e.g. by customizing your blacklists.
+* Defaults to: 500
 
-maxBundleSize = <integer>
-* The maximum bundle size, in megabytes, for which replication can occur.
-* If a bundle is larger than this value, bundle replication does not occur and
-  Splunk logs an error message.
-* The maximum value is 102400 (100 GB).
-* If the bundle exceed 'maxBundleSize', you must increase this value or remove
-  files from the bundle to resume normal system operation.
-* This value must be larger than the current bundle size. Do not decrease
-  it to a value less than the most recent bundle size.
-* Bundles reside in the $SPLUNK_HOME/var/run directory on the search head.
-  Check the size of the most recent full bundle in that directory.
-* Default: 2048 (2GB)
+excludeReplicatedLookupSize = <int>
+* Any lookup file larger than this value (in MB) will be excluded from the knowledge bundle that the search head replicates to its search peers.
+* When this value is set to 0, this feature is disabled.
+* Defaults to 0
 
-warnMaxBundleSizePerc = <integer>
-* The search head sends warnings when the knowledge bundle size exceeds this setting's
-  percentage of maxBundleSize.
-* For example, if maxBundleSize is 2GB and this setting is 50, the search head sends
-  warnings when the bundle size exceeds 1GB (2GB * 50%).
-* Supported values range from 1 to 100.
-* Default: 75
+allowStreamUpload = auto | true | false
+* Whether to enable streaming bundle replication for peers.
+* If set to auto, streaming bundle replication will be used when connecting to
+  peers with a complete implementation of this feature (Splunk 6.0 or higher).
+* If set to true, streaming bundle replication will be used when connecting to
+  peers with a complete or experimental implementation of this feature (Splunk
+  4.2.3 or higher).
+* If set to false, streaming bundle replication will never be used.
+  Whatever the value of this setting, streaming bundle replication will not be
+  used for peers that completely lack support for this feature.
+* Defaults to: auto
 
-concerningReplicatedFileSize = <integer>
-* The maximum allowable file size, in megabytes, within a bundle.
-* Any individual file within a bundle that is larger than this value
-  triggers a splunkd.log message.
-* If excludeReplicatedLookupSize is enabled with a value less than or equal to
-  concerningReplicatedFileSize, no warning message will be displayed.
-* Where possible, avoid replicating such files by customizing your deny lists.
-* Default: 500
+allowSkipEncoding = <bool>
+* Whether to avoid URL-encoding bundle data on upload.
+* Defaults to: true
 
-excludeReplicatedLookupSize = <integer>
-* The maximum allowable lookup file size, in megabytes, during knowledge
-  bundle replication.
-* Any lookup file larger than this value is excluded from the knowledge bundle
-  that the search head replicates to its search peers.
-* When this value is set to "0", this feature is disabled. All file sizes
-  are included.
-* Default: 0
-
-allowStreamUpload = [auto|true|false]
-* UNSUPPORTED: This setting is no longer supported
-
-allowSkipEncoding = <boolean>
-* UNSUPPORTED: This setting is no longer supported
-
-allowDeltaUpload = <boolean>
+allowDeltaUpload = <bool>
 * Whether to enable delta-based bundle replication.
-* Delta-based replication keeps the bundle compact, with the search head only
-  replicating the changed portion of the bundle to its search peers.
-* Default: true
+* Defaults to: true
 
-sanitizeMetaFiles = <boolean>
+sanitizeMetaFiles = <bool>
 * Whether to sanitize or filter *.meta files before replication.
-* Use this setting to avoid unnecessary replications triggered by
+* This feature can be used to avoid unnecessary replications triggered by
   writes to *.meta files that have no real effect on search behavior.
 * The types of stanzas that "survive" filtering are configured via the
   replicationSettings:refineConf stanza.
-* The filtering process removes comments and cosmetic white space.
-* Default: true
-
-statusQueueSize = <integer>
-* The maximum number of knowledge bundle replication cycle status values that the
-  search head maintains in memory. These status values remain accessible by queries.
-* Default: 5
-
-allowDeltaIndexing = <boolean>
-* Specifies whether to enable delta indexing for knowledge bundle replication.
-* Delta indexing causes the indexer to index only those lookup files that have
-  changed since the previous bundle, thus reducing the time and resources needed
-  to create a new bundle.
-* Delta indexing also keeps the bundle compact by using hard links for files that
-  have not changed since the previous bundle, instead of copying those files to the
-  new bundle.
-* Do not change this setting unless instructed to do so by Splunk Support.
-* Default: true
+* The filtering process removes comments and cosmetic whitespace.
+* Defaults to: true
 
 ################################################################
-# CASCADING BUNDLE REPLICATION-SPECIFIC SETTINGS
+# RFS (AKA S3 / REMOTE FILE SYSTEM) REPLICATION SPECIFIC SETTINGS
 ################################################################
-
-cascade_replication_status_interval = <interval>
-* The interval at which the cascading replication status thread runs
-  to update the cascading replication status for all peers.
-* The maximum and recommended value for this setting is 60s.
-* The minimum accepted value is 1s.
-* Do not change this setting without consulting Splunk Support.
-* Default: 60s
-
-cascade_replication_status_unchanged_threshold = <integer>
-* The maximum number of intervals (interval length being determined
-  by the "cascade_replication_status_interval" setting) that a peer's
-  status can remain unchanged while stuck in an in-progress state.
-* Once this limit is reached, the replication is resent to this peer.
-* The maximum accepted value for this setting is 20.
-* The minimum accepted value for this setting is 1.
-* Default: 5
-
-################################################################
-# RFS (AKA S3/REMOTE FILE SYSTEM) REPLICATION-SPECIFIC SETTINGS
-################################################################
-
-enableRFSReplication = <boolean>
-* DEPRECATED.
-
-enableRFSMonitoring = <boolean>
+enableRFSReplication = <bool>
 * Currently not supported. This setting is related to a feature that is
   still under development.
-* If set to "true", remote file system bundle monitoring is enabled.
+* Required on search heads.
+* When search heads generate bundles, these bundles are uploaded to
+  the configured remote file system.
+* When search heads delete their old bundles, they subsequently
+  attempt to delete the bundle from the configured remote file system.
+* If set to true, remote file system bundle replication is enabled.
+* Default: false.
+
+enableRFSMonitoring = <bool>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Required on search peers.
 * Search peers periodically monitor the configured remote file system
   and download any bundles that they do not have on disk.
-* Required on search peers.
-* Default: false
+* If set to true, remote file system bundle monitoring is enabled.
+* Default: false.
 
-rfsMonitoringPeriod = <unsigned integer>
+rfsMonitoringPeriod = <unsigned int>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * The amount of time, in seconds, that a search peer waits between polling
-  attempts. You must also configure this setting on search heads, whether or
-  not the 'enableRFSMonitoring' setting is enabled on them.
-* For search heads when the 'rfsSyncReplicationTimeout' setting is set to
-  "auto", this setting automatically adapts the 'rfsSyncReplicationTimeout'
-  setting to the monitoring frequency of the search peers.
-* If you set this value to less than "60", it automatically defaults to 60.
-* Default: 60
+  attempts. You must also set this attribute on search heads, whether or
+  not 'enableRFSMonitoring' is enabled on them.
+* For search heads when 'rfsSyncReplicationTimeout' is set to 'auto',
+  setting this will automatically adapt the 'rfsSyncReplicationTimeout'
+  parameter to the monitoring frequency of the search peers.
+* If you set this parameter to less than 60, it is automatically
+  reset to 60.
+* Default: 60.
 
-rfsSyncReplicationTimeout = <unsigned integer>
+rfsSyncReplicationTimeout = <unsigned int>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * The amount of time, in seconds, that a search head waits for synchronous
   replication to complete. Only applies to RFS bundle replication.
-* The default value is computed from the 'rfsMonitoringPeriod' setting.
-  For example, (rfsMonitoringPeriod + 60) * 5, where 60 is the non-configurable
-  polling interval from search heads to search peers, and 5 is an
-  arbitrary multiplier.
-* If you do not modify the 'rfsMonitoringPeriod' setting, the default
-  value is 600.
-* Default: auto
+* Default value is computed from 'rfsMonitoringPeriod', i.e.
+  (rfsMonitoringPeriod + 60)) * 5, where 60 is the non-configurable search
+  head to search peer polling interval, and 5 is arbitrary multiplier.
+  If 'rfsMonitoringPeriod' is not modified, default value is 600.
+* Default: auto.
 
-activeServerTimeout = <unsigned integer>
+path = <path on server>
 * Currently not supported. This setting is related to a feature that is
   still under development.
-* The amount of time, in seconds, that must elapse before a search peer
-  considers the search head to be inactive and no longer attempts to
-  download knowledge bundles from that search head from S3/RFS.
-* Only applies to RFS bundle replication.
-* Default: 360
-
-path = <path>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* The remote storage location where bundles reside.
 * Required.
+* The path attribute points to the remote storage location where bundles
+  reside.
 * The format for this attribute is: <scheme>://<remote-location-specifier>
   * The "scheme" identifies a supported external storage system type.
   * The "remote-location-specifier" is an external system-specific string
     for identifying a location inside the storage system.
-* The following external systems are supported:
-  * Object stores that support AWS's S3 protocol. These use the scheme "s3".
+* These external systems are supported:
+  - Object stores that support AWS's S3 protocol. These use the scheme
+    "s3".
     Example: "path=s3://mybucket/some/path"
-  * POSIX file system, potentially a remote file system mounted over NFS.
+  - POSIX file system, potentially a remote filesystem mounted over NFS.
     These use the scheme "file".
     Example: "path=file:///mnt/cheap-storage/some/path"
-
-remote.s3.url_version = v1|v2
-* Specifies which url version to use, both for parsing the endpoint/path, and
-* for communicating with the remote storage. This value only needs to be
-* specified when running on non-AWS S3-compatible storage that has been configured
-* to use v2 urls.
-* In v1 the bucket is the first element of the path.
-* Example: mydomain.com/bucketname/rest/of/path
-* In v2 the bucket is the outermost subdomain in the endpoint.
-* Exmaple: bucketname.mydomain.com/rest/of/path
-* Default: v1
 
 remote.s3.endpoint = <URL>
 * Currently not supported. This setting is related to a feature that is
@@ -469,187 +335,163 @@ remote.s3.endpoint = <URL>
 * The URL of the remote storage system supporting the S3 API.
 * The protocol, http or https, can be used to enable or disable SSL
   connectivity with the endpoint.
-* If not specified and the indexer is running on EC2, the endpoint is
+* If not specified and the indexer is running on EC2, the endpoint will be
   constructed automatically based on the EC2 region of the instance where
   the indexer is running, as follows: https://s3-<region>.amazonaws.com
 * Example: https://s3-us-west-2.amazonaws.com
 
-remote.s3.bucket_name = <string>
-* Specifies the S3 bucket to use when endpoint isn't set.
-* Example
-  path = s3://path/example
-  remote.s3.bucket_name = mybucket
-* Used for constructing the amazonaws.com hostname, as shown above.
-* If neither endpoint nor bucket_name is specified, the bucket is assumed
-  to be the first path element.
-* Optional.
-
-remote.s3.encryption = [sse-s3|none]
+remote.s3.encryption = sse-s3 | none
 * Currently not supported. This setting is related to a feature that is
   still under development.
-* Specifies the schema to use for Server-Side Encryption (SSE) for data at rest.
+* Optional.
+* Specifies the schema to use for Server-side Encryption (SSE) for data at rest.
 * sse-s3: See:
   http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html
 * none: Server-side encryption is disabled. Data is stored unencrypted on the
   remote storage.
-* Optional.
 * Default: none
-
-remote.s3.supports_versioning = <boolean>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* Specifies whether the remote storage supports versioning.
-* Versioning is a means of keeping multiple variants of an object
-  in the same bucket on the remote storage. While versioning is not used by
-  RFS bundle replication, this much match the configuration of the S3 bucket
-  for bundle reaping to work correctly.
-* This setting determines how splunkd removes data from remote storage.
-  If set to true, splunkd will delete all versions of objects at
-  time of data removal. Otherwise, if set to false, splunkd will use a simple DELETE
-  (See https://docs.aws.amazon.com/AmazonS3/latest/dev/DeletingObjectVersions.html).
-* Optional.
-* Default: true
-
-#******************************************************************************
-# SEARCH HEAD BUNDLE MOUNTING OPTIONS
-# Configure these settings on the search peers only, and only if you also
-# configure replicationPolicy=mounted in the [replicationSettings] stanza on the search
-# head. Use these settings to access bundles that are not replicated. The search
-# peers use a shared
-# storage mount point to access the search head bundles ($SPLUNK_HOME/etc).
-#******************************************************************************
-
-[searchhead:<searchhead-splunk-server-name>]
-* <searchhead-splunk-server-name> is the name of the related search head
-  installation.
-* The server name is located in server.conf: serverName = <name>
-
-mounted_bundles = <boolean>
-* Determines whether the bundles belonging to the search head specified in the
-  stanza name are mounted.
-* You must set this value to "true" to use mounted bundles.
-* Default: false
-
-bundles_location = <path>
-* The path to where the search head's bundles are mounted.
-* This path must be the mount point on the search peer, not on the search head.
-* The path should point to a directory that is equivalent to $SPLUNK_HOME/etc/.
-* The path must contain at least the following subdirectories: system, apps,
-  users
 
 [replicationSettings:refineConf]
 
-replicate.<conf_file_name> = <boolean>
-* Whether or not the Splunk platform replicates a particular type of
-  *.conf file, along with any associated permissions in *.meta files.
-* These settings on their own do not cause files to be replicated. You must
-  still allow list a file (via the 'replicationWhitelist' setting) in order for
-  it to be eligible for inclusion via these settings.
+replicate.<conf_file_name> = <bool>
+* Controls whether Splunk replicates a particular type of *.conf file, along
+  with any associated permissions in *.meta files.
+* These settings on their own do not cause files to be replicated. A file must
+  still be whitelisted (via replicationWhitelist) to be eligible for inclusion
+  via these settings.
 * In a sense, these settings constitute another level of filtering that applies
   specifically to *.conf files and stanzas with *.meta files.
-* Default: false
+* Defaults to: false
 
 #******************************************************************************
-# REPLICATION ALLOW LIST OPTIONS
+# REPLICATION WHITELIST OPTIONS
 #******************************************************************************
 
 [replicationWhitelist]
 
-<name> = <string>
-* Controls the Splunk platform search-time configuration replication from
-  search heads to search peers.
-* Only files that match an allow list entry are replicated.
-* Conversely, files that do not match an allow list entry are not replicated.
-* Only files located under $SPLUNK_HOME/etc will ever be replicated in this way.
-  * The regex is matched against the file name, relative to $SPLUNK_HOME/etc.
-    Example: For a file "$SPLUNK_HOME/etc/apps/fancy_app/default/inputs.conf",
-             this allow list should match "apps/fancy_app/default/inputs.conf"
+<name> = <whitelist_pattern>
+* Controls Splunk's search-time conf replication from search heads to search
+  nodes.
+* Only files that match a whitelist entry will be replicated.
+* Conversely, files which are not matched by any whitelist will not be
+  replicated.
+* Only files located under $SPLUNK_HOME/etc will ever be replicated in this
+  way.
+  * The regex will be matched against the filename, relative to $SPLUNK_HOME/etc.
+    Example: for a file "$SPLUNK_HOME/etc/apps/fancy_app/default/inputs.conf"
+             this whitelist should match "apps/fancy_app/default/inputs.conf"
   * Similarly, the etc/system files are available as system/...
-    User-specific files are available as users/username/appname/...
-* The 'name' element is generally descriptive, with one exception:
-  If <name> begins with "refine.", files allow listed by the given pattern will
+    user-specific files are available as users/username/appname/...
+* The 'name' element is generally just descriptive, with one exception:
+  if <name> begins with "refine.", files whitelisted by the given pattern will
   also go through another level of filtering configured in the
-  [replicationSettings:refineConf] stanza.
-* The allow list pattern is the Splunk style pattern matching, which is
+  replicationSettings:refineConf stanza.
+* The whitelist_pattern is the Splunk-style pattern matching, which is
   primarily regex-based with special local behavior for '...' and '*'.
-  * '...' matches anything, while '*' matches anything besides
-    directory separators. See props.conf.spec for more detail on these.
-  * Note: '.' will match a literal dot, not any character.
-* These lists are applied globally across all configuration data, not to any
-  particular application, regardless of where they are defined. Be careful to
-  pull in only your intended files.
+  * ... matches anything, while * matches anything besides directory separators.
+    See props.conf.spec for more detail on these.
+  * Note '.' will match a literal dot, not any character.
+* Note that these lists are applied globally across all conf data, not to any
+  particular app, regardless of where they are defined.  Be careful to pull in
+  only your intended files.
 
 #******************************************************************************
-# REPLICATION DENY LIST OPTIONS
+# REPLICATION BLACKLIST OPTIONS
 #******************************************************************************
 
 [replicationBlacklist]
 
-<name> = <string>
-* All comments from the replication allow list notes above also apply here.
-* Replication deny list takes precedence over the allow list, meaning that a
-  file that matches both the allow list and the deny list is NOT replicated.
-* Use this setting to prevent unwanted bundle replication in two common
+<name> = <blacklist_pattern>
+* All comments from the replication whitelist notes above also apply here.
+* Replication blacklist takes precedence over the whitelist, meaning that a
+  file that matches both the whitelist and the blacklist will NOT be
+  replicated.
+* This can be used to prevent unwanted bundle replication in two common
   scenarios:
-    * Very large files which part of an application might not want to be
-      replicated, especially if they are not needed on search nodes.
+    * Very large files, which part of an app may not want to be replicated,
+      especially if they are not needed on search nodes.
     * Frequently updated files (for example, some lookups) will trigger
       retransmission of all search head data.
-* These lists are applied globally across all configuration data. Especially
-  for deny listing, be sure to constrain your deny list to match only data
-  that your application does not need.
+* Note that these lists are applied globally across all conf data. Especially
+  for blacklisting, be careful to constrain your blacklist to match only data
+  your application will not need.
 
 #******************************************************************************
-# BUNDLE ENFORCER ALLOW LIST OPTIONS
+# BUNDLE ENFORCER WHITELIST OPTIONS
 #******************************************************************************
 
 [bundleEnforcerWhitelist]
 
-<name> = <string>
-* Peers use this setting to make sure knowledge bundles sent by search heads and
+<name> = <whitelist_pattern>
+* Peers uses this to make sure knowledge bundle sent by search heads and
   masters do not contain alien files.
 * If this stanza is empty, the receiver accepts the bundle unless it contains
-  files matching the rules specified in the [bundleEnforcerBlacklist] stanza.
-  Hence, if both [bundleEnforcerWhitelist] and [bundleEnforcerBlacklist] are
-  empty (which is the default), then the receiver accepts all bundles.
+  files matching the rules specified in [bundleEnforcerBlacklist]. Hence, if
+  both [bundleEnforcerWhitelist] and [bundleEnforcerBlacklist] are empty (which
+  is the default), then the receiver accepts all bundles.
 * If this stanza is not empty, the receiver accepts the bundle only if it
-  contains only files that match the rules specified here but not those in the
-  [bundleEnforcerBlacklist] stanza.
-* All rules are regular expressions.
-* No default.
+  contains only files that match the rules specified here but not those in
+  [bundleEnforcerBlacklist].
+* All rules are regexs.
+* This stanza is empty by default.
 
 #******************************************************************************
-# BUNDLE ENFORCER DENY LIST OPTIONS
+# BUNDLE ENFORCER BLACKLIST OPTIONS
 #******************************************************************************
 
 [bundleEnforcerBlacklist]
 
-<name> = <string>
-* Peers use this setting to make sure knowledge bundle sent by search heads and
+<name> = <blacklist_pattern>
+* Peers uses this to make sure knowledge bundle sent by search heads and
   masters do not contain alien files.
-* This list overrides the [bundleEnforceWhitelist] stanza above. This means that
-  the receiver removes the bundle if it contains any file that matches the
+* This list overrides [bundleEnforceWhitelist] above. That means the receiver
+  rejects (i.e. removes) the bundle if it contains any file that matches the
   rules specified here even if that file is allowed by [bundleEnforcerWhitelist].
 * If this stanza is empty, then only [bundleEnforcerWhitelist] matters.
-* No default.
+* This stanza is empty by default.
+
+#******************************************************************************
+# SEARCH HEAD BUNDLE MOUNTING OPTIONS
+# You set these attributes on the search peers only, and only if you also set
+# shareBundles=false in [distributedSearch] on the search head. Use them to
+# achieve replication-less bundle access. The search peers use a shared storage
+# mountpoint to access the search head bundles ($SPLUNK_HOME/etc).
+#******************************************************************************
+
+[searchhead:<searchhead-splunk-server-name>]
+* <searchhead-splunk-server-name> is the name of the related searchhead
+  installation.
+* This setting is located in server.conf, serverName = <name>
+
+mounted_bundles = [true|false]
+* Determines whether the bundles belong to the search head specified in the
+  stanza name are mounted.
+* You must set this to "true" to use mounted bundles.
+* Default is "false".
+
+bundles_location = <path_to_bundles>
+* The path to where the search head's bundles are mounted. This must be the
+  mountpoint on the search peer,  not on the search head. This should point to
+  a directory that is equivalent to $SPLUNK_HOME/etc/. It must contain at least
+  the following subdirectories: system, apps, users.
 
 
 #******************************************************************************
 # DISTRIBUTED SEARCH GROUP DEFINITIONS
-# These settings are the definitions of the distributed search groups. A search
-# group is a set of search peers as identified by thier host:management-port. A
-# search can be directed to a search group using the splunk_server_group argument.
-# The search is dispatched to only the members of the group.
+# These are the definitions of the distributed search groups. A search group is
+# a set of search peers as identified by thier host:management-port. A search 
+# may be directed to a search group using the splunk_server_group argument.The
+# search will be dispatched to only the members of the group.
 #******************************************************************************
 
 [distributedSearch:<splunk-server-group-name>]
-* <splunk-server-group-name> is the name of the Splunk server group that is
+* <splunk-server-group-name> is the name of the splunk-server-group that is
   defined in this stanza
 
-servers = <comma-separated list>
-* A list of search peers that are members of this group.
-* The list must use peer identifiers (i.e. hostname:port).
+servers = <comma separated list of servers>
+* List of search peers that are members of this group. Comma serparated list
+  of peer identifiers i.e. hostname:port
 
-default = <boolean>
-* Whether or not this group is the default group of peers against which all
-  searches are run, unless a server group is not explicitly specified.
+default = [true|false]
+* Will set this as the default group of peers against which all searches are
+  run unless a server-group is not explicitly specified.

@@ -1,9 +1,9 @@
-#   Version 8.1.0
+#   Version 7.2.9
 #
 # This file contains the set of attributes and values you can use to
 # configure checklist.conf to run health checks in Monitoring Console.
 # Any health checks you add manually should be stored in your app's local directory.
-#
+# 
 [<uniq-check-item-name>]
 * A unique string for the name of this health check.
 
@@ -54,13 +54,13 @@ environments_to_exclude = <ASCII string>
 *   Possible environments are 'standalone' and 'distributed'
 * If omitted this check can be applied to all groups.
 
-disabled = <boolean>
+disabled = [0|1]
 * Disable this check item by setting to 1.
-* Default: 0
+* Defaults to 0.
 
 search = <ASCII string>
 * (required) Search string to be run to perform the health check.
-* Please separate lines by "\" if the search string has multiple lines.
+* Please seperate lines by "\" if the search string has multiple lines.
 *
 * In single-instance mode, this search will be used to generate the final result.
 * In multi-instance mode, this search will generate one row per instance in the result table.

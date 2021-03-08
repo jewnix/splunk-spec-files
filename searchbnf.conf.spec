@@ -1,4 +1,4 @@
-#   Version 8.1.0
+#   Version 7.2.9
 #
 #
 # This file contain descriptions of stanzas and attribute/value pairs for
@@ -52,7 +52,7 @@
 syntax = <string>
 * Describes the syntax of the search command.  See the head of
   searchbnf.conf for details.
-* Required.
+* Required
 
 simplesyntax = <string>
 
@@ -72,12 +72,12 @@ alias = <commands list>
 description = <string>
 * Detailed text description of search command.  Description can continue on
   the next line if the line ends in "\"
-* Required.
+* Required
 
 shortdesc = <string>
 * A short description of the search command.  The full DESCRIPTION
   may take up too much screen real-estate for the search assistant.
-* Required.
+* Required
 
 example<index> = <string>
 comment<index> = <string>
@@ -87,14 +87,14 @@ comment<index> = <string>
   allow multiple examples and corresponding comments.
 * For example:
     example2 = geocode maxcount=4
-    comment2 = run geocode on up to four values
+    command2 = run geocode on up to four values
     example3 = geocode maxcount=-1
     comment3 = run geocode on all values
 
 usage = public|private|deprecated
 * Determines if a command is public, private, depreciated.  The
   search assistant only operates on public commands.
-* Required.
+* Required
 
 tags = <tags list>
 * List of tags that describe this search command.  Used to find

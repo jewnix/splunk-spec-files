@@ -1,4 +1,4 @@
-#   Version 8.1.0
+#   Version 7.2.9
 #
 # This file contains possible attributes and values for configuring a client of
 # the PubSub system (broker).
@@ -29,14 +29,14 @@
 #******************************************************************
 [pubsub-server:deploymentServer]
 
-disabled = <boolean>
-* Default: false
+disabled = <false or true>
+* defaults to 'false'
 
 targetUri = <IP:Port>|<hostname:Port>|direct
-* Specify either the url of a remote server in case the broker is remote, or
+* specify either the url of a remote server in case the broker is remote, or
   just the keyword "direct" when broker is in-process.
 * It is usually a good idea to co-locate the broker and the Deployment Server
-  on the same Splunk. In such a configuration, all
+  on the same Splunk. In such a configuration, all 
 * deployment clients would have targetUri set to deploymentServer:port.
 
 #******************************************************************
@@ -53,9 +53,10 @@ targetUri = direct
   assign a logicalName that is used by the clients to refer to it.
 
 disabled = <false or true>
-* Default: false
+* defaults to 'false'
 
 targetUri = <IP:Port>|<hostname:Port>|direct
-* The URI of a Splunk that is being used as a broker.
+* The Uri of a Splunk that is being used as a broker.
 * The keyword "direct" implies that the client is running on the same Splunk
   instance as the broker.
+

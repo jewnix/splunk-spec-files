@@ -1,22 +1,15 @@
-#   Version 8.1.0
+#   Version 7.2.9
 #
-# This file contains descriptions of the settings that you can use to
-# configure event types and their properties.
+# This file contains all possible attributes and value pairs for an
+# eventtypes.conf file.  Use this file to configure event types and their
+# properties. You can also pipe any search to the "typelearner" command to
+# create event types.  Event types created this way will be written to
+# $SPLUNK_HOME/etc/system/local/eventtypes.conf.
 #
-# Each stanza controls different settings.
-#
-# There is an eventtypes.conf file in the $SPLUNK_HOME/etc/system/default/ directory.
-# Never change or copy the configuration files in the default directory.
-# The files in the default directory must remain intact and in their original
-# location.
-#
-# To set custom configurations, create a new file with the name eventtypes.conf in
-# the $SPLUNK_HOME/etc/system/local/ directory. Then add the specific settings
-# that you want to customize to the local configuration file.
-# For examples, see eventtypes.conf.example. 
-# 
-# Any event types that you create through Splunk Web are automatically added to 
-# the user's $SPLUNK_HOME/etc/users/$user/$app/local/eventtypes.conf file.
+# There is an eventtypes.conf in $SPLUNK_HOME/etc/system/default/.  To set
+# custom configurations, place an eventtypes.conf in
+# $SPLUNK_HOME/etc/system/local/. For examples, see eventtypes.conf.example.
+# You must restart Splunk to enable configurations.
 #
 # To learn more about configuration files (including precedence) please see
 # the documentation located at

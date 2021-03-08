@@ -1,236 +1,218 @@
-#   Version 8.1.0
+#   Version 7.2.9
 #
-############################################################################
-# OVERVIEW
-############################################################################
-# This file contains descriptions of the settings that you can use to
-# customize the way a deployment client behaves.
+# This file contains possible attributes and values for configuring a
+# deployment client to receive content (apps and configurations) from a
+# deployment server.
 #
-# Each stanza controls different search commands settings.
+# To customize the way a deployment client behaves, place a
+# deploymentclient.conf in $SPLUNK_HOME/etc/system/local/ on that Splunk
+# instance. Configure what apps or configuration content is deployed to a
+# given deployment client in serverclass.conf.  Refer to
+# serverclass.conf.spec and serverclass.conf.example for more information.
 #
-# There is a deploymentclient.conf file in the
-# $SPLUNK_HOME/etc/system/default/ directory.
-# Never change or copy the configuration files in the default directory.
-# The files in the default directory must remain intact and in their original
-# location.
+# You must restart Splunk for changes to this configuration file to take
+# effect.
 #
-# To set custom configurations, create a new file with the name
-# deploymentclient.conf in the $SPLUNK_HOME/etc/system/local/ directory.
-# Then add the specific settings that you want to customize to the local
-# configuration file. For examples, see deploymentclient.conf.example.
-# You must restart the Splunk instance to enable configuration changes.
-#
-# To learn more about configuration files (including file precedence) see the
-# documentation located at
+# To learn more about configuration files (including precedence) please see
+# the documentation located at
 # http://docs.splunk.com/Documentation/Splunk/latest/Admin/Aboutconfigurationfiles
-#
+
 #***************************************************************************
-# Configure a Splunk deployment client
+# Configure a Splunk deployment client.
 #
-# Note: At minimum, the [deployment-client] stanza must be in
-# deploymentclient.conf to enable a deployment client.
+# Note: At a minimum the [deployment-client] stanza is required in
+# deploymentclient.conf for deployment client to be enabled.
 #***************************************************************************
-#
-############################################################################
+
 # GLOBAL SETTINGS
-############################################################################
 # Use the [default] stanza to define any global settings.
 #   * You can also define global settings outside of any stanza, at the top
 #     of the file.
-#   * Each .conf file should have only one default stanza. If there are
-#     multiple default stanzas, their settings combine. When there are
-#     multiple definitions of the same setting, the last definition in the
-#     file takes precedence.
-#   * If a setting is defined at both the global level and in a specific
+#   * Each conf file should have at most one default stanza. If there are
+#     multiple default stanzas, attributes are combined. In the case of
+#     multiple definitions of the same attribute, the last definition in the
+#     file wins.
+#   * If an attribute is defined at both the global level and in a specific
 #     stanza, the value in the specific stanza takes precedence.
 
 [deployment-client]
 
-disabled = <boolean>
-* Whether or not a deployment client is disabled.
-* Default: false
+disabled = [false|true]
+* Defaults to false
+* Enable/Disable deployment client.
 
 clientName = deploymentClient
+* Defaults to deploymentClient.
 * A name that the deployment server can filter on.
-* This setting takes precedence over DNS names.
-* Default: deploymentClient
+* Takes precedence over DNS names.
 
 workingDir = $SPLUNK_HOME/var/run
-* The temporary folder that the deploymentClient uses to download apps and
+* Temporary folder used by the deploymentClient to download apps and
   configuration content.
 
 repositoryLocation = $SPLUNK_HOME/etc/apps
-* The location where content installs when downloaded from a deployment server.
-* For the Splunk platform instance on the deployment client to recognize an app
-  or configuration content, install the app or content in the default location:
-  $SPLUNK_HOME/etc/apps.
-    * NOTE: Apps and configuration content for deployment can be in other
-      locations on the deployment server. Set both 'repositoryLocation' and
-      'serverRepositoryLocationPolicy' explicitly to ensure that the content
-      installs on the deployment client in the correct location, which is
-      $SPLUNK_HOME/etc/apps.
-    * The deployment client uses the following 'serverRepositoryLocationPolicy'
-      to determine the value of 'repositoryLocation'.
+* The location into which content is installed after being downloaded from a
+  deployment server.
+* Apps and configuration content must be installed into the default location
+  ($SPLUNK_HOME/etc/apps) or it will not be recognized by
+  the Splunk instance on the deployment client.
+    * Note: Apps and configuration content to be deployed may be located in
+      an alternate location on the deployment server. Set both
+      repositoryLocation and serverRepositoryLocationPolicy explicitly to
+      ensure that the content is installed into the correct location
+      ($SPLUNK_HOME/etc/apps) on the deployment clientr
+    * The deployment client uses the 'serverRepositoryLocationPolicy'
+      defined below to determine which value of repositoryLocation to use.
 
 serverRepositoryLocationPolicy = [acceptSplunkHome|acceptAlways|rejectAlways]
-* The value of 'repositoryLocation' for the deployment client to use.
-* This setting accepts only the following values:
-  * "acceptSplunkHome": Only accept the value of 'repositoryLocation' the
-    deployment server supplies if it begins with $SPLUNK_HOME.
-  * "acceptAlways": Always accept the 'repositoryLocation' that the deployment server
-    supplies.
-  * "rejectAlways": Always reject the 'repositoryLocation' that the deployment server
-    supplies, and instead use the 'repositoryLocation' that the local
-    deploymentclient.conf file specifies.
-* Default: acceptSplunkHome
+* Defaults to acceptSplunkHome.
+* acceptSplunkHome - accept the repositoryLocation supplied by the
+                     deployment server, only if it is rooted by
+                     $SPLUNK_HOME.
+* acceptAlways - always accept the repositoryLocation supplied by the
+                 deployment server.
+* rejectAlways - reject the server supplied value and use the
+                 repositoryLocation specified in the local
+                 deploymentclient.conf.
 
 endpoint=$deploymentServerUri$/services/streams/deployment?name=$serverClassName$:$appName$
-* Specifies the HTTP endpoint from which to download content.
-* The deployment server can specify different endpoints from which to download
-  different sets of content, such as individual apps.
-* The deployment client uses the following 'serverEndpointPolicy' to determine
-  which value to use:
-* $deploymentServerUri$ resolves to "targetUri" defined in the following
-  'target-broker'stanza.
-* $serverClassName$ and $appName$ name the server class and the app,
-  respectively.
+* The HTTP endpoint from which content should be downloaded.
+* Note: The deployment server may specify a different endpoint from which to
+  download each set of content (individual apps, etc).
+* The deployment client will use the serverEndpointPolicy defined below to
+  determine which value to use.
+* $deploymentServerUri$ will resolve to targetUri defined in the
+  [target-broker] stanza below.
+* $serverClassName$ and $appName$ mean what they say.
 
 serverEndpointPolicy = [acceptAlways|rejectAlways]
+* defaults to acceptAlways
+* acceptAlways - always accept the endpoint supplied by the server.
+* rejectAlways - reject the endpoint supplied by the server. Always use the
+                 'endpoint' definition above.
 
-* acceptAlways: Always accept the endpoint supplied by the server.
-* rejectAlways: Reject the endpoint supplied by the server. Always use the
-  preceding endpoint definition.
-* Default: acceptAlways
-
-phoneHomeIntervalInSecs = <decimal>
-* How frequently, in seconds, this deployment client should
-  check for new content.
+phoneHomeIntervalInSecs = <number in seconds>
+* Defaults to 60.
 * Fractional seconds are allowed.
-* Default: 60.
+* This determines how frequently this deployment client should check for new
+  content.
 
-handshakeRetryIntervalInSecs = <integer>
-* The handshake retry frequency, in seconds.
-* Could be used to tune the initial connection rate on a new server.
-* Default: The value of 'phoneHomeIntervalInSecs' / 5
+handshakeRetryIntervalInSecs = <number in seconds>
+* Defaults to one fifth of phoneHomeIntervalInSecs
+* Fractional seconds are allowed.
+* This sets the handshake retry frequency.
+* Could be used to tune the initial connection rate on a new server
 
 handshakeReplySubscriptionRetry = <integer>
-* If the Splunk platform is unable to complete the handshake, it will retry subscribing to
-  the handshake channel after this many handshake attempts.
-* Default: 10
+* Defaults to 10
+* If splunk is unable to complete the handshake, it will retry subscribing to
+  the handshake channel after this many handshake attempts
 
 appEventsResyncIntervalInSecs = <number in seconds>
-* This sets the interval at which the client reports back its app state
-  to the server.
+* Defaults to 10*phoneHomeIntervalInSecs
 * Fractional seconds are allowed.
-* Default: 10 * the value of 'phoneHomeIntervalInSecs'
+* This sets the interval at which the client reports back its app state to the server.
 
-reloadDSOnAppInstall = <boolean>
-* Whether or not the deployment server on this instance reloads after an app
-  is installed by this deployment client.
-* Setting this flag to true causes the deploymentServer on this Splunk
-  platform instance to be reloaded whenever an app is installed by this
+# Advanced!
+# You should use this property only when you have a hierarchical deployment
+# server installation, and have a Splunk instance that behaves as both a
+# DeploymentClient and a DeploymentServer.
+
+# NOTE: hierarchical deployment servers are not a currently recommended
+# configuration.  Splunk has seen problems in the field that have not yet
+# been resolved with this type of configuration.
+
+reloadDSOnAppInstall = [false|true]
+* Defaults to false
+* Setting this flag to true will cause the deploymentServer on this Splunk
+  instance to be reloaded whenever an app is installed by this
   deploymentClient.
-* This is an advanced configuration. Only use it when you have a hierarchical
-  deployment server installation, and have a Splunk instance that behaves
-  as both a deployment client and a deployment server.
-* Do not use a hierarchical deployment server unless you have no other
-  alternative. Splunk has seen problems in the field that have not yet
-  been resolved with this kind of configuration.
-* Default: false
 
 sslVersions = <versions_list>
-* Comma-separated list of SSL versions to connect to the specified
-  Deployment Server
+* Comma-separated list of SSL versions to connect to the specified Deployment Server
 * The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
 * The special version "*" selects all supported versions.  The version "tls"
   selects all versions tls1.0 or newer.
 * If a version is prefixed with "-" it is removed from the list.
-* SSLv2 is always disabled; "-ssl2" is accepted in the version list but
-  does nothing.
+* SSLv2 is always disabled; "-ssl2" is accepted in the version list but does nothing.
 * When configured in FIPS mode, ssl3 is always disabled regardless
   of this configuration.
-* Default: The 'sslVersions' value in the server.conf file [sslConfig] stanza
+* Defaults to sslVersions value in server.conf [sslConfig] stanza.
 
-sslVerifyServerCert = <boolean>
-* If this is set to true, Splunk verifies that the Deployment Server
-  (specified in 'targetUri')
+sslVerifyServerCert = <bool>
+* If this is set to true, Splunk verifies that the Deployment Server (specified in 'targetUri')
   being connected to is a valid one (authenticated).  Both the common
   name and the alternate name of the server are then checked for a
   match if they are specified in 'sslCommonNameToCheck' and 'sslAltNameToCheck'.
-  A certificate is considered verified if either is matched.
-* Default: The 'sslVerifyServerCert' value in the server.conf file
-  [sslConfig] stanza
+  A certificiate is considered verified if either is matched.
+* Defaults to sslVerifyServerCert value in server.conf [sslConfig] stanza.
 
 caCertFile = <path>
-* Specifies a full path to a Certificate Authority (ca) certificate(s) PEM
-  format file.
+* Full path to a CA (Certificate Authority) certificate(s) PEM format file.
 * The <path> must refer to a PEM format file containing one or more root CA
   certificates concatenated together.
-* Used for validating the SSL certificate from the deployment server
-* Default: The 'caCertFile' value in the server.conf file [sslConfig] stanza
+* Used for validating SSL certificate from Deployment Server
+* Defaults to caCertFile value in server.conf [sslConfig] stanza.
 
 sslCommonNameToCheck = <commonName1>, <commonName2>, ...
 * If this value is set, and 'sslVerifyServerCert' is set to true,
   splunkd checks the common name(s) of the certificate presented by
-  the Deployment Server (specified in 'targetUri') against this list of
-  common names.
-* Default: The 'sslCommonNameToCheck' value in the server.conf file
-  [sslConfig] stanza.
+  the Deployment Server (specified in 'targetUri') against this list of common names.
+* Defaults to sslCommonNameToCheck value in server.conf [sslConfig] stanza.
 
 sslAltNameToCheck =  <alternateName1>, <alternateName2>, ...
 * If this value is set, and 'sslVerifyServerCert' is set to true,
   splunkd checks the alternate name(s) of the certificate presented by
-  the Deployment Server (specified in 'targetUri') against this list of
-  subject alternate names.
-* Default: The 'sslAltNameToCheck' value in the server.conf file [sslConfig] stanza
+  the Deployment Server (specified in 'targetUri') against this list of subject alternate names.
+* Defaults to sslAltNameToCheck value in server.conf [sslConfig] stanza.
 
 cipherSuite = <cipher suite string>
 * If set, uses the specified cipher string for making outbound HTTPS connection.
-* No default.
 
 ecdhCurves = <comma separated list of ec curves>
-* Defines Elliptic Curve-Diffie Hellman curves to use for ECDH key negotiation.
+* ECDH curves to use for ECDH key negotiation.
 * The curves should be specified in the order of preference.
 * The client sends these curves as a part of Client Hello.
-* Splunk software only support named curves specified by
-  their SHORT names.
+* We only support named curves specified by their SHORT names.
+  (see struct ASN1_OBJECT in asn1.h)
 * The list of valid named curves by their short/long names can be obtained
   by executing this command:
   $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
-* For example: ecdhCurves = prime256v1,secp384r1,secp521r1
-* Default: empty string
+* Default is empty string.
+* e.g. ecdhCurves = prime256v1,secp384r1,secp521r1
 
 connect_timeout = <positive integer>
 * The amount of time, in seconds, that a deployment client can take to connect
   to a deployment server before the server connection times out.
-* Default: 60
+* Defaults to 60.
 
 send_timeout = <positive integer>
 * The amount of time, in seconds, that a deployment client can take to send or
   write data to a deployment server before the server connection times out.
-* Default: 60
+* Defaults to 60.
 
 recv_timeout = <positive integer>
 * The amount of time, in seconds, that a deployment client can take to receive
   or read data from a deployment server before the server connection times out.
-* Default: 60
+* Defaults to 60.
 
 # The following stanza specifies deployment server connection information
 
 [target-broker:deploymentServer]
 
-targetUri= <string>
-* The target URI of the deployment server.
+# NOTE: You can no longer configure the 'phoneHomeIntervalInSecs' setting under this 
+# stanza. Configuring it here has no effect. Configure the setting under the
+# '[deployment-client]' stanza instead.
+
+targetUri= <uri>
 * An example of <uri>: <scheme>://<deploymentServer>:<mgmtPort>
+* URI of the deployment server.
 
 connect_timeout = <positive integer>
-* See 'connect_timeout' in the "[deployment-client]" stanza for
-  information on this setting.
+* See 'connect_timeout' in the "[deployment-client]" stanza for information on this setting.
 
 send_timeout = <positive integer>
-* See 'send_timeout' in the "[deployment-client]" stanza for
-  information on this setting.
+* See 'send_timeout' in the "[deployment-client]" stanza for information on this setting.
 
 recv_timeout = <positive integer>
-* See 'recv_timeout' in the "[deployment-client]" stanza for
-  information on this setting.
+* See 'recv_timeout' in the "[deployment-client]" stanza for information on this setting.

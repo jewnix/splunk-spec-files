@@ -1,4 +1,4 @@
-#   Version 8.1.0
+#   Version 7.2.9
 #
 # This file contains possible attribute/value pairs for configuring workflow
 # actions in Splunk.
@@ -32,11 +32,11 @@
 
 type = <string>
 * The type of the workflow action.
-* If not set, the Splunk platform skips this workflow action.
+* If not set, Splunk skips this workflow action.
 
 label = <string>
 * The label to display in the workflow action menu.
-* If not set, the Splunk platform skips this workflow action.
+* If not set, Splunk skips this workflow action.
 
 ############################################################################
 # General optional settings:
@@ -56,7 +56,7 @@ fields = <comma or space separated list>
   "globber". For example host* would match the fields hostname, hostip, etc.
 * Acceptable values are any valid field name, any field name including the *
   character, or * (e.g. *_ip).
-* Default: *
+* Defaults to *
 
 eventtypes = <comma or space separated list>
 * The eventtypes required to be present on the event in order for the
@@ -68,11 +68,11 @@ display_location = <string>
 * Dictates whether to display the workflow action in the event menu, the
   field menus or in both locations.
 * Accepts field_menu, event_menu, or both.
-* Default: both.
+* Defaults to both.
 
 disabled = [True | False]
 * Dictates whether the workflow action is currently disabled
-* Default: False
+* Defaults to False
 
 ############################################################################
 # Using field names to insert values into workflow action settings
@@ -138,13 +138,13 @@ link.target = <string>
 * Determines if clicking the link opens a new window, or redirects the
   current window to the resource defined in link.uri.
 * Accepts: "blank" (opens a new window), "self" (opens in the same window)
-* Default: "blank"
+* Defaults to "blank"
 
 link.method = <string>
 * Determines if clicking the link should generate a GET request or a POST
   request to the resource defined in link.uri.
 * Accepts: "get" or "post".
-* Default: "get".
+* Defaults to "get".
 
 link.postargs.<int>.<key/value> = <value>
 * Only available when link.method = post.
@@ -185,15 +185,15 @@ search.target = <string>
 * Works in the same way as link.target. See link.target for more info.
 
 search.earliest = <time>
-* Accepts absolute and relative times (e.g. -10h).
+* Accepts absolute and Splunk relative times (e.g. -10h).
 * Determines the earliest time to search from.
 
 search.latest = <time>
-* Accepts absolute and relative times (e.g. -10h).
+* Accepts absolute and Splunk relative times (e.g. -10h).
 * Determines the latest time to search to.
 
 search.preserve_timerange = <boolean>
 * Ignored if either the search.earliest or search.latest values are set.
 * When true, the time range from the original search which produced the
   events list will be used.
-* Default: false.
+* Defaults to false.

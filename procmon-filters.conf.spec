@@ -1,4 +1,4 @@
-#   Version 8.1.0
+#   Version 7.2.9
 #
 # *** DEPRECATED ***
 #
@@ -15,17 +15,14 @@
 #### find out if this file is still being used.
 
 [<stanza name>]
-* The name of the filter being defined.
+* Name of the filter being defined.
 
 proc = <string>
-* A regular expression that specifies process image that you want
-  the Splunk platform to monitor.
-* No default.
+* Regex specifying process image that you want Splunk to monitor.
 
 type = <string>
-* A regular expression that specifies the type(s) of process events
-  that you want the Splunk platform to monitor.
-* No default
+* Regex specifying the type(s) of process event that you want Splunk to
+  monitor.
 
 hive = <string>
 * Not used in this context, but should always have value ".*"

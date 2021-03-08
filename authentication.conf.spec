@@ -324,6 +324,13 @@ scriptPath = <string>
 * Note: If a path contains spaces, it must be quoted. The example above
   handles the case where SPLUNK_HOME contains a space
 
+python.version = {default|python|python2|python3}
+* ******* FOR SPLUNK 8.0 BACKWARDS COMPATIBILITY ONLY ********
+* In Splunk 8.0 this attribute allows you to select which Python version to use.
+* In this version of Splunk, this attribute is IGNORED as only Python 2 is supported
+* by the platform. Ignoring this attribute allows you to set flags in your apps
+* in anticipation of moving to 8.0 without causing startup warnings.
+
 scriptSearchFilters = [1|0]
 * OPTIONAL - Only set this to 1 to call the script to add search filters.
 * 0 disables (default)
@@ -688,6 +695,13 @@ attributeQueryTTL = <ttl in seconds>
 * Once the ttl expires, Splunk will make an attribute query request to
   retrieve the role information.
 * Default ttl if not specified, is 3600 seconds.
+
+python.version = {default|python|python2|python3}
+* ******* FOR SPLUNK 8.0 BACKWARDS COMPATIBILITY ONLY ********
+* In Splunk 8.0 this attribute allows you to select which Python version to use.
+* In this version of Splunk, this attribute is IGNORED as only Python 2 is supported
+* by the platform. Ignoring this attribute allows you to set flags in your apps
+* in anticipation of moving to 8.0 without causing startup warnings.
 
 allowSslCompression = [ true | false ]
 * OPTIONAL

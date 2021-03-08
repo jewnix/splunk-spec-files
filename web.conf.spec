@@ -1,4 +1,4 @@
-#   Version 7.2.9
+#   Version 7.2.10
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -34,7 +34,7 @@ httpport = <positive integer>
 
 mgmtHostPort = <IP address:port>
 * The IP address and host port of the splunkd process.
-* Don't include "http[s]://" when specifying this setting. Only 
+* Don't include "http[s]://" when specifying this setting. Only
   include the IP address and port.
 * Default: 0.0.0.0:8089
 
@@ -55,14 +55,14 @@ appServerPorts = <positive integer>[, <positive integer>, <positive integer> ...
   compatibility problems. The new separate application server configuration
   is faster and supports more configuration options. Also, setting this to
   "0" can cause problems with new functionality, such as using the
-  Search Head Clustering feature. See the [shclustering] stanza 
+  Search Head Clustering feature. See the [shclustering] stanza
   in server.conf for more information.
 * Default: 8065
 
 splunkdConnectionTimeout = <integer>
 * The amount of time, in seconds, to wait before timing out when communicating with
   splunkd.
-* Must be at least 30. If not 
+* Must be at least 30. If not
 * Values smaller than 30 will be ignored, resulting in the use of the
   default value
 * Default: 30
@@ -122,7 +122,7 @@ requireClientCert = <boolean>
 sslCommonNameToCheck = <commonName1>, <commonName2>, ...
 * Checks the common name of the client's certificate against this list of names.
 * 'requireClientCert' must be set to "true" for this setting to work.
-* Optional. 
+* Optional.
 * Default: empty string (No common name checking).
 
 sslAltNameToCheck = <alternateName1>, <alternateName2>, ...
@@ -205,7 +205,7 @@ ecdhCurveName = <string>
 * Use the 'ecdhCurves' setting instead.
 * This setting specifies the Elliptic Curve Diffie-Hellman (ECDH) curve to
   use for ECDH key negotiation.
-* Splunk only supports named curves that have been specified by their 
+* Splunk only supports named curves that have been specified by their
   SHORT name.
 * The list of valid named curves by their short and long names
   can be obtained by running this CLI command:
@@ -223,7 +223,7 @@ ecdhCurves = <comma-separated list>
   by running this CLI command:
   $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
 * Example setting: "ecdhCurves = prime256v1,secp384r1,secp521r1"
-* The default can vary. See the 'ecdhCurves' setting in 
+* The default can vary. See the 'ecdhCurves' setting in
   $SPLUNK_HOME/etc/system/default/web.conf for the current default.
 
 dhFile = <path>
@@ -260,7 +260,7 @@ embed_uri = <URI>
 * This presents an optional strategy for exposing embedded shared
   content that does not require authentication in a reverse proxy/single
   sign on environment.
-* Default: empty string, resolves to the client 
+* Default: empty string, resolves to the client
   window.location.protocol + "//" + window.location.host
 
 embed_footer = <html_string>
@@ -351,23 +351,23 @@ js_no_cache = <boolean>
 
 cacheBytesLimit = <integer>
 * When appServerPorts is set to a non-zero value, splunkd can keep a
-  small cache of static assets in memory. 
-* When the total size of the objects in cache grows larger than this setting, 
+  small cache of static assets in memory.
+* When the total size of the objects in cache grows larger than this setting,
   in bytes, splunkd begins ageing entries out of the cache.
 * If set to zero, disables the cache.
 * Default: 4194304
 
 cacheEntriesLimit = <integer>
 * When appServerPorts is set to a non-zero value, splunkd can keep a
-  small cache of static assets in memory.  
-* When the number of the objects in cache grows larger than this, 
+  small cache of static assets in memory.
+* When the number of the objects in cache grows larger than this,
   splunkd begins ageing entries out of the cache.
 * If set to zero, disables the cache.
 * Default: 16384
 
 staticCompressionLevel = <integer>
 * When appServerPorts is set to a non-zero value, splunkd can keep a
-  small cache of static assets in memory.  
+  small cache of static assets in memory.
 * Splunkd stores these assets in a compressed format, and the assets can
   usually be served directly to the web browser in compressed format.
 * This level can be a number between 1 and 9.  Lower numbers use less
@@ -385,12 +385,12 @@ enable_autocomplete_login = <boolean>
 
 verifyCookiesWorkDuringLogin = <boolean>
 * Normally, the login page makes an attempt to see if cookies work
-  properly in the user's browser before allowing them to log in. 
+  properly in the user's browser before allowing them to log in.
 * If you set this to "false", this check is skipped.
 * This setting only takes effect when 'appServerPorts' is set to a
   non-zero value.
 * Do not set to "false" in normal operations.
-* Default: true  
+* Default: true
 
 minify_js = <boolean>
 * Whether the static JavaScript files for modules are consolidated and minified.
@@ -402,7 +402,7 @@ minify_css = <boolean>
   minified
 * Setting this to "true" improves client-side performance by reducing the number of HTTP
   requests and the size of HTTP responses.
-* Due to browser limitations, disabling this when using Internet Explorer 
+* Due to browser limitations, disabling this when using Internet Explorer
   version 9 and earlier might result in display problems.
 
 trap_module_exceptions = <boolean>
@@ -416,7 +416,7 @@ enable_pivot_adhoc_acceleration = <boolean>
   instead
 * Whether or not the pivot interface uses its own ad-hoc acceleration
   when a data model is not accelerated.
-* If "true", the pivot interface uses ad-hoc acceleration to make reporting 
+* If "true", the pivot interface uses ad-hoc acceleration to make reporting
   in pivot faster and more responsive.
 * In situations where data is not stored in time order, or where the majority
   of events are far in the past, disabling this behavior can improve the
@@ -451,7 +451,7 @@ jschart_truncation_limit = <integer>
 * If set, takes precedence over the browser-specific limits below
 
 jschart_truncation_limit.chrome = <integer>
-* Chart truncation limit. 
+* Chart truncation limit.
 * For Chrome only.
 * Default: 50000
 
@@ -487,7 +487,7 @@ choropleth_shape_limit = <integer>
 
 dashboard_html_allow_inline_styles = <boolean>
 * Whether or not to allow style attributes from inline HTML elements in dashboards.
-* If "false", style attributes from inline HTML elements in dashboards will be removed 
+* If "false", style attributes from inline HTML elements in dashboards will be removed
   to prevent potential attacks.
 * Default: true
 
@@ -510,7 +510,7 @@ pdfgen_is_available = [0 | 1]
 * Specifies whether Integrated PDF Generation is available on this search
   head.
 * This is used to bypass an extra call to splunkd.
-* Default (on platforms where node is supported): 1 
+* Default (on platforms where node is supported): 1
 * Default (on platforms where node is not supported): 0
 
 version_label_format = <printf_string>
@@ -573,12 +573,12 @@ remoteUser = <http_header_string>
   header, probably any proxy would overwrite it, or in the case that the
   username cannot be determined, refuse to pass along the request or set
   it blank.
-* However, Splunk Web (specifically, cherrypy) normalizes headers containing 
+* However, Splunk Web (specifically, cherrypy) normalizes headers containing
   the dash and the underscore to the same value. For example, USER-NAME and
   USER_NAME are treated as the same in Splunk Web.
 * This means that if the browser provides REMOTE-USER and Splunk Web accepts
   REMOTE_USER, theoretically the browser could dictate the username.
-* In practice, however, the proxy adds its headers last, which causes them 
+* In practice, however, the proxy adds its headers last, which causes them
   to take precedence, making the problem moot.
 * See also the 'remoteUserMatchExact' setting which can enforce more exact
   header matching when running with 'appServerPorts' enabled.
@@ -595,21 +595,21 @@ remoteGroups = <http_header_string>
 remoteGroupsQuoted = <boolean>
 * Whether or not the group header value can be comma-separated quoted entries.
 * This setting is considered only when 'remoteGroups' is set.
-* If "true", the group header value can be comma-separated quoted entries. 
+* If "true", the group header value can be comma-separated quoted entries.
 * NOTE: Entries themselves can contain commas.
 * Example of header value with quoted entries:
   "Products","North America, Engineering","Quality Assurance"
 * Default: false (group entries should be without quotes.)
 
 remoteUserMatchExact = [0 | 1]
-* Whether or not to consider dashes and underscores in a remoteUser header 
+* Whether or not to consider dashes and underscores in a remoteUser header
   to be distinct.
 * This setting only takes effect when 'appServerPorts' is set to a
   non-zero value.
 * When set to "1", considers dashes and underscores distinct (so
   "Remote-User" and "Remote_User" are considered different headers.)
-* When set to 0, dashes and underscores are not considered to be distinct, 
-  to retain compatibility with older versions of Splunk software. 
+* When set to 0, dashes and underscores are not considered to be distinct,
+  to retain compatibility with older versions of Splunk software.
 * Set to 1 when you set up SSO with 'appServerPorts' enabled.
 * Default: 0
 
@@ -618,7 +618,7 @@ remoteGroupsMatchExact = [0 | 1]
   to be distinct.
 * This setting only takes effect when 'appServerPorts' is set to a
   non-zero value.
-* When set to 1, considers dashes and underscores distinct (so 
+* When set to 1, considers dashes and underscores distinct (so
   "Remote-Groups" and "Remote_Groups" are considered different headers)
 * When set to 0, dashes and underscores are not considered to be distinct,
   to retain compatibility with older versions of Splunk software.
@@ -627,10 +627,10 @@ remoteGroupsMatchExact = [0 | 1]
 
 SSOMode = [permissive | strict]
 * Whether SSO behaves in either permissive or strict mode.
-* When set to "permissive": Requests to Splunk Web that originate from an 
-  untrusted IP address are redirected to a login page where they can log into 
+* When set to "permissive": Requests to Splunk Web that originate from an
+  untrusted IP address are redirected to a login page where they can log into
   Splunk Web without using SSO.
-* When set to "strict": All requests to Splunk Web will be restricted to those 
+* When set to "strict": All requests to Splunk Web will be restricted to those
   originating from a trusted IP except those to endpoints that do not require
   authentication.
 * Default: strict
@@ -678,7 +678,7 @@ ssoAuthFailureRedirect = <scheme>://<URL>
 
 export_timeout = <integer>
 * When exporting results, the number of seconds the server waits before
-  closing the connection with splunkd. 
+  closing the connection with splunkd.
 * If you do not set a value for export_timeout, Splunk Web uses the value
   for the 'splunkdConnectionTimeout' setting.
 * Set 'export_timeout' to a value greater than 30 in normal operations.
@@ -707,7 +707,7 @@ server.thread_pool_max_spare = <integer>
 server.socket_host = <ip_address>
 * Host values may be any IPv4 or IPv6 address, or any valid hostname.
 * The string 'localhost' is a synonym for '127.0.0.1' (or '::1', if your
-  hosts file prefers IPv6). 
+  hosts file prefers IPv6).
 * The string '0.0.0.0' is a special IPv4 entry meaning "any active interface"
   (INADDR_ANY), and "::" is the similar IN6ADDR_ANY for IPv6.
 * Default (if 'listenOnIPV6' is set to "no": 0.0.0.0
@@ -723,7 +723,7 @@ listenOnIPv6 = <no | yes | only>
   IPv4 only.
 * To enable IPv6 support in splunkweb, set this to "yes". Splunk Web
   simultaneously listens for connections on both IPv4 and IPv6 protocols.
-* To disable IPv4 entirely, set to "only", which causes SPlunk Web 
+* To disable IPv4 entirely, set to "only", which causes SPlunk Web
   to exclusively accept connections over IPv6.
 * To listen on an IPV6 address, also set 'server.socket_host' to "::".
 
@@ -787,7 +787,7 @@ tools.sessions.on = true
 tools.sessions.timeout = <integer>
 * The number of minutes of inactivity before a user session is
   expired.
-* The countdown for this setting effectively resets every minute through 
+* The countdown for this setting effectively resets every minute through
   browser activity until the 'ui_inactivity_timeout' setting is reached.
 * Use a value of 2 or higher, as a value of 1 causes a race condition with
   the browser refresh, producing unpredictable behavior.
@@ -799,7 +799,7 @@ tools.sessions.restart_persist = <boolean>
   browser quits.
 * If set to "false", then the session cookie is deleted from the browser
   upon the browser quitting.
-* If set to "true", then sessions persist across browser restarts, assuming 
+* If set to "true", then sessions persist across browser restarts, assuming
   the 'tools.sessions.timeout' has not been reached.
 * Default: true
 
@@ -812,7 +812,7 @@ tools.sessions.httponly = <boolean>
 * Default: true
 
 tools.sessions.secure = <boolean>
-* Whether or not the browser must transmit session cookies over an HTTPS 
+* Whether or not the browser must transmit session cookies over an HTTPS
   connection when Splunk Web is configured to serve requests using HTTPS
   (the 'enableSplunkWebSSL' setting is "true".)
 * If set to "true" and 'enableSplunkWebSSL' is also "true", then the
@@ -842,7 +842,7 @@ response.timeout = <integer>
 tools.sessions.storage_type = [file]
 tools.sessions.storage_path = <filepath>
 * Specifies the session information storage mechanisms.
-* Set 'tools.sessions.storage_type' and 'tools.sessions.storage_path' to 
+* Set 'tools.sessions.storage_type' and 'tools.sessions.storage_path' to
   use RAM based sessions instead.
 * Use an absolute path to store sessions outside of $SPLUNK_HOME.
 * Default: storage_type=file, storage_path=var/run/splunk
@@ -855,7 +855,7 @@ tools.decode.on = <boolean>
 * Default: true
 
 tools.encode.on = <boolean>
-* Whether or not to encode all controller method response strings into 
+* Whether or not to encode all controller method response strings into
   UTF-8 str objects in Python.
 * CAUTION: Disabling this will likely cause high byte character encoding to
   fail.
@@ -865,8 +865,8 @@ tools.encode.encoding = <codec>
 * Forces all outgoing characters to be encoded into UTF-8.
 * This setting only takes effect when 'tools.encode.on' is set to "true".
 * By setting this to "utf-8", CherryPy default behavior of observing the
-  Accept-Charset header is overwritten and forces utf-8 output. 
-* Only change this if you know a particular browser installation must 
+  Accept-Charset header is overwritten and forces utf-8 output.
+* Only change this if you know a particular browser installation must
   receive some other character encoding (Latin-1 iso-8859-1, etc)
 * CAUTION: Change this setting at your own risk.
 * Default: utf-8
@@ -920,7 +920,7 @@ job_min_polling_interval = <integer>
 * The minimum polling interval, in milliseconds, for search jobs.
 * This is the intial wait time for fetching results.
 * The poll period increases gradually from the minimum interval
-  to the maximum interval when search is in a queued or parsing 
+  to the maximum interval when search is in a queued or parsing
   state (and not a running state) for some time.
 * Set this value between 100 and 'job_max_polling_interval' milliseconds.
 * Default: 100
@@ -956,7 +956,7 @@ maxThreads = <integer>
 * This setting only takes effect when appServerPorts is set to a
   non-zero value.
 * This value can be limited to constrain resource usage.
-* If set to 0, a limit is automatically picked based on 
+* If set to 0, a limit is automatically picked based on
   estimated server capacity.
 * If set to a negative number, no limits are enforced.
 * Default: 0
@@ -966,7 +966,7 @@ maxSockets = <integer>
 * This setting only takes effect when appServerPorts is set to a
   non-zero value.
 * This value can be limited to constrain resource usage.
-* If set to 0, a limit is automatically picked based on estimated 
+* If set to 0, a limit is automatically picked based on estimated
   server capacity.
 * If set to a negative number, no limits are enforced.
 * Default: 0
@@ -994,15 +994,15 @@ forceHttp10 = auto|never|always
 * When set to "always", the REST HTTP server does not use some
   HTTP 1.1 features such as persistent connections or chunked
   transfer encoding.
-* When set to "auto", it limits HTTP 1.1 features only if the 
-  client sent no User-Agent header, or if the user agent is known 
+* When set to "auto", it limits HTTP 1.1 features only if the
+  client sent no User-Agent header, or if the user agent is known
   to have bugs in its HTTP/1.1 support.
 * When set to "never", it always allows HTTP 1.1, even to
   clients it suspects might be buggy.
 * Default: auto
 
 crossOriginSharingPolicy = <origin_acl> ...
-* A list of HTTP Origins for which to return Access-Control-Allow-* 
+* A list of HTTP Origins for which to return Access-Control-Allow-*
   (CORS) headers.
 * This setting only takes effect when 'appServerPorts' is set to a
   non-zero value.
@@ -1054,10 +1054,10 @@ sendStrictTransportSecurityHeader = <boolean>
 * If set to "true", the REST interface sends a "Strict-Transport-Security"
   header with all responses to requests made over SSL.
 * This can help avoid a client being tricked later by a Man-In-The-Middle
-  attack to accept a non-SSL request. 
+  attack to accept a non-SSL request.
 * This requires a commitment that no non-SSL web hosts will ever be
   run on this hostname on any port. For example, if splunkweb is in default
-  non-SSL mode this can break the ability of browser to connect to it. 
+  non-SSL mode this can break the ability of browser to connect to it.
 * Enable this setting with caution.
 * Default: false
 
@@ -1089,7 +1089,7 @@ termsOfServiceDirectory = <directory>
   non-zero value.
   * Inside the directory the TOS should have a filename in the format
     "<number>.html"
-  * <number> is in the range 1 to 18446744073709551615. 
+  * <number> is in the range 1 to 18446744073709551615.
   * The active TOS is the filename with the larger number. For example, if
     there are two files in the directory named "123.html" and "456.html", then
     456 will be the active TOS version.
@@ -1099,7 +1099,7 @@ termsOfServiceDirectory = <directory>
     times to be recorded.
   * The TOS file can either be a full HTML document or plain text, but it must
     have the ".html" suffix.
-  * You do not need to restart Splunk Enterprise when adding files to the 
+  * You do not need to restart Splunk Enterprise when adding files to the
     TOS directory.
 * Default: empty string (no TOS)
 
@@ -1113,7 +1113,7 @@ appServerProcessShutdownTimeout = <nonnegative integer>[smhd]
 * Default: '10m' (10 minutes).
 
 enableWebDebug = <boolean>
-* Whether or not the debug REST endpoints are accessible, for example., 
+* Whether or not the debug REST endpoints are accessible, for example.,
   /debug/**splat.
 * Default: false
 
@@ -1127,8 +1127,17 @@ enable_risky_command_check = <boolean>
 * Whether or not checks for data-exfiltrating search commands are enabled.
 * default true
 
+enableSearchJobXslt = <boolean>
+* Whether or not the search job request accepts XML stylesheet language (XSL)
+  as input to format search results.
+* If set to "true", the search job request accepts XSL as input
+  to format search results.
+* If set to "false", the search job request does not accept XSL as input
+  to format search results.
+* Default: true
+
 customFavicon = <pathToMyFile, myApp:pathToMyFile, or blank for default>
-* Customizes the favicon image across the entire application. 
+* Customizes the favicon image across the entire application.
 * If no favicon image file, the favicon default: the Splunk favicon.
   * Supported favicon image files are .ico files, and should be square images.
   * Place the favicon image file in the default or manual location:
@@ -1139,7 +1148,7 @@ customFavicon = <pathToMyFile, myApp:pathToMyFile, or blank for default>
 * Default: not set, Splunk Web uses the Splunk favicon.
 
 loginCustomLogo = <fullUrl, pathToMyFile, myApp:pathToMyFile, or blank for default>
-* Customizes the logo image on the login page. 
+* Customizes the logo image on the login page.
 * If no image file, the logo Default: the Splunk logo.
 * Supported images are:
   * Full URL image file (secured or not secured), such as https://www.splunk.com/logo.png or http://www.splunk.com/logo.png.
@@ -1215,7 +1224,7 @@ loginDocumentTitleText = <document_title_text>
 
 loginPasswordHint = <default_password_hint>
 * The text to display the password hint at first time login on the login page.
-* Text only. 
+* Text only.
 * Default: "changeme"
 
 appNavReportsLimit = <integer>
@@ -1267,7 +1276,7 @@ django_force_enable = <boolean>
 * Each stanza name must be unique.
 
 pattern = <url_pattern>
-* The pattern to match under the splunkd /services hierarchy. 
+* The pattern to match under the splunkd /services hierarchy.
 * For instance, "a/b/c" would match URIs "/services/a/b/c" and
   "/servicesNS/*/*/a/b/c",
 * The pattern cannot include leading or trailing slashes.
@@ -1284,7 +1293,7 @@ methods = <method_lists>
 * Default: "GET"
 
 oidEnabled = [0 | 1]
-* Whether or not a REST endpoint is capable of taking an embed-id as a 
+* Whether or not a REST endpoint is capable of taking an embed-id as a
   query parameter.
 * If set to 1, the endpoint is capable of taking an embed-id
   as a query parameter.

@@ -1,4 +1,4 @@
-#   Version 7.2.9
+#   Version 7.2.10
 #
 # This file contains possible attributes and values for configuring global
 # saved search actions in alert_actions.conf.  Saved searches are configured
@@ -128,6 +128,13 @@ alert.execute.cmd = <string>
 alert.execute.cmd.arg.<n> = <string>
 * Provide additional arguments to the alert action execution command.
   Environment variables are substituted.
+
+python.version = {default|python|python2|python3}
+* ******* FOR SPLUNK 8.0 BACKWARDS COMPATIBILITY ONLY ********
+* In Splunk 8.0 this attribute allows you to select which Python version to use.
+* In this version of Splunk, this attribute is IGNORED as only Python 2 is supported
+* by the platform. Ignoring this attribute allows you to set flags in your apps
+* in anticipation of moving to 8.0 without causing startup warnings.
 
 ################################################################################
 # EMAIL: these settings are prefaced by the [email] stanza name

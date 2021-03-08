@@ -1,4 +1,4 @@
-#   Version 7.2.9
+#   Version 7.2.10
 #
 # This file contains all possible options for an indexes.conf file.  Use
 # this file to configure Splunk's indexes and their properties.
@@ -629,6 +629,13 @@ coldToFrozenScript = [path to script interpreter] <path to script>
   differently. See "Freezing and Thawing" below:
 * The script must be in $SPLUNK_HOME/bin or a subdirectory thereof.
 
+python.version = {default|python|python2|python3}
+* ******* FOR SPLUNK 8.0 BACKWARDS COMPATIBILITY ONLY ********
+* In Splunk 8.0 this attribute allows you to select which Python version to use.
+* In this version of Splunk, this attribute is IGNORED as only Python 2 is supported
+* by the platform. Ignoring this attribute allows you to set flags in your apps
+* in anticipation of moving to 8.0 without causing startup warnings.
+
 coldToFrozenDir = <path to frozen archive>
 * An alternative to a coldToFrozen script - simply specify a destination
   path for the frozen archive
@@ -1047,6 +1054,16 @@ timePeriodInSecBeforeTsidxReduction = <positive integer>
   The bucket age is the difference between the current time
   and the timestamp of the bucket's latest event.
 * Defaults to 604800 (seconds).
+
+waitPeriodInSecsForManifestWrite = <nonnegative integer>
+* This setting specifies the minimum interval, in seconds, between periodic
+  updates of an index's manifest file.
+* Setting to a lower value can reduce the performance of bucket operations like
+  fix-ups, freezes, etc.
+* Do not increase this value beyond the default except through consultation with
+  Splunk Support. Increasing the value can lead to inconsistencies in data.
+* The highest legal value is 4294967295.
+* Default: 60 (1 min)
 
 #**************************************************************************
 # PER PROVIDER FAMILY OPTIONS

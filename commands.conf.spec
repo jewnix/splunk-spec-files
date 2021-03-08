@@ -1,4 +1,4 @@
-#   Version 7.2.9
+#   Version 7.2.10
 #
 # This file contains possible attribute/value pairs for creating search
 # commands for any custom search scripts created.  Add your custom search
@@ -43,6 +43,13 @@
 type = <string>
 * Type of script: python, perl
 * Defaults to python.
+
+python.version = {default|python|python2|python3}
+* ******* FOR SPLUNK 8.0 BACKWARDS COMPATIBILITY ONLY ********
+* In Splunk 8.0 this attribute allows you to select which Python version to use.
+* In this version of Splunk, this attribute is IGNORED as only Python 2 is supported
+* by the platform. Ignoring this attribute allows you to set flags in your apps
+* in anticipation of moving to 8.0 without causing startup warnings.
 
 filename = <string>
 * Optionally specify the program to be executed when the search command is used.

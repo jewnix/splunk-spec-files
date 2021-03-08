@@ -1,4 +1,4 @@
-#   Version 7.2.9
+#   Version 7.2.10
 #
 # This file contains settings and values that you can use to configure
 # data transformations.  
@@ -534,6 +534,13 @@ external_type = [python|executable|kvstore|geo]
 * Use 'kvstore' for KV store lookups.
 * Use 'geo' for geospatial lookups.
 * Default: python
+
+python.version = {default|python|python2|python3}
+* ******* FOR SPLUNK 8.0 BACKWARDS COMPATIBILITY ONLY ********
+* In Splunk 8.0 this attribute allows you to select which Python version to use.
+* In this version of Splunk, this attribute is IGNORED as only Python 2 is supported
+* by the platform. Ignoring this attribute allows you to set flags in your apps
+* in anticipation of moving to 8.0 without causing startup warnings.
 
 time_field = <string>
 * Used for temporal (time bounded) lookups. Specifies the name of the field

@@ -1,4 +1,4 @@
-#   Version 7.2.9
+#   Version 7.2.10
 ############################################################################
 # This file contains settings and values to configure server options 
 # in server.conf.
@@ -400,8 +400,6 @@ sslCommonNameToCheck = <commonName1>, <commonName2>, ...
   splunkd limits most outbound HTTPS connections to hosts which use
   a certificate with one of the listed common names.
 * The most important scenario is distributed search.
-* This feature does not work with the deployment server and client
-  communication over SSL.
 * Optional.  
 * Default: No common name checking.
 
@@ -421,8 +419,6 @@ sslAltNameToCheck = <alternateName1>, <alternateName2>, ...
 * Accepts a comma-separated list of Subject Alternate Names to consider
   as valid.
 * Items in this list are never validated against the SSL Common Name.
-* This feature does not work with the deployment server and client
-  communication over SSL.
 * Optional.  
 * Default: No alternate name checking.
 
@@ -1914,6 +1910,8 @@ rep_max_send_timeout = <integer>
 * If cumulative 'rep_send_timeout' exceeds 'rep_max_send_timeout', 
   replication
   fails.
+* This setting is dynamically reloadable and does not require restart
+  of cluster peer.
 * Default: 180 (3 minutes)
 
 rep_max_rcv_timeout = <integer>
@@ -1922,6 +1920,8 @@ rep_max_rcv_timeout = <integer>
 * On 'rep_rcv_timeout' source peer determines if total 
   receive timeout has exceeded 'rep_max_rcv_timeout'. 
   If so, replication fails.
+* This setting is dynamically reloadable and does not require restart
+  of cluster peer.
 * Default: 180 (3 minutes)
 
 multisite = <boolean>
@@ -2152,6 +2152,8 @@ max_replication_errors = <integer>
   replication occurs to this target from this source.
 * The special value of 0 turns off this safeguard; so the source
   always rolls hot buckets on streaming error to any target.
+* This setting is dynamically reloadable and does not require restart
+  of cluster peer.
 * Default: 3
 
 searchable_targets = <boolean>
@@ -2178,6 +2180,8 @@ target_wait_time = <positive integer>
 * Specifies the time, in seconds, that the master waits for the 
   target of a replication to register itself before it services 
   the bucket again and potentially schedules another fixup.
+* This setting is dynamically reloadable and does not require restart
+  of cluster master.
 * Default: 150 (2 minutes 30 seconds)
 
 summary_wait_time = <positive integer>
@@ -2414,6 +2418,8 @@ remote_storage_upload_timeout = <non-zero positive integer>
   in seconds, after which target peers assume responsibility for 
   uploading a bucket to the remote storage, if they do not hear from 
   the source peer.
+* This setting is dynamically reloadable and does not require restart
+  of cluster peer.
 * Default: 60 (1 minute)
 
 report_remote_storage_bucket_upload_to_targets = <boolean>
@@ -2432,6 +2438,8 @@ remote_storage_retention_period = <non-zero positive integer>
 * Controls the length, in seconds, of peer-node retention for buckets in
   remote storage enabled indexes. When this length is exceeded, the master
   freezes the buckets on the peer nodes.
+* This setting is dynamically reloadable and does not require restart
+  of cluster master.
 * Default: 900 (15 minutes)
 
 recreate_bucket_attempts_from_remote_storage = <positive integer>
@@ -2454,6 +2462,16 @@ recreate_bucket_attempts_from_remote_storage = <positive integer>
        of additional peers to match the replication and search factors.
 * If set to 0, disables the re-creation of the bucket.
 * Default: 10
+
+recreate_bucket_max_per_service = <positive integer>
+* Only valid for 'mode=master'.
+* Only applies when using remote storage enabled indexes.
+* Controls the maximum number of buckets that the cluster can recreate
+  during a service interval.
+* Do not change the value from the default unless instructed by
+  Splunk Support.
+* If set to 0, recreating buckets will go at full speed.
+* Default: 0
 
 recreate_bucket_fetch_manifest_batch_size = <positive integer>
 * Only valid for 'mode=master'.
@@ -2503,6 +2521,8 @@ use_batch_remote_rep_changes = <boolean>
 * This is applicable to buckets belonging to
   remote storage enabled indexes only.
 * Do not change this setting without consulting with Splunk Support.
+* This setting is dynamically reloadable and does not require restart
+  of cluster master.
 * Default: true
 
 buckets_status_notification_batch_size = <positive integer>
@@ -3681,14 +3701,14 @@ dbPath = <path>
 * Default: $SPLUNK_DB/kvstore
 
 oplogSize = <integer>
-* The size of the replication operation log, in MB, for environments
+* The size of the replication operation log, in megabytes, for environments
   with search head clustering or search head pooling.
   In a standalone environment, 20% of this size is used.
 * After the KV Store has created the oplog for the first time, changing this
   setting does NOT affect the size of the oplog. A full backup and restart
   of the KV Store is required.
 * Do not change this setting without first consulting with Splunk Support.
-* Default: 1000MB (1GB)
+* Default: 1000 (1GB)
 
 replicationWriteTimeout = <integer>
 * The time to wait, in seconds, for replication to complete while saving KV store
@@ -3696,6 +3716,16 @@ replicationWriteTimeout = <integer>
 * Used for replication environments (search head clustering or search
   head pooling).
 * Default: 1800 (30 minutes)
+
+clientConnectionTimeout = <positive integer>
+* The time, in seconds, to wait while attempting a connection to the KV Store 
+  before the attempt times out. 
+* Default: 10
+
+clientSocketTimeout = <positive integer>
+* The time, in seconds, to wait while attempting to send or receive on a 
+  socket before the attempt times out. 
+* Default: 300 (5 minutes)
 
 caCertFile = <path>
 * DEPRECATED; use '[sslConfig]/sslRootCAPath' instead.

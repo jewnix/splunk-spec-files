@@ -1,4 +1,4 @@
-#   Version 7.2.9
+#   Version 7.2.10
 
 # splunk-launch.conf contains values used at startup time, by the splunk
 # command and by windows services.

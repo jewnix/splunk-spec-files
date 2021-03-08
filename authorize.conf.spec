@@ -563,6 +563,9 @@ disabled = <boolean>
 [capability::license_edit]
 * Lets a user access and change the license.
 
+[capability::license_read]
+* Lets a user access the license.
+
 [capability::license_view_warnings]
 * Lets a user see if they are exceeding limits or reaching the expiration
   date of their license.

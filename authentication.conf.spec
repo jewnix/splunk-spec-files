@@ -389,13 +389,22 @@ userLoginTTL = <time range string>
 * These return values are cached on a per-user basis.
 * Default: 0 (no caching)
 
+userInfoTTL = <time range string>
+* How long the auth system caches information that it retrieves with the
+  'getUserInfo' and 'getUsers' scripts.
+* These return values are cached on a per-user basis.
+* Default (if you have configured either 'getUserInfoTTL' or 'getUsersTTL'): the larger value of these settings
+* Default (otherwise): 10s
+
 getUserInfoTTL = <time range string>
+* DEPRECATED; use 'userInfoTTL' instead.
 * How long the auth system caches information that it retrieves with the
   'getUserInfo' script.
 * These return values are cached on a per-user basis.
 * Default: 10s
 
 getUsersTTL = <time range string>
+* DEPRECATED; use 'userInfoTTL' instead.
 * The timeout for the getUsers script function.
 * There is only one global getUsers cache (it is not tied to a
   specific user).

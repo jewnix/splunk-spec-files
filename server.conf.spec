@@ -2220,6 +2220,9 @@ auto_rebalance_primaries = <boolean>
   cluster can make use of any copies in the incoming peer.
 * Default: true
 
+rebalance_primaries_execution_limit = <non-negative integer>
+* DEPRECATED. Use the 'rebalance_primaries_execution_limit_ms' setting instead.
+
 rebalance_primaries_execution_limit_ms = <non-negative integer>
 * Only valid for 'mode=master'.
 * Specifies, in milliseconds, the maximum period for one execution
@@ -3770,6 +3773,15 @@ modificationsMaxReadSec = <integer>
 * Maximum time interval KVStore can spend while checking for modifications
   before it produces collection dumps for distributed searches.
 * Default: 30
+
+initialSyncMaxFetcherRestarts = <positive integer>
+* Specifies the maximum number of query restarts an oplog fetcher can perform 
+  before failing the ongoing Initial Sync attempt.
+* Increasing this value might help in dynamic deployments with very large 
+  KV Store databases where Initial Sync might take a long time.
+* NOTE: This setting should be changed only if you have been asked to set it by 
+  a Splunk Support engineer. It might increase KV Store cluster failover time.
+* Default: 0
 
 [indexer_discovery]
 pass4SymmKey = <password>

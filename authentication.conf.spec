@@ -843,6 +843,13 @@ replicateCertificates = <boolean>
   verification of SAML signed assertions will fail.
 * This setting will have no effect if search head clustering is disabled.
 
+allowPartialSignatures = <boolean>
+* OPTIONAL
+* When enabled, the Splunk authentication system only requires the SAML assertion block to be
+  signed (but not necessarily the entire SAML response).
+* When disabled, the entire SAML response must be signed for the login to succeed.
+* Defaults to 'true'
+
 #####################
 # Map roles
 #####################

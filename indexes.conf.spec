@@ -285,6 +285,16 @@ hotBucketTimeRefreshInterval = <positive integer>
   value 1.
 * Defaults to 10 (services).
 
+fileSystemExecutorWorkers = <positive iinteger>
+* Determines the number of threads to use for file system io operations.
+* This maximum applies to all of splunkd, not per index. If you have N
+  indexes, there will be at most 'fileSystemExecutorWorkers' workers,
+  not N * 'fileSystemExecutorWorkers' workers.
+* This is an advanced setting; do NOT set unless instructed by Splunk
+  Support.
+* Highest legal value is 4294967295.
+* Default: 5
+
 #**************************************************************************
 # PER INDEX OPTIONS
 # These options may be set under an [<index>] entry.
@@ -296,8 +306,9 @@ hotBucketTimeRefreshInterval = <positive integer>
 
 disabled = true|false
 * Toggles your index entry off and on.
-* Set to true to disable an index.
-* Defaults to false.
+* Set to "true" to disable an index.
+* CAUTION: Do not set this setting to "true" on remote storage enabled indexes.
+* Default: false
 
 deleted = true
 * If present, means that this index has been marked for deletion: if splunkd

@@ -1,4 +1,4 @@
-#   Version 8.1.3
+#   Version 8.1.4
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.
@@ -844,6 +844,16 @@ scriptSecureArguments = <key:value>;[<key:value>;]...
 * This setting is optional.
 * No default.
 
+useAuthExtForTokenAuthOnly = <boolean>
+* Whether authentication extension scripts run for all types of authentication, 
+  or only for token based authentication.
+* If set to "true", the 'getUserInfo' script only runs when making token based authentication calls.
+* Other calls that rely on fetching SAML user information, 
+  such as saved searches and displaying SAML users,
+  will use the persistent cache that is defined in the [userToRoleMap_<saml-authSettings-key>] stanza.
+* This setting is optional.
+* Default: true
+
 assertionTimeSkew = <integer>
 * The amount of clock skew, in seconds, that can occur between the Splunk platform and
   an identity provider that presents SAML assertions that contain 'NotBefore'
@@ -1106,7 +1116,9 @@ allowPartialSignatures = <boolean>
   for the SAML stanza specified by '<authSettings-key>'.
 * Follow this stanza name with several User-to-Role::Realname::Email mappings
   as defined below.
-* The stanza is used only when the IDP does not support Attribute Query Request
+* The auth system uses this stanza only in the following scenarios:
+  * The IdP that the auth system interacts with supports neither Attribute Query Requests nor authentication extension scripts.
+  * The IdP does support authentication scripts, but the 'useAuthExtForTokenAuthOnly' setting has a value of "true".
 
 <SAML User> = <Splunk Roles string>::<Realname>::<Email>
 * Maps a SAML user to a Splunk role(from authorize.conf), real name, and email

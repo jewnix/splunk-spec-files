@@ -1,4 +1,4 @@
-#   Version 8.1.2
+#   Version 8.1.3
 #
 ############################################################################
 # OVERVIEW
@@ -386,6 +386,13 @@ roll_and_wait_for_uploads_at_shutdown_secs = <non-negative number>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Default: 0 (disabled)
+
+regex_cache_hiwater = <integer>
+* A threshold for the number of entries in the regex cache. If the regex cache
+  grows larger than this, splunkd server will purge some of the older entries.
+* When set to a negative value, no purge occurs, no matter how large
+  the cache.
+* Default: 2500
 
 ############################################################################
 # Deployment Configuration details
@@ -5058,6 +5065,13 @@ batch_registration_size = <unsigned integer>
 * This setting is used when 'batch_registration' is enabled.
 * Use the default value unless instructed otherwise by Splunk Support.
 * Default: 5000
+
+cache_upload_backoff_sleep_secs = <unsigned_integer>
+* This setting specifies the interval, in seconds, that the cache manager waits to
+  retry an upload to the remote store after encountering a 4xx HTTP error.
+* A value of 0 causes the cache manager to continue retrying the upload without
+  performing a backoff.
+* Default: 60
 
 ############################################################################
 # Raft Statemachine configuration

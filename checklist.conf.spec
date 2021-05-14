@@ -1,4 +1,4 @@
-#   Version 8.1.2
+#   Version 8.1.3
 #
 # This file contains the set of attributes and values you can use to
 # configure checklist.conf to run health checks in Monitoring Console.

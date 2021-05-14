@@ -73,6 +73,7 @@ targetRepositoryLocation = <path>
 * The location on the deployment client where the deployment server
   should install the apps.
 * If this value is unset, or set to empty, the repositoryLocation path is used.
+* Can be overridden at the [serverClass:<name>] level.
 * Useful only with complex (for example, tiered) deployment strategies.
 * Default: $SPLUNK_HOME/etc/apps, the live
   configuration directory for a Splunk Enterprise instance.
@@ -341,6 +342,7 @@ issueReload = <boolean>
 restartIfNeeded = <boolean>
 stateOnClient = enabled | disabled | noop
 repositoryLocation = <path>
+targetRepositoryLocation = <path>
 
 
 ########################################

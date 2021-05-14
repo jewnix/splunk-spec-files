@@ -1,4 +1,4 @@
-#   Version 8.1.4
+#   Version 8.2.0
 #
 # This file contains possible setting/value pairs for saved search entries in
 # the savedsearches.conf file.  You can configure saved searches by creating
@@ -212,6 +212,20 @@ schedule_window = <unsigned integer> | auto
 * Default: auto for searches that are owned by users that do not have the
            'edit_search_window' capability.
            For these searches, this setting cannot be changed.
+
+schedule_as = [auto|classic|prjob]
+* Specifies whether a scheduled search should use parallel reduce search 
+  processing each time it runs. 
+* When set to 'auto', the Splunk software determines automatically whether 
+  this scheduled search should use parallel reduce search processing, each time 
+  it runs. This means it might not use parallel reduce processing some of the 
+  time or all of the time. For details, please check 'autoAppliedPercentage' in
+  'parallelreduce' stanza.
+* When set to 'classic', the Splunk software is forced to NOT use parallel reduce 
+  search processing for this scheduled search, each time it runs.
+* When set to 'prjob', the Splunk software is forced to use parallel reduce 
+  search processing for this scheduled search, each time it runs.
+* Default: 'auto'
 
 #*******
 # Workload management options
@@ -593,6 +607,12 @@ dispatch.reduce_freq = <integer>
   the MapReduce reduce phase should run on the accumulated map values.
 * Default: 10
 
+dispatch.allow_partial_results = <boolean>
+* Specifies whether the search job can proceed to provide partial results if a search
+  peer fails. When set to false, the search job fails if a search peer providing
+  results for the search job fails.
+* Default: true
+
 dispatch.rt_backfill = <boolean>
 * Specifies whether to do real-time window backfilling for scheduled real-time
   searches.
@@ -654,6 +674,71 @@ restart_on_searchpeer_add = 1 | 0
         become available.
 * Default: 1 (true)
 
+#*******
+# durable search options
+#*******
+durable.track_time_type = [ _time | _indextime | none ]
+* Indicates that a scheduled search is durable and specifies how the search 
+  tracks events. 
+  * A durable search is a search that tries to ensure the delivery of all 
+    results, even when the search process is slowed or stopped by runtime 
+    issues like rolling restarts, network bottlenecks, and even downed servers.
+  * When durable searches encounter search errors that they cannot recover 
+    from, they do not return any results. 
+  * When a durable scheduled search job fails in this manner, the Splunk 
+    software reschedules a new run of the durable search over the same period
+    of time to backfill the missing data. See the 'durable.backfill_type' and 
+    'durable.max_backfill_intervals' settings for more information.
+  * This setting cannot be applied to real-time and ad hoc searches. 
+  * For searches of metric data, only the '_time' setting is available.
+* If set to '_time', the durable search tracks each event by its original 
+  timestamp. 
+* If set to '_indextime', the durable search tracks each event by the the time 
+  that it is indexed.
+* If this setting is set to 'none' or not set, the search is not durable.
+* Default: Not set
+
+durable.lag_time = <unsigned integer>
+* Specifies the search time delay, in seconds, that a durable search uses to catch 
+  events that are ingested or indexed late. 
+* This setting takes effect only for searches that have a setting for 
+  'durable.track_time_type'.
+* In most cases, '60' (1 minute) is a good 'lag_time' for durable searches that 
+  track '_indextime'. 
+* If your durable search tracks '_time', check to see how long the events for 
+  the search are delayed at indexing before setting a 'lag_time' for it.
+* Default: 0
+
+durable.backfill_type = [ auto | time_interval | time_whole ]
+* Specifies how the Splunk software backfills the lost search results of failed 
+  scheduled search jobs.
+* When set to 'time_whole', the Splunk software schedules a single backfill 
+  search job with a time range that spans the combined time ranges of all 
+  failed scheduled search jobs. The 'time_whole' setting can be applied only to 
+  searches that are streaming, where the results are raw events without 
+  additional aggregation.
+* When set to 'time_interval', the Splunk software schedules multiple backfill 
+  search jobs, one for each failed scheduled search job. The backfill jobs have 
+  time ranges that match those of the failed jobs. The 'time_interval' setting 
+  can be applied to both streaming and non-streaming searches,
+* When set to 'auto', the Splunk software decides the backfill type by checking 
+  whether the search is streaming or not. If the search is streaming, the 
+  Splunk software uses the 'time_whole' backfill type. Otherwise, it uses the 
+  'time_interval' backfill type.
+* This setting takes effect only for searches that have a setting for 
+  'durable.track_time_type'.
+* Default: auto
+
+durable.max_backfill_intervals = <unsigned integer>
+* Specifies the maximum number of cron intervals (previous scheduled search 
+  jobs) that the Splunk software can attempt to backfill for this search, when 
+  those jobs have incomplete events.
+* This setting takes effect only for searches that have a setting for 
+  'durable.track_time_type'. 
+* For example, if 'durable.max_backfill_intervals' is set to '100', the maximum 
+  backfill time range for a search is 100 multiplied by the cron interval for 
+  the scheduled search. 
+* Default: 0 (unlimited) 
 
 #*******
 # auto summarization options
@@ -1073,7 +1158,13 @@ defer_scheduled_searchable_idxc = <boolean>
 * Specifies whether to defer a continuous saved search during a searchable
   rolling restart or searchable rolling upgrade of an indexer cluster.
 * Note: When disabled, a continuous saved search might return partial results.
-* Default: true (enabled)
+* Default: false (disabled)
+
+skip_scheduled_realtime_idxc = <boolean>
+* Specifies whether to skip a continuous saved realtime search during a searchable
+  rolling restart or searchable rolling upgrade of an indexer cluster.
+* Note: When set to false, a continuous saved search might return partial results.
+* Default: false (does not skip)
 
 # DFS options
 federated.provider = <federated-provider-stanza>

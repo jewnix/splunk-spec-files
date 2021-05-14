@@ -1,4 +1,4 @@
-#   Version 8.1.4
+#   Version 8.2.0
 #
 # Forwarders require outputs.conf. Splunk instances that do not forward
 # do not use it. Outputs.conf determines how the forwarder sends data to
@@ -446,6 +446,13 @@ ackTimeoutOnShutdown = <integer>
   forwarder shutdown.
 * Default: 30 seconds
 
+polling_interval = <integer>
+* The initial time to wait upon splunk start, in seconds, for the forwarder to fetch
+  the list of indexers from the indexer discovery server specified in
+  the corresponding [indexer_discovery:<name>] stanza. Subsequently polling interval
+  is set by indexer discovery server response.
+* Default: 5 seconds
+
 dnsResolutionInterval = <integer>
 * The base time interval, in seconds, at which indexer Domain Name Server
   (DNS) names are resolved to IP addresses.
@@ -519,6 +526,17 @@ autoLBVolume = <integer>
   indexer as the forwarding target.
 * A non-zero value means that volume-based forwarding is active.
 * 0 means the volume-based forwarding is not active.
+* Default: 0
+
+maxSendQSize = <integer>
+* The size of the tcpout client send buffer, in bytes.
+  If tcpout client(indexer/receiver connection) send buffer is full,
+  a new indexer is randomly selected from the list of indexers provided
+  in the server setting of the target group stanza.
+* This setting allows forwarder to switch to new indexer/receiver if current
+  indexer/receiver is slow.
+* A non-zero value means that max send buffer size is set.
+* 0 means no limit on max send buffer size.
 * Default: 0
 
 #----Secure Sockets Layer (SSL) Settings----
@@ -627,7 +645,7 @@ sslAltNameToCheck = <alternateName1>, <alternateName2>, ...
 
 useClientSSLCompression = <boolean>
 * Enables compression on SSL.
-* Default: The value of 'server.conf/[sslConfig]/useClientSSLCompression'
+* Default: true
 
 sslQuietShutdown = <boolean>
 * Enables quiet shutdown mode in SSL.
@@ -692,6 +710,15 @@ useACK = <boolean>
 
 defaultGroup = <target_group>, <target_group>, ...
 
+dropEventsOnQueueFull = <integer>[ms|s|m]
+* See 'dropEventsOnQueueFull' in the "[tcpout]" stanza for
+  information on this setting.
+
+dropClonedEventsOnQueueFull = <integer>[ms|s|m]
+* See 'dropClonedEventsOnQueueFull' in the "[tcpout]" stanza for
+  information on this setting.
+
+#######
 # For the following settings, see the [syslog:<target_group>] stanza.
 
 type = [tcp|udp]
@@ -1328,6 +1355,13 @@ remote_queue.kinesis.tenantId = <string>
 # Simple Queue Service Smartbus (SQS Smartbus) specific settings
 ####
 
+remote_queue.sqs_smartbus.encoding_format = protobuf|s2s
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies the encoding format used to write data to the
+  remote queue.
+* Default: protobuf
+
 remote_queue.sqs_smartbus.access_key = <string>
 * Currently not supported. This setting is related to a feature that is
   still under development.
@@ -1480,8 +1514,8 @@ remote_queue.sqs_smartbus.send_interval = <number><unit>
 * Optional.
 * The interval that the remote queue output processor waits for data to
   arrive before sending a partial batch to the remote queue.
-* Examples: 30s, 1m
-* Default: 10s
+* Examples: 100ms, 5s
+* Default: 2s
 
 remote_queue.sqs_smartbus.max_queue_message_size = <integer>[KB|MB|GB]
 * Currently not supported. This setting is related to a feature that is
@@ -1518,5 +1552,35 @@ remote_queue.sqs_smartbus.executor_max_jobs_count = <positive integer>
   still under development.
 * The maximum number of jobs that each worker thread per pipeline set can queue.
 * A value of 0 is equivalent to 1.
-* The maximum value for this setting is 20.
-* Default: 8
+* The maximum value for this setting is 50.
+* Default: 20
+
+remote_queue.sqs_smartbus.large_message_store.encryption_scheme = sse-s3 | sse-c | none
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The encryption scheme used by remote storage
+* Default: none.
+
+remote_queue.sqs_smartbus.large_message_store.kms_endpoint = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The endpoint to connect to for generating KMS keys.
+* This setting is required if 'large_message_store.encryption_scheme' is
+  set to sse-c.
+* Examples: https://kms.us-east-2.amazonaws.com
+* No default.
+
+remote_queue.sqs_smartbus.large_message_store.key_id = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The ID for the primary key that KMS uses to generate a data key pair. The primary key is stored in AWS.
+* This setting is required if 'large_message_store.encryption_scheme' is
+  set to sse-c.
+* Examples: alias/sqsssekeytrial, 23456789-abcd-1234-11aa-c50f99011223
+* No default.
+
+remote_queue.sqs_smartbus.large_message_store.key_refresh_interval = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The time interval to refresh primary key.
+* Default: 24h

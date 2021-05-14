@@ -1,4 +1,4 @@
-#   Version 8.1.4
+#   Version 8.2.0
 #
 ############################################################################
 # OVERVIEW
@@ -200,21 +200,27 @@ tocsv_retryperiod_ms = <integer>
 filteredindexes_log_level = [DEBUG|INFO|WARN|ERROR]
 * Log level of messages when search returns no results because
   user has no permissions to search on queried indexes.
+* Default: DEBUG
 
 infocsv_log_level = [DEBUG|INFO|WARN|ERROR]
 * Limits the messages which are added to the info.csv file to the stated
   level and above.
 * For example, if “infocsv_log_level” is WARN, messages of type WARN
   and higher will be added to the info.csv file.
+* Default: INFO
 
 max_infocsv_messages  = <positive integer>
+* Limits the number of messages which are added to the info.csv file,
+  per log level.
 * If more than max_infocsv_messages log entries are generated, additional
   entries will not be logged in the info.csv file. All entries will still be
   logged in the search.log file.
+* Default: 20
 
 show_warn_on_filtered_indexes = <boolean>
 * Log warnings if search returns no results because user has
   no permissions to search on queried indexes.
+* Default: false
 
 
 [subsearch]
@@ -281,11 +287,17 @@ batch_search_max_index_values = <integer>
 * Default: 10000000
 
 batch_search_max_pipeline = <integer>
-* Controls the number of search pipelines that are
-  launched at the indexer during batch search.
-* Increasing the number of search pipelines should help improve search
-  performance, however there will be an increase in thread and memory usage.
+* This setting controls the number of search pipelines that are launched on the
+  indexer during batch search.
+* Increasing the number of search pipelines can improve search performance.
+  However, this can also result in increased thread and memory usage.
 * This setting applies only to searches that run on remote indexers.
+* The value for this setting should be >=1. When this setting is >1 on the
+  search head, the setting is applied to all remote indexers. Otherwise, remote
+  indexers use their local 'batch_search_max_pipeline' setting.
+* You can override this setting on a per-search basis by appending
+  '|noop batch_search_max_pipeline=<integer>' to the search string. The
+  <integer> should be >1.
 * Default: 1
 
 batch_search_max_results_aggregator_queue_size = <integer>
@@ -367,6 +379,7 @@ bundle_status_expiry_time = <interval>
 ############################################################################
 # This section contains settings for search concurrency limits.
 
+
 base_max_searches = <integer>
 * A constant to add to the maximum number of searches, computed as a
   multiplier of the CPUs.
@@ -386,6 +399,7 @@ max_searches_per_cpu = <integer>
 * NOTE: The maximum number of real-time searches is computed as:
   max_rt_searches = max_rt_search_multiplier x max_hist_searches
 * Default: 1
+
 
 ############################################################################
 # Distributed search
@@ -619,6 +633,16 @@ force_saved_search_dispatch_as_user = <boolean>
 max_id_length = <integer>
 * Maximum length of the custom search job ID when spawned by using
   REST API argument “id”.
+* Default: 150
+
+max_id_length_before_hash = <integer>
+* Specifies the maximum length of a generated or custom search job ID before
+  the Splunk software shortens the directory name. The search job ID itself
+  remains the same.
+* If set to 0, the Splunk software never hashes the ID. In this case, IDs that
+  are too long cause the search to fail.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: 255
 
 search_keepalive_frequency = <integer>
 * Specifies how often, in milliseconds, a keepalive is sent while a search
@@ -727,13 +751,13 @@ always_include_indexedfield_lispy = <boolean>
 * For field names that are always indexed, it is much better
   for performance to set "INDEXED = true" in fields.conf for
   that field instead.
-* Default: true
+* Default: false
 
 indexed_fields_expansion = <boolean>
-* Specifies whether search scopes known indexed fields with the source types 
+* Specifies whether search scopes known indexed fields with the source types
   that they are known to be indexed with.
-* When set to 'true', for every field known to be indexed, the Splunk software 
-  converts every known field=val statement to field::val, scoped with the 
+* When set to 'true', for every field known to be indexed, the Splunk software
+  converts every known field=val statement to field::val, scoped with the
   applicable sourcetypes.
 * Default: true
 
@@ -767,13 +791,6 @@ execute_postprocess_in_search = <boolean>
 * If true, try to run postprocess searches ahead of time in the search process
   instead of the main splunkd process.
 * Default: true
-
-max_fieldmeta_cnt_ui = <number>
-* The maximum number of field metadata displayed in the /jobs/fieldmeta endpoint.
-* When viewing the search job status for searches with a large
-  number of field metadata, decreasing this value will reduce the memory load on
-  splunkd mothership, but show less field metadata in the web UI.
-* Default: 1000
 
 ############################################################################
 # Parsing
@@ -2094,11 +2111,11 @@ extraction_cutoff = <integer>
 
 approx_dc_threshold = <unsigned integer>
 * Applies specifically to the estdc(x) function (approximate distinct count).
-* When the Splunk software uses estdc(x) for commands such as stats, chart, and 
-  timechart, it does not use approximated results if the actual number of 
-  distinct values is below this threshold. 
-* To always use estimation, set 'approx_dc_threshold=1'. 
-* Note: When 'approx_dc_threshold=0' the Splunk software uses the default value 
+* When the Splunk software uses estdc(x) for commands such as stats, chart, and
+  timechart, it does not use approximated results if the actual number of
+  distinct values is below this threshold.
+* To always use estimation, set 'approx_dc_threshold=1'.
+* Note: When 'approx_dc_threshold=0' the Splunk software uses the default value
   for this setting (1000)
 * Default: 1000
 
@@ -2117,6 +2134,20 @@ list_maxsize = <integer>
 * Maximum number of list items to emit when using the list() function
   stats/sistats
 * Default: 100
+
+max_keymap_rows = <integer>
+* Limits the number of result rows that the search head stores in the key map
+  during the map phase of a 'stats' operation. The Splunk software looks up
+  rows stored in the map and combines them greedily prior to final reduce.
+* 'Stats' performance is nonlinear with respect to the the number of rows in
+  the key map. Limiting the number of rows held can improve performance.
+* Excess rows expunged from the key map remain in memory, subject to
+  max_mem_usage_mb.
+* A key map maps vectors of group-by keys (field values) to their associated
+  rows. It is a feature of the 'stats' family of search commands.
+* This setting applies particularly to high cardinality searches.
+* This setting does not apply to 'streamstats' or 'eventstats' searches.
+* Default: 1000000
 
 maxmem_check_freq = <integer>
 * How frequently, in number of rows, to check if the in-memory data
@@ -2251,12 +2282,33 @@ tmpfile_compression = <string>
 * "lz4" indicates use of the lz4 format
 * "zstd" indicates use of the zstd format
 * "none" indicates use of no compression
+* Default: lz4
 
 tmpfile_compression_level = <int>
 * Temporary file compression format level.
 * If tmpfile_compression is lz4 or zstd, this will indicate the compression level.
 * For zstd higher numbers indicate higher speed, and lower compression ratios.
 * For lz4 higher numbers indicate lower speed, and higher compression ratios.
+* Default: 0
+
+use_spill_thread = <boolean>
+* Specifies whether 'stats' searches should use a separate thread when
+  'max_mem_usage_mb' is exceeded. This enables these searches to continue
+  processing input while they write to temporary files.
+* When set to true, large 'stats' searches run faster, with the trade-off of
+  using additional CPU resources. Recommended for systems with low utilization.
+* Default: false
+
+use_stats_v2 = [fixed-width | <boolean>]
+* Specifies whether to use the v2 stats processor.
+* When set to 'fixed-width', the Splunk software uses the v2 stats processor
+  for operations that do not require the allocation of extra memory for new
+  events that match certain combinations of group-by keys in memory. Operations
+  that cause the Splunk software to use v1 stats processing include the
+  'eventstats' and 'streamstats' commands, usage of wildcards, and stats
+  functions such as list(), values(), and dc().
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: true
 
 [top]
 
@@ -2751,26 +2803,36 @@ avg_extractor_time = <integer>
 limit = <integer>
 * The maximum number of fields that an automatic key-value field extraction
   (auto kv) can generate at search time.
-* The summary fields 'host', 'index', 'source', 'sourcetype', 'eventtype',
-  'linecount', 'splunk_server', and 'splunk_server_group' do not count against
-  this limit and will always be returned.
-* Increase this setting if, for example, you have data with a large
-  number of columns and want to ensure that searches display all fields extracted
-  from an automatic key-value field (auto kv) configuration.
+* Increase this setting if you want to ensure that the field picker in the Splunk Web
+  search page displays all fields.
 * Set this value to 0 if you do not want to limit the number of fields
-  that can be extracted at index time and search time.
+  that can be extracted at search time.
 * Default: 100
 
 indexed_kv_limit = <integer>
 * The maximum number of fields that can be extracted at index time from a data source.
+* This setting does not prevent a search from extracting indexed fields that
+  the search needs and explicitly requests.
+* The Splunk platform imposes this limit for each index bucket.
 * Fields that can be extracted at index time include default fields, custom fields,
   and structured data header fields.
 * The summary fields 'host', 'index', 'source', 'sourcetype', 'eventtype', 'linecount',
   'splunk_server', and 'splunk_server_group' do not count against this limit and are
   always returned.
 * Increase this setting if, for example, you have indexed data with a large
-  number of columns and want to ensure that searches display all fields from
-  the data.
+  number of columns and want to ensure that the field picker in the Splunk Web search
+  page displays all fields.
+* This setting is different from the 'limit' setting in that it limits field
+  extraction in different phases of data processing. Previously, the 'limit'
+  setting handled both index-time and search-time field extraction limits, and
+  to maintain backward compatibility, both settings work in concert.
+* The Splunk platform always uses the higher value for either setting to enforce
+  index-time field extraction limits.
+  * For example, if you set 'indexed_kv_limit' to "500" and 'limit' to "200",
+    then the platform limits indexed-time field extractions to 500 and
+    search-time field extractions to 200.
+  * If you set 'indexed_kv_limit' to "200" and 'limit' to "500", then the
+    platform limits both index-time and search-time field extraction to 500.
 * Set this value to 0 if you do not want to limit the number of fields
   that can be extracted at index time.
 * Default: 200
@@ -2859,7 +2921,7 @@ max_failed_status_unchanged_count = <integer>
   migration on the member. If the trial number has hit the max retry limit,
   then the member is marked as aborted.
 * Once this limit is reached, the migration is aborted on the member.
-* Default: 10
+* Default: 30
 
 [input_channels]
 
@@ -3313,6 +3375,7 @@ dispatch_retry_delay = <unsigned integer>
 saved_searches_disabled = <boolean>
 * Whether saved search jobs are disabled by the scheduler.
 * Default: false
+
 
 scheduled_view_timeout = <integer>[s|m|h|d]
 * The maximum amount of time that a scheduled view (pdf delivery) would be
@@ -3923,6 +3986,14 @@ enabled = <boolean>
   string.
 * Default: false
 
+detect_search_time_field_collisions = <boolean>
+* Enables checking field collisions between fields.conf which indicates
+  whether a field is indexed and props.conf which may contain fields which
+  override those fields at search time.
+* This enables logic to perform an additional search expansion before this
+  optimizer can be applied so that we get correct results when this case occurs.
+* Default: true
+
 [search_optimization::replace_datamodel_stats_cmds_with_tstats]
 enabled = <boolean>
 * Enables a search language optimization that replaces stats commands with
@@ -3958,6 +4029,17 @@ maxReducersPerPhase = <positive integer>
 * If you specify a number greater than 200 or an invalid value, parallel
   reduction does not take place. All reduction processing moves to the search
   head.
+* Default: 20
+
+defaultReducersPerPhase = <positive integer>
+* Specifies the default number of valid indexers that are used as intermediate
+  reducers in the reducing phase of a parallel reduce search job, if the number
+  of indexers is not set in the search string by the 'prjob' or 'redistribute'
+  commands.
+* If 'winningRate' calculates that the size of the potential reducer pool is
+  lower than 'defaultReducersPerPhase', the Splunk software uses the number of
+  indexers determined by 'winningRate'.
+* The value of this setting cannot exceed 'maxReducersPerPhase'.
 * Default: 4
 
 maxRunningPrdSearches = <unsigned integer>
@@ -4003,6 +4085,12 @@ winningRate = <positive integer>
   'maxReducersPerPhase'.
 * Default: 50
 
+rdinPairingTimeout = <positive integer>
+* The amount of time (in seconds) to wait so that indexers and intermediate
+  indexers may get paired
+* Note: Only change this setting unless instructed to do so by Splunk Support.
+* Default: 300
+
 autoAppliedPercentage = <non-negative integer>
 * The percentage of search queries to be selected to run as prjob, should be
   in range of [0, 100].
@@ -4010,9 +4098,34 @@ autoAppliedPercentage = <non-negative integer>
   specified, no search query will be wrapped.
 * Default: 0
 
-rdinPairingTimeout = <positive integer>
-* The amount of time (in seconds) to wait so that indexers and intermediate indexers may get paired
-* Default: 300
+autoAppliedToAdhocSearches = <boolean>
+* When set to true, the Splunk software uses parallel reduce processing to
+  improve the performance of qualifying ad-hoc searches.
+* This setting is ignored when '0' is specified for 'autoAppliedPercentage'.
+* Default: false
+
+maxPreviewMemUsageMb = <positive integer>
+* Sets the maximum amount of memory usage (in MB) that parallel reduce search
+  can use in its preview cache.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: 100
+
+enablePreview = <boolean>
+* When set to 'true', parallel reduce search jobs generate preview data,
+  meaning that partial search results are returned as the search job runs.
+* When set to 'false', parallel reduce search jobs do not generate preview data.
+  They display only the final results of a parallel reduce search job when the
+  search job completes.
+* Default: true
+
+disabledCommandList = <string>
+* Specifies a list of commands that are not run for searches that undergo
+  parallel reduce search processing.
+  * This list is comma-separated, without spaces.
+* For example, to disable the 'dedup' and 'sort' commands in parallel reduce
+  searches, set 'disabledCommandList = dedup,sort'.
+* Note: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: Not set
 
 [rollup]
 minSpanAllowed = <integer>
@@ -4200,3 +4313,29 @@ use_segmenter_v2 = <bool>
 * This setting affects only those CPUs that support SSE4.2.
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: true
+
+
+############################################################################
+# Required Field Optimization
+############################################################################
+
+[search_optimization::set_required_fields]
+* The settings in this stanza affect how the search processors handle required
+  field optimization.
+* Required field optimization prevents specified but unused fields from being
+  extracted or otherwise created during a search. This can improve search
+  performance.
+
+stats = <boolean>
+* This setting determines whether the stats processor uses the required field
+  optimization methods of Stats V2, or if it falls back to the older, less
+  optimized version of required field optimization that was used prior to Stats
+  v2.
+* This setting only applies when 'use_stats_v2' is set to 'true' or
+  'fixed-width' in 'limits.conf'
+  * When Stats v2 is enabled and this setting is set to 'true', the stats
+    processor uses the Stats v2 version of required field optimization.
+  * When Stats v2 is enabled and this setting is set to 'false' the stats
+    processor falls back to the older version of required field optimization.
+* Do not change this setting unless instructed to do so by Splunk support.
+* Default: false

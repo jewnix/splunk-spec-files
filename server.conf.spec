@@ -1,4 +1,4 @@
-#   Version 8.1.4
+#   Version 8.2.0
 #
 ############################################################################
 # OVERVIEW
@@ -110,7 +110,7 @@ hangup_after_phonehome = <boolean>
   number of clients.
 * If you have more than the maximum recommended concurrent TCP connection
   deployment clients, persistent connections can not help with the reuse of
-  connections. Setting this attribute to false helps bring down memory usage.
+  connections. Setting this attribute to true helps bring down memory usage.
 * Default: false (persistent connections for phonehome)
 
 pass4SymmKey = <password>
@@ -121,7 +121,7 @@ pass4SymmKey = <password>
 * When authenticating members of a cluster, clustering might override the
   passphrase specified in the clustering stanza. A clustering searchhead
   connecting to multiple managers might further override in the
-  [clustermaster:stanza1] stanza.
+  [clustermanager:stanza1] stanza.
 * When authenticating deployment servers and clients, by default, DS-DCs
   passphrase authentication is disabled. To enable DS-DCs passphrase
   authentication, you must also add the following line to the [broker:broker]
@@ -246,7 +246,7 @@ useHTTPClientCompression = true|false|on-http|on-https
   results in double compression work without much compression gain. To
   mitigate this, set this value to "on-http" (or to "true", and
   useClientSSLCompression to "false").
-* Default: false
+* Default: true
 
 embedSecret = <string>
 * When using report embedding, normally the generated URLs can only
@@ -387,12 +387,63 @@ roll_and_wait_for_uploads_at_shutdown_secs = <non-negative number>
   still under development.
 * Default: 0 (disabled)
 
+preShutdownCleanup = <bool>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies if indexer waits to complete any indexing activities before continuing with shutdown.
+* Default: true
+
+reset_manifests_on_startup = <boolean>
+* Whether or not the Splunk platform instance regenerates size retention
+  information for index bucket summaries that have been stored in the
+  manifest.csv files.
+* Configuring this setting lets the platform instance have the most
+  up-to-date size retention information immediately after startup.
+* When set to true, the size retention information for summaries stored
+  in the manifest.csv files are removed and regenerated during startup.
+* When set to false, manifest.csv files are not reset during startup.
+* Default: true
+
+percent_manifests_to_reset = <percentage>
+* In order to minimize the cost of resetting all manifest.csv files at once
+  the manifest.csv files are separated in groups that are processed separately.
+* This percentage defines how many manifest.csv files each group will reset.
+* For example, a setting of 20 means each group resets 20% of all manifests
+  resulting in 5 groups with 20% each.
+* The minimum of one manifest.csv file will be processed per group.
+* Legal values are between 0% and 100%.
+* Default: 10%
+
 regex_cache_hiwater = <integer>
 * A threshold for the number of entries in the regex cache. If the regex cache
   grows larger than this, splunkd server will purge some of the older entries.
 * When set to a negative value, no purge occurs, no matter how large
   the cache.
 * Default: 2500
+
+
+############################################################################
+# Configuration Change Audit 
+############################################################################
+[config_change_audit]
+disabled = <boolean>
+* Whether or not splunkd writes configuration changes to the 
+  configuration change log at $SPLUNK_HOME/var/log/splunk/configuration_change.log.
+* If set to "false", configuration changes are captured in
+  $SPLUNK_HOME/var/log/splunk/configuration_change.log.
+* If set to "true", configuration changes are not captured
+  in $SPLUNK_HOME/var/log/splunk/configuration_change.log.
+* Default: true
+mode = [auto|track-only]
+* Set to "auto" or "track-only" to get log of .conf file changes
+  under $SPLUNK_HOME/etc/system, $SPLUNK_HOME/etc/apps,
+  $SPLUNK_HOME/etc/users, $SPLUNK_HOME/etc/slave-apps or changes to $SPLUNK_HOME/etc/instance.cfg.
+* The values "auto" and "track-only" are identical in their effects. Set mode to "auto"
+  to auto-enroll this deployment into all the latest features.
+* CAUTION: This setting is experimental and is related to a feature that
+  is still under development. Using the setting might increase resource usage.
+* Default: auto
+
 
 ############################################################################
 # Deployment Configuration details
@@ -448,7 +499,13 @@ useClientSSLCompression = <boolean>
   client-side enables compression between server and client.
 * Enabling this potentially gives you much faster distributed searches
   across multiple Splunk instances.
-* Default: true
+* CAUTION: There are known performance issues due to SSL compression.
+  Confirm that 'conf_deploy_precompress_bundles',
+  'precompress_cluster_bundle', 'precompress_artifacts',
+  'preCompressKnowledgeBundlesClassicMode', 'preCompressKnowledgeBundlesCascadeMode',
+  and 'useHTTPClientCompression' are set to "false" before setting
+ 'useClientSSLCompression' to "true" to avoid double compression.
+* Default: false
 
 useSplunkdClientSSLCompression = <boolean>
 * Controls whether SSL compression is used when splunkd is acting as
@@ -1546,6 +1603,7 @@ ecdhCurves = <comma separated list of ec curves>
   the $SPLUNK_HOME/etc/system/default/server.conf file for the
   current default)
 
+
 ############################################################################
 # Misc. configuration
 ############################################################################
@@ -1780,6 +1838,7 @@ components = <comma separated list>
   * file_validate : Produce list of files that were in the install media
                     which have been changed.  Generally this should be an
                     empty list.
+  * profiler      : The profiler directory at $SPLUNK_HOME/var/run/profiler
 
 * The special value "all" is also supported, enabling everything explicitly.
 * Further controlling the components from the command line:
@@ -2152,7 +2211,10 @@ mode = [manager|peer|searchhead|disabled]
   but they will be removed from the product in a future release.
 * Default: disabled
 
-master_uri = [<uri> | clustermaster:stanzaName1, clustermaster:stanzaName2]
+master_uri = [<uri> | clustermanager:stanzaName1, clustermanager:stanzaName2]
+* DEPRECATED. Use the 'manager_uri' setting instead.
+
+manager_uri = [<uri> | clustermanager:stanzaName1, clustermanager:stanzaName2]
 * Only valid for 'mode=peer' or 'mode=searchhead'.
 * The URI of the cluster manager that this peer or search head
   should connect to.
@@ -2260,6 +2322,20 @@ max_delayed_updates_time_ms = <zero or positive integer>
 * 0 denotes that there is no limit to how long the delayed jobs thread
   can run continuously.
 * Default: 1000
+
+primary_src_persist_secs = <zero or positive integer>
+* Only valid for 'mode=manager'.
+* For a warm bucket, this setting specifies the interval after the bucket's
+  latest time that a primary rebalance operation attempts to assign the primary
+  to the copy on the source peer node. Once the interval is exceeded,
+  the rebalance operation no longer considers the bucket's origin when
+  assigning its primary.
+* For a hot bucket, a non-zero value causes the primary to always reside with the
+  source's hot bucket.
+* Do not change this setting without first consulting with Splunk Support.
+* If set to 0, the rebalance operation does not consider bucket origin
+  when assigning primaries, for both hot and warm buckets.
+* Default: 604800 (1 week, 60 * 60 * 24 * 7 seconds)
 
 cxn_timeout = <integer>
 * Lowlevel timeout, in seconds, for establishing connection between
@@ -2376,6 +2452,37 @@ rolling_restart = restart|shutdown|searchable|searchable_force
 * You do not need to restart the cluster manager when making changes to
   this setting. This setting reloads automatically.
 * Default: restart
+
+searchable_rolling_peer_state_delay_interval = <zero or positive integer>
+* Only valid for 'mode=manager'.
+* Specifies an extra time interval, in seconds, during which the peer remains
+  in the ReassigningPrimaries state.
+* Extending the amount of time the peer remains in the ReassigningPrimaries
+  state gives the peer more time to complete inflight searches and ingest
+  events.
+* This also reduces the impact of incomplete searches and bucket corruption,
+  which can impede the searchable rolling restart process.
+* Default: 60
+
+searchable_rolling_site_down_policy = full|most|half
+* Only valid for 'mode=manager' and is only used if 'multisite=true' and
+  'site_by_site=true'.
+* Sets the policy for calculating the maximum number of peers in a site allowed
+  to shutdown at the same time during a searchable rolling restart.
+* If set to 'full', the manager will allow an entire site to shutdown at once
+  if there are searchable copies of buckets available in at least 3 sites.
+* If set to 'most', the manager will maintain a few peers in a site to act as
+  hot bucket streaming targets, and shutdown the other peers. At least one
+  peer is available as a streaming target, but there can be more depending on
+  the cluster's search factor. The 'most' policy attempts to speed up the
+  rolling restart more aggressively than 'half', at the expense of a longer
+  period fixing up replication and search factors afterwards.
+* If set to 'half', the manager will maintain half the peers in a site to act
+  as hot bucket streaming targets, and shutdown the other peers.
+* The maximum number of peers allowed down at one time is the smallest peer
+  count between 'percent_peers_to_restart' and
+  'searchable_rolling_site_down_policy'.
+* Default: half
 
 rolling_restart_condition = up|batch_adding|starting
 * Only valid for 'mode=manager'.
@@ -2792,6 +2899,13 @@ percent_peers_to_restart = <integer between 0-100>
   sets.
 * Regardless of setting, a minimum of 1 peer is restarted per round.
 
+percent_peers_to_reload = <integer between 0-100>
+* Only valid for mode=master
+* Suggested percentage of maximum peers to reload for bundle push.
+* Actual percentage may vary due to lack of granularity for smaller peer
+  sets.
+* If set to 0, a minimum of 1 peer reloads the bundle per round.
+
 max_peers_to_download_bundle = <positive integer>
 * Only valid for 'mode=manager'
 * Maximum no. of peers to simultaneously download the configuration bundle
@@ -2800,6 +2914,20 @@ max_peers_to_download_bundle = <positive integer>
   its download.
 * If set to 0,  all peers try to download at once.
 * Default: 5
+
+precompress_cluster_bundle = <boolean>
+* Only valid for 'mode=manager'.
+* Whether or not the manager compresses the configuration bundle files before
+  it pushes them to peers.
+* When set to "true", the manager compresses the configuration bundle, which
+  helps reduce network bandwidth consumption during the bundle push.
+* Set this option to 'true' only when SSL compression is off. Otherwise, the
+  files will be compressed twice, which wastes CPU resources and does not save
+  network bandwidth. To turn off SSL compression, set
+  'allowSslCompression = false' in server.conf on the manager.
+* Compressed bundles are denoted by the suffix ".bundle.gz". Uncompressed
+  bundles use the suffix ".bundle".
+* Default: true
 
 auto_rebalance_primaries = <boolean>
 * Only valid for 'mode=manager'.
@@ -2968,7 +3096,7 @@ register_forwarder_address = <IP address or fully qualified machine/domain name>
 
 register_search_address = <IP address, or fully qualified machine/domain name>
 * Only valid for 'mode=peer'
-* This is the address on which a peer is available as search head.
+* This is the address that advertises the peer to search heads.
   This is useful in the cases where a splunk host machine has multiple
   interfaces and only one of them can be reached by another splunkd
   instance.
@@ -3359,11 +3487,14 @@ upload_rectifier_timeout_secs = <unsigned integer>
 * This setting controls the timeout that the peer waits before checking.
 * Default: 2
 
-[clustermaster:<stanza>]
+[clustermanager:<stanza>]
 * Only valid for 'mode=searchhead' when the search head is a part of
   multiple clusters.
 
 master_uri = <uri>
+* DEPRECATED. Use the 'manager_uri' setting instead.
+
+manager_uri = <uri>
 * Only valid for 'mode=searchhead' when present in this stanza.
 * URI of the cluster manager that this search head should connect to.
 
@@ -3400,7 +3531,7 @@ multisite = <boolean>
 * Turns on the multisite feature for this manager_uri for the search head.
 * Make sure the manager has the multisite feature turned on.
 * Make sure you specify the site in case this is set to true. If no
-  configuration is found in the [clustermaster] stanza, the search head defaults
+  configuration is found in the [clustermanager] stanza, the search head defaults
   to any value for 'site' that might be defined in the [general]
   stanza.
 * Default: false
@@ -3774,6 +3905,7 @@ prefix = <path>
   user-configurable).
 * Does not apply to trusted/non-configurable command executions, such as:
   splunk search, splunk-optimize, gunzip.
+* $SPLUNK_HOME is expanded.
 * No default.
 
 ############################################################################
@@ -3887,6 +4019,18 @@ no_artifact_replications = <boolean>
 * This is an advanced setting, and not to be changed without proper
   understanding of the implications.
 * Default: false
+
+precompress_artifacts = <boolean>
+* Determines whether this search head cluster member compresses the
+  search artifacts before replicating them to other members.
+* When set to "true", the search head compresses the artifacts
+  before replicating them to all other members.
+  This helps reduce network bandwidth consumption during artifact replications.
+* Set this option to 'true' only when SSL compression is off on
+  each search head cluster member. To turn off SSL compression, set
+  'allowSslCompression = false' in the [sslconfig] stanza in server.conf
+  of each member.
+* Default: true
 
 captain_is_adhoc_searchhead = <boolean>
 * This setting prohibits the captain from running scheduled jobs.
@@ -4343,6 +4487,16 @@ conf_deploy_concerning_file_size = <integer>
   this value (in MB) triggers a splunkd.log warning message.
 * Default: 50
 
+conf_deploy_precompress_bundles = <boolean>
+* Determines whether or not the deployer compresses the configuration bundle
+  files before pushing them to search heads, which reduces network
+  bandwidth consumption.
+* Set this option to "true" only when SSL compression is off. Otherwise, the
+  files will be compressed twice, which wastes CPU resources and does not save
+  network bandwidth. To turn off SSL compression, set
+  "allowSslCompression = false" in server.conf on the deployer.
+* Default: true
+
 conf_deploy_fetch_url = <URL>
 * Specifies the location of the deployer from which members fetch the
   configuration bundle.
@@ -4403,6 +4557,7 @@ deployerPushThreads = <positive integer>|auto
 * If set to "auto", the deployer auto-tunes the number of threads it uses
   for a deployer bundle push. There will be one thread per target member.
 * Default: 1
+
 
 [replication_port://<port>]
 ############################################################################
@@ -4711,6 +4866,7 @@ initialSyncMaxFetcherRestarts = <positive integer>
   a Splunk Support engineer. It might increase KV Store cluster failover time.
 * Default: 0
 
+
 delayShutdownOnBackupRestoreInProgress = <boolean>
 * Whether or not splunkd should delay a shutdown if a KV Store backup or restore
   operation is in progress.
@@ -5009,7 +5165,7 @@ max_file_exists_retry_count = <unsigned integer>
 
 access_logging = <boolean>
 * Enables/disables logging to the splunkd_access.log file for cachemanager requests.
-* Default: true
+* Default: false
 
 cache_usage_collection_interval_minutes = <positive integer>
 * Currently not supported. This setting is related to a feature that is
@@ -5072,6 +5228,17 @@ cache_upload_backoff_sleep_secs = <unsigned_integer>
 * A value of 0 causes the cache manager to continue retrying the upload without
   performing a backoff.
 * Default: 60
+
+max_known_remote_absent_summaries = <unsigned_integer>
+* This setting specifies the maximum number of frozen (absent) summaries that the
+  cache manager maintains in a list.
+* The list of frozen summaries helps the cache manager to avoid making calls to the
+  remote store that could result in an HTTP 404 "not found" error. By increasing the
+  limit, you decrease the likelihood of such calls, while potentially using more
+  memory in the process.
+* When this value is reached, the cache manager deletes the oldest frozen
+  summaries from the list.
+* Default: 200000 (200K)
 
 ############################################################################
 # Raft Statemachine configuration
@@ -5137,6 +5304,12 @@ pstacksEndpoint = <boolean>
 * This setting is ignored if 'watchdog' is not enabled.
 * NOTE: This setting should be used only during troubleshooting and only if you
   have been explicitly asked to set it by a Splunk Support engineer.
+* Default: true
+
+usePreloadedPstacks = <boolean>
+* Use preloaded wrapper to enable pstacks. 
+* NOTE: This setting should be changed only during troubleshooting and only if you
+  have been explicitly asked to disable it by a Splunk Support engineer.
 * Default: true
 
 [watchdog:timeouts]
@@ -5257,6 +5430,12 @@ pass4SymmKey_minLength = <integer>
 @
 
 
+
+# @@INCLUDED AS WITH_CLOUD ## Do not remove
+scsTokenScriptPath = <string>
+* The path to the platform extension that retrieves SCS access tokens from Hashicorp
+  Vault.
+* Default: /usr/local/bin/get_scs_tokens.sh
 
 @
 @[bucket_catalog_service]
@@ -5704,4 +5883,25 @@ slices_upload_size_threshold = <unsigned integer>[B|KB|MB]
   * Suffixes are case insensitive.
 * Must not be greater than 10MB
 * Default: 1MB
+
+
+[federated_search]
+# This section contains settings for the data federation feature.
+
+disabled = <boolean>
+* Set this flag to 'false' to enable the data federation functionality on this instance.
+* Default: true
+
+
+[distributed_leases]
+sslVerifyServerCert = <boolean>
+* If set to true, the instance authenticates the remote server endpoint that
+  it is attempting to connect to.
+* Default: false
+
+disabled = <boolean>
+* Determines whether or not the distributed lease manager is enabled.
+* Default: true
+
+
 

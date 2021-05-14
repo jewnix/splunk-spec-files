@@ -1,4 +1,4 @@
-#   Version 8.1.4
+#   Version 8.2.0
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.
@@ -88,6 +88,7 @@ externalTwoFactorAuthSettings = <externalTwoFactorAuthSettings-key>
   authentication vendor.
 * This setting is optional.
 * No default.
+
 
 #####################
 # LDAP settings
@@ -417,6 +418,7 @@ getUsersTTL = <time range string>
 
 [splunk_auth]
 * Settings for Splunk's internal authentication system.
+
 
 minPasswordLength = <positive integer>
 * Specifies the minimum permitted password length in characters when
@@ -844,16 +846,6 @@ scriptSecureArguments = <key:value>;[<key:value>;]...
 * This setting is optional.
 * No default.
 
-useAuthExtForTokenAuthOnly = <boolean>
-* Whether authentication extension scripts run for all types of authentication, 
-  or only for token based authentication.
-* If set to "true", the 'getUserInfo' script only runs when making token based authentication calls.
-* Other calls that rely on fetching SAML user information, 
-  such as saved searches and displaying SAML users,
-  will use the persistent cache that is defined in the [userToRoleMap_<saml-authSettings-key>] stanza.
-* This setting is optional.
-* Default: true
-
 assertionTimeSkew = <integer>
 * The amount of clock skew, in seconds, that can occur between the Splunk platform and
   an identity provider that presents SAML assertions that contain 'NotBefore'
@@ -958,13 +950,19 @@ sslVerifyServerCert = <boolean>
 * This setting is optional.
 * No default.
 
-blacklistedAutoMappedRoles = <comma separated list of roles>
+blacklistedAutoMappedRoles = <comma separated list>
+* DEPRECATED; use 'excludedAutoMappedRoles' instead.
+
+excludedAutoMappedRoles = <comma separated list>
 * Comma separated list of splunk roles that should be prevented
   from being auto-mapped by splunk from the IDP Response.
 * This setting is optional.
 * No default.
 
-blacklistedUsers = <comma separated list of user names>
+blacklistedUsers = <comma separated list>
+* DEPRECATED; use 'excludedUsers' instead.
+
+excludedUsers = <comma separated list>
 * Comma separated list of user names from the IDP response to be
   excluded by splunk platform.
 * This setting is optional.
@@ -1116,9 +1114,7 @@ allowPartialSignatures = <boolean>
   for the SAML stanza specified by '<authSettings-key>'.
 * Follow this stanza name with several User-to-Role::Realname::Email mappings
   as defined below.
-* The auth system uses this stanza only in the following scenarios:
-  * The IdP that the auth system interacts with supports neither Attribute Query Requests nor authentication extension scripts.
-  * The IdP does support authentication scripts, but the 'useAuthExtForTokenAuthOnly' setting has a value of "true".
+* The stanza is used only when the IDP does not support Attribute Query Request
 
 <SAML User> = <Splunk Roles string>::<Realname>::<Email>
 * Maps a SAML user to a Splunk role(from authorize.conf), real name, and email
@@ -1225,12 +1221,18 @@ defaultRoleIfMissing = <splunk role>
   uses the default configured splunk role.
 * This setting is optional.
 
-blacklistedAutoMappedRoles = <comma separated list of roles>
+blacklistedAutoMappedRoles = <comma separated list>
+* DEPRECATED; use 'excludedAutoMappedRoles' instead.
+
+excludedAutoMappedRoles = <comma separated list>
 * Comma-separated list of Splunk roles that should be prevented
   from being auto-mapped by the Splunk platform from the proxy server headers.
 * This setting is optional.
 
-blacklistedUsers = <comma separated list of user names>
+blacklistedUsers = <comma separated list>
+* DEPRECATED; use 'excludedUsers' instead.
+
+excludedUsers = <comma separated list>
 * Comma-separated list of user names from the proxy server headers to be
   excluded by the Splunk platform.
 * This setting is optional.

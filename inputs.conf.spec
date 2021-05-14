@@ -1,4 +1,4 @@
-#   Version 8.1.4
+#   Version 8.2.0
 #
 ############################################################################
 # OVERVIEW
@@ -78,6 +78,13 @@ host = <string>
   adds the local hostname, as determined by DNS, to the
   $SPLUNK_HOME/etc/system/local/inputs.conf default stanza, which is the
   effective default value.
+
+run_only_one= <boolean>
+* Determines if a scripted or modular input runs on one search head
+  in a SHC.
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Default: true
 
 index = <string>
 * Sets the index to store events from this input.
@@ -458,6 +465,7 @@ move_policy = sinkhole
 host_regex = see MONITOR, above.
 host_segment = see MONITOR, above.
 crcSalt = see MONITOR, above.
+time_before_close = see MONITOR, above.
 
 log_on_completion = <boolean>
 * When set to false, this setting prevents Splunk software from logging to
@@ -480,6 +488,7 @@ recursive = <boolean>
 whitelist = <regular expression>
 blacklist = <regular expression>
 initCrcLength = <integer>
+time_before_close = <integer>
 
 
 ############################################################################
@@ -880,8 +889,8 @@ useSSLCompression = <boolean>
 [tcp-ssl:<port>] input stanza. If you do not configure a certificate in the
 port, the certificate information is pulled from the default [SSL] stanza:
   * serverCert = <path_to_cert>
-  * sslRootCAPath = <path_to_cert> This attribute should only be added
-    if you have not configured your sslRootPath in server.conf.
+  * sslRootCAPath = <path_to_cert> Only add this setting if you
+    have not configured the 'sslRootCAPath' setting in server.conf.
   * sslPassword = <password>
 
 listenOnIPv6 = [no|yes|only]
@@ -953,7 +962,6 @@ rootCA = <path>
 
 requireClientCert = <boolean>
 * Determines whether a client must present an SSL certificate to authenticate.
-* Full path to the root CA (Certificate Authority) certificate store.
 * Default: false (if using self-signed and third-party certificates)
 * Default: true (if using the default certificates, overrides the existing
   "false" setting)
@@ -1784,6 +1792,7 @@ maxEventSize = <positive integer>[KB|MB|GB]
 * HEC disregards and triggers a parsing error for events whose size is
   greater than 'maxEventSize'.
 * Default: 5MB
+
 
 ############################################################################
 # HTTP Event Collector (HEC) - Local stanza for each token
@@ -3624,6 +3633,36 @@ remote_queue.sqs_smartbus.dead_letter_queue.process_interval = <number><unit>
 * The frequency of processing messages that have landed in the dead letter queue.
 * Examples: 30s, 6h
 * Default: 1d
+
+remote_queue.sqs_smartbus.large_message_store.encryption_scheme = sse-s3 | sse-c | none
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The encryption scheme used by remote storage
+* Default: none.
+
+remote_queue.sqs_smartbus.large_message_store.kms_endpoint = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The endpoint to connect to for generating KMS keys.
+* This setting is required if 'large_message_store.encryption_scheme' is
+  set to sse-c.
+* Examples: https://kms.us-east-2.amazonaws.com
+* No default.
+
+remote_queue.sqs_smartbus.large_message_store.key_id = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The ID for the primary key that KMS uses to generate a data key pair. The primary key is stored in AWS.
+* This setting is required if 'large_message_store.encryption_scheme' is
+  set to sse-c.
+* Examples: alias/sqsssekeytrial, 23456789-abcd-1234-11aa-c50f99011223
+* No default.
+
+remote_queue.sqs_smartbus.large_message_store.key_refresh_interval = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The time interval to refresh primary key.
+* Default: 24h
 
 ############################################################################
 # Modular Inputs

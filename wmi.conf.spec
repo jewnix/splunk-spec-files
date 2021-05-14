@@ -1,4 +1,4 @@
-#   Version 8.1.4
+#   Version 8.2.0
 #
 # This file contains possible setting/value pairs for configuring Windows
 # Management Instrumentation (WMI) access from Splunk Enterprise.

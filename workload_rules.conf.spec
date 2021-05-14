@@ -118,6 +118,11 @@ user_message = <string>
 * Cannot exceed 140 characters.
 * Optional.
 
+disabled = <boolean>
+* Toggles a workload rule off and on.
+* Set to "true" to disable a rule.
+* Default: false
+
 [workload_rules_order]
 rules = <string>
 * List of all workload classification rules.
@@ -192,3 +197,8 @@ user_message = <string>
 * Specifies the message when a search is filtered out by this rule.
 * Cannot exceed 140 characters.
 * Optional.
+
+disabled = <boolean>
+* Toggles a search filter rule off and on.
+* Set to "true" to disable a rule.
+* Default: false

@@ -378,6 +378,13 @@ path = <path>
 untar = <boolean>
 * Whether or not to untar a file once the transfer is complete.
 
+[proxybundleupload:...]
+path = <path>
+* The path to search through to find proxy configuration bundles from search heads.
+
+untar = <boolean>
+* Whether or not to untar a file once the transfer is complete.
+
 [restreplayshc]
 methods =  <comma-separated list>
 * REST methods that are replayed.

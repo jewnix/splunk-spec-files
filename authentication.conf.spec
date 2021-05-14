@@ -88,6 +88,7 @@ externalTwoFactorAuthSettings = <externalTwoFactorAuthSettings-key>
 * This setting is optional.
 * No default.
 
+
 #####################
 # LDAP settings
 #####################
@@ -417,6 +418,7 @@ getUsersTTL = <time range string>
 [splunk_auth]
 * Settings for Splunk's internal authentication system.
 
+
 minPasswordLength = <positive integer>
 * Specifies the minimum permitted password length in characters when
   passwords are set or modified.
@@ -745,16 +747,15 @@ redirectAfterLogoutToUrl = <string>
 defaultRoleIfMissing = <string>
 * If the IdP does not return any AD groups or Splunk roles as a part of the
   assertion, the Splunk platform uses this value if provided.
-* This setting is required when you configure
-  'skipAttributeQueryRequestForUsers'. Otherwise, it is optional.
+* This setting is optional.
 * No default.
 
-skipAttributeQueryRequestForUsers = <comma-separated list of users>
-* To skip attribute query requests being sent to the IdP for certain users,
+skipAttributeQueryRequestForUsers = <comma separated list of users>
+* To skip attribute query requests being sent to the IDP for certain users,
   add them with this setting.
 * By default, attribute query requests are skipped for local users.
-* If you configure this setting for non-local users, you must also
-  configure 'defaultRoleIfMissing'.
+* For non-local users, use this in conjunction with 'defaultRoleIfMissing'.
+* This setting is optional.
 * No default.
 
 maxAttributeQueryThreads = <integer>
@@ -816,7 +817,7 @@ getUsersPrecacheLimit = <integer>
   the 'getUsers' function returns.
 * Default: 1000
 
-getUserInfoTtl = <string>
+getUserInfoTTL = <string>
 * When you configure the auth system to use SAML as an authentication method,
   it runs the 'getUserInfo' script function to retrieve information from the
   SAML identity provider when users perform ad-hoc operations such as working
@@ -843,16 +844,6 @@ scriptSecureArguments = <key:value>;[<key:value>;]...
   are available as normal arguments for all functions.
 * This setting is optional.
 * No default.
-
-useAuthExtForTokenAuthOnly = <boolean>
-* Whether authentication extension scripts run for all types of authentication, 
-  or only for token based authentication.
-* If set to "true", the 'getUserInfo' script only runs when making token based authentication calls.
-* Other calls that rely on fetching SAML user information, 
-  such as saved searches and displaying SAML users,
-  will use the persistent cache that is defined in the [userToRoleMap_<saml-authSettings-key>] stanza.
-* This setting is optional.
-* Default: true
 
 assertionTimeSkew = <integer>
 * The amount of clock skew, in seconds, that can occur between the Splunk platform and
@@ -958,13 +949,19 @@ sslVerifyServerCert = <boolean>
 * This setting is optional.
 * No default.
 
-blacklistedAutoMappedRoles = <comma separated list of roles>
+blacklistedAutoMappedRoles = <comma separated list>
+* DEPRECATED; use 'excludedAutoMappedRoles' instead.
+
+excludedAutoMappedRoles = <comma separated list>
 * Comma separated list of splunk roles that should be prevented
   from being auto-mapped by splunk from the IDP Response.
 * This setting is optional.
 * No default.
 
-blacklistedUsers = <comma separated list of user names>
+blacklistedUsers = <comma separated list>
+* DEPRECATED; use 'excludedUsers' instead.
+
+excludedUsers = <comma separated list>
 * Comma separated list of user names from the IDP response to be
   excluded by splunk platform.
 * This setting is optional.
@@ -1116,9 +1113,7 @@ allowPartialSignatures = <boolean>
   for the SAML stanza specified by '<authSettings-key>'.
 * Follow this stanza name with several User-to-Role::Realname::Email mappings
   as defined below.
-* The auth system uses this stanza only in the following scenarios:
-  * The IdP that the auth system interacts with supports neither Attribute Query Requests nor authentication extension scripts.
-  * The IdP does support authentication scripts, but the 'useAuthExtForTokenAuthOnly' setting has a value of "true".
+* The stanza is used only when the IDP does not support Attribute Query Request
 
 <SAML User> = <Splunk Roles string>::<Realname>::<Email>
 * Maps a SAML user to a Splunk role(from authorize.conf), real name, and email
@@ -1225,12 +1220,18 @@ defaultRoleIfMissing = <splunk role>
   uses the default configured splunk role.
 * This setting is optional.
 
-blacklistedAutoMappedRoles = <comma separated list of roles>
+blacklistedAutoMappedRoles = <comma separated list>
+* DEPRECATED; use 'excludedAutoMappedRoles' instead.
+
+excludedAutoMappedRoles = <comma separated list>
 * Comma-separated list of Splunk roles that should be prevented
   from being auto-mapped by the Splunk platform from the proxy server headers.
 * This setting is optional.
 
-blacklistedUsers = <comma separated list of user names>
+blacklistedUsers = <comma separated list>
+* DEPRECATED; use 'excludedUsers' instead.
+
+excludedUsers = <comma separated list>
 * Comma-separated list of user names from the proxy server headers to be
   excluded by the Splunk platform.
 * This setting is optional.
@@ -1376,18 +1377,6 @@ useClientSSLCompression = <boolean>
   as long as the server also supports it.
 * If not set, the Splunk platform uses the client SSL compression setting provided in server.conf
 * This setting is optional.
-* Default: false
-
-enableMfaAuthRest = <boolean>
-* Determines whether splunkd requires Duo multifactor authentication against REST endpoints.
-* When Duo multifactor authentication is enabled for REST endpoints, you must log in to
-  the Splunk platform instance with a valid Duo multifactor authentication factor to get a 
-  valid session key, or requests to those endpoints must include a valid session key 
-  in the following format:
-  'curl -k -H "Authorization:Splunk sessionKey" -X GET <resource>'
-* A value of "true" means splunkd requires Duo multifactor authentication against REST endpoints.
-* A value of "false" means splunkd does not require Duo multifactor authentication against REST endpoints.
-* Optional.
 * Default: false
 
 #####################

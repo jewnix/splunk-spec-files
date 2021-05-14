@@ -175,7 +175,7 @@ python.version = {default|python|python2|python3}
 [triggers]
 * This stanza controls reloading of custom configuration files included in
   the app (4.2+ versions only).
-* Incude this stanza if your app inculdes custom configuration files.
+* Include this stanza if your app includes custom configuration files.
 
 # Conf-level reload triggers
 reload.<conf_file_name> = [ simple | never | rest_endpoints | access_endpoints <handler_url> | http_get <handler_url> | http_post <handler_url> ]
@@ -204,7 +204,7 @@ reload.<conf_file_name> = [ simple | never | rest_endpoints | access_endpoints <
 
 # Stanza-level reload triggers
 reload.<conf_file_name>.<conf_stanza_prefix> = [ simple | never | access_endpoints <handler_url> | http_get <handler_url> | http_post <handler_url> ]
-* Stanza level reload triggers for indexer-cluster slaves to reload only the
+* Stanza-level reload triggers for indexer-cluster slaves to reload only the
   config file stanzas that are changed in the newly pushed cluster bundle.
 * With the stanza level reload triggers, we can have more granular control over
   which subset of existing reload handlers to invoke depending on which stanzas
@@ -212,7 +212,7 @@ reload.<conf_file_name>.<conf_stanza_prefix> = [ simple | never | access_endpoin
   example below for more information.
 * Stanza level reload trigger values operate identically to conf-level reload
   trigger values, i.e. "simple", "never","access_endpoints", "http_get", "http_post".
-* For any stanza of <conf_file_name> that do NOT have a correponding stanza-level
+* For any stanza of <conf_file_name> that does NOT have a corresponding stanza-level
   reload trigger listed under the [triggers] section of app.conf, cluster slave
   will fallback to the "rolling restart behavior" upon detecting changes of those
   "missing" stanzas in the newly pushed cluster bundle.
@@ -313,7 +313,6 @@ attribution_link = <string>
 setup_view = <string>
 * Optional.
 * Defines custom setup view found within the /data/ui/views REST endpoint.
-* Default: setup.xml
 
 [credentials_settings]
 * This stanza controls credential-verification scripting (4.2+ versions only).

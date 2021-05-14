@@ -26,7 +26,7 @@ disabled = <boolean>
 * A value of 1 disables the distributed health report on this Splunk platform
   instance. When disabled, the instance does not call connected search peers
   to retrieve health report information.
-* Default: 1 (disabled)
+* Default: 0 (enabled)
 
 [health_reporter]
 full_health_log_interval = <number>
@@ -38,6 +38,14 @@ suppress_status_update_ms = <number>
   indicator's health status changes.
 * Changes that occur earlier will be suppressed.
 * Default: 300.
+
+latency_tracker_log_interval_sec = <number>
+* The amount of time, in seconds, that elapses between each latency tracker log entry.
+* Default: 30.
+
+aggregate_ingestion_latency_health = [0|1]
+* A value of 0 disables the aggregation feature for ingestion latency health reporter.
+* Default: 1 (enabled).
 
 alert.disabled = [0|1]
 * A value of 1 disables the alerting feature for health reporter.

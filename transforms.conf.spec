@@ -279,7 +279,6 @@ SOURCE_KEY = <string>
 
 REPEAT_MATCH = <boolean>
 * NOTE: This setting is only valid for index-time field extractions.
-  This setting is ignored if DEST_KEY is _raw.
 * Optional. When set to true, Splunk software runs the REGEX multiple
   times on the SOURCE_KEY.
 * REPEAT_MATCH starts wherever the last match stopped, and continues until
@@ -499,14 +498,12 @@ default_match = <string>
 * Default: empty string.
 
 case_sensitive_match = <boolean>
+* NOTE: This attribute is not valid for KV Store-based lookups.
 * If set to true, Splunk software performs case sensitive matching for all
   fields in a lookup table.
 * If set to false, Splunk software performs case insensitive matching for all
   fields in a lookup table.
-* NOTE: For KV Store lookups, a setting of 'case_sensitive_match=false' is
-  honored only when the data in the KV Store lookup table is entirely in lower
-  case. The input data can be in any case.
-* For case sensitive field matching in reverse lookups see
+* For field matching in reverse lookups see
   reverse_lookup_honor_case_sensitive_match.
 * Default: true
 

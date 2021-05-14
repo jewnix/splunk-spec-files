@@ -1,4 +1,4 @@
-#   Version 8.1.2
+#   Version 8.2.0
 #
 ############################################################################
 # OVERVIEW
@@ -54,30 +54,26 @@ defaultDatabase = <index name>
 * Default: main
 
 bucketMerging = <boolean>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
+* This setting is supported only when 'storageType' is "local".
 * Set to true to enable bucket merging service on all indexes
 * You can override this value on a per-index basis.
 * Default: false
 
 bucketMerge.minMergeSizeMB = <unsigned integer>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
+* This setting is supported only when 'storageType' is "local".
 * Minimum cumulative bucket sizes to merge.
 * You can override this value on a per-index basis.
 * Default: 750
 
 bucketMerge.maxMergeSizeMB = <unsigned integer>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
+* This setting is supported only when 'storageType' is "local".
 * Maximum cumulative bucket sizes to merge.
 * You can override this value on a per-index basis.
 * Default: 1000
 
-bucketMerge.maxMergeTimeGapSecs = <unsigned integer>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* Maximum allowed time gap, in seconds, between buckets about to be merged.
+bucketMerge.maxMergeTimeSpanSecs = <unsigned integer>
+* This setting is supported only when 'storageType' is "local".
+* Maximum allowed time span, in seconds, between buckets about to be merged.
 * You can override this value on a per-index basis.
 * Default: 7776000 (90 days)
 
@@ -311,6 +307,15 @@ tsidxStatsHomePath = <string>
 * Optional.
 * NOTE: The "$SPLUNK_DB" directory must be writable.
 * Default: $SPLUNK_DB/tsidxstats
+
+tsidxWritingLevel = [1|2|3|4]
+* Enables various performance and space-saving improvements for tsidx files.
+* Tsidx files written with a higher tsidxWritingLevel setting have limited backward
+  compatibility when searched with lower versions of Splunk Enterprise.
+* Setting tsidxWritingLevel globally is recommended. It can also be set per-index.
+* For deployments that have multi-site index clustering, change the setting AFTER
+  all your indexers in the cluster have been upgraded to the latest release.
+* Default: 2
 
 hotBucketTimeRefreshInterval = <positive integer>
 * How often each index refreshes the available hot bucket times
@@ -904,7 +909,9 @@ maxHotBuckets = <positive integer> | auto
   independently writes to and manages up to 'maxHotBuckets' number of hot
   buckets. Consequently, when multiple ingestion pipelines are configured, there
   may be multiple hot buckets with events on overlapping time ranges.
-* The highest legal value is 4294967295
+* The highest legal value is 1024. However, do not set to a value greater 
+  than 11 without direction from Splunk Support. Higher values can degrade 
+  indexing performance.
 * If you specify "auto", the indexer sets the value to 3.
 * This setting applies only to event indexes.
 * Default: "auto"
@@ -1201,21 +1208,9 @@ enableTsidxReduction = <boolean>
   'timePeriodInSecBeforeTsidxReduction'.
 * CAUTION: Do not set this setting to "true" for event indexes that are
   configured to use remote storage with the "remotePath" setting.
-* NOTE: This setting does not apply to metric indexes.
+* NOTE: This setting applies to buckets in warm, cold, and thawed.
+  It does not apply to metrics index buckets
 * Default: false
-
-tsidxWritingLevel = [1|2|3|4]
-* Enables various performance and space-saving improvements for tsidx files.
-* For deployments that do not have multi-site index clustering enabled,
-    set this to the highest value possible for all your indexes.
-  * For deployments that have multi-site index clustering, only set
-    this to the highest level possible AFTER all your indexers in the
-    cluster have been upgraded to the latest code level.
-  * Do not configure indexers with different values for 'tsidxWritingLevel'
-    as downlevel indexers cannot read tsidx files created from uplevel peers.
-  * The higher settings take advantage of newer tsidx file formats for
-    metrics and log events that decrease storage cost and increase performance
-* Default: 1
 
 metric.enableFloatingPointCompression = <boolean>
 * Determines whether the floating-point values compression is enabled for metric
@@ -1284,6 +1279,24 @@ timePeriodInSecBeforeTsidxReduction = <positive integer>
   for tsidx reduction.
 * Default: 604800
 
+tsidxDedupPostingsListMaxTermsLimit = <positive integer>
+* This setting is valid only when 'tsidxWritingLevel' is at 4 or higher.
+* This max term limit sets an upper bound on the number of terms kept inside an
+  in-memory hash table that serves to improve tsidx compression.
+* The tsidx optimizer uses the hash table to identify terms with identical
+  postings lists. When the first instance of a term is received its postings
+  list is stored. When successive terms with identical postings lists are
+  received the tsidx optimizer makes them refer to the first instance of the
+  postings list rather than creating and storing term postings list duplicates.
+* Consider increasing this limit to improve compression for large tsidx files.
+  For example, a tsidx file created with 'tsidxTargetSizeMB' over 1500MB can
+  contain a large number of terms with identical postings lists.
+* Reducing this limit helps conserve memory consumed by optimization processes,
+  at the cost of reduced tsidx compression.
+* Set this limit to 0 to disable deduplicated postings list compression.
+* This setting cannot exceed 1,073,741,824 (2^30).
+* Default: 8,388,608 (2^23)
+
 tsidxTargetSizeMB = <positive integer>
 * The target size for tsidx files. The indexer attempts to make all tsidx files
   in index buckets as close to this size as possible when:
@@ -1349,6 +1362,15 @@ hotBucketStreaming.removeRemoteSlicesOnRoll = <boolean>
   still under development.
 * Enables removal of uploaded journal slices of hot buckets from the remote
   storage after a bucket rolls from hot to warm.
+* This setting should be enabled only if 'hotBucketStreaming.sendSlices' is
+  also enabled.
+* Default: false
+
+hotBucketStreaming.removeRemoteSlicesOnFreeze = <boolean>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Enables removal of uploaded journal slices of hot buckets from the remote
+  storage after a bucket rolls from warm to frozen.
 * This setting should be enabled only if 'hotBucketStreaming.sendSlices' is
   also enabled.
 * Default: false
@@ -1965,8 +1987,7 @@ archiver.selfStorageProvider = <string>
   still under development.
 * Specifies the storage provider for Self Storage.
 * Optional. Only required when using Self Storage.
-* The only supported provider is S3. More providers will be added in the future
-for other cloud vendors and other storage options.
+* The only providers currently supported are S3 and GCS for AWS and GCP, respectively.
 
 archiver.selfStorageBucket = <string>
 * Currently not supported. This setting is related to a feature that is
@@ -1996,11 +2017,10 @@ archiver.selfStorageBucketFolder = <string>
 #**************************************************************************
 archiver.coldStorageProvider = <string>
 * This feature is supported on Splunk Cloud only.
- Do not configure this setting in a Splunk Enterprise environment.
+  Do not configure this setting in a Splunk Enterprise environment.
 * Specifies the storage provider for Dynamic Data Archive.
 * Optional. Only required when using Dynamic Data Archive.
-* The only supported provider is Glacier. More providers will be added in the
-  future for other cloud vendors and other storage options.
+* The only providers currently supported are Glacier and GCSArchive for AWS and GCP, respectively.
 
 archiver.coldStorageRetentionPeriod = <unsigned integer>
 * This feature is supported on Splunk Cloud only.
@@ -2256,6 +2276,12 @@ remote.s3.multipart_max_connections = <unsigned integer>
 * A value of 0 means unlimited.
 * Default: 8
 
+remote.s3.max_idle_connections = <unsigned integer>
+* Specifies the maximum number of idle HTTP connections that can be pooled for
+  reuse by the S3 client when connecting to the S3 server.
+* A value of 0 means pooling of connections is disabled.
+* Default: 25
+
 remote.s3.enable_data_integrity_checks = <boolean>
 * If set to true, Splunk sets the data checksum in the metadata field of the
   HTTP header during upload operation to S3.
@@ -2503,6 +2529,18 @@ remote.s3.max_download_batch_size = <unsigned integer>
   from remote storage. If the number of objects to be downloaded exceeds
   this value, the indexer downloads the objects in multiple batches.
 * Default: 50
+
+federated.provider = <provider_name>
+* Identifies the federated provider on which this search is run.
+* Select the stanza for the federated provider defined in the federated.conf file.
+* Default: ""
+
+federated.dataset = <string>
+* Identifies the dataset located on the federated providers.
+* The dataset takes a format of <prefix>:<remote_name>.
+* Prefix can be an index, datamodel, or a saved search defined on the remote search head.
+* If no <prefix> is defined, default value = index.
+* Default: ""
 
 ################################################################
 ##### Google Cloud Storage settings

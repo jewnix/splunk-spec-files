@@ -1,4 +1,4 @@
-#   Version 8.1.2
+#   Version 8.2.0
 #
 ############################################################################
 # OVERVIEW
@@ -173,6 +173,24 @@ srchTimeWin = <integer>
 * This setting does not apply to real-time searches.
 * Default: -1
 
+srchTimeEarliest = <integer>
+* The earliest event time that can be searched, in seconds before the current
+  wall clock time.
+* If a user is a member of a role with a 'srchTimeEarliest' limit, or a role 
+  that inherits from other roles with 'srchTimeEarliest' limits, the Splunk 
+  platform applies the least restrictive time limit from the roles to the user.
+  * For example, if a user is a member of role A (srchTimeEarliest = 86400), 
+    and inherits role B (srchTimeEarliest = 3600) and role C 
+    (srchTimeEarliest = -1 (default)), the user gets an effective earliest time 
+    limit of 1 day (86400 seconds) ago.
+* When set to '-1', the role does not have a earliest time limit. This
+  value can be overidden by the earliest time value of an inherited role.
+* When set to '0' (infinite), the role does not have an earliest time limit.
+  This value cannot be overidden by the earliest time limit value of an
+  inherited role.
+* This setting does not apply to real-time searches.
+* Default: -1
+
 srchDiskQuota = <integer>
 * The maximum amount of disk space, in megabytes, that can be used by search
   jobs for a specific user with this role.
@@ -329,6 +347,35 @@ expiration = <relative-time-modifier>|never
 * This setting is optional.
 * Default: never
 
+ephemeralExpiration = <relative-time-modifier>
+* The relative time when an ephemeral authorization token expires.
+* An ephemeral token is identical to a standard authorization token, with the
+  following exceptions:
+  * The auth system does not keep the token in App Key Value Store.
+    This means you cannot modify it after creating it.
+  * Ephemeral tokens must always expire, meaning they cannot be given an
+    expiration of "never".
+  * Currently, ephemeral tokens can only be created using REST.
+* The syntax for using time modifiers is:
+  * [+]<time_integer><time_unit>@<time_unit>
+  * Where time_integer is an integer value and time_unit is relative
+  * time unit in seconds (s), minutes (m), hours (h) or days (d) etc.
+* The steps to specify a relative time modifier are:
+  * Indicate the time offset from the current time.
+  * Define the time amount, which is a number and a unit.
+  * Specify a "snap to" time unit. The time unit indicates the nearest
+    or latest time to which your time amount rounds down.
+* For example, if you configure this setting to "+2h@h", the token expires at
+  the top of the hour, two hours from the current time.
+* For more information on relative time identifiers, see "Time Modifiers" in
+  the Splunk Enterprise Search Reference Manual.
+* To set ephemeral token expiration, you must set this value to a relative time
+  value.
+* Your account must hold the admin role to update this setting.
+* This setting is optional.
+* Maximum: +6h
+* Default: +1h
+
 disabled = <boolean>
 * Disables and enables Splunk token authorization.
 * Default: true
@@ -339,14 +386,6 @@ disabled = <boolean>
 [capability::accelerate_search]
 * Lets a user enable or disable acceleration for reports.
 * The assigned role must also be granted the 'schedule_search' capability.
-
-[capability::run_multi_phased_searches]
-* Lets a user in a distributed search environment run searches with
-  three or more map-reduce phases.
-* Lets users take advantage of the search performance gains
-  related to parallel reduce functionality.
-* Multi-phased searches can lead to higher resource utilization on
-  indexers, but they can also reduce resource utilization on search heads.
 
 [capability::admin_all_objects]
 * Lets a user access all objects in the system, such as user objects and
@@ -367,6 +406,10 @@ disabled = <boolean>
 [capability::change_own_password]
 * Lets a user change their own password. You can remove this capability
   to control the password for a user.
+
+[capability::list_tokens_scs]
+* Lets a user retrieve a Splunk Cloud Services (SCS) token for an SCS service with which this
+  Splunk Cloud deployment has been configured to communicate.
 
 [capability::delete_by_keyword]
 * Lets a user use the 'delete' command.
@@ -848,3 +891,25 @@ disabled = <boolean>
 
 [capability::edit_global_banner]
 * Lets a user enable/edit a global banner visible to all users on every page.
+
+[capability::edit_kvstore]
+* Lets a user execute KV Store administrative commands through the KV Store REST endpoints.
+
+############################################################################
+# Settings used to control commands started by Splunk
+############################################################################
+
+[commands:user_configurable]
+
+prefix = <path>
+* All non-internal commands started by splunkd are prefixed with this
+  string, allowing for "jailed" command execution.
+* Should be only one word.  In other words, commands are supported, but
+  commands and arguments are not.
+* Applies to commands such as: search scripts, scripted inputs, SSL
+  certificate generation scripts.  (Any commands that are
+  user-configurable).
+* Does not apply to trusted/non-configurable command executions, such as:
+  splunk search, splunk-optimize, gunzip.
+* $SPLUNK_HOME is expanded.
+* No default.

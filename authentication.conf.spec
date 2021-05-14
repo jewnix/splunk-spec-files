@@ -1,4 +1,4 @@
-#   Version 8.1.2
+#   Version 8.2.0
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.
@@ -88,6 +88,7 @@ externalTwoFactorAuthSettings = <externalTwoFactorAuthSettings-key>
   authentication vendor.
 * This setting is optional.
 * No default.
+
 
 #####################
 # LDAP settings
@@ -417,6 +418,7 @@ getUsersTTL = <time range string>
 
 [splunk_auth]
 * Settings for Splunk's internal authentication system.
+
 
 minPasswordLength = <positive integer>
 * Specifies the minimum permitted password length in characters when
@@ -948,13 +950,19 @@ sslVerifyServerCert = <boolean>
 * This setting is optional.
 * No default.
 
-blacklistedAutoMappedRoles = <comma separated list of roles>
+blacklistedAutoMappedRoles = <comma separated list>
+* DEPRECATED; use 'excludedAutoMappedRoles' instead.
+
+excludedAutoMappedRoles = <comma separated list>
 * Comma separated list of splunk roles that should be prevented
   from being auto-mapped by splunk from the IDP Response.
 * This setting is optional.
 * No default.
 
-blacklistedUsers = <comma separated list of user names>
+blacklistedUsers = <comma separated list>
+* DEPRECATED; use 'excludedUsers' instead.
+
+excludedUsers = <comma separated list>
 * Comma separated list of user names from the IDP response to be
   excluded by splunk platform.
 * This setting is optional.
@@ -1213,12 +1221,18 @@ defaultRoleIfMissing = <splunk role>
   uses the default configured splunk role.
 * This setting is optional.
 
-blacklistedAutoMappedRoles = <comma separated list of roles>
+blacklistedAutoMappedRoles = <comma separated list>
+* DEPRECATED; use 'excludedAutoMappedRoles' instead.
+
+excludedAutoMappedRoles = <comma separated list>
 * Comma-separated list of Splunk roles that should be prevented
   from being auto-mapped by the Splunk platform from the proxy server headers.
 * This setting is optional.
 
-blacklistedUsers = <comma separated list of user names>
+blacklistedUsers = <comma separated list>
+* DEPRECATED; use 'excludedUsers' instead.
+
+excludedUsers = <comma separated list>
 * Comma-separated list of user names from the proxy server headers to be
   excluded by the Splunk platform.
 * This setting is optional.

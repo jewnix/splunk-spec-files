@@ -1,4 +1,4 @@
-#   Version 8.1.2
+#   Version 8.2.0
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -546,7 +546,12 @@ dashboard_html_allowed_domains = <string> [, <string>]
 splunk_dashboard_app_name = <string>
 * Please do not change.
 * Set the name for the Splunk Dashboard App.
-* Default: splunk-dashboard-app
+* Default: splunk-dashboard-studio
+
+enable_splunk_dashboard_app_feature = <boolean>
+* Whether or not splunk dashboard app integrated features are available.
+* If set to "true", then splunk dashboard app integrated features will be available.
+* Default: true
 
 max_view_cache_size = <integer>
 * The maximum number of views to cache in the appserver.
@@ -1319,6 +1324,11 @@ appNavReportsLimit = <integer>
   result in decreased browser performance due to listing large numbers of
   available reports in the drop-down menu.
 * Default: 500
+
+simplexml_dashboard_create_version = <string>
+* The Simple XML dashboard version used for newly created Simple XML dashboards.
+* Version must be a valid Simple XML dashboard version of the form 1.x (for example, 1.0).
+* Default: empty string
 
 # The Django bindings component and all associated [framework] settings have been
 # removed. Configuring these settings no longer has any effect, and Splunk Enterprise

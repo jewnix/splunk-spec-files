@@ -1,4 +1,4 @@
-#   Version 8.1.2
+#   Version 8.2.0
 #
 # This file contains possible attributes and values you can use to configure
 # distributed search.
@@ -146,14 +146,17 @@ serverTimeout = <integer>
 connectionTimeout = <integer>
 * The maximum amount of time to wait, in seconds, when the search head
   is attempting to establish a connection to the search peer.
+* Default: 10
 
 sendTimeout = <integer>
 * The maximum amount of time to wait, in seconds, when the search head
   is attempting to write or send data to a search peer.
+* Default: 30
 
 receiveTimeout = <integer>
 * The maximum amount of time to wait, in seconds, when the search head
   is attempting to read or receive data from a search peer.
+* Default: 600
 
 authTokenConnectionTimeout = <integer>
 * The maximum amount of time to wait, in seconds, for the search head
@@ -339,6 +342,23 @@ allowDeltaUpload = <boolean>
 * Delta-based replication keeps the bundle compact, with the search head only
   replicating the changed portion of the bundle to its search peers.
 * Default: true
+
+preCompressKnowledgeBundlesClassicMode = <boolean>
+* Whether or not this search head cluster member compresses the
+  knowledge bundles before replicating them to search peers.
+* When set to "true", the search head compresses the bundles
+  before replicating them to search peers.
+  This helps reduce network bandwidth consumption during replications.
+* Default: true
+
+preCompressKnowledgeBundlesCascadeMode = <boolean>
+* Whether or not this search head cluster member compresses the
+  knowledge bundles before replicating them to search peers.
+* When set to "true", the search head compresses the bundles
+  before replicating them to search peers.
+  This helps reduce network bandwidth consumption during replications.
+* This flag applies to cascade mode replication only
+* Default: false
 
 sanitizeMetaFiles = <boolean>
 * Whether to sanitize or filter *.meta files before replication.

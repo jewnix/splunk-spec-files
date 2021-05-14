@@ -1,4 +1,4 @@
-#   Version 8.1.2
+#   Version 8.2.0
 #
 # This file contains possible attribute/value pairs for configuring
 # data models.  To configure a datamodel for an app, put your custom
@@ -38,6 +38,36 @@ acceleration = <boolean>
   you can specify with 'acceleration.cron_schedule'. You can search them with
   the 'tstats' command.
 * Default: false
+
+acceleration.store = [splunk|external]
+* Specifies what kind of data model acceleration summary a data model uses,
+  when 'acceleration=true'.
+* Valid values are 'splunk' and 'external'.
+* When set to 'splunk' the data model summary is stored in the standard tsidx
+  file format.
+* When set to 'external' the data model summary is stored in a non-tsidx format
+  on the external S3 system. External data model summaries generally provide
+  faster search results than their standard counterparts.
+* Default: splunk
+
+acceleration.external.max_interval_per_summarization_run = <unsigned integer>
+* Applies only to data models with 'acceleration.store=external'.
+* Sets the maximum time span, in seconds, for the scheduled search jobs that
+  populate the external data model summary with summary data.
+* NOTE: Summarization searches for 'external' data model summaries work
+  differently than summarization searches for 'splunk' data model summaries.
+  They start at the 'indextime_et' boundary of the span, covering the earliest
+  indexed data first and moving towards the latest indexed data. They utilize
+  cursor incrementation to ensure that there are no summarized data gaps.
+  The 'splunk' data model summarization searches cover indexed data from
+  latest to earliest.
+* When 'max_interval_per_summarization_run=0', this setting has no maximum
+  limit. This means that the summarization search always attempts to populate
+  the entire summary in one run, unless 'max_time' is reached, at which point
+  the search is abandoned and the summary data collected by the run is not
+  applied to the summary. Do not set 'max_interval_per_summarization_run=0'
+  unless the time range covered by the summary is narrow.
+* Default: 3600
 
 acceleration.earliest_time = <relative time string>
 * Specifies how far back in time the Splunk platform keeps the column stores

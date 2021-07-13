@@ -1,4 +1,4 @@
-#   Version 8.2.0
+#   Version 8.2.1
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.
@@ -818,7 +818,7 @@ getUsersPrecacheLimit = <integer>
   the 'getUsers' function returns.
 * Default: 1000
 
-getUserInfoTTL = <string>
+getUserInfoTtl = <string>
 * When you configure the auth system to use SAML as an authentication method,
   it runs the 'getUserInfo' script function to retrieve information from the
   SAML identity provider when users perform ad-hoc operations such as working

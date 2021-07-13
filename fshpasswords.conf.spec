@@ -1,4 +1,4 @@
-#   Version 8.2.0
+#   Version 8.2.1
 #
 # This file maintains the credential information associated with a federated provider.
 #

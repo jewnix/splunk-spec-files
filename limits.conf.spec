@@ -791,6 +791,13 @@ execute_postprocess_in_search = <boolean>
   instead of the main splunkd process.
 * Default: true
 
+max_fieldmeta_cnt_ui = <number>
+* The maximum number of field metadata displayed in the /jobs/fieldmeta endpoint.
+* When viewing the search job status for searches with a large
+  number of field metadata, decreasing this value will reduce the memory load on
+  splunkd mothership, but show less field metadata in the web UI.
+* Default: 1000
+
 ############################################################################
 # Parsing
 ############################################################################

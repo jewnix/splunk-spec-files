@@ -98,6 +98,8 @@ lastChanceIndex = <index name>
 * Default: empty string
 
 malformedEventIndex = <index name>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
 * An index to receive malformed events.
 * If you do not specify a valid index with this setting, or Splunk software
   cannot use the index specified in the 'defaultDatabase' setting,

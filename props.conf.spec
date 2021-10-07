@@ -1,4 +1,4 @@
-#   Version 8.2.2
+#   Version 8.2.2.1
 #
 # This file contains possible setting/value pairs for configuring Splunk
 # software's processing properties through props.conf.

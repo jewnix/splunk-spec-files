@@ -1,4 +1,4 @@
-#   Version 8.2.1
+#   Version 8.2.2
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.
@@ -748,15 +748,16 @@ redirectAfterLogoutToUrl = <string>
 defaultRoleIfMissing = <string>
 * If the IdP does not return any AD groups or Splunk roles as a part of the
   assertion, the Splunk platform uses this value if provided.
-* This setting is optional.
+* This setting is required when you configure
+  'skipAttributeQueryRequestForUsers'. Otherwise, it is optional.
 * No default.
 
-skipAttributeQueryRequestForUsers = <comma separated list of users>
-* To skip attribute query requests being sent to the IDP for certain users,
+skipAttributeQueryRequestForUsers = <comma-separated list of users>
+* To skip attribute query requests being sent to the IdP for certain users,
   add them with this setting.
 * By default, attribute query requests are skipped for local users.
-* For non-local users, use this in conjunction with 'defaultRoleIfMissing'.
-* This setting is optional.
+* If you configure this setting for non-local users, you must also
+  configure 'defaultRoleIfMissing'.
 * No default.
 
 maxAttributeQueryThreads = <integer>
@@ -845,6 +846,16 @@ scriptSecureArguments = <key:value>;[<key:value>;]...
   are available as normal arguments for all functions.
 * This setting is optional.
 * No default.
+
+useAuthExtForTokenAuthOnly = <boolean>
+* Whether authentication extension scripts run for all types of authentication, 
+  or only for token based authentication.
+* If set to "true", the 'getUserInfo' script only runs when making token based authentication calls.
+* Other calls that rely on fetching SAML user information, 
+  such as saved searches and displaying SAML users,
+  will use the persistent cache that is defined in the [userToRoleMap_<saml-authSettings-key>] stanza.
+* This setting is optional.
+* Default: true
 
 assertionTimeSkew = <integer>
 * The amount of clock skew, in seconds, that can occur between the Splunk platform and
@@ -1114,7 +1125,9 @@ allowPartialSignatures = <boolean>
   for the SAML stanza specified by '<authSettings-key>'.
 * Follow this stanza name with several User-to-Role::Realname::Email mappings
   as defined below.
-* The stanza is used only when the IDP does not support Attribute Query Request
+* The auth system uses this stanza only in the following scenarios:
+  * The IdP that the auth system interacts with supports neither Attribute Query Requests nor authentication extension scripts.
+  * The IdP does support authentication scripts, but the 'useAuthExtForTokenAuthOnly' setting has a value of "true".
 
 <SAML User> = <Splunk Roles string>::<Realname>::<Email>
 * Maps a SAML user to a Splunk role(from authorize.conf), real name, and email
@@ -1378,6 +1391,18 @@ useClientSSLCompression = <boolean>
   as long as the server also supports it.
 * If not set, the Splunk platform uses the client SSL compression setting provided in server.conf
 * This setting is optional.
+* Default: false
+
+enableMfaAuthRest = <boolean>
+* Determines whether splunkd requires Duo multifactor authentication against REST endpoints.
+* When Duo multifactor authentication is enabled for REST endpoints, you must log in to
+  the Splunk platform instance with a valid Duo multifactor authentication factor to get a 
+  valid session key, or requests to those endpoints must include a valid session key 
+  in the following format:
+  'curl -k -H "Authorization:Splunk sessionKey" -X GET <resource>'
+* A value of "true" means splunkd requires Duo multifactor authentication against REST endpoints.
+* A value of "false" means splunkd does not require Duo multifactor authentication against REST endpoints.
+* Optional.
 * Default: false
 
 #####################

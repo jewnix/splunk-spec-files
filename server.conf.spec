@@ -1,4 +1,4 @@
-#   Version 8.2.1
+#   Version 8.2.2
 #
 ############################################################################
 # OVERVIEW
@@ -1322,6 +1322,25 @@ cookieAuthHttpOnly = <boolean>
 * NOTE: has no effect if allowCookieAuth=false
 * Default: true
 
+cookieSameSiteSecure = <boolean>
+* Describes whether or not the Splunk web server will set all Splunk cookies
+  in the browser with the "SameSite=None;Secure" attribute.
+* Use this setting to toggle when cookies are to get this value as part of
+  embedding dashboards into third-party web applications outside of the 
+  Splunk platform instance.
+* A value of "true" means that the Splunk web server sets the "SameSite=None,Secure"
+  attribute for cookies to work with modern browsers. A cookie with this 
+  attribute lets the browser embed a Splunk dashboard into a third-party <iframe>.
+  * <iframe> stands for "inline frame", and is a web page component within 
+    which you can embed a dashboard.
+* A value of "false" means that the web server does not set cookies with
+  "SameSite=None,Secure" attribute.
+* If you want to embed a Splunk dashboard into an outside web application,
+  you must give this setting a value of "true". Otherwise, the third-party
+  <iframe> won't let the user authenticate and use the dashboard that
+  you embedded.
+* Default: false
+
 cookieAuthSecure = <boolean>
 * When using cookie based authentication, mark returned cookies
   with the "secure" flag to tell the client never to send it over
@@ -2195,6 +2214,25 @@ poll.interval.check = <time range string>
 
 poll.blacklist.<name> = <regex>
 * UNSUPPORTED: This setting is no longer supported
+
+
+##########################################################################
+# AWS EC2 IMDS configuration
+##########################################################################
+
+[imds]
+
+imds_version = [v1|v2]
+* Sets IMDS version for EC2 instances metadata endpoints.
+* This setting is AWS specific.
+* Certain features of the Splunk platform use AWS Instance Metadata Service
+  (IMDS) when hosted on EC2. IMDS is accessible from the instance via a
+  link-local address. It provides metadata about the instance.
+* v1 uses request/response method while v2 uses a session-oriented method
+  to access IMDS. The version must match the setting used on your EC2
+  instance.
+* More information about IMDS can be found in the AWS documentation.
+* Default: v1
 
 
 ############################################################################

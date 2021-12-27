@@ -1378,6 +1378,18 @@ useClientSSLCompression = <boolean>
 * This setting is optional.
 * Default: false
 
+enableMfaAuthRest = <boolean>
+* Determines whether splunkd requires Duo multifactor authentication against REST endpoints.
+* When Duo multifactor authentication is enabled for REST endpoints, you must log in to
+  the Splunk platform instance with a valid Duo multifactor authentication factor to get a 
+  valid session key, or requests to those endpoints must include a valid session key 
+  in the following format:
+  'curl -k -H "Authorization:Splunk sessionKey" -X GET <resource>'
+* A value of "true" means splunkd requires Duo multifactor authentication against REST endpoints.
+* A value of "false" means splunkd does not require Duo multifactor authentication against REST endpoints.
+* Optional.
+* Default: false
+
 #####################
 # RSA MFA vendor settings
 #####################

@@ -1,4 +1,4 @@
-#   Version 8.2.2.1
+#   Version 8.2.3
 #
 ############################################################################
 # OVERVIEW
@@ -1299,6 +1299,24 @@ allowBasicAuth = <boolean>
 * This is useful for programmatic access to REST endpoints and
   for accessing the REST API from a web browser.  It is not
   required for the UI or CLI.
+* Default: true
+
+allowWwwAuthHeader = <boolean>
+* Describes whether or not Splunk Web can include a "www-authenticate" header
+  in a response to a request from a web client to access a management endpoint. 
+* When Splunk Web sends the "www-authenticate" header in response to such
+  a request, the client forces its user to provide credentials to authenticate. 
+* A value of "true" means that Splunk Web sends a "www-authenticate" header
+  in its response to the web client request. This means that the user of that
+  client will be prompted to enter valid credentials to access the instance,
+  even if they provide those credentials as part of the request.
+* A value of "false" means that Splunk Web does not send the "www-authenticate"
+  header in its response to the web client request. This means that the
+  user of that client will not be prompted to provide valid credentials to
+  access the instance.
+* Giving this setting a value of "false" reduces the attack surface in the
+  management API when you access it through Splunk Web.
+* This setting is not valid for the CLI. It works only with Splunk Web.
 * Default: true
 
 basicAuthRealm = <string>

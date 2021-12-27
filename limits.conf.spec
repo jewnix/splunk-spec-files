@@ -1,4 +1,4 @@
-#   Version 8.2.2.1
+#   Version 8.2.3
 #
 ############################################################################
 # OVERVIEW
@@ -629,6 +629,28 @@ force_saved_search_dispatch_as_user = <boolean>
   “dispatchAs = owner” for the entire install, if that more closely aligns
   with security goals.
 * Default: false
+
+get_summary_id_connection_timeout = <integer>
+* The connection timeout, in seconds, for a search to check for
+  available summaries using the admin/summarization REST endpoint.
+* This setting does not apply if 'do_not_use_summaries' is "true", or
+  if 'summary_mode' is set to "none".
+* Default: 5
+
+get_summary_id_rcv_timeout = <integer>
+* The timeout, in seconds, for a search to receive data from the
+  admin/summarization REST endpoint when checking for available summaries.
+* This setting does not apply if 'do_not_use_summaries' is "true", or
+  if 'summary_mode' is set to "none".
+* Default: 5
+
+get_summary_id_send_timeout = <integer>
+* The timeout, in seconds, for a search to send a query to the
+  admin/summarization REST endpoint when checking for available
+  summaries.
+* This setting does not apply if 'do_not_use_summaries' is "true", or
+  if 'summary_mode' is set to "none".
+* Default: 5
 
 max_id_length = <integer>
 * Maximum length of the custom search job ID when spawned by using
@@ -1924,6 +1946,11 @@ enable_splunkd_kv_lookup_indexing = <boolean>
   process, potentially slowing search performance.
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: false
+
+enforce_auto_lookup_order = <boolean>
+* true: LOOKUP-<name>s in props.conf are looked up in ASCII order by <name>.
+* false: LOOKUP-<name>s in props.conf are looked up in random order.
+* Default : false
 
 [metadata]
 

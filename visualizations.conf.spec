@@ -1,4 +1,4 @@
-#   Version 8.2.2.1
+#   Version 8.2.3
 #
 # This file contains definitions for visualizations an app makes available
 # to the system. If you want your app to share visualizations with the system, 

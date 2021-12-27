@@ -2324,14 +2324,6 @@ tmpfile_compression_level = <int>
 * For lz4 higher numbers indicate lower speed, and higher compression ratios.
 * Default: 0
 
-use_spill_thread = <boolean>
-* Specifies whether 'stats' searches should use a separate thread when
-  'max_mem_usage_mb' is exceeded. This enables these searches to continue
-  processing input while they write to temporary files.
-* When set to true, large 'stats' searches run faster, with the trade-off of
-  using additional CPU resources. Recommended for systems with low utilization.
-* Default: false
-
 use_stats_v2 = [fixed-width | <boolean>]
 * Specifies whether to use the v2 stats processor.
 * When set to 'fixed-width', the Splunk software uses the v2 stats processor
@@ -2437,6 +2429,20 @@ chunk_size = <unsigned integer>
   (per search).
 * Altering this value without careful measurement is not advised.
 * Default: 10000000
+
+include_events_omitted_when_filtering_numeric_values = <boolean>
+* When you run a 'tstats' search that filters numeric values of one or more
+  fields, it might omit events where those fields do not exist or have NULL
+  values from the search results.
+* This setting specifies whether this omission of events takes place when
+  'tstats' filters out events based on numeric values of fields.
+* A setting of 'true' means that when the 'tstats' command filters out events
+  where a field has a specific numeric value, it also matches events where
+  that field is not present.
+* A setting of 'false' means that when the 'tstats' command filters out events
+  where a field has a specific numeric value, it also omits events where that
+  field is not present.
+* Default: false
 
 summariesonly = <boolean>
 * Whether or not 'tstats' employs a mixed mode when running against an

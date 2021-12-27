@@ -1,4 +1,4 @@
-#   Version 8.1.7.1
+#   Version 8.1.7.2
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.

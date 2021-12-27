@@ -1,4 +1,4 @@
-#   Version 8.1.7.1
+#   Version 8.1.7.2
 #
 # This file contains possible attributes and values you can use to configure
 # auditing and event signing in audit.conf.

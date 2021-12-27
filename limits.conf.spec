@@ -1,4 +1,4 @@
-#   Version 8.1.4
+#   Version 8.1.5
 #
 ############################################################################
 # OVERVIEW
@@ -1900,6 +1900,11 @@ enable_splunkd_kv_lookup_indexing = <boolean>
   process, potentially slowing search performance.
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: false
+
+enforce_auto_lookup_order = <boolean>
+* true: LOOKUP-<name>s in props.conf are looked up in ASCII order by <name>.
+* false: LOOKUP-<name>s in props.conf are looked up in random order.
+* Default : false
 
 [metadata]
 

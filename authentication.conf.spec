@@ -1,4 +1,4 @@
-#   Version 8.1.4
+#   Version 8.1.5
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.
@@ -746,15 +746,16 @@ redirectAfterLogoutToUrl = <string>
 defaultRoleIfMissing = <string>
 * If the IdP does not return any AD groups or Splunk roles as a part of the
   assertion, the Splunk platform uses this value if provided.
-* This setting is optional.
+* This setting is required when you configure
+  'skipAttributeQueryRequestForUsers'. Otherwise, it is optional.
 * No default.
 
-skipAttributeQueryRequestForUsers = <comma separated list of users>
-* To skip attribute query requests being sent to the IDP for certain users,
+skipAttributeQueryRequestForUsers = <comma-separated list of users>
+* To skip attribute query requests being sent to the IdP for certain users,
   add them with this setting.
 * By default, attribute query requests are skipped for local users.
-* For non-local users, use this in conjunction with 'defaultRoleIfMissing'.
-* This setting is optional.
+* If you configure this setting for non-local users, you must also
+  configure 'defaultRoleIfMissing'.
 * No default.
 
 maxAttributeQueryThreads = <integer>
@@ -816,7 +817,7 @@ getUsersPrecacheLimit = <integer>
   the 'getUsers' function returns.
 * Default: 1000
 
-getUserInfoTTL = <string>
+getUserInfoTtl = <string>
 * When you configure the auth system to use SAML as an authentication method,
   it runs the 'getUserInfo' script function to retrieve information from the
   SAML identity provider when users perform ad-hoc operations such as working

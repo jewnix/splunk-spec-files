@@ -1,4 +1,4 @@
-#   Version 8.1.6
+#   Version 8.1.7
 
 # This file contains possible settings and values you can use to configure
 # event discovery through the search command "typelearner."

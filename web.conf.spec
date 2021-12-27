@@ -1,4 +1,4 @@
-#   Version 8.1.6
+#   Version 8.1.7
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -543,6 +543,28 @@ dashboard_html_allowed_domains = <string> [, <string>]
   * IPV6: ::1, [::1]:8000, 2001:db8:abcd:12::, 2001:db8::/32
 * Default: not set 
 
+pdfgen_trusted_hosts = <string> [, <string>]
+* A list of trusted hosts for inline image element source ('<image src="<URL>">')
+  links used during a pdf export.
+* If the domain for an <image> src attribute is not in the list of trusted hosts,
+  the image will not download during PDF export.
+* Separate multiple rules with commas.
+* Each rule can be in one of the following formats:
+    1. A single IPv4 or IPv6 address (examples: "203.0.113.2", "2001:db8:3c4d")
+    2. A Classless Inter-Domain Routing (CIDR) block of addresses
+       (examples: "192.0.2.0/24", "2001:DB8::/32")
+    3. A DNS name. Use "*" as a wildcard
+       (examples: "myhost.example.com", "*.splunk.com")
+    4. "*", which matches anything
+* Any link which resolves to a loopback address will not download, unless the "*"
+  rule is used.
+* You can prefix an entry with '!' to cause the rule to reject the
+  connection. The input applies rules in order, and uses the first one that
+  matches.
+  For example, "!192.0.2.0/24, *" allows connections from everywhere except
+  the 192.0.2.* network.
+* Default: not set. All links will fail by default.
+
 splunk_dashboard_app_name = <string>
 * Please do not change.
 * Set the name for the Splunk Dashboard App.
@@ -952,6 +974,10 @@ simple_xml_perf_debug = <boolean>
 * If set to "true", Simple XML dashboards log some performance metrics to
   the browser console.
 * Default: false
+
+job_default_auto_cancel = <integer>
+* The amount of time, in seconds, of inactivity in Splunk Web, after which the search job automatically cancels.
+* Default: 30
 
 job_min_polling_interval = <integer>
 * The minimum polling interval, in milliseconds, for search jobs.

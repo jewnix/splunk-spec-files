@@ -1,4 +1,4 @@
-#   Version 8.1.7
+#   Version 8.1.7.1
 #
 # This file contains descriptions of the settings that you can use to
 # configure event types and their properties.

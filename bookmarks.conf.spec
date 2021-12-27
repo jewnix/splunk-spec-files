@@ -1,4 +1,4 @@
-#   Version 8.2.2.1
+#   Version 8.2.4
 #
 # This file contains possible settings and values for configuring various
 # "bookmark" entries to be stored within a Splunk instance.

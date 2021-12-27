@@ -1,4 +1,4 @@
-#   Version 8.2.2.1
+#   Version 8.2.4
 #
 ############################################################################
 # OVERVIEW
@@ -629,6 +629,28 @@ force_saved_search_dispatch_as_user = <boolean>
   “dispatchAs = owner” for the entire install, if that more closely aligns
   with security goals.
 * Default: false
+
+get_summary_id_connection_timeout = <integer>
+* The connection timeout, in seconds, for a search to check for
+  available summaries using the admin/summarization REST endpoint.
+* This setting does not apply if 'do_not_use_summaries' is "true", or
+  if 'summary_mode' is set to "none".
+* Default: 5
+
+get_summary_id_rcv_timeout = <integer>
+* The timeout, in seconds, for a search to receive data from the
+  admin/summarization REST endpoint when checking for available summaries.
+* This setting does not apply if 'do_not_use_summaries' is "true", or
+  if 'summary_mode' is set to "none".
+* Default: 5
+
+get_summary_id_send_timeout = <integer>
+* The timeout, in seconds, for a search to send a query to the
+  admin/summarization REST endpoint when checking for available
+  summaries.
+* This setting does not apply if 'do_not_use_summaries' is "true", or
+  if 'summary_mode' is set to "none".
+* Default: 5
 
 max_id_length = <integer>
 * Maximum length of the custom search job ID when spawned by using
@@ -1925,6 +1947,11 @@ enable_splunkd_kv_lookup_indexing = <boolean>
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: false
 
+enforce_auto_lookup_order = <boolean>
+* true: LOOKUP-<name>s in props.conf are looked up in ASCII order by <name>.
+* false: LOOKUP-<name>s in props.conf are looked up in random order.
+* Default : false
+
 [metadata]
 
 bucket_localize_max_lookahead = <integer>
@@ -2298,14 +2325,6 @@ tmpfile_compression_level = <int>
 * For lz4 higher numbers indicate lower speed, and higher compression ratios.
 * Default: 0
 
-use_spill_thread = <boolean>
-* Specifies whether 'stats' searches should use a separate thread when
-  'max_mem_usage_mb' is exceeded. This enables these searches to continue
-  processing input while they write to temporary files.
-* When set to true, large 'stats' searches run faster, with the trade-off of
-  using additional CPU resources. Recommended for systems with low utilization.
-* Default: false
-
 use_stats_v2 = [fixed-width | <boolean>]
 * Specifies whether to use the v2 stats processor.
 * When set to 'fixed-width', the Splunk software uses the v2 stats processor
@@ -2411,6 +2430,20 @@ chunk_size = <unsigned integer>
   (per search).
 * Altering this value without careful measurement is not advised.
 * Default: 10000000
+
+include_events_omitted_when_filtering_numeric_values = <boolean>
+* When you run a 'tstats' search that filters numeric values of one or more
+  fields, it might omit events where those fields do not exist or have NULL
+  values from the search results.
+* This setting specifies whether this omission of events takes place when
+  'tstats' filters out events based on numeric values of fields.
+* A setting of 'true' means that when the 'tstats' command filters out events
+  where a field has a specific numeric value, it also matches events where
+  that field is not present.
+* A setting of 'false' means that when the 'tstats' command filters out events
+  where a field has a specific numeric value, it also omits events where that
+  field is not present.
+* Default: false
 
 summariesonly = <boolean>
 * Whether or not 'tstats' employs a mixed mode when running against an

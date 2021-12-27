@@ -1,4 +1,4 @@
-#   Version 8.2.2.1
+#   Version 8.2.4
 #
 ############################################################################
 # OVERVIEW
@@ -896,6 +896,9 @@ disabled = <boolean>
 
 [capability::edit_kvstore]
 * Lets a user execute KV Store administrative commands through the KV Store REST endpoints.
+
+[capability::edit_manager_xml]
+* Lets a user create and edit XML views using the /data/ui/manager REST endpoint.
 
 ############################################################################
 # Settings used to control commands started by Splunk

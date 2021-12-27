@@ -1,4 +1,4 @@
-#   Version 8.1.5
+#   Version 8.1.6
 #
 ############################################################################
 # OVERVIEW
@@ -141,7 +141,10 @@ memPoolMB = <positive integer>|auto
                    1 GB                     |    64  MB
                    2 GB                     |    128 MB
                    8 GB                     |    128 MB
-                   8 GB or higher           |    512 MB
+                  16 GB                     |    256 MB
+                  32 GB                     |      1 GB
+                  64 GB                     |      2 GB
+                  64 GB or higher           |      4 GB
 * Only set this value if you are an expert user or have been advised to by
   Splunk Support.
 * CAUTION: CARELESSNESS IN SETTING THIS CAN LEAD TO LOSS OF JOB.

@@ -1,4 +1,4 @@
-#   Version 8.1.5
+#   Version 8.1.6
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -1378,3 +1378,13 @@ skipCSRFProtection = [0 | 1]
 * This should only be set on the login endpoint (which already contains
   sufficient auth credentials to avoid CSRF problems).
 * Default: 0
+
+allowRemoteProxy = <boolean>
+* Determines whether or not splunkd lets the exposed REST endpoint be proxied
+  to remote nodes using the "remote-proxy" REST endpoint.
+* If set to "true", splunkd will let requests be proxied to remote nodes 
+  through the "remote-proxy".
+* If set to "false", splunkd will not let requests be proxied to remote nodes
+  through the "remote-proxy".
+* This setting only works for full URIs without wildcards.
+* Default: false

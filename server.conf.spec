@@ -1,4 +1,4 @@
-#   Version 8.1.5
+#   Version 8.1.6
 #
 ############################################################################
 # OVERVIEW
@@ -1244,6 +1244,24 @@ allowBasicAuth = <boolean>
   required for the UI or CLI.
 * Default: true
 
+allowWwwAuthHeader = <boolean>
+* Describes whether or not Splunk Web can include a "www-authenticate" header
+  in a response to a request from a web client to access a management endpoint. 
+* When Splunk Web sends the "www-authenticate" header in response to such
+  a request, the client forces its user to provide credentials to authenticate. 
+* A value of "true" means that Splunk Web sends a "www-authenticate" header
+  in its response to the web client request. This means that the user of that
+  client will be prompted to enter valid credentials to access the instance,
+  even if they provide those credentials as part of the request.
+* A value of "false" means that Splunk Web does not send the "www-authenticate"
+  header in its response to the web client request. This means that the
+  user of that client will not be prompted to provide valid credentials to
+  access the instance.
+* Giving this setting a value of "false" reduces the attack surface in the
+  management API when you access it through Splunk Web.
+* This setting is not valid for the CLI. It works only with Splunk Web.
+* Default: true
+
 basicAuthRealm = <string>
 * When using "HTTP Basic" authentication, the 'realm' is a
   human-readable string describing the server.  Typically, a web
@@ -1264,6 +1282,25 @@ cookieAuthHttpOnly = <boolean>
   code to access its value
 * NOTE: has no effect if allowCookieAuth=false
 * Default: true
+
+cookieSameSiteSecure = <boolean>
+* Describes whether or not the Splunk web server will set all Splunk cookies
+  in the browser with the "SameSite=None;Secure" attribute.
+* Use this setting to toggle when cookies are to get this value as part of
+  embedding dashboards into third-party web applications outside of the 
+  Splunk platform instance.
+* A value of "true" means that the Splunk web server sets the "SameSite=None,Secure"
+  attribute for cookies to work with modern browsers. A cookie with this 
+  attribute lets the browser embed a Splunk dashboard into a third-party <iframe>.
+  * <iframe> stands for "inline frame", and is a web page component within 
+    which you can embed a dashboard.
+* A value of "false" means that the web server does not set cookies with
+  "SameSite=None,Secure" attribute.
+* If you want to embed a Splunk dashboard into an outside web application,
+  you must give this setting a value of "true". Otherwise, the third-party
+  <iframe> won't let the user authenticate and use the dashboard that
+  you embedded.
+* Default: false
 
 cookieAuthSecure = <boolean>
 * When using cookie based authentication, mark returned cookies

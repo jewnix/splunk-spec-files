@@ -1,4 +1,4 @@
-#   Version 8.1.5
+#   Version 8.1.6
 #
 # This file contains descriptions of the settings that you can use to
 # create multikv rules.  Multikv is the process of extracting events 

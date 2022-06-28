@@ -101,8 +101,8 @@ imageCaption<int> = <string>
 imgPath = <string>
 * The subdirectory relative to Splunk's 'img' directory in which users put the images.
   This will be appended to the URL for image access and not make a server request within Splunk.
-  Ex) If the user puts images in a subdirectory 'foo': imgPath = foo.
-  Ex) If within an app, imgPath = foo will point to the app's img path of
+  Ex) If the user puts images in a subdirectory 'foo': imgPath = /foo.
+  Ex) If within an app, imgPath = /foo will point to the app's img path of
       appserver/static/img/foo
 * Required only if images are not in the main 'img' directory.
 

@@ -72,7 +72,7 @@ MINOR = <space separated list of strings>
 INTERMEDIATE_MAJORS =  true | false
 * Set this to "true" if you want an IP address to appear in typeahead as
   a, a.b, a.b.c, a.b.c.d
-* The typical performance hit by setting to "true" is 30%.
+* The typical negative effect on performance by setting to "true" is 30%.
 * Default: false
 
 FILTER = <regular expression>

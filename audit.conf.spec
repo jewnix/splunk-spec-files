@@ -1,6 +1,6 @@
 #
 # This file contains possible attributes and values you can use to configure
-# auditing and event signing in audit.conf.
+# auditing in audit.conf.
 #
 # There is NO DEFAULT audit.conf. To set custom configurations, place an
 # audit.conf in $SPLUNK_HOME/etc/system/local/. For examples, see
@@ -18,10 +18,6 @@
 #    definitions of the same attribute, the last definition in the file wins.
 #  * If an attribute is defined at both the global level and in a specific
 #    stanza, the value in the specific stanza takes precedence.
-
-#########################################################################################
-# KEYS: specify your public and private keys for encryption.
-#########################################################################################
 
 queueing = <boolean>
 * Whether or not audit events are sent to the indexQueue.

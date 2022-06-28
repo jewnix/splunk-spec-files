@@ -1,4 +1,4 @@
-#   Version 8.2.6
+#   Version 9.0.0
 #
 ############################################################################
 # OVERVIEW
@@ -44,7 +44,7 @@ predicate = <string>
 * The format is logical expression with predicate as <type>=<value>.
 * For example, "app=search AND (NOT role=power)".
 * The valid <type> are "app", "role", "user", "index",
-  "search_type", "search_mode" and "search_time_range". 
+  "search_type", "search_mode", "search_time_range", and "runtime".
   The <value> is the exact value of the <type>.
 * For "app" type, the value is the name of the app. For example, "app=search".
 * For "role" type, the value is the name of the role. For example, "role=admin".
@@ -88,30 +88,54 @@ schedule = always_on | time_range | every_day | every_week | every_month
 * Optional. If it's empty, it means the rule is always on.
 
 start_time = <string>
-* When 'schedule' is set to "time_range", 'start_time' specifies the exact time
-  that the valid time range starts, including date, time and time zone.
-* When 'schedule' is set to "every_week" or "every_month", it specifies
-  the start hour.
-* Optional.
+* This setting is required when 'schedule' is set to: "time_range",
+ "every_week", "every_month", or "every_day".
+* The time format for 'start_time' is HH:00.
+* If 'schedule' is set to "time_range", the 'start_time' specifies the 
+ exact time that the valid time range starts, including 'start_date', 'end_date',
+  time, and time zone.
+* If 'schedule' is set to "every_week" or "every_month", the 'start_time' 
+ specifies the start hour.
+* If 'schedule' is set to "every_day", the 'start_time' is set to 0.
+* Default 0.
 
 end_time = <string>
-* When 'schedule' is set to "time_range", 'end_time' specifies the exact time
-  that the valid time range ends, including date, time and time zone.
-* When 'schedule' is set to "every_week" or "every_month", it specifies the end
-  hour.
-* Optional.
+* This setting is required when 'schedule' is set to: "time_range",
+ "every_week", "every_month", or "every_day".
+* The time format for 'end_time' is HH:00.
+* If 'schedule' is set to "time_range", the 'end_time' specifies the 
+ exact time that the valid time range ends, including 'start_date', 'end_date',
+  time, and time zone.
+* If 'schedule' is set to "every_week" or "every_month", the 'end_time' 
+ specifies the end hour.
+* If 'schedule' is set to "every_day", the 'end_time' is set to 0.
+* Default 0.
 
 every_week_days = <string>
+* This setting is required when 'schedule' is set to "every_week".
 * Specifies recurring days of the week.
-* Supports numbers from 0 to 6, where 0 represents Sunday.
-* Only applies when 'schedule' is set to "every_week".
-* Optional.
+* Supports comma separated numbers from 0 to 6, where 0 represents 
+ Sunday.
+* No default.
 
 every_month_days = <string>
+* This setting is required when 'schedule' is set to "every_month".
 * Specifies recurring days of the month.
-* Supports numbers from 1 to 31, where 1 represents the 1st day of the month.
-* Only applies when 'schedule' is set to "every_month".
-* Optional.
+* Supports comma separated numbers from 1 to 31, where 1 represents 
+ the 1st day of the month.
+* No default.
+
+start_date = <string>
+* This setting is required when 'schedule' is set to "time_range".
+* The date format is YYYY-MM-DD.
+* Default (in SplunkWeb): the current date.
+* Default (manual configuration): none.
+
+end_date = <string>
+* This setting is required when 'schedule' is set to "time_range".
+* The date format is YYYY-MM-DD
+* Default (in SplunkWeb): the current date.
+* Default (manual configuration): none.
 
 user_message = <string>
 * Specifies the message shown in the search job inspector if the rule is
@@ -139,7 +163,7 @@ predicate = <string>
 * The format is logical expression with predicate as <type>=<value>.
 * For example, "app=search AND (NOT role=power)".
 * The valid <type> are "app", "role", "user", "index",
-  "search_type", "search_mode" and "search_time_range". 
+  "search_type", "search_mode", "search_time_range", and "adhoc_search_percentage".
   The <value> is the exact value of the <type>.
 * For "app" type, the value is the name of the app. For example, "app=search".
 * For "role" type, the value is the name of the role. For example, "role=admin".
@@ -155,12 +179,20 @@ predicate = <string>
   include "realtime" and "historical".
 * For "search_time_range" type, the value is the time range of the search. 
   For now, value can only be "alltime".
+* For "adhoc_search_percentage" type, the value is an integer in the range [0,100]
+  indicating the percentage of total concurrent searches that adhoc searches can
+  consume before being filtered or queued. If specified, predicate must also include
+  "search_type=adhoc".
 * Required.
 
-action = filter
+action = filter | queue
 * Specifies the action to take when a search meets the rule criteria.
 * The action "filter" is defined for search filter rules. If a search meets the rule
   criteria, the search is not executed.
+* The action "queue" is only defined for search filter rules with "adhoc_search_percentage"
+  specified in the predicate. If an ad hoc search meets the rule criteria, it will be
+  queued and attempted later. A search meeting criteria for both "filter" and "queue"
+  actions will be filtered.
 * Required.
 
 schedule = always_on | time_range | every_day | every_week | every_month
@@ -169,30 +201,54 @@ schedule = always_on | time_range | every_day | every_week | every_month
 * Optional. If it's empty, it means the rule is always on.
 
 start_time = <string>
-* When 'schedule' is set to "time_range", 'start_time' specifies the exact time
-  that the valid time range starts, including date, time and time zone.
-* When 'schedule' is set to "every_week" or "every_month", it specifies
-  the start hour.
-* Optional.
+* This setting is required when 'schedule' is set to: "time_range",
+ "every_week", "every_month", or "every_day".
+* The time format for 'start_time' is HH:00.
+* If 'schedule' is set to "time_range", the 'start_time' specifies the 
+ exact time that the valid time range starts, including 'start_date', 'end_date',
+  time, and time zone.
+* If 'schedule' is set to "every_week" or "every_month", the 'start_time' 
+ specifies the start hour.
+* If 'schedule' is set to "every_day", the 'start_time' is set to 0.
+* Default 0.
 
 end_time = <string>
-* When 'schedule' is set to "time_range", 'end_time' specifies the exact time
-  that the valid time range ends, including date, time and time zone.
-* When 'schedule' is set to "every_week" or "every_month", it specifies the end
-  hour.
-* Optional.
+* This setting is required when 'schedule' is set to: "time_range",
+ "every_week", "every_month", or "every_day".
+* The time format for 'end_time' is HH:00.
+* If 'schedule' is set to "time_range", the 'end_time' specifies the 
+ exact time that the valid time range ends, including 'start_date', 'end_date',
+  time, and time zone.
+* If 'schedule' is set to "every_week" or "every_month", the 'end_time' 
+ specifies the end hour.
+* If 'schedule' is set to "every_day", the 'end_time' is set to 0.
+* Default 0.
 
 every_week_days = <string>
+* This setting is required when 'schedule' is set to "every_week".
 * Specifies recurring days of the week.
-* Supports numbers from 0 to 6, where 0 represents Sunday.
-* Only applies when 'schedule' is set to "every_week".
-* Optional.
+* Supports comma separated numbers from 0 to 6, where 0 represents 
+ Sunday.
+* No default.
 
 every_month_days = <string>
+* This setting is required when 'schedule' is set to "every_month".
 * Specifies recurring days of the month.
-* Supports numbers from 1 to 31, where 1 represents the 1st day of the month.
-* Only applies when 'schedule' is set to "every_month".
-* Optional.
+* Supports comma separated numbers from 1 to 31, where 1 represents 
+ the 1st day of the month.
+* No default.
+
+start_date = <string>
+* This setting is required when 'schedule' is set to "time_range".
+* The date format is YYYY-MM-DD.
+* Default (in SplunkWeb): the current date.
+* Default (manual configuration): none.
+
+end_date = <string>
+* This setting is required when 'schedule' is set to "time_range".
+* The date format is YYYY-MM-DD
+* Default (in SplunkWeb): the current date.
+* Default (manual configuration): none.
 
 user_message = <string>
 * Specifies the message when a search is filtered out by this rule.

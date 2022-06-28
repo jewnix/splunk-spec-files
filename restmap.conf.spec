@@ -1,4 +1,4 @@
-# Version 8.2.6
+# Version 9.0.0
 #
 # This file contains possible attribute/value pairs for creating new
 # Representational State Transfer (REST) endpoints.
@@ -247,6 +247,16 @@ passHttpCookies = <boolean>
 * Only has effect if the 'scripttype' setting is set to "persist".
 * Default: false
 
+stream = <boolean>
+* Describes whether or not splunkd sends the payload in the
+  request to the driver in a streaming fashion.
+* A value of "true" means splunkd sends the payload in the
+  request to the driver in a stream, or multiple sequential requests.
+* A value of "false" means splunkd sends the payload in the
+  request to the driver as a field of the original request.
+* Only has effect if the 'scripttype' setting is set to "persist".
+* Default: false
+
 [admin:<uniqueName>]
 * 'admin'
 * The built-in handler for the Extensible Administration Interface (EAI).
@@ -380,6 +390,13 @@ untar = <boolean>
 * Whether or not to untar a file once the transfer is complete.
 
 [proxybundleupload:...]
+path = <path>
+* The path to search through to find proxy configuration bundles from search heads.
+
+untar = <boolean>
+* Whether or not to untar a file once the transfer is complete.
+
+[proxybundleuploadrshcluster:...]
 path = <path>
 * The path to search through to find proxy configuration bundles from search heads.
 

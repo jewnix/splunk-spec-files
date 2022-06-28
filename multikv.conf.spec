@@ -1,4 +1,4 @@
-#   Version 8.2.6
+#   Version 9.0.0
 #
 # This file contains descriptions of the settings that you can use to
 # create multikv rules.  Multikv is the process of extracting events 
@@ -84,8 +84,12 @@ OR
   and token-list.
 
 <chopper> = _chop_, <int-list>
-* A token that transform each string into a list of tokens specified by <int-list>.
-* <int-list> is a list of (offset, length) tuples.
+* A token that transform each string into a list of tokens specified by 
+  <int-list>.
+* <int-list> is a list of (offset, length) tuples, separated by commas. Do not 
+  contain tuples within parentheses.
+  * Example: body.tokens = _chop_, 0, 9,  10, 4,  15, 4,  20, 7
+
 
 <tokenizer> = _tokenize_ <max_tokens (int)> <delims> (<consume-delims>)?
 * A token used to tokenize the string using the delimiter characters.
@@ -94,12 +98,13 @@ OR
   * -1 for complete tokenization.
   * 0 to inherit from the previous section, usually the header section.
   * A non-zero number for a specific token count.
-* If tokenization is limited by the 'max_tokens', the rest of the string is added
-  onto the last token.
+* If tokenization is limited by the 'max_tokens', the rest of the string is 
+  added onto the last token.
 * <delims> is a comma-separated list of delimiting characters.
 * <consume-delims> - A Boolean that specifies whether to consume consecutive 
   delimiters. Set to "false" or "0" if you want consecutive delimiters treated
-  as empty values. Default: true
+  as empty values. 
+* Default: true
 
 <aligner> = _align_, <header_string>, <side>, <max_width>
 * A token that generates tokens by extracting text aligned to the specified header fields.

@@ -1,4 +1,4 @@
-#   Version 8.2.6
+#   Version 9.0.0
 
 # splunk-launch.conf contains values used at startup time, by the Splunk
 # command and by Windows services.
@@ -93,16 +93,6 @@ SPLUNK_BINDIP = <ip address>
   setting; use the latter when SplunkWeb behavior is the focus.
 * Default: not set
 
-SPLUNK_IGNORE_SELINUX = true
-* If set to any value, splunkd launches despite the presence of SELinux.
-* If not set, splunkd on Linux aborts startup if it detects
-  it is running in an SELinux environment. This is because, in
-  shipping/distribution-provided SELinux environments, splunkd is not
-  permitted to work, and is not able to identify clearly why.
-* This setting is useful in environments where you have configured SELinux
-  to enable the Splunk platform instance to work.
-* Default: not set
-
 SPLUNK_OS_USER = <string> | <nonnegative integer>
 * The OS user whose privileges splunkd adopts when running.
 * Example: SPLUNK_OS_USER=fnietzsche. Splunkd starts with a root login.
@@ -133,6 +123,11 @@ SPLUNK_FIPS = [0|1]
     you cannot later configure it to "false". You must reinstall the software.
 * Running the Splunk platform in FIPS mode can result in the platform operating
   more slowly than if you ran it in normal mode.
+* Default: 0
+
+PYTHONHTTPSVERIFY = [0|1]
+* Whether or not the Splunk platform instance sets up TLS validation for the httplib
+  module in the Python interpreter embedded with the Splunk package.
 * Default: 0
 
 #*******

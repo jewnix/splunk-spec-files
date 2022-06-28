@@ -1,17 +1,13 @@
-#   Version 8.2.6
+#   Version 9.0.0
 ############################################################################
 # OVERVIEW
 ############################################################################
 # This file contains descriptions for the setting/value pairs that you can
 # use for creating search commands for custom search scripts.
 #
-# You can add your custom search script to one of these paths:
-# * If you add your custom search script to the $SPLUNK_HOME/etc/searchscripts/
-#   path, put a custom commands.conf file in the $SPLUNK_HOME/etc/system/local/
-#   directory.
-# * If you add your custom search script to the $SPLUNK_HOME/etc/apps/MY_APP/bin/
-#   path, put a custom commands.conf file in the $SPLUNK_HOME/etc/apps/MY_APP]
-#   directory.
+# If you add your custom search script to the $SPLUNK_HOME/etc/apps/MY_APP/bin/
+# path, put a custom commands.conf file in the
+# $SPLUNK_HOME/etc/apps/MY_APP/default/ directory.
 #
 # There is a commands.conf in $SPLUNK_HOME/etc/system/default/.
 # Never change or copy the configuration files in the default directory.
@@ -134,9 +130,18 @@ passauth = <boolean>
 * Default: false
 
 run_in_preview = <boolean>
-* Whether or not to run this command if generating results just for preview
-  rather than for final output.
-* Default: true
+* Determines whether to run a custom search command when it is generating 
+  results just for preview rather than for final output.
+* A setting of 'false' means that the custom search command does not run during 
+  preview.
+* This setting defaults to 'false' for commands that use 'chunked=true'. Custom 
+  search commands that run with 'chunked=true' can have performance issues when 
+  they also run in preview.
+* There is no global default for this setting that would apply to all search 
+  commands. 
+  * If you have a custom search command that must deviate from the default 
+    behavior described here, set this setting for that command.
+* Default: 'false' when 'chunked=true', 'true' otherwise.
 
 enableheader = <boolean>
 * Whether or not your script expects header information.

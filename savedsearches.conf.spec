@@ -1,4 +1,4 @@
-#   Version 8.2.6
+#   Version 9.0.0
 #
 # This file contains possible setting/value pairs for saved search entries in
 # the savedsearches.conf file.  You can configure saved searches by creating
@@ -143,8 +143,8 @@ realtime_schedule = <boolean>
       to make sure that the scheduler is executing the searches that are running
       over the most recent time range.
 * When set to 'false', the scheduler determines the next scheduled search run
-  time the scheduler determines the next scheduled search run time based on the
-  last run time for the search. This is called continuous scheduling.
+  time based on the last run time for the search. This is called continuous
+   scheduling.
     * NOTE: When set to 'false', the scheduler never skips scheduled execution
 	  periods. However, the execution of the saved search might fall behind
       depending on the scheduler's load.
@@ -210,7 +210,7 @@ schedule_window = <unsigned integer> | auto
            'edit_search_schedule_window' capability.
            For these searches, this value can be changed.
 * Default: auto for searches that are owned by users that do not have the
-           'edit_search_window' capability.
+           'edit_search_schedule_window' capability.
            For these searches, this setting cannot be changed.
 
 schedule_as = [auto|classic|prjob]
@@ -666,6 +666,14 @@ dispatch.sample_ratio = <integer>
 * For example, if sample_ratio = 500, each event has a 1/500 chance of being
   included in the sample result set.
 * Default: 1
+
+dispatch.rate_limit_retry = <boolean>
+* Specifies whether the search job will be re-run in case of failure caused by 
+  search requests throttling on remote peers.
+* Currently this setting only applies when used in SHC.
+* Overrides value of 'allow_partial_results'.
+* Does not apply to real time searches.
+* Default: false
 
 restart_on_searchpeer_add = 1 | 0
 * Specifies whether to restart a real-time search managed by the scheduler when
@@ -1166,11 +1174,16 @@ skip_scheduled_realtime_idxc = <boolean>
 * Note: When set to false, a continuous saved search might return partial results.
 * Default: false (does not skip)
 
-# DFS options
-federated.provider = <federated-provider-stanza>
-* Identifies the federated provider where this search has to run.
-* Select a federated provider stanza defined in your federated.conf file.
-* No default.
+precalculate_required_fields_for_alerts = <boolean>
+* Specifies whether to precalculate the required fields from the alert 
+  condition search and use the result in the main search. Giving the required 
+  fields to the main search may decrease performance in some cases where the 
+  system is bottlenecked on the search scheduler. 
+* If "false", the required fields are not precalculated, which may free up the 
+  search scheduler and improve performance, but at the cost of potentially more 
+  work in the main search. 
+* Note: Do not change unless instructed to do so by Splunk Support.
+* Default: true
 
 #*******
 # Deprecated settings

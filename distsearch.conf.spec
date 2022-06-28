@@ -1,4 +1,4 @@
-#   Version 8.2.6
+#   Version 9.0.0
 #
 # This file contains possible attributes and values you can use to configure
 # distributed search.
@@ -188,6 +188,39 @@ bcsPath = <path>
   still under development.
 * Optional.
 * Default: /bcs/v1/buckets
+
+parallelReduceBackwardCompatibility = [cloud|enterprise]
+* This setting determines the conditions under which the Splunk software avoids 
+  search ID (SID) duplication during parallel reduce search processing by 
+  appending search head server names to remoteSIDs. 
+* The conditions under which this behavior is applied differ depending on 
+  whether this is a Splunk Cloud Platform or Splunk Enterprise instance.
+* A setting of 'cloud' means that this is a Splunk Cloud Platform instance. 
+  * The Splunk software appends search head server names to remote SIDs as long 
+    as all of the search heads and indexes in the Splunk Cloud Platform 
+    deployment share the same version. 
+  * If the search heads and indexes in this Splunk Cloud Platform deployment do 
+    not all share the same version, the Splunk software does not change the 
+    remoteSIDs. 
+    * In this case the search processor falls back to classic search processing 
+      methods.
+* A setting of 'enterprise' means that this is a Splunk Enterprise instance.
+  * The Splunk software appends search head server names to remoteSIDs when all 
+    of the search heads and index peers in this Splunk Enterprise instance all 
+    have a version higher than 8.3.0.   
+  * If this is not the case, the Splunk software does not change the 
+    remoteSIDs, and in some cases might fall back to classic search processing 
+    methods.
+* Default: enterprise
+
+searchableIndexMapping = enabled|disabled
+* Determines whether the search head maintains information on how
+  searchable indexes map to search peers.  If enabled, the search
+  head periodically requests, from its search peers, a list of
+  the searchable indexes that each peer holds.
+* Do not change this setting unless directed to do so by
+  Splunk Support.
+* Default: enabled.
 
 #******************************************************************************
 # DISTRIBUTED SEARCH KEY PAIR GENERATION OPTIONS
@@ -406,6 +439,28 @@ cascade_replication_status_unchanged_threshold = <integer>
 * The minimum accepted value for this setting is 1.
 * Default: 5
 
+cascade_plan_replication_retry_fast = <boolean>
+* Determines whether a cascading bundle replication plan is retried
+  if the number of replication failures exceed the threshold
+  specified by 'cascade_plan_replication_threshold_failures'.
+* Do not change this setting without consulting
+  Splunk Support.
+* Default: false
+
+cascade_plan_replication_threshold_failures = <integer>
+* The number of search peers that can fail during a cascading bundle replication
+  without triggering a retry of the bundle replication.
+* The default value of 0 auto-configures the threshold to
+  5% of the peers participating in the bundle replication.
+  For example, if there are 80 search peers, auto-configuration
+  means that the threshold is 4 peers.
+* Do not change this setting without consulting
+  Splunk Support.
+* Valid only when 'cascade_plan_replication_retry_fast'
+  is set to "true".
+* Default: 0 (auto configure).
+
+
 ################################################################
 # RFS (AKA S3/REMOTE FILE SYSTEM) REPLICATION-SPECIFIC SETTINGS
 ################################################################
@@ -563,7 +618,7 @@ replicate.<conf_file_name> = <boolean>
 * Whether or not the Splunk platform replicates a particular type of
   *.conf file, along with any associated permissions in *.meta files.
 * These settings on their own do not cause files to be replicated. You must
-  still allow list a file (via the 'replicationWhitelist' setting) in order for
+  still allow list a file (via the 'replicationAllowlist' setting) in order for
   it to be eligible for inclusion via these settings.
 * In a sense, these settings constitute another level of filtering that applies
   specifically to *.conf files and stanzas with *.meta files.
@@ -574,6 +629,11 @@ replicate.<conf_file_name> = <boolean>
 #******************************************************************************
 
 [replicationWhitelist]
+
+<name> = <string>
+* DEPRECATED; use 'replicationAllowlist' instead.
+
+[replicationAllowlist]
 
 <name> = <string>
 * Controls the Splunk platform search-time configuration replication from
@@ -606,6 +666,11 @@ replicate.<conf_file_name> = <boolean>
 [replicationBlacklist]
 
 <name> = <string>
+* DEPRECATED; use 'replicationDenylist' instead.
+
+[replicationDenylist]
+
+<name> = <string>
 * All comments from the replication allow list notes above also apply here.
 * Replication deny list takes precedence over the allow list, meaning that a
   file that matches both the allow list and the deny list is NOT replicated.
@@ -626,15 +691,20 @@ replicate.<conf_file_name> = <boolean>
 [bundleEnforcerWhitelist]
 
 <name> = <string>
+* DEPRECATED; use 'bundleEnforcerAllowlist' instead.
+
+[bundleEnforcerAllowlist]
+
+<name> = <string>
 * Peers use this setting to make sure knowledge bundles sent by search heads and
   masters do not contain alien files.
 * If this stanza is empty, the receiver accepts the bundle unless it contains
-  files matching the rules specified in the [bundleEnforcerBlacklist] stanza.
-  Hence, if both [bundleEnforcerWhitelist] and [bundleEnforcerBlacklist] are
+  files matching the rules specified in the [bundleEnforcerDenylist] stanza.
+  Hence, if both [bundleEnforcerAllowlist] and [bundleEnforcerDenylist] are
   empty (which is the default), then the receiver accepts all bundles.
 * If this stanza is not empty, the receiver accepts the bundle only if it
   contains only files that match the rules specified here but not those in the
-  [bundleEnforcerBlacklist] stanza.
+  [bundleEnforcerDenylist] stanza.
 * All rules are regular expressions.
 * No default.
 
@@ -645,12 +715,17 @@ replicate.<conf_file_name> = <boolean>
 [bundleEnforcerBlacklist]
 
 <name> = <string>
+* DEPRECATED; use 'bundleEnforcerDenylist' instead.
+
+[bundleEnforcerDenylist]
+
+<name> = <string>
 * Peers use this setting to make sure knowledge bundle sent by search heads and
   masters do not contain alien files.
-* This list overrides the [bundleEnforceWhitelist] stanza above. This means that
+* This list overrides the [bundleEnforceAllowlist] stanza above. This means that
   the receiver removes the bundle if it contains any file that matches the
-  rules specified here even if that file is allowed by [bundleEnforcerWhitelist].
-* If this stanza is empty, then only [bundleEnforcerWhitelist] matters.
+  rules specified here even if that file is allowed by [bundleEnforcerAllowlist].
+* If this stanza is empty, then only [bundleEnforcerAllowlist] matters.
 * No default.
 
 
@@ -671,5 +746,18 @@ servers = <comma-separated list>
 * The list must use peer identifiers (i.e. hostname:port).
 
 default = <boolean>
-* Whether or not this group is the default group of peers against which all
-  searches are run, unless a server group is not explicitly specified.
+* Specifies whether this distributed search group is the default distributed 
+  search group. 
+* A setting of 'true' means that any search that does not explicitly specify a 
+  distributed search group runs against this default distributed search group 
+  of peers. 
+* You can set 'Default=true' for only one distributed search group at any 
+  given time. 
+* If you do not specify a distributed search group in your search, the full set 
+  of search peers in the '[distributedSearch]' stanza is searched under the 
+  following circumstances:
+  * You do not set any of your distributed search groups to 'default=true'.
+  * You set 'default=true' for a distributed search group, but you do not 
+    define a 'servers' list for that distributed search group.  
+* Default: false
+

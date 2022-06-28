@@ -1,4 +1,4 @@
-#   Version 8.2.5
+#   Version 8.2.6
 #
 # This file explains how to format viewstates.
 #

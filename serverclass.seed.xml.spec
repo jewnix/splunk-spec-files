@@ -1,4 +1,4 @@
-#   Version 8.2.5
+#   Version 8.2.6
 
 <!--
 # This configuration is used by deploymentClient to seed a Splunk installation with applications, at startup time.

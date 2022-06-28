@@ -1,4 +1,4 @@
-#   Version 8.2.5
+#   Version 8.2.6
 #
 ############################################################################
 # OVERVIEW
@@ -1220,6 +1220,17 @@ max_searches_per_process = <integer>
   that a process can run.
 * Has no effect on Windows if search_process_mode is not "auto”.
 * Default: 500
+
+max_searches_started_per_cycle = <integer>
+* Specifies the number of new, concurrent searches started by the search
+  launcher in a cycle.
+* This limits the contention between running searches and new searches,
+  improving search process reuse, and efficiency. 
+* Note: Do not change this setting unless instructed to do so by Splunk
+  Support.
+* Has no effect on Windows if "search_process_mode" is not "auto" or if
+  "max_searches_per_process" is set to 0 or 1.
+* Default: 30
 
 max_time_per_process = <number>
 * Specifies the maximum time, in seconds, that a process can spend running

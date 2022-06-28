@@ -1,4 +1,4 @@
-#   Version 8.2.4
+#   Version 8.2.5
 #
 # This file effects how the search assistant (typeahead) shows the syntax for
 # search commands.

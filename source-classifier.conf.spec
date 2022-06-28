@@ -1,4 +1,4 @@
-#   Version 8.2.4
+#   Version 8.2.5
 #
 # This file contains all possible options for configuring settings for the
 # file classifier in source-classifier.conf.

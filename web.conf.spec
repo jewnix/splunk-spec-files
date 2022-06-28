@@ -1,4 +1,4 @@
-#   Version 8.2.4
+#   Version 8.2.5
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -515,17 +515,17 @@ dashboard_html_allow_iframes = <boolean>
 * Default: true
 
 dashboard_html_allowed_domains = <string> [, <string>]
-* A comma-separated list of allowed domains for inline iframe element 
+* A comma-separated list of allowed domains for inline iframe element
   source ('<iframe src="<URL>">') attributes in dashboards.
-* If the domain for an <iframe> src attribute is not an allowed 
-  domain, the Simple XML dashboard adds the 'sandbox' attribute to 
-  the <iframe>, which further restricts the content within the <iframe> 
-  by treating it as coming from a unique origin. Simple XML dashboards 
-  will allow <iframe> src attributes by default if the src is the same 
+* If the domain for an <iframe> src attribute is not an allowed
+  domain, the Simple XML dashboard adds the 'sandbox' attribute to
+  the <iframe>, which further restricts the content within the <iframe>
+  by treating it as coming from a unique origin. Simple XML dashboards
+  will allow <iframe> src attributes by default if the src is the same
   hostname and port number as the Splunk Web server's hostname and port number.
 * You can specify these domains as a hostname or an IPV4 address or an IPV6 address.
-* You can configure a hostname as a full name or with a wildcard 
-  to allow for any subdomains. For example, *.example.com would 
+* You can configure a hostname as a full name or with a wildcard
+  to allow for any subdomains. For example, *.example.com would
   allow for any subdomain of example.com as well as example.com itself.
 * You can specify an IPV4 address as an exact address or:
   * You can use an asterisk to specify a wildcard (Example: 192.168.1.*).
@@ -541,7 +541,7 @@ dashboard_html_allowed_domains = <string> [, <string>]
   * Hostname: docs.splunk.com, *.splunk.com
   * IPV4: 127.0.0.1, 127.0.0.*, 127.0-10.0.*, 127.0.0.1:8000
   * IPV6: ::1, [::1]:8000, 2001:db8:abcd:12::, 2001:db8::/32
-* Default: not set 
+* Default: not set
 
 pdfgen_trusted_hosts = <string> [, <string>]
 * A list of trusted hosts for inline image element source ('<image src="<URL>">')
@@ -1127,10 +1127,10 @@ sendStrictTransportSecurityHeader = <boolean>
 * Default: false
 
 includeSubDomains = <boolean>
-* Whether or not the REST interface includes the "includeSubDomains" 
+* Whether or not the REST interface includes the "includeSubDomains"
   directive in the "Strict-Transport-Security" header with all responses
   to requests made over SSL.
-* If set to "true", all subdomains of the current domain name will be 
+* If set to "true", all subdomains of the current domain name will be
   enforced with the same HTTP Strict-Transport-Security (HSTS) policy.
 * Can only be enabled if 'sendStrictTransportSecurityHeader' is set
   to "true".
@@ -1319,7 +1319,7 @@ loginDocumentTitleText = <document_title_text>
 firstTimeLoginMessageOption = [default | custom | none]
 * Controls display of the first time login message of the login page.
 * "default" displays: "If you installed this instance, use the username and password you created at installation.
-   Otherwise, use the username and password that your Splunk administrator gave you. If you've forgotten your 
+   Otherwise, use the username and password that your Splunk administrator gave you. If you've forgotten your
    credentials, contact your Splunk administrator."
 * "none" removes the branding on the first time message of the login page: "".
 * "custom" uses the document title text defined by the firstTimeLoginMessage setting.
@@ -1355,6 +1355,13 @@ simplexml_dashboard_create_version = <string>
 * The Simple XML dashboard version used for newly created Simple XML dashboards.
 * Version must be a valid Simple XML dashboard version of the form 1.x (for example, 1.0).
 * Default: empty string
+
+enable_jQuery2 = <boolean>
+* DEPRECATED.
+* Determines whether or not Splunk Web can use jQuery 2 JavaScript files.
+* A value of "false" means Splunk Web cannot use jQuery 2 JavaScript files.
+* CAUTION: Do not change this setting.
+* Default: true
 
 # The Django bindings component and all associated [framework] settings have been
 # removed. Configuring these settings no longer has any effect, and Splunk Enterprise
@@ -1418,7 +1425,7 @@ skipCSRFProtection = [0 | 1]
 allowRemoteProxy = <boolean>
 * Determines whether or not splunkd lets the exposed REST endpoint be proxied
   to remote nodes using the "remote-proxy" REST endpoint.
-* If set to "true", splunkd will let requests be proxied to remote nodes 
+* If set to "true", splunkd will let requests be proxied to remote nodes
   through the "remote-proxy".
 * If set to "false", splunkd will not let requests be proxied to remote nodes
   through the "remote-proxy".

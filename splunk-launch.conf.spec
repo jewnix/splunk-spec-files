@@ -1,4 +1,4 @@
-#   Version 8.2.5
+#   Version 8.2.6
 
 # splunk-launch.conf contains values used at startup time, by the Splunk
 # command and by Windows services.

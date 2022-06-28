@@ -1,4 +1,4 @@
-#   Version 8.2.4
+#   Version 8.2.5
 #
 # This file contains the available product tours for Splunk onboarding.
 #

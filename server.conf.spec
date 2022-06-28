@@ -1,4 +1,4 @@
-#   Version 8.2.4
+#   Version 8.2.5
 #
 ############################################################################
 # OVERVIEW
@@ -4795,9 +4795,10 @@ storageEngineMigration = <boolean>
     the upgrade process and answering affirmatively when that process 
     prompts you, or after an upgrade by using the
     'splunk migrate kvstore-storage-engine' CLI command.
-  * If it is a part of a search head cluster, you can perform the migration using the
-    '/services/shcluster/captain/kvmigrate/start' REST endpoint.
-* If you set this to "false", you cannot migrate the storage engine.
+  * If the instance is a search head cluster member, this setting is ignored.
+    Perform a migration using the '/services/shcluster/captain/kvmigrate/start'
+    REST endpoint.
+* A value of "false" prevents the storage engine from being migrated on this instance.
 * Default: false
 
 oplogSize = <integer>

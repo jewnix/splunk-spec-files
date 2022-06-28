@@ -1,4 +1,4 @@
-#   Version 8.2.6
+#   Version 9.0.0
 #
 ############################################################################
 # OVERVIEW
@@ -54,28 +54,47 @@ defaultDatabase = <index name>
 * Default: main
 
 bucketMerging = <boolean>
-* This setting is supported only when 'storageType' is "local".
+* This setting is supported on indexer clusters when 'storageType' is "remote" or "local".
+  Standalone indexers support "local" only.
+* The bucket merge task will evaluate and localize remote buckets before merging.
 * Set to true to enable bucket merging service on all indexes
 * You can override this value on a per-index basis.
 * Default: false
 
 bucketMerge.minMergeSizeMB = <unsigned integer>
-* This setting is supported only when 'storageType' is "local".
+* This setting is supported on indexer clusters when 'storageType' is "remote" or "local".
+  Standalone indexers support "local" only.
 * Minimum cumulative bucket sizes to merge.
 * You can override this value on a per-index basis.
 * Default: 750
 
 bucketMerge.maxMergeSizeMB = <unsigned integer>
-* This setting is supported only when 'storageType' is "local".
+* This setting is supported on indexer clusters when 'storageType' is "remote" or "local".
+  Standalone indexers support "local" only.
 * Maximum cumulative bucket sizes to merge.
 * You can override this value on a per-index basis.
 * Default: 1000
 
 bucketMerge.maxMergeTimeSpanSecs = <unsigned integer>
-* This setting is supported only when 'storageType' is "local".
+* This setting is supported on indexer clusters when 'storageType' is "remote" or "local".
+  Standalone indexers support "local" only.
 * Maximum allowed time span, in seconds, between buckets about to be merged.
 * You can override this value on a per-index basis.
 * Default: 7776000 (90 days)
+
+bucketMerge.minMergeCount = <unsigned integer>
+* This setting is supported on indexer clusters when 'storageType' is "remote" or "local".
+  Standalone indexers support "local" only.
+* Minimum number of buckets to merge.
+* You can override this value on a per-index basis.
+* Default: 2
+
+bucketMerge.maxMergeCount = <unsigned integer>
+* This setting is supported on indexer clusters when 'storageType' is "remote" or "local".
+  Standalone indexers support "local" only.
+* Maximum number of buckets to merge.
+* You can override this value on a per-index basis.
+* Default: 24
 
 queryLanguageDefinition = <path to file>
 * DO NOT EDIT THIS SETTING. SERIOUSLY.
@@ -320,7 +339,7 @@ tsidxWritingLevel = [1|2|3|4]
 * Setting tsidxWritingLevel globally is recommended. It can also be set per-index.
 * For deployments that have multi-site index clustering, change the setting AFTER
   all your indexers in the cluster have been upgraded to the latest release.
-* Default: 2
+* Default: 3
 
 hotBucketTimeRefreshInterval = <positive integer>
 * How often each index refreshes the available hot bucket times
@@ -369,6 +388,14 @@ disabled = <boolean>
 * Default: false
 
 deleted = true
+* If present, means that this index has been marked for deletion: if splunkd
+  is running, deletion is in progress; if splunkd is stopped, deletion
+  re-commences on startup.
+* Do NOT manually set, clear, or modify the value of this setting.
+* CAUTION: Seriously: LEAVE THIS SETTING ALONE.
+* No default.
+
+deleteId = <nonnegative integer>
 * If present, means that this index has been marked for deletion: if splunkd
   is running, deletion is in progress; if splunkd is stopped, deletion
   re-commences on startup.
@@ -580,12 +607,11 @@ maxTotalDataSizeMB = <nonnegative integer>
   data in the index.
 * This setting applies only to hot, warm, and cold buckets. It does
   not apply to thawed buckets.
-* CAUTION: This setting takes precedence over other settings like
-  'frozenTimePeriodInSecs' with regard to data retention. If the index
-  grows beyond 'maxTotalDataSizeMB' megabytes before
-  'frozenTimePeriodInSecs' seconds have passed, data could prematurely
-  roll to frozen. As the default policy for rolling data to frozen is
-  deletion, unintended data loss could occur.
+* CAUTION: The 'maxTotalDataSizeMB' size limit can be reached before the time 
+  limit defined in 'frozenTimePeriodInSecs' due to the way bucket time spans 
+  are calculated. When the 'maxTotalDataSizeMB' limit is reached, the buckets 
+  are rolled to frozen. As the default policy for frozen data is deletion, 
+  unintended data loss could occur.
 * Splunkd ignores this setting on remote storage enabled indexes.
 * Highest legal value is 4294967295
 * Default: 500000
@@ -939,10 +965,9 @@ metric.maxHotBuckets = <positive integer> | auto
   buckets. Consequently, when multiple ingestion pipelines are configured, there
   may be multiple hot buckets with events on overlapping time ranges.
 * The highest legal value is 4294967295
-* If you specify "auto", the indexer uses the value set for "maxHotBuckets".
-  For example, if "maxHotBuckets" is also set to "auto", the functional value
-  for metrics.maxHotBuckets is 6. But, if "maxHotBuckets" is set to 10, the
-  functional value for metrics.maxHotBuckets is 10.
+* When set to "auto", this setting will take the defined value from 
+  "maxHotBuckets". If "maxHotBuckets" is also set to "auto", the functional 
+  value for "metric.maxHotBuckets" is 6.
 * This setting applies only to metric indexes.
 * Default: "auto"
 
@@ -1038,7 +1063,7 @@ maxMetaEntries = <nonnegative integer>
 * The maximum number of unique lines in .data files in a bucket, which
   might help to reduce memory consumption
 * If this value is exceeded, a hot bucket is rolled to prevent further increase
-* If your buckets are rolling due to Strings.data hitting this limit, the
+* If your buckets are rolling due to Strings.data reaching this limit, the
   culprit might be the 'punct' field in your data. If you do not use 'punct',
   it might be best to simply disable this (see props.conf.spec)
   * NOTE: since at least 5.0.x, large strings.data from usage of punct are rare.
@@ -1067,7 +1092,7 @@ syncMeta = <boolean>
 serviceMetaPeriod = <positive integer>
 * Defines how frequently, in seconds, that metadata is synced to disk.
 * You might want to set this to a higher value if the sum of your metadata
-  file sizes is larger than many tens of megabytes, to avoid the hit on I/O
+  file sizes is larger than many tens of megabytes, to avoid the negative effect on I/O
   in the indexing fast path.
 * The highest legal value is 4294967295
 * Default: 25
@@ -1201,10 +1226,7 @@ journalCompression = gzip|lz4|zstd
   file of new index buckets.
 * This setting does not have any effect on already created buckets. There is
   no problem searching buckets that are compressed with different algorithms.
-* "zstd" is only supported in Splunk Enterprise version 7.2.x and higher. Do
-  not enable that compression format if you have an indexer cluster where some
-  indexers run an earlier version of Splunk Enterprise.
-* Default: gzip
+* Default: zstd
 
 enableTsidxReduction = <boolean>
 * When set to true, this setting enables tsidx file reduction for event indexes.
@@ -1389,6 +1411,7 @@ hotBucketStreaming.deleteHotsAfterRestart = <boolean>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Default: false
+
 
 #**************************************************************************
 # PER PROVIDER FAMILY OPTIONS
@@ -2007,6 +2030,25 @@ archiver.selfStorageBucketFolder = <string>
 * Optional.
 * If not specified, data is uploaded to the root path in the destination bucket.
 
+archiver.selfStorageDisableMPU = <boolean>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* A value of "true" disables uploading in multiple chunks. Files are uploaded to
+  the destination bucket as a single (large) chunk.
+* Optional.
+* Default: false
+
+archiver.selfStorageEncryption = sse-s3 | none
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies the scheme to use for server-side encryption for Self Storage.
+* A value of sse-s3 enables SSE-S3 server-side encryption mode on Amazon S3 for
+  Self Storage.
+* A value of 'none' disables server-side encryption. Data is stored unencrypted
+  on the Self Storage.
+* Optional.
+* Default: none
+
 #**************************************************************************
 # Dynamic Data Archive lets you move your data from your Splunk Cloud indexes to a
 # storage location. You can configure Splunk Cloud to automatically move the data
@@ -2022,7 +2064,7 @@ archiver.selfStorageBucketFolder = <string>
 #**************************************************************************
 archiver.coldStorageProvider = <string>
 * This feature is supported on Splunk Cloud only.
-  Do not configure this setting in a Splunk Enterprise environment.
+ Do not configure this setting in a Splunk Enterprise environment.
 * Specifies the storage provider for Dynamic Data Archive.
 * Optional. Only required when using Dynamic Data Archive.
 * The only providers currently supported are Glacier and GCSArchive for AWS and GCP, respectively.
@@ -2099,7 +2141,7 @@ storageType = local | remote
 path = <path on server>
 * Required.
 * If storageType is set to its default value of "local":
-  * The 'path' setting points to the location on the file system where al
+  * The 'path' setting points to the location on the file system where all
     indexes that will use this volume reside.
    * This location must not overlap with the location for any other volume
      or index.
@@ -2111,6 +2153,9 @@ path = <path on server>
     * The "remote-location-specifier" is an external system-specific string for
       identifying a location inside the storage system.
     * For Google Cloud Storage, this is specified as "gs://<bucket-name>/path/to/splunk/db"
+    * For Microsoft Azure Blob storage, this is specified
+      as "azure://<container-name>/path/to/splunk/db" Note that "<container-name>"
+      is needed here only if 'remote.azure.container_name' is not set.
 
 maxVolumeDataSizeMB = <positive integer>
 * If set, this setting limits the total size of all databases that reside
@@ -2211,7 +2256,8 @@ remote.s3.auth_region = <string>
   the value from the endpoint URL (for example, "us-west-1").  See the
   description for the remote.s3.endpoint setting.
 * If unset and an authentication region cannot be determined, the request
-  will be signed with an empty region value.
+  will be signed with an empty region value. This can lead to rejected
+  requests when using non-AWS S3-compatible storage.
 * Optional.
 * No default.
 
@@ -2254,6 +2300,13 @@ remote.s3.bucket_name = <string>
 * If neither endpoint nor bucket_name is specified, the bucket is assumed
   to be the first path element.
 * Optional.
+
+remote.s3.tsidx_compression = <boolean>
+* Whether or not the indexer compresses tsidx files before it uploads them to S3.
+  A value of "true" means the indexer compresses tsidx files before it uploads
+  them to S3.
+* Consult Splunk Support before changing this setting.
+* Default: false
 
 remote.s3.multipart_download.part_size = <unsigned integer>
 * Sets the download size of parts during a multipart download.
@@ -2419,9 +2472,9 @@ remote.s3.encryption = sse-s3 | sse-kms | sse-c | cse | none
            Key Management Service (SSE-KMS)" on the Amazon Web Services documentation site.
 * sse-c: Search for "Protecting Data Using Server-Side Encryption with Customer-Provided Encryption
          Keys (SSE-C)" on the Amazon Web Services documentation site.
-* cse:  Currently not supported. This setting is related to a feature that is still under development.
-* none: no server-side encryption enabled. The Splunk platform stores the data unencrypted on the
-  remote volume.
+* cse: Search for "SmartStore client-side encryption" on the Splunk Enterprise documentation site,
+  and "Protecting Data Using Server-Side Encryption with Customer-Provided Encryption Keys (SSE-C)"
+  on the Amazon Web Services documentation site.
 * Optional.
 * Default: none
 
@@ -2535,6 +2588,16 @@ remote.s3.max_download_batch_size = <unsigned integer>
   this value, the indexer downloads the objects in multiple batches.
 * Default: 50
 
+remote.s3.use_sdk = true|false|auto
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies whether to use the AWS C++ SDK or make direct HTTP requests to
+  the S3 or S3-compatible storage endpoint.
+* If auto is specified, the SDK will be used if the storage provider is S3
+  and HTTP requests will be used if the storage provider is not S3, but is
+  S3-compatible.
+* Default: false
+
 federated.provider = <provider_name>
 * Identifies the federated provider on which this search is run.
 * Select the stanza for the federated provider defined in the federated.conf file.
@@ -2543,9 +2606,22 @@ federated.provider = <provider_name>
 federated.dataset = <string>
 * Identifies the dataset located on the federated providers.
 * The dataset takes a format of <prefix>:<remote_name>.
-* Prefix can be an index, datamodel, or a saved search defined on the remote search head.
-* If no <prefix> is defined, default value = index.
-* Default: ""
+* If the 'federated.provider' is a "splunk" type provider:
+  * <prefix> can be "index", "datamodel", or "savedsearch".
+  * <remote_name> is the name of an index, data model, or saved search,
+    depending on the <prefix> value. The dataset must be defined on the remote
+    search head.
+* If the 'federated.provider' is an "aws_s3" type provider:,
+  * <prefix> must be "aws_glue_table".
+  * <remote_name> is the name of an AWS Glue table that is used as a dataset
+    schema.
+    * The AWS Glue table contains metadata which represents data in an S3 data
+      store.
+    * This table is in your AWS Glue catalog if you have set up a dataset with
+      that product.
+* If <prefix> is not defined, <prefix> defaults to 'index'.
+* Default: no default
+
 
 ################################################################
 ##### Google Cloud Storage settings
@@ -2589,8 +2665,9 @@ remote.gs.project_id = <string>
 * Default: Not set.
 
 remote.gs.upload_chunk_size = <unsigned integer>
-* Specifies the maximum size for file chunks in a parallel upload.
-* Specify as bytes
+* Specifies the maximum size, in bytes, for file chunks in a parallel upload.
+* A value of 0 disables uploading in multiple chunks. Files are uploaded
+  as a single (large) chunk.
 * Minimum value: 5242880 (5 MB)
 * Default: 33554432 (32MB)
 
@@ -2694,10 +2771,30 @@ remote.gs.sslVerifyServerCert = <boolean>
 * Default: false.
 
 remote.gs.sslVerifyServerName = <boolean>
-* If set to true, Splunkd verifies that either the Common Name or Subject
-  Alternate Name in the server certificate matches the hostname in the url it
-  connects to.
-* Default: false.
+* Whether or not splunkd, as a client, performs a TLS hostname validation check
+  on an SSL certificate that it receives upon an initial connection
+  to a server.
+* A TLS hostname validation check ensures that a client
+  communicates with the correct server, and has not been redirected to
+  another by a machine-in-the-middle attack, where a malicious party inserts
+  themselves between the client and the target server, and impersonates
+  that server during the session.
+* Specifically, the validation check forces splunkd to verify that either
+  the Common Name or the Subject Alternate Name in the certificate that the
+  server presents to the client matches the host name portion of the URL that
+  the client used to connect to the server.
+* For this setting to have any effect, the 'sslVerifyServerCert' setting must
+  have a value of "true". If it doesn't, TLS hostname validation is not possible
+  because certificate verification is not on.
+* A value of "true" for this setting means that splunkd performs a TLS hostname
+  validation check, in effect, verifying the server's name in the certificate.
+  If that check fails, splunkd terminates the SSL handshake immediately. This terminates
+  the connection between the client and the server. Splunkd logs this failure at
+  the ERROR logging level.
+* A value of "false" means that splunkd does not perform the TLS hostname
+  validation check. If the server presents an otherwise valid certificate, the
+  client-to-server connection proceeds normally.
+* Default: false
 
 remote.gs.sslRootCAPath = <path>
 * Full path to the Certificate Authority (CA) certificate PEM format file
@@ -2757,3 +2854,202 @@ remote.gs.gcp_kms.key = <string>
 * Required if 'remote.gs.encryption' is set to gcp-sse-c or gcp-sse-kms.
 * Specifies the name of the encryption key used for uploading data to GCS.
 * Default: none.
+
+################################################################
+##### Microsoft Azure Storage settings
+################################################################
+
+remote.azure.use_delimiter = <boolean>
+* Specifies whether a delimiter (currently "guidSplunk") should be
+  used to list the objects that are present on the remote storage.
+* A delimiter groups objects that have the same delimiter value
+  so that the listing process can be more efficient as it
+  does not need to report similar objects.
+* Default: true
+
+remote.azure.sslVersions = ssl3|tls1.0|tls1.1|tls1.2
+* Specifies the minimum SSL/TLS version to use for outgoing connections.
+* Default: tls1.2
+
+remote.azure.sslVerifyServerCert = <boolean>
+* If set to true, the indexer cache manager authenticates the certificate of
+  the services it connects to by using the configured CA.
+* Default: false.
+
+remote.azure.sslVerifyServerName = <boolean>
+* Whether or not splunkd, as a client, performs a TLS hostname validation check
+  on an SSL certificate that it receives upon an initial connection
+  to a server.
+* A TLS hostname validation check ensures that a client
+  communicates with the correct server, and has not been redirected to
+  another by a machine-in-the-middle attack, where a malicious party inserts
+  themselves between the client and the target server, and impersonates
+  that server during the session.
+* Specifically, the validation check forces splunkd to verify that either
+  the Common Name or the Subject Alternate Name in the certificate that the
+  server presents to the client matches the host name portion of the URL that
+  the client used to connect to the server.
+* For this setting to have any effect, the 'sslVerifyServerCert' setting must
+  have a value of "true". If it doesn't, TLS hostname validation is not possible
+  because certificate verification is not on.
+* A value of "true" for this setting means that splunkd performs a TLS hostname
+  validation check, in effect, verifying the server's name in the certificate.
+  If that check fails, splunkd terminates the SSL handshake immediately. This terminates
+  the connection between the client and the server. Splunkd logs this failure at
+  the ERROR logging level.
+* A value of "false" means that splunkd does not perform the TLS hostname
+  validation check. If the server presents an otherwise valid certificate, the
+  client-to-server connection proceeds normally.
+* Default: false
+
+remote.azure.httpKeepAlive = <boolean>
+* If set to true, All successful requests to the Microsoft Azure Storage API
+  will keep the connection channel open to the remote storage service
+* Default: true.
+
+remote.azure.access_key = <string>
+* Specifies the access key (storage account name) to use when authenticating 
+  with the remote storage system supporting the Microsoft Azure Storage API.
+* If a value is not specified for the 'remote.azure.endpoint' setting, the 
+  value of this setting is used to construct the remote storage URI. 
+  For example: "https://<remote.azure.access_key>.blob.core.windows.net"
+* No default.
+
+remote.azure.secret_key = <string>
+* Specifies the secret key to use when authenticating with the remote storage
+  system supporting the Microsoft Azure Storage API.
+* No default.
+
+remote.azure.tenant_id = <string>
+* Specifies the ID of the tenant (instance of an Azure AD directory). Check
+  your Azure subscription for details.
+* Needed only for client token-based authentication.
+* No default.
+
+remote.azure.client_id = <string>
+* Specifies the ID of the client (also called application ID - the unique 
+  identifier Azure AD issues to an application registration that identifies a 
+  specific application and the associated configurations).
+  You can obtain the client ID for an application from the Azure Portal in the
+  Overview section for the registered application.
+* Needed only for client token-based authentication.
+* Optional for managed identity authentication.
+* No default.
+
+remote.azure.client_secret = <string>
+* Specifies the secret key to use when authenticating using the client_id. You 
+  generate the secret key through the Azure Portal.
+* Needed only for client token-based authentication.
+* No default.
+
+remote.azure.sslRootCAPath = <path>
+* Full path to the Certificate Authority (CA) certificate PEM format file
+  containing one or more certificates concatenated together. Microsoft Azure
+  Storage and related service certificates will be validated against the CAs
+  in this file.
+* Default: value of [sslConfig]/caCertFile in server.conf
+
+remote.azure.cipherSuite = <cipher suite string>
+* If set, uses the specified cipher string for the SSL connection.
+* If not set, uses the default cipher string.
+* Default: value of [sslConfig]/cipherSuite in server.conf
+
+remote.azure.encryption = azure-sse-kv | azure-sse-ms
+* The encryption scheme to use for containers that are currently being stored.
+* azure-sse-kv: Maps to Azure customer-managed keys in a key vault. See
+  See the Azure documentation for customer-managed keys for Azure Store
+  encryption for details.
+* azure-sse-ms: Maps to Azure Microsoft-managed keys in Microsoft key store.
+  See the Azure documentation for Azure Storage encryption for data at rest for
+  details.
+* Default: azure-sse-ms
+
+remote.azure.azure-sse-kv.encryptionScope = <string>
+* Required if remote.azure.encryption = azure-sse-kv
+* Specifies the key used for encrypting blobs within the scope of this index.
+* No default.
+
+remote.azure.supports_versioning = <boolean>
+* Specifies whether the remote storage supports versioning.
+* Versioning is a means of keeping multiple variants of an object
+  in the same bucket on the remote storage.
+* This setting determines how the indexer cache manager removes data from
+  remote storage.
+  If set to false, the indexer cache manager will delete all versions of
+  objects at time of data removal. Otherwise, if set to false, the indexer
+  cache manager will use a simple DELETE.
+  For more information on Azure versioning, see the Microsoft Azure
+  documentation.
+* Default: true
+
+remote.azure.endpoint = <URL>
+* The URL of the Microsoft Azure Storage endpoint supporting the Azure
+  REST API.
+* The scheme, http or https, can be used to enable or disable SSL
+  connectivity with the endpoint.
+* The value of this setting must point to an Azure Blob storage location, not a
+  container name. the container name should not be specified here but given
+  seperately in either 'remote.azure.container_name' or as part of 'path'
+* Example: https://<account-name>.blob.core.windows.net/
+
+remote.azure.container_name = <string>
+* Specifies the Azure container to use complying with Microsoft Azure
+  Storage Container naming convention. 
+
+remote.azure.upload.chunk_size = <unsigned integer>
+* Specifies the maximum size for file chunks in a parallel upload.
+* Specify as bytes
+* Default: 78643200 (75MB)
+
+remote.azure.upload.concurrency = <unsigned integer>
+* Specifies the number of threads used for a single parallel upload operation.
+* Default: 5
+
+remote.azure.download.chunk_size = <unsigned integer>
+* Specifies the maximum size for file chunks in a parallel download.
+* Specify as bytes
+* Default: 78643200 (75MB)
+
+remote.azure.download.concurrency = <unsigned integer>
+* Specifies the number of threads used for a single parallel download operation.
+* Default: 5
+
+remote.azure.max_download_batch_size = <unsigned integer>
+* The maximum number of objects that can be downloaded in a single batch
+  from remote storage. If the number of objects to be downloaded exceeds
+  this value, the indexer downloads the objects in multiple batches.
+* Default: 50
+
+remote.azure.max_listing_page_size = <unsigned integer>
+* The maximum number of blobs returned in a single list query operation.
+* Default: 1000
+
+remote.azure.retry_policy = max_count
+* Sets the retry policy to use for remote file operations.
+* A retry policy specifies whether and how to retry file operations that fail
+  for those failures that might be intermittent.
+* Retry policies:
+  + "max_count": Imposes a maximum number of times an operation will be
+    retried upon intermittent failure
+* Default: max_count
+
+remote.azure.max_count.max_retries_in_total = <unsigned integer>
+* When the remote.azure.retry_policy setting is max_count, sets the maximum
+  number of times a file operation will be retried upon intermittent failure.
+* The count is maintained for each file as a whole.
+* Optional.
+* Default: 3
+
+remote.azure.backoff.initial_delay_ms = <unsigned integer>
+* If retries are enabled, a backoff interval is used to perform
+  the retries. This interval is doubled on each retry up to the limit set in
+  remote.azure.backoff.max_retry_delay_ms.
+* This setting specifies the delay between each retry, in milliseconds.
+* Default: 4000 (4s)
+
+remote.azure.backoff.max_retry_delay_ms = <unsigned integer>
+* If retries are enabled, a backoff interval is used to perform
+  the retries.
+* This setting specifies the maximum delay before the next retry, in
+  milliseconds
+* Default: 2 * 60 * 1000 (120s)

@@ -1,4 +1,4 @@
-#   Version 8.2.6
+#   Version 9.0.0
 #
 # This file sets the default thresholds for Splunk Enterprise's built
 # in Health Report.
@@ -40,13 +40,44 @@ suppress_status_update_ms = <number>
 * Changes that occur earlier will be suppressed.
 * Default: 300.
 
-latency_tracker_log_interval_sec = <number>
+latency_tracker_log_interval = <number>
 * The amount of time, in seconds, that elapses between each latency tracker log entry.
 * Default: 30.
 
 aggregate_ingestion_latency_health = [0|1]
 * A value of 0 disables the aggregation feature for ingestion latency health reporter.
 * Default: 1 (enabled).
+
+ingestion_latency_send_interval = <integer>
+* The amount of time, in seconds, that splunkd waits before it sends ingestion 
+  latency data as part of a heartbeat message.
+* splunkd determines the actual interval at which it sends this data by factoring
+  the value for 'ingestion_latency_send_interval' with the value for 'heartbeatFrequency' in 
+  the [tcpout] stanza of the outputs.conf file. This is because splunkd uses the
+  tcpout heartbeat to send ingestion latency data, and that it won't send ingestion latency
+  data at a frequency of less than outputs.conf:[tcpout].'heartbeatFrequency' seconds.
+  * If you set 'ingestion_latency_send_interval' to a value that is higher than
+    'heartbeatFrequency', splunkd sends that data
+    only when the number of 'heartbeatFrequency' seconds exceeds the number of
+    'ingestion_latency_send_interval' seconds at each  
+    'ingestion_latency_send_interval'.
+  * For example: if 'ingestion_latency_send_interval' has a value of 75 and
+    'heartbeatFrequency' has a value of 60, splunkd sends the data every
+    120 seconds, because it takes two periods of 'heartbeatFrequency' 
+    seconds before the 'heartbeatFrequency' is greater than the 
+    'ingestion_latency_send_interval'.
+  * Conversely, if you set 'ingestion_latency_send_interval' to a value that is lower than
+    'heartbeatFrequency', splunkd sends that data only when the number of
+    'ingestiona_latency_send_interval' seconds has elapsed.
+  * If, for example, 'ingestion_latency_send_interval' has a value of 30 and
+    'heartbeatFrequency' has a value of 90, splunkd sends the data every
+    90 seconds because of the value of 'heartbeatFrequency', even though you set a
+    'ingestion_latency_send_interval' of 30.
+* Default: 30
+
+ingestion_latency_send_interval_max = <number>
+* The maximum amount of time, in seconds, that elapses between ingestion latency sent as part of heart beat message. Should be in range 0-86400
+* Default: 86400.
 
 alert.disabled = [0|1]
 * A value of 1 disables the alerting feature for health reporter.
@@ -100,6 +131,13 @@ suppress_status_update_ms = <number>
 display_name = <string>
 * A human readable name for the feature.
 
+snooze_end_time = <number>
+* Determines the snooze end time, in seconds since the epoch (Unix time), for this feature.
+  Specifying a value for this setting enables a snooze period that suppresses color changes 
+  for a feature until the <snooze_end_time>.
+* A value of 0 disables snoozing for this feature.
+* Default = 0
+
 alert.disabled = <boolean>
 * Whether or not alerting is disabled for this feature.
 * A value of 1 disables alerting for this feature.
@@ -115,6 +153,15 @@ alert.min_duration_sec = <integer>
 alert.threshold_color = [yellow|red]
 * The health status color to trigger an alert.
 * Default: red.
+
+friendly_description = <string>
+* A general description to help the user determine what functionality is monitored
+  by the heath report indicator.
+
+indicator:<indicator name>:friendly_description = <string>
+* A general description of the technical behavior monitored by the indicator. 
+  Use common terminology that a user can search on to find documentation, 
+  details, or troubleshooting guidance.
 
 indicator:<indicator name>:description = <string>
 * Description of this indicator to help users to make basic decisions such as:

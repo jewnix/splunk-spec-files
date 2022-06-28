@@ -1,9 +1,9 @@
-#   Version 8.2.6
+#   Version 9.0.0
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.
 #
-# There is an authentication.conf file in $SPLUNK_HOME/etc/system/default/.  To
+# There is an authentication.conf file in $SPLUNK_HOME/etc/system/default/. To
 # set custom configurations, place an authentication.conf in
 # $SPLUNK_HOME/etc/system/local/. For examples, see
 # authentication.conf.example. You must restart the Splunk platform to enable
@@ -319,6 +319,7 @@ network_timeout = <integer>
         must be higher than 'timelimit'.
 * Like 'timelimit', if you have a fast connection to your LDAP server,
   lower this value.
+* Maximum value is -1 (unlimited)
 * This setting is optional.
 * Default: 20
 
@@ -344,11 +345,12 @@ ldap_negative_cache_timeout = <nonnegative decimal>
 * Importing groups for the same user from different strategies is not
   supported.
 
-<Splunk RoleName> = <LDAP group string>
-* Maps a Splunk role (from authorize.conf) to LDAP groups
-* This LDAP group list is semicolon delimited (no spaces).
+<Splunk RoleName> = <semicolon-separated list>
+* Maps a Splunk role from the authorize.conf configuration file to one or more LDAP groups.
+* Separate multiple LDAP groups with semicolons, not spaces.
 * List several of these setting/value pairs to map several Splunk roles to
-  LDAP Groups
+  LDAP Groups.
+* LDAP group names are case sensitive.
 
 #####################
 # Scripted authentication
@@ -555,7 +557,7 @@ constantLoginTime = <decimal>
 * This setting helps mitigate login timing attacks. If you want to use the
   setting, test it in your environment first to determine the appropriate
   value.
-* When you configure this setting, login is guaranteed to take at least the
+* When you configure this setting, a login failure is guaranteed to take at least the
   amount of time you specify. The authentication manager
   adds a delay to the actual response time to keep this guarantee.
 * The values can use decimals. "0.025" would make responses take a
@@ -748,16 +750,14 @@ redirectAfterLogoutToUrl = <string>
 defaultRoleIfMissing = <string>
 * If the IdP does not return any AD groups or Splunk roles as a part of the
   assertion, the Splunk platform uses this value if provided.
-* This setting is required when you configure
-  'skipAttributeQueryRequestForUsers'. Otherwise, it is optional.
+* This setting is required when you configure 'skipAttributeQueryRequestForUsers'. Otherwise, it is optional.
 * No default.
 
 skipAttributeQueryRequestForUsers = <comma-separated list of users>
 * To skip attribute query requests being sent to the IdP for certain users,
   add them with this setting.
 * By default, attribute query requests are skipped for local users.
-* If you configure this setting for non-local users, you must also
-  configure 'defaultRoleIfMissing'.
+* If you configure this setting for non-local users, you must also configure 'defaultRoleIfMissing'.
 * No default.
 
 maxAttributeQueryThreads = <integer>
@@ -960,6 +960,32 @@ sslVerifyServerCert = <boolean>
 * If not set, the Splunk platform uses the setting specified in server.conf.
 * This setting is optional.
 * No default.
+
+sslVerifyServerName = <boolean>
+* Whether or not splunkd, as a client, performs a TLS hostname validation check
+  on an SSL certificate that it receives upon an initial connection
+  to a server.
+* A TLS hostname validation check ensures that a client
+  communicates with the correct server, and has not been redirected to
+  another by a machine-in-the-middle attack, where a malicious party inserts
+  themselves between the client and the target server, and impersonates
+  that server during the session.
+* Specifically, the validation check forces splunkd to verify that either
+  the Common Name or the Subject Alternate Name in the certificate that the
+  server presents to the client matches the host name portion of the URL that
+  the client used to connect to the server.
+* For this setting to have any effect, the 'sslVerifyServerCert' setting must
+  have a value of "true". If it doesn't, TLS hostname validation is not possible
+  because certificate verification is not on.
+* A value of "true" for this setting means that splunkd performs a TLS hostname
+  validation check, in effect, verifying the server's name in the certificate.
+  If that check fails, splunkd terminates the SSL handshake immediately. This terminates
+  the connection between the client and the server. Splunkd logs this failure at
+  the ERROR logging level.
+* A value of "false" means that splunkd does not perform the TLS hostname
+  validation check. If the server presents an otherwise valid certificate, the
+  client-to-server connection proceeds normally.
+* Default: false
 
 blacklistedAutoMappedRoles = <comma separated list>
 * DEPRECATED; use 'excludedAutoMappedRoles' instead.
@@ -1275,7 +1301,6 @@ filename = <filename>
   following directories:
     $SPLUNK_HOME/etc/apps/*/bin
     $SPLUNK_HOME/etc/system/bin
-    $SPLUNK_HOME/etc/searchscripts
 * Set <filename> to a basename. Do not user a name with path separators.
 * Ensure <filename> ends with a .py file extension.
 * No default.
@@ -1361,6 +1386,32 @@ sslVerifyServerCert = <boolean>
   checked for a match, if they are specified in this configuration file.
 * A certificate is considered verified if either is matched.
 * This setting is optional.
+* Default: false
+
+sslVerifyServerName = <boolean>
+* Whether or not splunkd, as a client, performs a TLS hostname validation check
+  on an SSL certificate that it receives upon an initial connection
+  to a server.
+* A TLS hostname validation check ensures that a client
+  communicates with the correct server, and has not been redirected to
+  another by a machine-in-the-middle attack, where a malicious party inserts
+  themselves between the client and the target server, and impersonates
+  that server during the session.
+* Specifically, the validation check forces splunkd to verify that either
+  the Common Name or the Subject Alternate Name in the certificate that the
+  server presents to the client matches the host name portion of the URL that
+  the client used to connect to the server.
+* For this setting to have any effect, the 'sslVerifyServerCert' setting must
+  have a value of "true". If it doesn't, TLS hostname validation is not possible
+  because certificate verification is not on.
+* A value of "true" for this setting means that splunkd performs a TLS hostname
+  validation check, in effect, verifying the server's name in the certificate.
+  If that check fails, splunkd terminates the SSL handshake immediately. This terminates
+  the connection between the client and the server. Splunkd logs this failure at
+  the ERROR logging level.
+* A value of "false" means that splunkd does not perform the TLS hostname
+  validation check. If the server presents an otherwise valid certificate, the
+  client-to-server connection proceeds normally.
 * Default: false
 
 sslCommonNameToCheck = <commonName1>, <commonName2>, ...
@@ -1477,6 +1528,32 @@ sslVerifyServerCert = <boolean>
   certificate is considered verified if either is matched.
 * This setting is optional.
 * Default: true
+
+sslVerifyServerName = <boolean>
+* Whether or not splunkd, as a client, performs a TLS hostname validation check
+  on an SSL certificate that it receives upon an initial connection
+  to a server.
+* A TLS hostname validation check ensures that a client
+  communicates with the correct server, and has not been redirected to
+  another by a machine-in-the-middle attack, where a malicious party inserts
+  themselves between the client and the target server, and impersonates
+  that server during the session.
+* Specifically, the validation check forces splunkd to verify that either
+  the Common Name or the Subject Alternate Name in the certificate that the
+  server presents to the client matches the host name portion of the URL that
+  the client used to connect to the server.
+* For this setting to have any effect, the 'sslVerifyServerCert' setting must
+  have a value of "true". If it doesn't, TLS hostname validation is not possible
+  because certificate verification is not on.
+* A value of "true" for this setting means that splunkd performs a TLS hostname
+  validation check, in effect, verifying the server's name in the certificate.
+  If that check fails, splunkd terminates the SSL handshake immediately. This terminates
+  the connection between the client and the server. Splunkd logs this failure at
+  the ERROR logging level.
+* A value of "false" means that splunkd does not perform the TLS hostname
+  validation check. If the server presents an otherwise valid certificate, the
+  client-to-server connection proceeds normally.
+* Default: false
 
 sslCommonNameToCheck = <commonName1>, <commonName2>, ...
 * If this value is set, the Splunk platform limits outbound RSA HTTPS connections

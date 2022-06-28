@@ -1,4 +1,4 @@
-#   Version 8.2.6
+#   Version 9.0.0
 #
 ############################################################################
 # OVERVIEW
@@ -86,6 +86,12 @@ search_assistant = [full|compact|none]
 * Specifies the type of search assistant to use when constructing a search.
 * Default: compact
 
+theme = [enterprise|dark]
+* Specifies the theme for the user.
+* Not all apps used with Splunk Enterprise support the dark theme. If supported, the theme is applied to the UI.
+  Otherwise, the default theme, "enterprise", is applied.
+* Default: enterprise
+
 search_auto_format = <boolean>
 * Specifies if auto-format is enabled in the search input.
 * Default: false
@@ -108,6 +114,18 @@ hideInstrumentationOptInModal = <boolean>
 default_earliest_time = <string>
 default_latest_time = <string>
 * Sets the global default time range across all apps, users, and roles on the search page.
+
+notification_python_3_impact = <string>
+* Flag to enable, disable, or snooze the Python 3 impact notification dialog.
+* Default: true
+
+notification_python_2_removal = <string>
+* Flag to enable, disable, or snooze the Python 2 removal notification.
+* Default: false
+
+notification_noah_upgrade = <string>
+* Flag to enable, disable, or snooze the Noah notification dialog.
+* Default: true
 
 [role_<name>]
 

@@ -1,4 +1,4 @@
-#   Version 8.2.6
+#   Version 9.0.0
 #
 ############################################################################
 # OVERVIEW
@@ -153,6 +153,119 @@ srchFilter = <semicolon-delimited list>
   the 'admin' role does.
 * Default: the Splunk platform does not perform search filtering
 
+fieldFilter-<fieldname> = <option>
+* Use the 'fieldFilter' configuration to apply a field filter to a specific role
+  at search time. This field filter affects the results of searches run by
+  users that have the role. The field filter can remove indexed or default
+  fields from the results, or it can censor values of specific fields when
+  those fields appear in the results.
+  * NOTE: Role-based field filters do not support searches that use generating
+    commands other than the 'search' command.
+* The values available for <option> depend on whether the value of <fieldname>
+  is "_raw" or any other field name.
+  * When the value of <fieldname> is "_raw", <option> is a sed expression.
+    * The sed expression acts on searches to which this filter is applied. The
+      sed expression replaces strings in search results that are matched by a
+      regular expression (s) or transliterates characters found in search
+      results with corresponding characters provided by the sed expression (y).
+      * The syntax for using the sed (s) command to replace strings in search
+        results that are matched by a regular expression is:
+	       s/<regex>/<replacement>/<flags>
+      * <regex> is a PCRE regular expression, which can include capturing
+        groups.
+      * <replacement> is a string that replaces the regular expression match.
+        Use \<n> for back references, where <n> is a single digit.
+      * <flags> can either be "g", to globally replace all matches, or a
+        number to replace a specified number of matches. Other sed flags for
+        the (s) command are not supported.
+    * The syntax for using the sed (y) command to transliterate characters
+      that the Splunk software finds in search results with corresponding
+      characters that you provide is:
+	       y/<source_characters>/<destination_characters>/
+      * The (y) command syntax transliterates the <source_characters> in
+        search results with corresponding <destination_characters> that you
+        provide in the expression.
+      * For example, 'y/abc/def/' replaces 'a' with 'd', 'b' with 'e', and 'c'
+        with 'f'. This expression would change the string 'aaabbc' to
+        'dddeef'.
+      * The lists of <source_characters> and <destination_characters> must
+        contain the same number of characters.
+  * When the value of <fieldname> is any field name other than "_raw", <option>
+    can be [NULL|SHA256|SHA512|<string>].
+    * NULL: If <option> is NULL, the Splunk software removes the <fieldname>
+      from results of searches to which this filter is applied.
+    * SHA256: The Splunk software hashes the <fieldname> value with SHA-256
+      encryption wherever the <fieldname> appears in results of searches to
+      which this filter is applied.
+    * SHA512: The Splunk software hashes the <fieldname> value with SHA-512
+      encryption wherever the <fieldname> appears in results of searches to
+      which this filter is applied.
+    * <string>: The Splunk software replaces the <fieldname> value with the
+      specified <string> wherever the <fieldname> appears in results of
+      searches to which this filter is applied.
+* The Splunk software processes 'fieldFilter' configurations at search time
+  ahead of all other search-time operations that add fields to events,
+  including field extractions.
+  * This means that <fieldname> must be an indexed or default field. Fields
+    that are extracted or added at search time do not exist when 'fieldFilter'
+    configurations are processed.
+* You cannot use wildcards to specify multiple fields for <fieldname>.
+* The following example shows how you can use the 'fieldFilter' configuration
+  to perform operations on fields in searches run by users with a specific role:
+  * At your organization, the indexed field 'user_name' is sensitive for
+    security reasons. You have a role named A, and you want users with the A
+    role to be unable to access the 'user_name' field in their search results.
+    Meanwhile, users with other roles should be able to see 'user_name' fields
+    and values as usual.
+    * If you want to remove the field from the results of searches run by
+      people with role A, apply the following configuration to role A. This
+      configuration provides a NULL value for <option>, which means that
+      'user_name' is removed from the results of searches by people with role A:
+        fieldFilter-user_name = NULL
+    * If you want users with role A to see the 'user_name' field in results,
+      but with censored values, such as 'user_name = XXXX', apply the following
+      configuration to role A:
+        fieldFilter-user_name = XXXX
+* When you specify 'fieldFilter' configurations for a role that is importing
+  other roles (also with 'fieldFilter' configurations), the Splunk software
+  processes 'fieldFilter' configurations for the imported roles before it
+  processes 'fieldFilter' configurations for roles that are importing other
+  roles.
+  * For example, say role A has 'fieldFilter-user_name = YYY' and role B has
+    'fieldFilter-user_name = XXXX'. If role B imports role A, the Splunk
+    software will process the 'fieldFilter' defined for role A first, and
+    then it will process the 'fieldFilter' defined for role B. This means that
+    users with role B always see 'user_name = XXXX' in their results because
+    the role B 'fieldFilter' configuration is processed last.
+* The Splunk software runs each role in an import hierarchy only once. If
+  multiple roles in an import hierarchy apply a 'fieldFilter' configuration to
+  a field, the Splunk software runs them in the order of imported roles to
+  roles that are importing other roles in the import hierarchy, from left to
+  right as listed in 'importRoles'.
+* Do not use the 'fieldFilter' to add new fields. Use calculated fields if you
+  want to add fields at search time.
+* No default.
+
+fieldFilterLimit = [sourcetype::<sourcetype>|host::<host>|source::<source>]
+* Use the 'fieldFilterLimit' configuration to limit the field filters that are
+  specified in a role to events with a specific 'host', 'source', or 'source
+  type'.
+* For example, say role A has this 'fieldFilter' configuration, which
+  censors values of the 'user_name' field in searches run by users with that
+  role:
+     fieldFilter-user_name = xxxx
+  * By itself, 'fieldFilter-user_name' configuration applies to all events with
+    the 'user_name' field.
+  * To apply 'fieldFilter-user_name' only to events that have the 'user_name'
+    field and the "zebra" 'source type', you can add this 'fieldFilterLimit'
+    configuration to role A:
+     fieldFilterLimit = sourcetype::zebra
+* When a 'fieldFilterLimit' setting is associated with a role, it applies to
+  all 'fieldFilter' settings also associated with that role.
+* You can specify only one value. 'fieldFilterLimit' does not support
+  statements that include wildcards or the following operators: AND, OR.
+* No default.
+
 srchTimeWin = <integer>
 * Maximum time range, in seconds, of a search.
 * The Splunk platform applies this search time range limit backwards from the
@@ -176,12 +289,12 @@ srchTimeWin = <integer>
 srchTimeEarliest = <integer>
 * The earliest event time that can be searched, in seconds before the current
   wall clock time.
-* If a user is a member of a role with a 'srchTimeEarliest' limit, or a role 
-  that inherits from other roles with 'srchTimeEarliest' limits, the Splunk 
+* If a user is a member of a role with a 'srchTimeEarliest' limit, or a role
+  that inherits from other roles with 'srchTimeEarliest' limits, the Splunk
   platform applies the least restrictive time limit from the roles to the user.
-  * For example, if a user is a member of role A (srchTimeEarliest = 86400), 
-    and inherits role B (srchTimeEarliest = 3600) and role C 
-    (srchTimeEarliest = -1 (default)), the user gets an effective earliest time 
+  * For example, if a user is a member of role A (srchTimeEarliest = 86400),
+    and inherits role B (srchTimeEarliest = 3600) and role C
+    (srchTimeEarliest = -1 (default)), the user gets an effective earliest time
     limit of 1 day (86400 seconds) ago.
 * When set to '-1', the role does not have a earliest time limit. This
   value can be overidden by the earliest time value of an inherited role.
@@ -204,6 +317,8 @@ srchDiskQuota = <integer>
   not constantly check the quota.
 * Exceeding this quota causes the search to be auto-finalized immediately,
   even if there are results that have not yet been returned.
+* When set to 0, this setting does not limit the amount of disk space that
+  search jobs for a user with the role can use.
 * Default: 100
 
 srchJobsQuota = <integer>
@@ -253,27 +368,22 @@ srchIndexesDefault = <semicolon-separated list>
   represented by "_*".
 * The wildcard character "*" is limited to match either all the non-internal
   indexes or all the internal indexes, but not both at once.
-* If you make any changes in the "Indexes searched by default" Settings panel
-  for a role in Splunk Web, those values take precedence, and any wildcards
-  you specify in this setting are lost.
 * No default.
 
 srchIndexesAllowed = <semicolon-separated list>
 * A list of indexes that this role is allowed to search.
 * Follows the same wildcarding semantics as the 'srchIndexesDefault' setting.
-* If you make any changes in the "Indexes" Settings panel for a role in Splunk Web,
-  those values take precedence, and any wildcards you specify in this setting are lost.
 * No default.
 
 srchIndexesDisallowed = <semicolon-separated list>
 * A list of indexes that this role does not have permission to search on or delete.
 * 'srchIndexesDisallowed' takes precedence over 'srchIndexesAllowed', 'srchIndexesDefault'
-  and 'deleteIndexesAlowed'. If you specify indexes in both this setting and the
+  and 'deleteIndexesAllowed'. If you specify indexes in both this setting and the
   other settings, users will be unable to search on or delete those indexes.
 * Follows the same wildcarding semantics as the 'srchIndexesDefault' setting.
 * If you make any changes in the "Indexes" Settings panel for a role in Splunk Web,
   those values take precedence, and any wildcards you specify in this setting are lost.
-* All search heads and search peers must be running Splunk Enterprise version 
+* All search heads and search peers must be running Splunk Enterprise version
   8.1.0 or higher.
 * No default.
 
@@ -294,7 +404,7 @@ cumulativeSrchJobsQuota = <integer>
   the next largest quota, and so on.
 * In search head clustering environments, this setting takes effect on a
   per-member basis. There is no cluster-wide accounting.
-* When set to 0, this setting does not limit the number of historical search
+* When set to 0, this setting does not limit the number of real-time search
   jobs that can run concurrently across all users with this role.
 * Default: 0
 
@@ -312,12 +422,6 @@ cumulativeRTSrchJobsQuota = <integer>
 * When set to 0, this setting does not limit the number of historical search
   jobs that can run concurrently across all users with this role.
 * Default: 0
-
-federatedProviders = <semicolon-separated list>
-* List of federated providers that the role can access.
-* Allows a user to run federated searches defined in the savedsearches.conf file. This
-* setting must be used in conjunction with fsh_search capability.
-* Defaults to none.
 
 ####
 # Descriptions of Splunk system capabilities.
@@ -347,7 +451,7 @@ expiration = <relative-time-modifier>|never
   expiration, you must set this value to a relative time value.
 * Your account must hold the admin role to update this setting.
 * This setting is optional.
-* Default: never
+* Default: +30d
 
 ephemeralExpiration = <relative-time-modifier>
 * The relative time when an ephemeral authorization token expires.
@@ -395,6 +499,14 @@ disabled = <boolean>
 * Lets a user bypass any Access Control List (ACL) restrictions, similar
   to the way root access in a *nix environment does.
 * the Splunk platform checks this capability when accessing manager pages and objects.
+
+[capability::edit_own_objects]
+* Lets a user edit the knowledge objects or entities for configuration endpoints
+  that they own.
+
+[capability::list_all_objects]
+* Lets a user list all configuration settings for the configuration endpoints.
+* This capability prevents unauthorized access to configuration endpoints.
 
 [capability::edit_tokens_settings]
 * Lets a user access all token auth settings in the system, such as turning the
@@ -489,6 +601,10 @@ disabled = <boolean>
   for master_uri, pass4SymmKey, and so on.
 * Also used by Indexer Discovery admin handlers.
 
+[capability::edit_ingest_rulesets]
+ * Lets a user add, edit, and delete ingest action rule sets
+   through the data/ingest/rulesets endpoint.
+
 [capability::edit_input_defaults]
 * Lets a user change the default hostname for input data through the server
   settings endpoint.
@@ -505,6 +621,10 @@ disabled = <boolean>
 * Lets a user add inputs and edit settings for monitoring files.
 * Also used by the standard inputs endpoint as well as the oneshot input
   endpoint.
+
+[capability::edit_modinput_journald]
+* Lets the user add and edit journald inputs. 
+* This input is not available on Windows.
 
 [capability::edit_modinput_winhostmon]
 * Lets a user add and edit inputs for monitoring Windows host data.
@@ -611,8 +731,12 @@ disabled = <boolean>
 [capability::edit_user]
 * Lets a user create, edit, or remove other users.
 * Also lets a user manage certificates for distributed search.
-* To limit this ability, assign the 'edit_roles_grantable' capability
-  and configure the 'grantableRoles' setting in authorize.conf.
+* To edit the roles of a user, you must hold roles whose combined capabilities
+  either match or exceed the capabilities of the roles that you want to edit
+  for the user.
+* To let users grant additional roles, assign the
+  'edit_roles_grantable' capability and configure the
+  'grantableRoles' setting in authorize.conf.
 	* Example: grantableRoles = role1;role2;role3
 
 [capability::edit_view_html]
@@ -708,6 +832,10 @@ disabled = <boolean>
 * Lets a user view settings for indexer discovery.
 * Used by indexer discovery handlers.
 
+[capability::list_ingest_rulesets]
+* Lets a user view the list of ingest action rule sets
+  through the data/ingest/rulesets endpoint.
+
 [capability::list_inputs]
 * Lets a user view the list of inputs including files, TCP, UDP, scripts, and so on.
 
@@ -790,17 +918,37 @@ disabled = <boolean>
 [capability::run_collect]
 * Lets a user run the 'collect' command.
 
+[capability::run_dump]
+* Lets a user run the 'dump' command.
+
+[capability::run_custom_command]
+* Lets a user run custom search commands.
+
 [capability::run_mcollect]
 * Lets a user run the 'mcollect' and 'meventcollect' commands.
 
 [capability::run_msearch]
 * Lets a user run the 'mpreview' and 'msearch' commands.
 
+[capability::rest_access_server_endpoints]
+* Lets a user run the 'rest' command and access 'services/server/' endpoints.
+
+[capability::run_sendalert]
+* Lets a user run the 'sendalert' command.
+
 [capability::run_debug_commands]
 * Lets a user run debugging commands, for example 'summarize'.
 
 [capability::run_walklex]
 * Lets a user run the 'walklex' command even if they have a role with a search filter.
+
+[capability::run_commands_ignoring_field_filter]
+* Lets a user run commands that return index information even when a
+  'fieldFilter' is configured for that user's role.
+* Some commands can return sensitive index information to which a role
+  with a 'fieldFilter' should not have access.
+* The following commands require this capability for roles configured with a
+  'fieldFilter':  walklex, typeahead, tstats, mstats, mpreview.
 
 [capability::schedule_rtsearch]
 * Lets a user schedule real-time saved searches.
@@ -827,22 +975,14 @@ disabled = <boolean>
 [capability::upload_lookup_files]
 * Lets a user upload files which can be used in conjunction with lookup definitions.
 
+[capability::upload_mmdb_files]
+* Lets a user upload mmdb files, which are used for iplocation searches.
+
 [capability::web_debug]
 * Lets a user access /_bump and /debug/** web debug endpoints.
 
-[capability::fsh_manage]
-* Lets a user in Splunk platform implementations that have enabled Data
-  Fabric Search (DFS) functionality manage the federated search settings.
-* With the federated search settings, users with this role can add federated
-  providers to federated.conf and manage user access to those federated
-  providers through the maintenance of authentication settings.
-* The 'admin' role has this capability enabled by default.
-
-[capability::fsh_search]
-* Lets a user in Splunk platform implementations that have enabled Data Fabric
-  Search (DFS) functionality run federated searches.
-* Lets a user create federated searches in the savedsearches.conf.
-* The 'admin' role has this capability enabled by default.
+[capability::edit_field_filter]
+* Lets a user use an API to update role-based 'fieldFilter' configurations.
 
 [capability::edit_statsd_transforms]
 * Lets a user define regular expressions to extract manipulated dimensions out of
@@ -897,24 +1037,29 @@ disabled = <boolean>
 [capability::edit_kvstore]
 * Lets a user execute KV Store administrative commands through the KV Store REST endpoints.
 
+[capability::list_cascading_plans]
+* Lets a user view the generated knowledge bundle replication plans if the chosen replication
+  policy in distsearch.conf is set to 'cascading'.
+
+[capability::list_remote_output_queue]
+* Lets a user view the configuration details of a configured remote output queue for Splunk Cloud
+  and Splunk Cloud Services(SCS) instances.
+
+[capability::list_remote_input_queue]
+* Lets a user view the configuration details of a configured remote input queue for Splunk Cloud
+  and Splunk Cloud Services(SCS) instances.
+
 [capability::edit_manager_xml]
 * Lets a user create and edit XML views using the /data/ui/manager REST endpoint.
 
-############################################################################
-# Settings used to control commands started by Splunk
-############################################################################
+[capability::merge_buckets]
+* Lets a user merge buckets using cluster-merge-buckets CLI for clustered environments
 
-[commands:user_configurable]
+[capability::read_internal_libraries_settings]
+* Lets a user read the 'quarantined/status' REST endpoint and also view
+  the Internal Libraries Settings page in Splunk Web.
 
-prefix = <path>
-* All non-internal commands started by splunkd are prefixed with this
-  string, allowing for "jailed" command execution.
-* Should be only one word.  In other words, commands are supported, but
-  commands and arguments are not.
-* Applies to commands such as: search scripts, scripted inputs, SSL
-  certificate generation scripts.  (Any commands that are
-  user-configurable).
-* Does not apply to trusted/non-configurable command executions, such as:
-  splunk search, splunk-optimize, gunzip.
-* $SPLUNK_HOME is expanded.
-* No default.
+[capability::edit_web_features]
+* Lets a user write to the '/web-features' REST endpoint.
+
+

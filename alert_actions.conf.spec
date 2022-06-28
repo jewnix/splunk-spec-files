@@ -1,4 +1,4 @@
-#   Version 8.2.6
+#   Version 9.0.0
 #
 ############################################################################
 # OVERVIEW
@@ -38,7 +38,7 @@
 
 maxresults = <integer>
 * The global maximum number of search results sent through alerts.
-* Default: 100
+* Default: 10000
 
 hostname = [protocol]<host>[:<port>]
 * The hostname in the web link (URL) that is sent in alerts.
@@ -211,9 +211,8 @@ escapeCSVNewline = <boolean>
 
 footer.text = <string>
 * Specify an alternate email footer.
-* Default: "If you believe you've received this email in error,
-    please see your Splunk administrator.\r\n\r\nsplunk > the engine
-    for machine data."
+* Default: "If you believe you've received this email in error, please 
+see your Splunk administrator.\\ splunk > the engine for machine data"
 
 format = [table|raw|csv]
 * Specify the format of inline results in the email.
@@ -312,7 +311,7 @@ allow_empty_attachment = <boolean>
   action.  Override it for specific alerts by setting
   'action.email.allow_empty_attachment' for those alerts in
   'savedsearches.conf'.
-* Default: false
+* Default: true
 
 pdfview = <string>
 * The name of the view to send as a PDF file.
@@ -430,6 +429,32 @@ sslVerifyServerCert = <boolean>
 * If set to "true", make sure 'server.conf/[sslConfig]/sslRootCAPath'
   has been set correctly.
 * Used exclusively for the email alert action and the sendemail search command.
+* Default: false
+
+sslVerifyServerName = <boolean>
+* Whether or not splunkd, as a client, performs a TLS hostname validation check
+  on an SSL certificate that it receives upon an initial connection
+  to a server.
+* A TLS hostname validation check ensures that a client
+  communicates with the correct server, and has not been redirected to
+  another by a machine-in-the-middle attack, where a malicious party inserts
+  themselves between the client and the target server, and impersonates
+  that server during the session.
+* Specifically, the validation check forces splunkd to verify that either
+  the Common Name or the Subject Alternate Name in the certificate that the
+  server presents to the client matches the host name portion of the URL that
+  the client used to connect to the server.
+* For this setting to have any effect, the 'sslVerifyServerCert' setting must
+  have a value of "true". If it doesn't, TLS hostname validation is not possible
+  because certificate verification is not on.
+* A value of "true" for this setting means that splunkd performs a TLS hostname
+  validation check, in effect, verifying the server's name in the certificate.
+  If that check fails, splunkd terminates the SSL handshake immediately. This terminates
+  the connection between the client and the server. Splunkd logs this failure at
+  the ERROR logging level.
+* A value of "false" means that splunkd does not perform the TLS hostname
+  validation check. If the server presents an otherwise valid certificate, the
+  client-to-server connection proceeds normally.
 * Default: false
 
 sslCommonNameToCheck = <commonName1>, <commonName2>, ...

@@ -1,4 +1,4 @@
-#   Version 8.2.6
+#   Version 9.0.0
 #
 ############################################################################
 # OVERVIEW
@@ -53,6 +53,8 @@ disabled = <boolean>
 clientName = deploymentClient
 * A name that the deployment server can filter on.
 * This setting takes precedence over DNS names.
+* You can use 'clientName' to filter with, or independently from 
+  the client IP or DNS name.
 * Default: deploymentClient
 
 workingDir = $SPLUNK_HOME/var/run
@@ -160,6 +162,32 @@ sslVerifyServerCert = <boolean>
   A certificate is considered verified if either is matched.
 * Default: The 'sslVerifyServerCert' value in the server.conf file
   [sslConfig] stanza
+
+sslVerifyServerName = <boolean>
+* Whether or not a deployment client (DC) performs a TLS hostname validation check
+  on an SSL certificate that it receives upon an initial connection
+  to a server.
+* A TLS hostname validation check ensures that a client
+  communicates with the correct server, and has not been redirected to
+  another by a machine-in-the-middle attack, where a malicious party inserts
+  themselves between the client and the target server, and impersonates
+  that server during the session.
+* Specifically, the validation check forces the DC to verify that either
+  the Common Name or the Subject Alternate Name in the certificate that the
+  server presents to the client matches the host name portion of the URL that
+  the client used to connect to the server.
+* For this setting to have any effect, the 'sslVerifyServerCert' setting must
+  have a value of "true". If it doesn't, TLS hostname validation is not possible
+  because certificate verification is not on.
+* A value of "true" for this setting means that the DC performs a TLS hostname
+  validation check, in effect, verifying the server's name in the certificate.
+  If that check fails, the DC terminates the SSL handshake immediately. This terminates
+  the connection between the client and the server. Splunkd logs this failure at
+  the ERROR logging level.
+* A value of "false" means that the DC does not perform the TLS hostname
+  validation check. If the server presents an otherwise valid certificate, the
+  client-to-server connection proceeds normally.
+* Default: false
 
 caCertFile = <path>
 * Specifies a full path to a Certificate Authority (ca) certificate(s) PEM

@@ -1,4 +1,4 @@
-#   Version 8.2.6
+#   Version 9.0.0
 #
 ############################################################################
 # OVERVIEW
@@ -9,7 +9,7 @@
 #
 # Each stanza controls different search commands settings.
 #
-# There is a inputs.conf file in the $SPLUNK_HOME/etc/system/default/ directory.
+# There is an inputs.conf file in the $SPLUNK_HOME/etc/system/default/ directory.
 # Never change or copy the configuration files in the default directory.
 # The files in the default directory must remain intact and in their original
 # location.
@@ -18,20 +18,21 @@
 # the $SPLUNK_HOME/etc/system/local/ directory. Then add the specific settings
 # that you want to customize to the local configuration file.
 # For examples, see inputs.conf.example.
-# You must restart the Splunk instance to enable configuration changes.
+#
+# You must restart the Splunk platform instance to enable configuration changes.
 #
 # To learn more about configuration files (including file precedence) see the
 # documentation located at
 # http://docs.splunk.com/Documentation/Splunk/latest/Admin/Aboutconfigurationfiles
 #
-#
+
 ############################################################################
 # GLOBAL SETTINGS
 ############################################################################
 # Use the [default] stanza to define any global settings.
 #   * You can also define global settings outside of any stanza, at the top of
 #     the file.
-#   * Each conf file should have at most one default stanza. If there are
+#   * Each .conf file should have at most one default stanza. If there are
 #     multiple default stanzas, settings are combined. In the case of
 #     multiple definitions of the same setting, the last definition in the
 #     file wins.
@@ -43,8 +44,8 @@
 # The following settings are valid for all input types (except file system
 # change monitor, which is described in a separate section in this file).
 # You must first enter a stanza header in square brackets, specifying the input
-# type. See further down in this file for examples.
-# Then, use any of the following settings.
+# type. See later in this file for examples. Then, use any of the
+# following settings.
 #
 # To specify global settings for Windows Event Log inputs, place them in
 # the [WinEventLog] global stanza as well as the [default] stanza.
@@ -55,13 +56,13 @@ host = <string>
 * The input uses this field during parsing and indexing. It also uses this
   field at search time.
 * As a convenience, the input prepends the chosen string with 'host::'.
-* If set to '$decideOnStartup', sets the field to the hostname of executing
-  machine. This occurs on each splunkd startup.
+* When set to '$decideOnStartup', sets the field to the hostname of executing
+  machine. The hostname is checked and the field set at every splunkd startup.
 * If you run multiple instances of the software on the same machine (hardware
   or virtual machine), choose unique values for 'host' to differentiate
   your data, ex. myhost-sh-1 or myhost-idx-2.
 * Do not put the <string> value in quotes. Use host=foo, not host="foo".
-* If you set 'host' to "$decideOnStartup", you can further control how splunkd
+* When 'host' is set to "$decideOnStartup", you can further control how splunkd
   derives the hostname by using the 'hostnameOption' setting in server.conf.
   * For example, if you want splunkd to use the fully qualified domain
     name for the machine, set "host = $decideOnStartup" in inputs.conf and
@@ -69,19 +70,16 @@ host = <string>
   * More information on hostname options can be found in the server.conf
     specification file.
 * If you remove the 'host' setting from $SPLUNK_HOME/etc/system/local/inputs.conf
-  or remove $SPLUNK_HOME/etc/system/local/inputs.conf, the setting changes to
+  or remove $SPLUNK_HOME/etc/system/local/inputs.conf, the setting reverts to
   "$decideOnStartup". Apps that need a resolved host value should use the
   'host_resolved' property in the response for the REST 'GET' call of the
   input source. This property is set to the hostname of the local Splunk
   instance. It is a read only  property that is not written to inputs.conf.
-* Default: "$decideOnStartup", but at installation time, the setup logic
-  adds the local hostname, as determined by DNS, to the
-  $SPLUNK_HOME/etc/system/local/inputs.conf default stanza, which is the
-  effective default value.
+* Default: "$decideOnStartup"
 
 run_only_one= <boolean>
-* Determines if a scripted or modular input runs on one search head
-  in a SHC.
+* Determines if a scripted or modular inputs runs on one search head
+  in SHC.
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Default: true
@@ -96,7 +94,7 @@ source = <string>
 * Sets the source key/field for events from this input.
 * Detail: Sets the source key initial value. The key is used during
   parsing/indexing, in particular to set the source field during
-  indexing.  It is also the source field used at search time.
+  indexing. It is also the source field used at search time.
 * As a convenience, the chosen string is prepended with 'source::'.
 * Avoid overriding the source key. The input layer provides a more accurate
   string to aid in problem analysis and investigation, recording the file
@@ -122,7 +120,7 @@ sourcetype = <string>
 * No default.
 
 queue = [parsingQueue|indexQueue]
-* Sets the queue where the input processor should deposit the events it reads.
+* Sets the queue where the input processor deposits the events it reads.
 * Set to "parsingQueue" to apply the props.conf file and other parsing rules to
   your data. For more information about the props.conf file and rules
   timestamps and linebreaks, see the props.conf file and the
@@ -148,7 +146,7 @@ _time = <value>
   to their metadata names such as host -> Metadata:Host
 * Defaulting these values is not recommended, and is
   generally only useful as a workaround to other product issues.
-* Defaulting these keys in most cases will override the default behavior of
+* Defaulting these keys in most cases overrides the default behavior of
   input processors, but this behavior is not guaranteed in all cases.
 * Values defaulted here, as with all values provided by inputs, can be
   altered by transforms at parse time.
@@ -157,48 +155,48 @@ _time = <value>
 # This section contains options for routing data using inputs.conf rather than
 # outputs.conf.
 #
-# NOTE: concerning routing via inputs.conf:
+# NOTE: Concerning routing via inputs.conf:
 # This is a simplified set of routing options you can use as data comes in.
 # For more flexible options or details on configuring required or optional
 # settings, see outputs.conf.spec.
 ############################################################################
 
-_TCP_ROUTING = <tcpout_group_name>,<tcpout_group_name>,<tcpout_group_name>, ...
+_TCP_ROUTING = <comma-separated list>
 * A comma-separated list of tcpout group names.
-* This setting lets you selectively forward data to specific indexer(s).
-* Specify the tcpout group that the forwarder should use when forwarding the data.
+* This setting lets you selectively forward data to one or more specific indexers.
+* Specify the tcpout group that the forwarder uses when forwarding the data.
   The tcpout group names are defined in outputs.conf with
   [tcpout:<tcpout_group_name>].
 * To forward data to all tcpout group names that have been defined in
   outputs.conf, set to '*' (asterisk).
-* To forward data from the "_internal" index, you must explicitly set '_TCP_ROUTING'
-  to either "*" or a specific splunktcp target group.
+* To forward data from the "_internal" index, you must explicitly set
+  '_TCP_ROUTING' to either "*" or a specific splunktcp target group.
 * Default: The groups specified in 'defaultGroup' in [tcpout] stanza in
-  outputs.conf file
+  the outputs.conf file
 
-_SYSLOG_ROUTING = <syslog_group_name>,<syslog_group_name>,<syslog_group_name>, ...
+_SYSLOG_ROUTING = <comma-separated list>
 * A comma-separated list of syslog group names.
-* Using this, you can selectively forward the data to specific destinations as
+* Use this setting to selectively forward the data to specific destinations as
   syslog events.
 * Specify the syslog group to use when forwarding the data.
   The syslog group names are defined in outputs.conf with
   [syslog:<syslog_group_name>].
 * The destination host must be configured in outputs.conf, using
   "server=[<ip>|<servername>]:<port>".
-* This setting does not work on a Universal Forwarder.
-* Default: The groups present in "defaultGroup" in the [syslog] stanza in
-  outputs.conf file
+* This setting does not work on a universal forwarder.
+* Default: The groups specified in 'defaultGroup' in the [syslog] stanza in
+  the outputs.conf file
 
 _INDEX_AND_FORWARD_ROUTING = <string>
-* Only has effect if you use the 'selectiveIndexing' feature in outputs.conf.
-* If set for any input stanza, should cause all data coming from that input
+* If set for any input stanza, causes all data coming from that input
   stanza to be labeled with this setting.
 * When 'selectiveIndexing' is in use on a forwarder:
-  * data without this label will not be indexed by that forwarder.
-  * data with this label will be indexed in addition to any forwarding.
+  * Data without this label will not be indexed by that forwarder.
+  * Data with this label will be indexed in addition to any forwarding.
 * This setting does not actually cause data to be forwarded or not forwarded in
   any way, nor does it control where the data is forwarded in multiple-forward
   path cases.
+* Only has effect if you use the 'selectiveIndexing' feature in outputs.conf.
 * Default: not set
 
 ############################################################################
@@ -214,22 +212,22 @@ _INDEX_AND_FORWARD_ROUTING = <string>
 * The preview endpoint returns an error when asked to preview an
   excluded file.
 * The oneshot endpoint and command also returns an error.
-* When a denied file is monitored (monitor:// or batch://),
+* When a denied file is monitored, using monitor:// or batch://,
   the 'filestatus' endpoint shows an error.
 * For fschange with the 'sendFullEvent' option enabled, contents of
   denied files are not indexed.
 
 ############################################################################
-# Valid input types follow, along with their input-specific settings:
+# Input types
 ############################################################################
-
+Valid input stanzas, along with their input-specific settings:
 
 ############################################################################
 # MONITOR:
 ############################################################################
 
 [monitor://<path>]
-* Configures a file monitor input to watch all files in <path>.
+* Configures a file monitor input to watch all files in the <path> you specify.
 * <path> can be an entire directory or a single file.
 * You must specify the input type and then the path, so put three slashes in
   your path if you are starting at the root on *nix systems (to include the
@@ -243,28 +241,29 @@ host_regex = <regular expression>
     * Detail: This feature examines the source key; if source is set
       explicitly in the stanza, that string is matched, not the original
       filename.
-* Specifically, the first group of the regex is used as the host.
-* If the regex fails to match, the default 'host' setting is used.
+* Specifically, the first group of the regular expression (regex) is used
+  as the host.
+* If the regex fails to match, the input uses the default 'host' setting.
 * If 'host_regex' and 'host_segment' are both set, the input ignores 'host_regex'.
 * No default.
 
 host_segment = <integer>
-* If set to N, Splunk software sets the Nth "/"-separated segment of the path
+* If set to N, the Splunk platform sets the Nth "/"-separated segment of the path
   as 'host'.
-    * For example, if host_segment=3 and the path is /logs/servers/host08/abc.txt,
-    the third segment, "host08", is used.
+    * For example, if you set "host_segment = 3" and the path is
+      /logs/servers/host08/abc.txt, the third segment, "host08", is used.
 * If the value is not an integer or is less than 1, the default 'host'
   setting is used.
-* On Windows machines, the drive letter and colon before the backslash DOES NOT
+* On Windows machines, the drive letter and colon before the backslash *does not*
   count as one segment.
-    * For example, if you set host_segment=3 and the monitor path is
+    * For example, if you set "host_segment = 3" and the monitor path is
       D:\logs\servers\host01, Splunk software sets the host as "host01" because
       that is the third segment.
 * No default.
 
 whitelist = <regular expression>
 * If set, files from this input are monitored only if their path matches the
-  specified regex.
+  specified regular expression.
 * Takes precedence over the deprecated '_whitelist' setting, which functions
   the same way.
 * No default.
@@ -278,29 +277,33 @@ blacklist = <regular expression>
   the file is NOT monitored. Deny lists take precedence over allow lists.
 * No default.
 
-Note concerning wildcards and monitor:
+NOTE concerning wildcards and monitor:
 * You can use wildcards to specify your input path for monitored inputs. Use
   "..." for recursive directory matching and "*" for wildcard matching in a
   single directory segment.
-* "..." recurses through directories. This means that /foo/.../bar matches
-  foo/1/bar, foo/1/2/bar, etc.
+* "..." searches recursively through one or more directories. This means that
+  /foo/.../bar matches foo/1/bar, foo/1/2/bar, etc.
 * You can use multiple "..." specifications in a single input path. For
   example: /foo/.../bar/...
 * The asterisk (*) matches anything in a single path segment; unlike "...", it
-  does not recurse. For example, /foo/*/bar matches the files
+  does not search recursively. For example, /foo/*/bar matches the files
   /foo/1/bar, /foo/2/bar, etc. However, it does not match
   /foo/bar or /foo/1/2/bar.
   A second example: /foo/m*r/bar matches /foo/mr/bar, /foo/mir/bar,
   /foo/moor/bar, etc. It does not match /foo/mi/or/bar.
 * You can combine "*" and "..." as needed: foo/.../bar/* matches any file in
   the bar directory within the specified path.
-* A monitor stanza path will interpret regex metacharacters as strings unless
-  they are preceded by the wildcard values "*" or "..." in a prior
+* A monitor stanza path will interpret regular expression metacharacters as
+  strings unless they are preceded by the wildcard values "*" or "..." in a prior
   segment of the path.
+* In the case where multiple unique monitor inputs overlap through the use of
+  wildcards or specific paths defined in the monitor stanza, the Splunk platform
+  processes the files using the monitor stanza that is the closest
+  specific match.
 
 crcSalt = <string>
-* Use this setting to force the input to consume files that have matching CRCs
-  (cyclic redundancy checks).
+* Use this setting to force the input to consume files that have matching CRCs,
+  or cyclic redundancy checks.
     * By default, the input only performs CRC checks against the first 256
       bytes of a file. This behavior prevents the input from indexing the same
       file twice, even though you might have renamed it, as with rolling log
@@ -319,9 +322,9 @@ crcSalt = <string>
 
 initCrcLength = <integer>
 * How much of a file, in bytes, that the input reads before trying to
-  identify whether it is a file that has already been seen. You might want to
-  adjust this if you have many files with common headers (comment headers,
-  long CSV headers, etc) and recurring filenames.
+  identify whether it has already seen the file.
+* You might want to adjust this if you have many files with common
+  headers (comment headers, long CSV headers, etc) and recurring filenames.
 * Cannot be less than 256 or more than 1048576.
 * CAUTION: Improper use of this setting causes data to be re-indexed. You
   might want to consult with Splunk Support before adjusting this value - the
@@ -334,7 +337,7 @@ ignoreOlderThan = <non-negative integer>[s|m|h|d]
   is greater than the value in this setting, Splunk software puts the file
   on the ignore list.
 * Files on the ignore list are not checked again until the Splunk
-  platform restarts, or the file monitoring subsystem is reconfigured.  This
+  platform restarts, or the file monitoring subsystem is reconfigured. This
   is true even if the file becomes newer again at a later time.
   * Reconfigurations occur when changes are made to monitor or batch
     inputs through Splunk Web or the command line.
@@ -363,8 +366,9 @@ ignoreOlderThan = <non-negative integer>[s|m|h|d]
 
 followTail = <boolean>
 * Whether or not the input should skip past current data in a monitored file
-  for a given input stanza. This lets you skip over data in files, and
-  immediately begin indexing current data.
+  for a given input stanza.
+* This setting lets you skip over data in files, and immediately begin indexing
+  current data.
 * If you set to "1", monitoring starts at the end of the file (like
   *nix 'tail -f'). The input does not read any data that exists in
   the file when it is first encountered. The input only reads data that
@@ -381,8 +385,8 @@ followTail = <boolean>
 * Default: 0
 
 alwaysOpenFile = <boolean>
-* Opens a file to check whether it has already been indexed, by skipping the
-  modification time/size checks.
+* Whether or not an input opens a file to check whether it has already
+  been indexed, by skipping the modification time and size checks.
 * Only useful for files that do not update modification time or size.
 * Only known to be needed when monitoring files on Windows, mostly for
   Internet Information Server logs.
@@ -399,6 +403,9 @@ time_before_close = <integer>
 * Default: 3
 
 multiline_event_extra_waittime = <boolean>
+* Whether or not the file monitor input delays sending an event delimiter when
+  it reads a file with multiple-line events, to account for the time it
+  sometimes takes for lines of those events to arrive.
 * By default, the file monitor sends an event delimiter when:
   * It reaches EOF of a file it monitors and
   * The last character it reads is a newline.
@@ -412,17 +419,18 @@ multiline_event_extra_waittime = <boolean>
 recursive = <boolean>
 * Whether or not the input monitors subdirectories that it finds within a
   monitored directory.
-* If you set this setting to "false", the input does not monitor sub-directories
+* A value of "true" means the input monitors sub-directories.
+* A value of "false" means the input does not monitor sub-directories.
 * Default: true
 
 followSymlink = <boolean>
-* Whether or not to follow any symbolic links within a monitored directory.
-* If you set this setting to "false", the input ignores symbolic links
-  that it finds within a monitored directory.
-* If you set the setting to "true", the input follows symbolic links
+* Whether or not the input follows any symbolic links within a monitored directory.
+* A value of "true" means the input follows symbolic links
   and monitors files at the symbolic link destination.
 * Additionally, any allow lists or deny lists that the input stanza defines
   also apply to files at the symbolic link destination.
+* A value of "false" means the input ignores symbolic links
+  that it finds within a monitored directory.
 * Default: true
 
 _whitelist = ...
@@ -440,8 +448,8 @@ _blacklist = ...
 
 Use the 'batch' input for large archives of historic data. If you
 want to continuously monitor a directory or index small archives, use 'monitor'
-(see above). 'batch' reads in the file and indexes it, and then deletes the
-file on disk.
+(see the MONITOR section). 'batch' reads in the file and indexes it, and then
+deletes the file on disk.
 
 [batch://<path>]
 * A one-time, destructive input of files in <path>.
@@ -462,14 +470,16 @@ move_policy = sinkhole
   that you want the data in the monitored directory (and its sub-directories) to
   be deleted after being read and indexed.
 
-host_regex = see MONITOR, above.
-host_segment = see MONITOR, above.
-crcSalt = see MONITOR, above.
-time_before_close = see MONITOR, above.
+host_regex = see the definition in the MONITOR section.
+host_segment = see the definition in the MONITOR section.
+crcSalt = see the definition in the MONITOR section.
+time_before_close = see the definition in the MONITOR section.
 
 log_on_completion = <boolean>
-* When set to false, this setting prevents Splunk software from logging to
-  splunkd.log when it indexes files with this input.
+* Whether or not the Splunk platform writes an entry into the
+  splunkd.log file when it indexes files with this input.
+* When set to "false", this setting prevents the Splunk platform from
+  writing to splunkd.log when it indexes files with this input.
 * Default: true
 
 # 'batch' inputs do not use the following setting:
@@ -480,7 +490,7 @@ followSymlink = <boolean>
   after following a symbolic link out of the monitored directory.
 
 # The following settings work identically as for [monitor::] stanzas,
-# documented above
+# documented previously
 host_regex = <regular expression>
 host_segment = <integer>
 crcSalt = <string>
@@ -492,7 +502,7 @@ time_before_close = <integer>
 
 
 ############################################################################
-# TCP:
+# TCP: Transport Control Protocol (TCP) network inputs
 ############################################################################
 
 [tcp://<remote server>:<port>]
@@ -500,19 +510,21 @@ time_before_close = <integer>
 * If a <remote server> makes a connection to this instance, the input uses this
   stanza to configure itself.
 * If you do not specify <remote server>, this stanza matches all connections
-  on the specified port.
+  on the specified network port.
 * Generates events with source set to "tcp:<port>", for example: tcp:514
-* If you do not specify a sourcetype, generates events with sourcetype
+* If you do not specify a sourcetype, the input generates events with sourcetype
   set to "tcp-raw".
 
 # Additional settings:
 
 connection_host = [ip|dns|none]
-* "ip" sets the host to the IP address of the system sending the data.
-* "dns" sets the host to the reverse DNS entry for the IP address of the system
-  sending the data.
-* "none" leaves the host as specified in inputs.conf, typically the Splunk
-  system hostname.
+* How the network input sets the host field for the events it generates.
+* A value of "ip" sets the host to the IP address of the system sending the data.
+* A value of "dns" sets the host to the reverse DNS entry for the IP address of
+  the system that sends the data. For this to work correctly, set the forward
+  DNS lookup to match the reverse DNS lookup in your DNS configuration.
+* A value of "none" leaves the host as specified in inputs.conf, typically the
+  hostname of the system running Splunk software.
 * Default: dns
 
 queueSize = <integer>[KB|MB|GB]
@@ -520,7 +532,7 @@ queueSize = <integer>[KB|MB|GB]
 * Default: 500KB
 
 persistentQueueSize = <integer>[KB|MB|GB|TB]
-* Maximum size of the persistent queue file.
+* The maximum size of the persistent queue file.
 * Persistent queues can help prevent loss of transient data. For information on
   persistent queues and how the 'queueSize' and 'persistentQueueSize' settings
   interact, search the online documentation for "persistent queues".
@@ -537,27 +549,26 @@ requireHeader = <boolean>
 * Default: false
 
 listenOnIPv6 = [no|yes|only]
-* Whether or not the input listens on IPv4, IPv6, or both
-* Set to 'yes' to listen on both IPv4 and IPv6 protocols.
-* Set to 'only' to listen on only the IPv6 protocol.
+* Whether or not the input listens on IPv4, IPv6, or both protocols.
+* Set to "yes" to listen on both IPv4 and IPv6 protocols.
+* Set to "only" to listen on only the IPv6 protocol.
 * Default: The setting in the [general] stanza of the server.conf file
 
-acceptFrom = <network_acl> ...
-* Lists a set of networks or addresses from which to accept connections.
-* Separate multiple rules with commas or spaces.
-* Each rule can be in one of the following formats:
-    1. A single IPv4 or IPv6 address (examples: "10.1.2.3", "fe80::4a3")
+acceptFrom = <comma- or space-separated list>
+* A list of TCP networks or addresses to accept connections from.
+* Use commas or spaces to separate multiple network rules.
+* The accepted formats for network and address rules are:
+    1. A single IPv4 or IPv6 address (examples: "192.0.2.3", "2001:db8::2:1")
     2. A Classless Inter-Domain Routing (CIDR) block of addresses
-       (examples: "10/8", "192.168.1/24", "fe80:1234/32")
-    3. A DNS name, possibly with a "*" used as a wildcard
-       (examples: "myhost.example.com", "*.splunk.com")
-    4. "*", which matches anything
-* You can also prefix an entry with '!' to cause the rule to reject the
-  connection. The input applies rules in order, and uses the first one that
-  matches.
-  For example, "!10.1/16, *" allows connections from everywhere except
-  the 10.1.*.* network.
-* Default: "*" (accept from anywhere)
+       (examples: "192.0.2/24", "2001:DB8::/32")
+    3. A DNS name. Use "*" as a wildcard.
+       (examples: "myhost.example.com", "*.example.org")
+    4. The wildcard "*" matches anything.
+* A prefix of '!' for an entry sets a rule to deny and reject connections. The ACL
+ applies rules in order, and uses the first matching rule. For example,
+ the rules "!192.0.2/24, *" prevents connections from the 192.0.2/24
+ network, but accepts all other connections.
+* Default: * (accept from anywhere)
 
 rawTcpDoneTimeout = <seconds>
 * The amount of time, in seconds, that a network connection can remain idle
@@ -582,7 +593,7 @@ queueSize = <integer>[KB|MB|GB]
 persistentQueueSize = <integer>[KB|MB|GB|TB]
 requireHeader = <boolean>
 listenOnIPv6 = [no|yes|only]
-acceptFrom = <network_acl> ...
+acceptFrom = <comma- or space-separated list>
 rawTcpDoneTimeout = <integer>
 
 ############################################################################
@@ -615,14 +626,14 @@ enableS2SHeartbeat = <boolean>
   connection.
 * Default: true (heartbeat monitoring enabled)
 
-s2sHeartbeatTimeout = <seconds>
+s2sHeartbeatTimeout = <integer>
 * The amount of time, in seconds, that a receiver waits for heartbeats from
   forwarders that connect to this instance.
 * The receiver closes a forwarder connection if it does not receive
   a heartbeat for 's2sHeartbeatTimeout' seconds.
 * Default: 600 (10 minutes)
 
-inputShutdownTimeout = <seconds>
+inputShutdownTimeout = <integer>
 * The amount of time, in seconds, that a receiver waits before shutting down
   inbound TCP connections after it receives a signal to shut down.
 * Used during shutdown to minimize data loss when forwarders are connected to a
@@ -632,45 +643,30 @@ inputShutdownTimeout = <seconds>
 * If all connections close before the end of the timeout period,
   shutdown proceeds immediately, without waiting for the timeout.
 
-stopAcceptorAfterQBlock = <seconds>
-* Specifies the time, in seconds, to wait before closing the splunktcp port.
+stopAcceptorAfterQBlock = <integer>
+* The amount of time, in seconds, to wait before closing the splunktcp port.
 * If the receiver is unable to insert received data into the configured queue
   for more than the specified number of seconds, it closes the splunktcp port.
 * This action prevents forwarders from establishing new connections to this
   receiver.
 * Forwarders that have an existing connection will notice the port is closed
   upon test-connections and move to other receivers.
-* Once the queue unblocks, and TCP Input can continue processing data, the
+* After the queue unblocks, and the TCP input can continue processing data, the
   receiver starts listening on the port again.
 * This setting should not be adjusted lightly as extreme values can interact
   poorly with other defaults.
-* Note: If there are multiple tcp/splunktcp listener ports configured,
-  all listening ports will be shutdown regardless of whether other queues are
+* NOTE: If there are multiple tcp/splunktcp listener ports configured,
+  all listening ports will be shut down regardless of whether other queues are
   blocked or not.
 * Default: 300 (5 minutes)
 
 listenOnIPv6 = no|yes|only
-* Select whether this receiver listens on IPv4, IPv6, or both protocols.
-* Set this to 'yes' to listen on both IPv4 and IPv6 protocols.
-* Set to 'only' to listen on only the IPv6 protocol.
-* If not present, the input uses the setting in the [general] stanza
-  of server.conf.
+* See the description for this setting in the [tcp://<remote server>:<port>]
+  stanza.
 
-acceptFrom = <network_acl> ...
-* Lists a set of networks or IP addresses from which to accept connections.
-* Specify multiple rules with commas or spaces.
-* Each rule can be in the following forms:
-    1. A single IPv4 or IPv6 address (examples: "10.1.2.3", "fe80::4a3")
-    2. A CIDR block of addresses (examples: "10/8", "fe80:1234/32")
-    3. A DNS name, possibly with a "*" used as a wildcard (examples:
-       "myhost.example.com", "*.splunk.com")
-    4. "*", which matches anything.
-* You can also prefix an entry with '!' to cause the rule to reject the
-  connection.
-* The input applies rules in order, and uses the first one that matches.
-  For example, "!10.1/16, *" allows connections from everywhere
-  except the 10.1.*.* network.
-* Default: "*" (accept from anywhere)
+acceptFrom = <comma- or space-separated list>
+* See the description for this setting in the [tcp://<remote server>:<port>]
+  stanza.
 
 negotiateProtocolLevel = <unsigned integer>
 * If set, lets forwarders that connect to this receiver (or specific port)
@@ -683,9 +679,9 @@ negotiateProtocolLevel = <unsigned integer>
 * Default (if 'negotiateNewProtocol' is not "true"): 0
 
 negotiateNewProtocol = <boolean>
-* Controls the default configuration of the 'negotiateProtocolLevel' setting.
 * DEPRECATED.
-* Use the 'negotiateProtocolLevel' instead.
+* Use the 'negotiateProtocolLevel' setting instead.
+* Controls the default configuration of the 'negotiateProtocolLevel' setting.
 * Default: true
 
 concurrentChannelLimit = <unsigned integer>
@@ -706,9 +702,9 @@ concurrentChannelLimit = <unsigned integer>
 * Receivers use this input stanza.
 * This is the same as the [tcp://] stanza, except the remote server is assumed
   to be a Splunk instance, most likely a forwarder.
-* <remote server> is optional. If you specify it, the receiver only listen for
+* <remote server> is optional. If you specify it, the receiver listens only for
   data from <remote server>.
-  * Use of <remote server is not recommended. Use the 'acceptFrom' setting,
+  * Use of <remote server> is not recommended. Use the 'acceptFrom' setting,
     which supersedes this setting.
 
 connection_host = [ip|dns|none]
@@ -717,7 +713,8 @@ connection_host = [ip|dns|none]
   "<host>::<localhost>".
 * "ip" sets the host to the IP address of the system sending the data.
 * "dns" sets the host to the reverse DNS entry for IP address of the system
-  sending the data.
+  that sends the data. For this to work correctly, set the forward DNS lookup
+  to match the reverse DNS lookup in your DNS configuration.
 * "none" leaves the host as specified in inputs.conf, typically the Splunk
   system hostname.
 * Default: ip
@@ -726,11 +723,11 @@ compressed = <boolean>
 * Whether or not the receiver communicates with the forwarder in
   compressed format.
 * Applies to non-Secure Sockets Layer (SSL) receiving only. There is no
-  compression  setting required for SSL.
-* If set to "true", the receiver communicates with the forwarder in
+  compression setting required for SSL.
+* A value of "true" means the receiver communicates with the forwarder in
   compressed format.
 * If set to "true", there is no longer a requirement to also set
-  "compressed = true"  in the outputs.conf file on the forwarder.
+  "compressed = true" in the outputs.conf file on the forwarder.
 * Default: false
 
 enableS2SHeartbeat = <boolean>
@@ -766,7 +763,7 @@ concurrentChannelLimit = <unsigned integer>
 
 [splunktcp:<port>]
 * This input stanza is the same as [splunktcp://[<remote server>]:<port>], but
-  accepts connections from any server.
+  the input accepts connections from any server.
 * See the online documentation for [splunktcp://[<remote server>]:<port>] for
   more information on the following supported settings:
 
@@ -794,7 +791,7 @@ concurrentChannelLimit = <unsigned integer>
   * For example, 'A843001F-B2B5-4F94-847D-D07802685BB2'
 
 token = <string>
-* Value of the token.
+* The value of the token.
 * Must be in the format NNNNNNNN-NNNN-NNNN-NNNN-NNNNNNNNNNNN. Failure to
   use this string format results in the token being ignored.
 
@@ -814,13 +811,7 @@ token = <string>
   'compressed' setting from forwarders.
 
 connection_host = [ip|dns|none]
-* For splunktcp, the host or connection_host is used if the remote Splunk
-  instance does not set a host, or if the host is set to "<host>::<localhost>".
-* "ip" sets the host to the IP address of the system sending the data.
-* "dns" sets the host to the reverse DNS entry for IP address of the system
-  sending the data.
-* "none" leaves the host as specified in inputs.conf, typically the Splunk
-  system hostname.
+* See the description for this setting in the [splunktcp:<port>] stanza.
 * Default: ip
 
 compressed = <boolean>
@@ -838,20 +829,9 @@ listenOnIPv6 = [no|yes|only]
 * Set to "only" to listen on only the IPv6 protocol.
 * Default: The setting in the [general] stanza of the server.conf file
 
-acceptFrom = <network_acl> ...
-* Lists a set of networks or IP addresses from which to accept connections.
-* Specify multiple rules with commas or spaces.
-* Each rule can be in the following forms:
-    1. A single IPv4 or IPv6 address (examples: "10.1.2.3", "fe80::4a3")
-    2. A CIDR block of addresses (examples: "10/8", "fe80:1234/32")
-    3. A DNS name, possibly with a "*" used as a wildcard (examples:
-       "myhost.example.com", "*.splunk.com")
-    4. "*", which matches anything.
-* You can also prefix an entry with '!' to cause the rule to reject the
-  connection. The input applies rules in order, and uses the first one that
-  matches. For example, "!10.1/16, *" allows connections from everywhere except
-  the 10.1.*.* network.
-* Default: "*" (accept from anywhere)
+acceptFrom = <comma- or space-separated list>
+* See the description for this setting in the [tcp://<remote server>:<port>]
+  stanza.
 
 negotiateProtocolLevel = <unsigned integer>
 * See the description for this setting in the [splunktcp] stanza.
@@ -867,13 +847,13 @@ concurrentChannelLimit = <unsigned integer>
 # Specify any ssl setting that deviates from the global setting here.
 # For a detailed description of each ssl setting, refer to the [SSL] stanza.
 
-serverCert = <path>
-sslPassword = <password>
+serverCert = <string>
+sslPassword = <string>
 requireClientCert = <boolean>
 sslVersions = <string>
 cipherSuite = <cipher suite string>
 ecdhCurves = <comma separated list of ec curves>
-dhFile = <path>
+dhFile = <string>
 allowSslRenegotiation = <boolean>
 sslQuietShutdown = <boolean>
 sslCommonNameToCheck = <commonName1>, <commonName2>, ...
@@ -886,12 +866,12 @@ useSSLCompression = <boolean>
 * Set <port> to the port on which the forwarder/third-party system is sending
   unparsed, encrypted data.
 * To create multiple SSL inputs, you can add the following attributes to each
-[tcp-ssl:<port>] input stanza. If you do not configure a certificate in the
-port, the certificate information is pulled from the default [SSL] stanza:
+  [tcp-ssl:<port>] input stanza. If you do not configure a certificate in the
+  port, the certificate information is pulled from the default [SSL] stanza:
   * serverCert = <path_to_cert>
   * sslRootCAPath = <path_to_cert> Only add this setting if you
     have not configured the 'sslRootCAPath' setting in server.conf.
-  * sslPassword = <password>
+  * sslPassword = <string>
 
 listenOnIPv6 = [no|yes|only]
 * Select whether the receiver listens on IPv4, IPv6, or both protocols.
@@ -900,52 +880,45 @@ listenOnIPv6 = [no|yes|only]
 * If not present, the receiver uses the setting in the [general] stanza
   of server.conf.
 
-acceptFrom = <network_acl> ...
-* Lists a set of networks or IP addresses from which to accept connections.
-* Specify multiple rules with commas or spaces.
-* Each rule can be in the following forms:
-    1. A single IPv4 or IPv6 address (examples: "10.1.2.3", "fe80::4a3")
-    2. A CIDR block of addresses (examples: "10/8", "fe80:1234/32")
-    3. A DNS name, possibly with a '*' used as a wildcard (examples:
-       "myhost.example.com", "*.splunk.com")
-    4. A single '*', which matches anything.
-* You can also prefix an entry with '!' to cause the rule to reject the
-  connection. The input applies rules in order, and uses the first one that
-  matches. For example, "!10.1/16, *" allows connections from everywhere except
-  the 10.1.*.* network.
+acceptFrom = <comma- or space-separated list>
+* See the description for this setting in the [tcp://<remote server>:<port>]
+  stanza.
 * Default: "*" (accept from anywhere)
 
-# To specify global ssl settings, that are applicable for all ports, add the
+# To specify global SSL settings, that are applicable for all ports, add the
 # settings to the SSL stanza.
-# Specify any ssl setting that deviates from the global setting here.
+# Specify any SSL setting that deviates from the global setting here.
 # For a detailed description of each ssl setting, refer to the [SSL] stanza.
 
-serverCert = <path>
-sslPassword = <password>
+serverCert = <string>
+sslPassword = <string>
 requireClientCert = <boolean>
 sslVersions = <string>
 cipherSuite = <cipher suite string>
 ecdhCurves = <comma separated list of ec curves>
-dhFile = <path>
+dhFile = <string>
 allowSslRenegotiation = <boolean>
 sslQuietShutdown = <boolean>
 sslCommonNameToCheck = <commonName1>, <commonName2>, ...
 sslAltNameToCheck = <alternateName1>, <alternateName2>, ...
 useSSLCompression = <boolean>
 
+############################################################################
+# SSL:
+############################################################################
 [SSL]
-* Set the following specifications for receiving Secure Sockets Layer (SSL)
-  communication underneath this stanza name.
+* Set the global specifications for receiving Secure Sockets Layer (SSL)
+ communication underneath this stanza name.
 
-serverCert = <path>
-* The full path to the server certificate Privacy-Enhanced Mail (PEM)
-  format file.
+serverCert = <string>
+* The full path to the server certificate file.
+* This file must be a Privacy-Enhanced Mail (PEM) format file.
 * PEM is the most common text-based storage format for SSL certificate files.
 * No default.
 
 sslPassword = <string>
 * The server certificate password, if it exists.
-* Initially set to plain-text password.
+* Set this to a plain-text password initially.
 * Upon first use, the input encrypts and rewrites the password to
   $SPLUNK_HOME/etc/system/local/inputs.conf.
 
@@ -953,21 +926,22 @@ password = <string>
 * DEPRECATED.
 * Do not use this setting. Use the 'sslPassword' setting instead.
 
-rootCA = <path>
+rootCA = <string>
 * DEPRECATED.
 * Do not use this setting. Use 'server.conf/[sslConfig]/sslRootCAPath' instead.
 * Used only if 'sslRootCAPath' is not set.
-* The <path> must refer to a PEM format file containing one or more root CA
-  certificates concatenated together.
+* The path must refer to a PEM format file that contains one or more root CA
+  certificates that have been concatenated together.
 
 requireClientCert = <boolean>
-* Determines whether a client must present an SSL certificate to authenticate.
-* Default: false (if using self-signed and third-party certificates)
-* Default: true (if using the default certificates, overrides the existing
-  "false" setting)
+* Whether or not a client must present an SSL certificate to authenticate.
+* A value of "true" means that clients must present a certificate to authenticate.
+* Default (if using self-signed and third-party certificates): false
+* Default (if using the default certificates; overrides the existing
+  "false" setting): true
 
-sslVersions = <string>
-* A comma-separated list of SSL versions to support.
+sslVersions = <comma-separated list>
+* A list of SSL versions to support.
 * The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2"
 * The special version "*" selects all supported versions. The version "tls"
   selects all versions that begin with "tls".
@@ -984,7 +958,7 @@ supportSSLV3Only = <boolean>
 * SSLv2 is now always disabled.
 * Use the 'sslVersions' setting to set the list of supported SSL versions.
 
-cipherSuite = <cipher suite string>
+cipherSuite = <string>
 * If set, uses the specified cipher string for the input processors.
 * Must specify 'dhFile' to enable any Diffie-Hellman ciphers.
 * The default can vary. See the 'cipherSuite' setting in
@@ -1016,21 +990,22 @@ ecdhCurves = <comma-separated list>
 * The default can vary. See the 'ecdhCurves' setting in
   $SPLUNK_HOME/etc/system/default/inputs.conf for the current default.
 
-dhFile = <path>
+dhFile = <string>
 * Full path to the Diffie-Hellman parameter file.
 * DH group size should be no less than 2048 bits.
 * This file is required in order to enable any Diffie-Hellman ciphers.
 * No default.
 
-dhfile = <path>
+dhfile = <string>
 * DEPRECATED.
 * Use the 'dhFile' setting instead.
+* Yes, the setting name is case-sensitive.
 
 allowSslRenegotiation = <boolean>
 * Whether or not to let SSL clients renegotiate their connections.
 * In the SSL protocol, a client might request renegotiation of the connection
   settings from time to time.
-* Setting this to false causes the server to reject all renegotiation
+* A value of "false" means the server rejects all renegotiation
   attempts, which breaks the connection.
 * This limits the amount of CPU a single TCP connection can use, but it can
   cause connectivity problems, especially for long-lived connections.
@@ -1040,29 +1015,86 @@ sslQuietShutdown = <boolean>
 * Enables quiet shutdown mode in SSL.
 * Default: false
 
+logCertificateData = <boolean>
+* Whether or not the Splunk platform logs certificate data for
+  Transport Layer Security (TLS) certificates.
+* The certificate data logs provide visibility into the certificates
+  in use for the Splunk-to-Splunk (S2S) channel. The logs collect data such
+  as common name (CN), issuer name, SHA256 fingerprint, serial number, and
+  validity dates.
+* A value of "true" means that splunkd generates logs for TLS certificates.
+* Refer to the 'certLogRepeatFrequency' setting for additional constraints on
+  when the Splunk platform logs certificate data. 
+* Default: true
+
+certLogMaxCacheEntries = <integer>
+* The size of the cache for tracking certificate entries.
+* The cache keeps track of the certificates for a time period of
+  'certLogRepeatFrequency' to avoid generating duplicate logs.
+* If the cache fills before the 'certLogRepeatFrequency' period elapses, the
+  cache removes the entry with the oldest access time to make space.
+* Update this setting as per the number of forwarders that are
+  sending data to indexers. If the number of forwarders is larger than the
+  cache size, some of the certificates might generate duplicate logs
+  even though the previous log was within the 'certLogRepeatFrequency' period.
+* When you restart Splunk Enterprise, the cache resets and the timer starts over.
+* This setting takes effect only when 'logCertificateData' has a value of 'true'.
+* Default: 10000
+
+certLogRepeatFrequency = <timespan>
+* The interval between writing repeat entries into the certificate data
+  log for a certain certificate.
+* This setting helps reduce certificate data log size by providing control
+  over how often to log certificate data.
+* When the Splunk platform receives a certificate the first time in a TLS
+  connection, it adds the certificate to a cache. Subsequent connections
+  with the same certificate won't generate a new entry to the log until
+  a period of 'certLogRepeatFrequency' has passed. After this amount of
+  time elapses, splunkd resets the log timestamp and writes another
+  certificate log entry.
+* The Splunk platform enforces this setting as long as the size of the cache
+  does not reach 'certLogMaxCacheEntries'. When there are more than
+  'certLogMaxCacheEntries', the cache removes the entry with the oldest
+  access time to make space.
+* When you restart Splunk Enterprise, the cache resets and the timer starts over.
+* This setting takes effect only when 'logCertificateData' has a value of 'true'.
+* A value of "0" means that the platform logs certificate data every time
+  it receives a certificate.
+* Default: 1d
+
 sslCommonNameToCheck = <comma-separated list>
 * Checks the common name of the client certificate against this list of names.
 * If there is no match, assumes that the Splunk instance is not authenticated
   against this server.
-* This setting is optional.
 * For this setting to work, you must also set 'requireClientCert' to "true".
+* This setting is optional.
 * Default: empty string (no common name checking)
 
 sslAltNameToCheck = <comma-separated list>
 * Checks the alternate name of the client certificate against this list of names.
 * If there is no match, assumes that the Splunk instance is not authenticated
   against this server.
-* This setting is optional.
 * For this setting to work, you must also set 'requireClientCert' to "true".
+* This setting is optional.
 * Default: empty string (no alternate name checking)
 
 useSSLCompression = <boolean>
-* If set to "true", the server allows forwarders to negotiate
+* Whether or not the server lets forwarders that connect to it negotiate SSL-
+  layer data compression.
+* A value of "true" means the server lets forwarders negotiate
   SSL-layer data compression.
 * Default: The value of 'server.conf/[sslConfig]/allowSslCompression'
 
+sslServerHandshakeTimeout = <integer>
+* The timeout, in seconds, for an SSL handshake to complete between
+  forwarder and the TCP input processor.
+* If the TCP input processor does not receive a "Client Hello" from the forwarder
+  within 'sslServerHandshakeTimeout' seconds, the server terminates
+  the connection.
+* Default: 60
+
 ############################################################################
-# UDP:
+# UDP (User Datagram Protocol network input):
 ############################################################################
 
 [udp://<remote server>:<port>]
@@ -1085,7 +1117,8 @@ useSSLCompression = <boolean>
 connection_host = [ip|dns|none]
 * "ip" sets the host to the IP address of the system sending the data.
 * "dns" sets the host to the reverse DNS entry for IP address of the system
-  sending the data.
+  that sends the data. For this to work correctly, set the forward DNS lookup
+  to match the reverse DNS lookup in your DNS configuration.
 * "none" leaves the host as specified in inputs.conf, typically the Splunk
   system hostname.
 * If the input is configured with a 'sourcetype' that has a transform that
@@ -1105,25 +1138,25 @@ _rcvbuf = <integer>
 no_priority_stripping = <boolean>
 * Whether or not the input strips <priority> syslog fields from events it
   receives over the syslog input.
-* If you set this setting to true, the instance does NOT strip the <priority>
+* A value of "true" means the instance does NOT strip the <priority>
   syslog field from received events.
 * NOTE: Do NOT set this setting if you want to strip <priority>.
 * Default: false
 
 no_appending_timestamp = <boolean>
 * Whether or not to append a timestamp and host to received events.
-* If you set this setting to true, the instance does NOT append a timestamp
+* A value of "true" means the instance does NOT append a timestamp
   and host to received events.
 * NOTE: Do NOT set this setting if you want to append timestamp and host
   to received events.
 * Default: false
 
 queueSize = <integer>[KB|MB|GB]
-* Maximum size of the in-memory input queue.
+* The maximum size of the in-memory input queue.
 * Default: 500KB
 
 persistentQueueSize = <integer>[KB|MB|GB|TB]
-* Maximum size of the persistent queue file.
+* The maximum size of the persistent queue file.
 * Persistent queues can help prevent loss of transient data. For information on
   persistent queues and how the 'queueSize' and 'persistentQueueSize' settings
   interact, search the online documentation for "persistent queues"..
@@ -1133,27 +1166,16 @@ persistentQueueSize = <integer>[KB|MB|GB|TB]
   server.conf).
 * Default: 0 (no persistent queue)
 
-listenOnIPv6 = <no | yes | only>
+listenOnIPv6 = [no|yes|only]
 * Select whether the instance listens on the IPv4, IPv6, or both protocols.
 * Set this to 'yes' to listen on both IPv4 and IPv6 protocols.
 * Set to 'only' to listen on only the IPv6 protocol.
 * If not present, the input uses the setting in the [general] stanza
   of server.conf.
 
-acceptFrom = <network_acl> ...
-* Lists a set of networks or IP addresses from which to accept connections.
-* Specify multiple rules with commas or spaces.
-* Each rule can be in the following forms:
-    1. A single IPv4 or IPv6 address (examples: "10.1.2.3", "fe80::4a3")
-    2. A CIDR block of addresses (examples: "10/8", "fe80:1234/32")
-    3. A DNS name, possibly with a "*"" used as a wildcard (examples:
-       "myhost.example.com", "*.splunk.com")
-    4. "*", which matches anything.
-* You can also prefix an entry with '!' to cause the rule to reject the
-  connection. The input applies rules in order, and uses the first one that
-  matches.
-  For example, "!10.1/16, *" allows connections from everywhere except
-  the 10.1.*.* network.
+acceptFrom = <comma- or space-separated list>
+* See the description for this setting in the [tcp://<remote server>:<port>]
+  stanza.
 * Default: "*" (accept from anywhere)
 
 [udp:<port>]
@@ -1169,7 +1191,7 @@ no_appending_timestamp = <boolean>
 queueSize = <integer>[KB|MB|GB]
 persistentQueueSize = <integer>[KB|MB|GB|TB]
 listenOnIPv6 = <no | yes | only>
-acceptFrom = <network_acl> ...
+acceptFrom = <comma- or space-separated list>
 
 ############################################################################
 # FIFO (First In, First Out queue):
@@ -1198,23 +1220,25 @@ persistentQueueSize = <integer>[KB|MB|GB|TB]
 ############################################################################
 
 [script://<cmd>]
-* Runs <cmd> at a configured interval (see below) and indexes the output
+* Runs <cmd> at a configured interval and indexes the output
   that <cmd> returns.
+* To determine the interval at which the input runs <cmd>,
+  use the 'interval' setting.
 * The <cmd> must reside in one of the following directories:
   * $SPLUNK_HOME/etc/system/bin/
-  * $SPLUNK_HOME/etc/apps/$YOUR_APP/bin/
+  * $SPLUNK_HOME/etc/apps/$<APPNAME>/bin/
   * $SPLUNK_HOME/bin/scripts/
 * The path to <cmd> can be an absolute path, make use of an environment
   variable such as $SPLUNK_HOME, or use the special pattern of an initial '.'
   as the first directory to indicate a location inside the current app.
   For more scripted input examples, search the documentation for
- "Add a scripted input with inputs.conf."
+  "Add a scripted input with inputs.conf."
 * <cmd> can also be a path to a file that ends with a ".path" suffix. A file
   with this suffix is a special type of pointer file that points to a command
   to be run. Although the pointer file is bound by the same location
-  restrictions mentioned above, the command referenced inside it can reside
-  anywhere on the file system. The .path file must contain exactly one line:
-  the path to the command to run, optionally followed by command-line
+  restrictions mentioned previously, the command referenced inside it can
+  reside anywhere on the file system. The .path file must contain exactly
+  one line: the path to the command to run, optionally followed by command-line
   arguments. The file can contain additional empty lines and lines that begin
   with '#'. The input ignores these lines.
 
@@ -1230,20 +1254,20 @@ interval = [<decimal>|<cron schedule>]
   of values, and step values.
 * The cron implementation for data inputs does not currently support names
   of months or days.
-* The special value 0 forces this scripted input to be run continuously.
+* The special value "0" forces this scripted input to be run continuously.
   As soon as the script exits, the input restarts it.
-* The special value -1 causes the scripted input to run once on start-up.
+* The special value "-1" causes the scripted input to run once on start-up.
 * NOTE: when you specify a cron schedule, the input does not run the
   script on start-up.
 * Default: 60.0
 
-passAuth = <username>
-* User to run the script as.
+passAuth = <string>
+* The user to run the script as.
 * If you provide a username, the instance generates an auth token for that
-  user and passes it to the script through stdin.
+  user and passes it to the script through the stdin data stream.
 * No default.
 
-python.version = {default|python|python2|python3}
+python.version = [default|python|python2|python3]
 * For Python scripts only, selects which Python version to use.
 * Set to either "default" or "python" to use the system-wide default Python
   version.
@@ -1267,7 +1291,7 @@ persistentQueueSize = <integer>[KB|MB|GB|TB]
 
 index = <string>
 * The index where the scripted input sends the data.
-* NOTE: The script passes this parameter as a command-line argument to <cmd> in
+* The script passes this parameter as a command-line argument to <cmd> in
   the format: -index <index name>.
   If the script does not need the index info, it can ignore this argument.
 * If you do not specify an index, the script uses the default index.
@@ -1275,7 +1299,7 @@ index = <string>
 send_index_as_argument_for_path = <boolean>
 * Whether or not to pass the index as an argument when specified for
   stanzas that begin with 'script://'
-* When this setting is "true", the script passes the argument as
+* A value of "true" means the script passes the argument as
   '-index <index name>'.
 * To avoid passing the index as a command line argument, set this to "false".
 * Default: true
@@ -1283,12 +1307,12 @@ send_index_as_argument_for_path = <boolean>
 start_by_shell = <boolean>
 * Whether or not to run the specified command through the operating system
   shell or command prompt.
-* If you set this setting to "true", the host operating system runs the
+* A value of "true" means the host operating system runs the
   specified command through the OS shell ("/bin/sh -c" on *NIX,
   "cmd.exe /c" on Windows.)
-* If you set the setting to "false", the input runs the program directly
+* A value of "false" means the input runs the program directly
   without attempting to expand shell metacharacters.
-* You might want to explicitly set the setting to "false" for scripts
+* You might want to explicitly set a value of "false" for scripts
   that you know do not need UNIX shell metacharacter expansion. This is
   a Splunk best practice.
 * Default (on *nix machines): true
@@ -1314,7 +1338,7 @@ start_by_shell = <boolean>
 
 disabled = <boolean>
 * Whether or not the file system change monitor input is active.
-* Set this setting to "true" to disable the input, and "false" to enable it.
+* Set a value of "true" to disable the input, and "false" to enable it.
 * Default: false
 
 # Additional settings:
@@ -1323,42 +1347,42 @@ disabled = <boolean>
 
 index = <string>
 * The index where the input sends the data.
-* Default: _audit (if you do not set 'signedaudit' or
-  set 'signedaudit' to "false")
-* Default: the default index (in all other cases)
+* Default: (if you either do not set 'signedaudit' or
+  set 'signedaudit' to "false"): _audit
+* Default: (in all other cases): the default index
 
 signedaudit = <boolean>
 * Whether or not to send cryptographically signed add/update/delete events.
-* If this setting is "true", the input does the following to
+* A value of "true" means the input does the following to
   events that it generates:
   * Puts the events in the _audit index.
   * Sets the event sourcetype to 'audittrail'
-* If this setting is "false", the input:
+* A value of "false" means the input:
   * Places events in the default index.
   * Sets the sourcetype to whatever you specify (or "fs_notification"
     by default).
 * You must set 'signedaudit' to "false" if you want to set the index for
   fschange events.
-* You must also enable auditing in audit.conf.
+* You must also enable auditing by using the audit.conf file.
 * Default: false
 
 filters = <comma-separated list>
 * The fschange input applies each filter, left to right, for each file
   or directory found during the monitor poll cycle.
-* See the "File System Monitoring Filters" section below for help
-  on how to define a fschange filter.
+* See the "File System Monitoring Filters" section later in this file
+  for help on how to define a fschange filter.
 
 recurse = <boolean>
 * Whether or not the fschange input should look through all sub-directories
   for changes to files in a directory.
-* If this setting is "true", the input recurses through
+* A value of "true" means the input searches recursively through
   sub-directories within the directory specified in [fschange].
 * Default: true
 
 followLinks = <boolean>
-* Whether or not the fschange input should follow any symbolic
+* Whether or not the fschange input follows any symbolic
   links it encounters.
-* If you set this setting to "true", the input follows symbolic links.
+* A value of "true" means the input follows symbolic links.
 * CAUTION: Do not set this setting to "true" unless you can confirm that
   doing so will not create a file system loop (For example, in
   Directory A, symbolic link B points back to Directory A.)
@@ -1369,16 +1393,18 @@ pollPeriod = <integer>
 * Default: 3600 (1 hour)
 
 hashMaxSize = <integer>
+* The maximum size, in bytes, that a file can be for the fschange input to
+  calculate a SHA256 hash for that file.
 * Tells the fschange input to calculate a SHA256 hash for every file that
   is this size or smaller, in bytes.
 * The input uses this hash as an additional method for detecting changes to the
-  file/directory.
+  file or directory.
 * Default: -1 (disabled)
 
 fullEvent = <boolean>
 * Whether or not to send the full event if the input detects an add or
   update change.
-* Set to true to send the full event if an add or update change is detected.
+* Set to "true" to send the full event if an add or update change is detected.
 * Further qualified by the 'sendEventMaxSize' setting.
 * Default: false
 
@@ -1386,7 +1412,7 @@ sendEventMaxSize = <integer>
 * The maximum size, in bytes, that an fschange event can be for the input to
   send the full event to be indexed.
 * Limits the size of event data that the fschange input sends.
-* This limits the size of indexed file data.
+* This also limits the size of indexed file data.
 * Default: -1 (unlimited)
 
 sourcetype = <string>
@@ -1425,7 +1451,8 @@ delayInMills = <integer>
 [filter:<filtertype>:<filtername>]
 * Defines a filter of type <filtertype> and names it <filtername>.
 * <filtertype>:
-  * Filter types are either 'blacklist' or 'whitelist.'
+  * Filter types are either 'blacklist' or 'whitelist.' 'blacklist' is the
+    deny list filter type and 'whitelist' is the allow list filter type.
   * An allow list filter processes all file names that match the
     regular expression list that you define within the stanza.
   * A deny list filter skips all file names that match the
@@ -1437,8 +1464,8 @@ delayInMills = <integer>
 
 regex<integer> = <regular expression>
 * Deny list and allow list filters can include a set of regular expressions.
-* The name of each regular expression MUST be 'regex<integer>', where <integer>
-  starts at 1 and increments by 1.
+* The name of each regular expression MUST be 'regex<integer>', meaning the
+  string "regex" and then an integer. <integer> starts at 1 and increments by 1.
 * The input applies each regular expression in numeric order:
   regex1=<regular expression>
   regex2=<regular expression>
@@ -1457,15 +1484,15 @@ port = <positive integer>
 
 disabled = <boolean>
 * Whether or not the event collector input is active.
-* Set this setting to "1" to disable the input, and "0" to enable it.
+* Give this setting a value of "1" to disable the input, and "0" to enable it.
 * Default: 1 (disabled)
 
 outputgroup = <string>
-* The name of the output group that the event collector forwards data to.
+* The name of the output group to which the event collector forwards data.
 * Default: empty string
 
 useDeploymentServer = <boolean>
-* Whether or not the HTTP event collector input should write its
+* Whether or not the HTTP event collector input writes its
   configuration to a deployment server repository.
 * When you enable this setting, the input writes its
   configuration to the directory that you specify with the
@@ -1493,7 +1520,7 @@ enableSSL = <boolean>
   SSL enabled when the Splunk management server has SSL disabled.
 * Default: 1 (enabled)
 
-dedicatedIoThreads = <number>
+dedicatedIoThreads = <non-negative integer>
 * The number of dedicated input/output threads in the event collector
   input.
 * Default: 0 (The input uses a single thread)
@@ -1544,7 +1571,7 @@ busyKeepAliveIdleTimeout = <integer>
 * If this value is less than 12, the input sets it to 12.
 * Default: 12
 
-serverCert = <path>
+serverCert = <string>
 * The full path to the server certificate PEM format file.
 * The same file may also contain a private key.
 * Splunk software automatically generates certificates when it first
@@ -1552,7 +1579,7 @@ serverCert = <path>
 * You may replace the auto-generated certificate with your own certificate.
 * Default: $SPLUNK_HOME/etc/auth/server.pem
 
-sslKeysfile = <filename>
+sslKeysfile = <string>
 * DEPRECATED.
 * Use the 'serverCert' setting instead.
 * The file that contains the SSL keys. Splunk software looks for this file
@@ -1605,6 +1632,14 @@ cipherSuite = <string>
   the HTTP server.
 * Default: The default cipher string that 'OpenSSL' provides
 
+sslServerHandshakeTimeout = <integer>
+* The timeout, in seconds, for an SSL handshake to complete between an
+  HEC client and the Splunk HEC server.
+* If the HEC server does not receive a "Client Hello" from the HEC client within
+  'sslServerHandshakeTimeout' seconds, the server terminates
+  the connection.
+* Default: 60
+
 listenOnIPv6 = [no|yes|only]
 * Whether or not this input listens on IPv4, IPv6, or both.
 * Set to "no" to make the input listen only on the IPv4 protocol.
@@ -1612,19 +1647,9 @@ listenOnIPv6 = [no|yes|only]
 * Set to "only" to make the input listen on only the IPv6 protocol.
 * Default: The setting in the [general] stanza of the server.conf file
 
-acceptFrom = <network_acl> ...
-* A list of networks or IP addresses from which to accept connections.
-* Specify multiple rules with commas or spaces.
-* Each rule can be in the following forms:
-    1. A single IPv4 or IPv6 address (examples: "10.1.2.3", "fe80::4a3")
-    2. A CIDR block of addresses (examples: "10/8", "fe80:1234/32")
-    3. A DNS name, possibly with a "*" used as a wildcard (examples:
-       "myhost.example.com", "*.splunk.com")
-    4. "*", which matches anything.
-* You can also prefix an entry with "!" to cause the rule to reject the
-  connection. The input applies rules in order, and uses the first one that
-  matches. For example, "!10.1/16, *" allows connections from everywhere except
-  the 10.1.*.* network.
+acceptFrom = <comma- or space-separated list>
+* See the description for this setting in the [tcp://<remote server>:<port>]
+  stanza.
 * Default: "*" (accept from anywhere)
 
 requireClientCert = <boolean>
@@ -1705,7 +1730,7 @@ forceHttp10 = [auto|never|always]
   clients it suspects might be buggy.
 * Default: auto
 
-sslCommonNameToCheck = <commonName1>, <commonName2>, ...
+sslCommonNameToCheck = <comma-separated list>
 * A list of SSL Common Names to match against certificates that incoming
   HTTPS connections present to this instance.
 * If you configure this setting and also set 'requireClientCert' to "true",
@@ -1717,7 +1742,7 @@ sslCommonNameToCheck = <commonName1>, <commonName2>, ...
 * This setting is optional.
 * Default: empty string (no common name checking)
 
-sslAltNameToCheck = <alternateName1>, <alternateName2>, ...
+sslAltNameToCheck = <comma-separated list>
 * If you set this setting and also set 'requireClientCert' to true,
   splunkd can verify certificates that have a so-called
   "Subject Alternate Name" that matches any of the alternate
@@ -1765,7 +1790,7 @@ allowSslRenegotiation = <boolean>
 ackIdleCleanup = <boolean>
 * Whether or not to remove ACK channels that have been idle after a period
   of time, as defined by the 'maxIdleTime' setting.
-* If set to "true", the server removes the ACK channels that are idle
+* A value of "true" means the server removes the ACK channels that are idle
   for 'maxIdleTime' seconds.
 * Default: true
 
@@ -1814,10 +1839,11 @@ description = <string>
 * A human-readable description of this token.
 * Default: empty string
 
-indexes = <string>
+indexes = <comma-separated list>
 * The indexes that events for this token can go to.
 * If you do not specify this value, the index list is empty, and any index
   can be used.
+* Separate multiple indexes with commas.
 * No default.
 
 index = <string>
@@ -1851,7 +1877,8 @@ connection_host = [ip|dns|proxied_ip|none]
 * Specifies the host if an event doesn't have a host set.
 * "ip" sets the host to the IP address of the system sending the data.
 * "dns" sets the host to the reverse DNS entry for IP address of the system
-  sending the data.
+  that sends the data. For this to work correctly, set the forward DNS lookup
+  to match the reverse DNS lookup in your DNS configuration.
 * "proxied_ip" checks whether an X-Forwarded-For header was sent
   (presumably by a proxy server) and if so, sets the host to that value.
   Otherwise, the IP address of the system sending the data is used.
@@ -1871,7 +1898,8 @@ allowQueryStringAuth = <boolean>
 * This is a token level configuration. It may only be set for
   a particular token.
 * To use this feature, set to "true" and configure the client application to
-  include the token in the query string portion of the URL they use to send data to HEC in the following format:
+  include the token in the query string portion of the URL they use to send
+  data to HEC in the following format:
   "https://<URL>?<your=query-string>&token=<your-token>" or
   "https://<URL>?token=<your-token>" if the token is the first element in the
   query string.
@@ -1907,7 +1935,7 @@ allowQueryStringAuth = <boolean>
   * ADMon: Indexes existing Active Directory (AD) objects and listens for AD
     changes.
   * WMI: Retrieves event logs remotely and locally through the Windows
-    Management.  Instrumentation subsystem. It can also gather performance
+    Management Instrumentation subsystem. It can also gather performance
     data remotely, as well as receive various system notifications. See
     wmi.conf.spec for information on how to configure this input.
 
@@ -1935,7 +1963,7 @@ allowQueryStringAuth = <boolean>
 
 object = <string>
 * A valid Performance Monitor object as defined within Performance
-  Monitor (for example, "Process," "Server," "PhysicalDisk.")
+  Monitor (for example, "Process," "Server," "PhysicalDisk").
 * You can specify a single valid Performance Monitor object or use a
   regular expression (regex) to specify multiple objects.
 * This setting is required, and the input does not run if the setting is
@@ -1951,9 +1979,25 @@ counters = <semicolon-separated list>
   Monitor object.
 * No default.
 
+nonmetric_counters = <semicolon-separated list>
+* A list of performance counters on which the performance monitor input
+  must not perform sampling.
+* When the input retrieves the value for a counter that is in this list,
+  it returns the latest value it retrieves, rather than an average of
+  the values that it got over the sampling interval, as defined by the
+  'samplingInterval' setting.
+* Add counters to this setting in cases where the values that the input
+  returns for a setting would be incorrect if it were averaged over a
+  'samplingInterval', or where average, minimum, or maximum values for a
+  counter would not be of any interest.
+* As an example, the "ID Process" counter works better as a non metric counter
+  because the most recent measurement of the counter is more relevant
+  than the average of any measurements of that counter.
+* No default.
+
 instances = <semicolon-separated list>
 * One or more multiple valid Performance Monitor instances.
-* "*"" is equivalent to all available instances for a given Performance Monitor
+* "*" is equivalent to all available instances for a given Performance Monitor
   counter.
 * If applicable instances are available for a counter and this setting is not
   present, then the input logs data for all available instances (this is the
@@ -1981,7 +2025,7 @@ mode = [single|multikv]
 * Set to "single" to print each event individually.
 * Set to "multikv" to print events in multikv (formatted multiple
   key-value pair) format.
-* Default: "single"
+* Default: single
 
 samplingInterval = <positive integer>
 * How often, in milliseconds, to poll for new data.
@@ -1995,13 +2039,13 @@ samplingInterval = <positive integer>
 * No default (disabled).
 
 stats = <average;count;dev;min;max>
-* Reports statistics for high-frequency performance
-  sampling.
+* Reports statistics for high-frequency performance sampling.
 * This is an advanced setting.
+* Setting a 'samplingInterval' is required to use 'stats'.
 * Acceptable values are: average, count, dev, min, max.
 * You can specify multiple values by separating them with semicolons.
-* If not specified, the input does not produce high-frequency sampling
-  statistics.
+* Adds new fields that append the stats function name.
+  Setting 'average' replaces the stats displayed in the default field.
 * No default. (disabled)
 
 disabled = <boolean>
@@ -2010,7 +2054,7 @@ disabled = <boolean>
 * Default: 0 (enabled)
 
 showZeroValue = <boolean>
-* Specfies whether or not zero-value event data should be collected.
+* Specifies whether or not the input collects zero-value event data.
 * Set to 1 to capture zero value event data, and 0 to ignore such data.
 * Default: 0 (ignore zero value event data)
 
@@ -2086,7 +2130,7 @@ disabled = <boolean>
 * Default: 0 (enabled)
 
 index = <string>
-* Specifies the index that this input should send the data to.
+* Specifies the index where this input sends the data.
 * This setting is optional.
 * Default: the default index
 
@@ -2104,7 +2148,7 @@ index = <string>
   event log monitor inputs manually, it is best practice to use Splunk
   Web to configure Windows event log monitor inputs because it is
   easy to mistype the values for event log channels.
-* NOTE: The WinEventLog stanza is for local systems only. To define event log
+* NOTE: The WinEventLog stanza is for local systems ONLY. To define event log
   monitor inputs for remote machines, use wmi.conf.
 
 start_from = <string>
@@ -2127,7 +2171,7 @@ start_from = <string>
 use_old_eventlog_api = <boolean>
 * Whether or not to read Event Log events with the Event Logging API.
 * This is an advanced setting. Contact Splunk Support before you change it.
-* If set to "true", the input uses the Event Logging API (instead of the
+* A value of "true" means the input uses the Event Logging API (instead of the
   Windows Event Log API) to read from the Event Log on Windows Server 2008,
   Windows Vista, and later installations.
 * Default: false (Use the API that is specific to the OS)
@@ -2262,6 +2306,20 @@ evt_resolve_ad_obj = <boolean>
 * If you set this setting to false, the input does not attempt any resolution.
 * Default: false (disabled) for all channels
 
+evt_skip_GUID_resolution = <comma-separated list>
+* A list of Windows Event Codes for which the Splunk platform does not contact
+  the domain controller to resolve global unique identifiers (GUIDs) that
+  are withing the event.
+* Separate multiple event IDs or event ID ranges with commas. 
+* If the event code matches an event, The Splunk platform does not contact 
+  the DC to resolve any GUIDs in this event.
+* This setting only takes effect if 'evt_resolve_ad_obj' has a value of "true".
+* If 'evt_resolve_ad_obj' has a value of "false", this setting has no effect.
+* This setting has no effect on SID resolution.
+* See 'Event ID list format' later in this file for the proper 
+  formatting of the event list.
+* Default: none
+
 evt_dc_name = <string>
 * Which Active Directory domain controller to bind to for AD object
   resolution.
@@ -2319,15 +2377,14 @@ evt_ad_cache_max_entries = <integer>
 * Default: 1000
 
 evt_exclude_fields = <comma-separated list>
-* A comma-separated list of valid Windows Event Log fields to
-  exclude from Windows Event Log events.
+* A list of valid Windows Event Log fields to exclude from Windows
+  Event Log events.
 * Specify fields that you want excluded from each event report.
 * Do not exclude fields that you have also added to allow lists or
   deny lists. If fields are present in both, then 'evt_exclude_fields'
   excludes those fields, regardless of their presence in the allow list
   or deny list and the allow list or deny list will not behave as
-  expected.
-  The input logs an error to splunkd.log in this case.
+  expected. The input logs an error to splunkd.log in this case.
 * This setting is similar to, but operates differently than, the
   'suppress_*' settings. The 'suppress_*' settings avoid using the
   Windows API to gather Windows events that match the available
@@ -2346,9 +2403,9 @@ evt_sid_cache_disabled = <boolean>
 
 evt_sid_cache_exp = <unsigned integer>
 * The expiration time, in seconds, for account SID cache entries.
-* This setting is optional.
 * This setting is global. It affects all Windows Event Log stanzas.
 * The minimum allowed value is 10 and the maximum allowed value is 31536000.
+* This setting is optional.
 * Default: 3600
 
 evt_sid_cache_exp_neg = <unsigned integer>
@@ -2360,9 +2417,9 @@ evt_sid_cache_exp_neg = <unsigned integer>
 
 evt_sid_cache_max_entries = <unsigned integer>
 * The maximum number of account SID cache entries.
-* This setting is optional.
 * This setting is global. It affects all Windows Event Log stanzas.
 * The minimum allowed value is 10 and the maximum allowed value is 40000.
+* This setting is optional.
 * Default: 10
 
 index = <string>
@@ -2377,27 +2434,27 @@ index = <string>
 # processing load in network transfer and computation on the Splunk platform
 # nodes that acquire and processing Event Log data.
 
-whitelist = <list of eventIDs> | key=regex [key=regex]
-blacklist = <list of eventIDs> | key=regex [key=regex]
+whitelist = <comma-separated list> | key=regex [key=regex]
+blacklist = <comma-separated list> | key=regex [key=regex]
 
-whitelist1 = <list of eventIDs> | key=regex [key=regex]
-whitelist2 = <list of eventIDs> | key=regex [key=regex]
-whitelist3 = <list of eventIDs> | key=regex [key=regex]
-whitelist4 = <list of eventIDs> | key=regex [key=regex]
-whitelist5 = <list of eventIDs> | key=regex [key=regex]
-whitelist6 = <list of eventIDs> | key=regex [key=regex]
-whitelist7 = <list of eventIDs> | key=regex [key=regex]
-whitelist8 = <list of eventIDs> | key=regex [key=regex]
-whitelist9 = <list of eventIDs> | key=regex [key=regex]
-blacklist1 = <list of eventIDs> | key=regex [key=regex]
-blacklist2 = <list of eventIDs> | key=regex [key=regex]
-blacklist3 = <list of eventIDs> | key=regex [key=regex]
-blacklist4 = <list of eventIDs> | key=regex [key=regex]
-blacklist5 = <list of eventIDs> | key=regex [key=regex]
-blacklist6 = <list of eventIDs> | key=regex [key=regex]
-blacklist7 = <list of eventIDs> | key=regex [key=regex]
-blacklist8 = <list of eventIDs> | key=regex [key=regex]
-blacklist9 = <list of eventIDs> | key=regex [key=regex]
+whitelist1 = <comma-separated list> | key=regex [key=regex]
+whitelist2 = <comma-separated list> | key=regex [key=regex]
+whitelist3 = <comma-separated list> | key=regex [key=regex]
+whitelist4 = <comma-separated list> | key=regex [key=regex]
+whitelist5 = <comma-separated list> | key=regex [key=regex]
+whitelist6 = <comma-separated list> | key=regex [key=regex]
+whitelist7 = <comma-separated list> | key=regex [key=regex]
+whitelist8 = <comma-separated list> | key=regex [key=regex]
+whitelist9 = <comma-separated list> | key=regex [key=regex]
+blacklist1 = <comma-separated list> | key=regex [key=regex]
+blacklist2 = <comma-separated list> | key=regex [key=regex]
+blacklist3 = <comma-separated list> | key=regex [key=regex]
+blacklist4 = <comma-separated list> | key=regex [key=regex]
+blacklist5 = <comma-separated list> | key=regex [key=regex]
+blacklist6 = <comma-separated list> | key=regex [key=regex]
+blacklist7 = <comma-separated list> | key=regex [key=regex]
+blacklist8 = <comma-separated list> | key=regex [key=regex]
+blacklist9 = <comma-separated list> | key=regex [key=regex]
 
 * These settings are optional.
 * Both numbered and unnumbered allow lists and deny lists support two formats:
@@ -2420,6 +2477,7 @@ blacklist9 = <list of eventIDs> | key=regex [key=regex]
   * Example: 4,5,7,100-200
     * This applies to events with IDs 4, 5, 7, or any event ID between 100
       and 200, inclusive.
+  * A single asterisk (*) means all event codes.
   * The event ID list format provides no additional functionality over the
     key=regex format, but can be easier to understand:
     List format:      4,5,7,100-200
@@ -2429,7 +2487,8 @@ blacklist9 = <list of eventIDs> | key=regex [key=regex]
   * A whitespace-separated list of Event Log components to match, and
     regular expressions to match against against them.
   * There can be one match expression or multiple expressions per line.
-  * The key must belong to the set of valid keys provided below.
+  * The key must belong to the set of valid keys provided in the "Valid
+    keys for the key=regex format" section.
   * The regex consists of a leading delimiter, the regex expression, and a
     trailing delimiter. Examples: %regex%, *regex*, "regex"
   * When multiple match expressions are present, they are treated as a
@@ -2622,7 +2681,7 @@ index = <string>
 * This section explains possible settings for configuring the Windows host
   monitor input.
 * Gathers status information from the local Windows system components as
-  per the type field below.
+  per the 'type' field, described after this section.
 * Each WinHostMon:// stanza represents an WinHostMon monitoring input.
 * The "<name>" component of the stanza name is used as the source field
   on generated events, unless an explicit source setting is added to the
@@ -2674,6 +2733,11 @@ type = <semicolon-separated list>
   Printer;Job;Driver;Port
 * No default.
 
+interval = <integer>
+* The interval, in seconds, between when the input runs to gather
+  Windows host information and generate events.
+* See 'interval' in the Scripted input section for more information.
+
 baseline = <boolean>
 * Whether or not to capture a baseline of print objects when the
   input starts for the first time.
@@ -2696,7 +2760,7 @@ index = <string>
 * This section explains possible settings for configuring
   a Network Monitor input.
 * Each WinNetMon:// stanza represents an individually configured network
-  monitoring input.  The value of "<name>" matches what was specified
+  monitoring input. The value of "<name>" matches what was specified
   in Splunk Web. It is best practice to use Splunk Web to
   configure Network Monitor inputs because it is easy to mistype
   the values for Network Monitor objects.
@@ -2705,12 +2769,12 @@ remoteAddress = <regular expression>
 * A regular expression that represents the remote IP address of a
   host that is involved in network communication.
 * This setting accepts a regular expression that matches against
-  IP addresses only, not host names. For example: 192\.163\..*
+  IP addresses only, not host names. For example: 192\.168\..*
 * The input includes events for remote IP addresses that match
   the regular expression that you specify here.
 * The input filters out events for remote IP addresses that do not
   match the regular expression.
-* No default (including all remote address events)
+* No default (include all remote address events).
 
 process = <regular expression>
 * A regular expression that represents the process or application that
@@ -2719,7 +2783,7 @@ process = <regular expression>
   regular expression that you specify here.
 * The input filters out events for processes that do not match the
   regular expression.
-* No default (including all processes and application events)
+* No default (include all processes and application events).
 
 user = <regular expression>
 * A regular expression that represents the Windows user name that
@@ -2728,35 +2792,35 @@ user = <regular expression>
   regular expression that you specify here.
 * The input filters out events for user names that do not match the
   regular expression.
-* No default (including all user name events)
+* No default (include all user name events).
 
-addressFamily = ipv4;ipv6
+addressFamily = [ipv4];[ipv6]
 * Determines the events to include by network address family.
 * Setting "ipv4" alone includes only IPv4 packets, while "ipv6" alone
   includes only IPv6 packets.
 * To specify both families, separate them with a semicolon.
   For example: ipv4;ipv6
-* No default (including events with both address families)
+* No default (include events with both address families).
 
-packetType = connect;accept;transport.
+packetType = [connect];[accept];[transport]
 * Determines the events to include by network packet type.
 * To specify multiple packet types, separate them with a semicolon.
   For example: connect;transport
-* No default (including events with any packet type)
+* No default (include events with any packet type).
 
-direction = inbound;outbound
+direction = [inbound];[outbound]
 * Determines the events to include by network transport direction.
 * To specify multiple directions, separate them with a semicolon.
   For example: inbound;outbound
-* No default (including events with any direction)
+* No default (include events with any direction).
 
-protocol = tcp;udp
+protocol = [tcp];[udp]
 * Determines the events to include by network protocol.
 * To specify multiple protocols, separate them with a semicolon.
   For example: tcp;udp
 * For more information about protocols, see
   http://www.ietf.org/rfc/rfc1700.txt
-* No default (including events with all protocols)
+* No default (include events with all protocols)
 
 readInterval = <integer>
 * How often, in milliseconds, that the input should read the network
@@ -2793,7 +2857,7 @@ userBufferSize = <integer>
 * The minimum allowed value is 20 and the maximum allowed value is 500.
 * Default: 20
 
-mode = single|multikv
+mode = [single|multikv]
 * Specifies how the network monitor input generates events.
 * Set to "single" to generate one event per packet.
 * Set to "multikv" to generate combined events of many packets in
@@ -2816,7 +2880,7 @@ multikvMaxTimeMs = <integer>
 * The minimum allowed value is 100 and the maximum allowed value is 5000.
 * Default: 1000
 
-sid_cache_disabled = 0|1
+sid_cache_disabled = [0|1]
 * Enables or disables account Security IDentifier (SID) cache.
 * This setting is global. It affects all Windows Network Monitor stanzas.
 * Default: 0
@@ -2842,13 +2906,13 @@ sid_cache_max_entries = <integer>
 * The minimum allowed value is 10 and the maximum allowed value is 40000.
 * Default: 10
 
-disabled = 0|1
+disabled = <boolean>
 * Whether or not the input is enabled.
 * Set to 1 to disable the input, and 0 to enable it.
 * Default: 0 (enabled)
 
 index = <string>
-* The index that this input should send the data to.
+* The index where this input sends the data.
 * Optional.
 * Default: the default index
 
@@ -2857,7 +2921,7 @@ index = <string>
 [powershell]
 io_threads = <integer>
 * The number of threads that Splunk software spawns to run PowerShell scripts
-  that have been configured in inputs.conf.
+  that have been configured in the inputs.conf file.
 * If you specify a value that is less than or equal to 0, Splunk software
   autotunes this setting.
 * The default can vary. Splunk software autotunes the number of threads
@@ -2870,11 +2934,11 @@ serialization_threads = <integer>
   Modular Input XML protocol.
 * If you specify a value that is less than or equal to 0, Splunk software
   autotunes this setting.
-* Default: The default can vary. Splunk software autotunes the number of threads
+* The default can vary. Splunk software autotunes the number of threads
   based on available CPU resources on the machine.
 
-event_serialization_format = [ kv | json ]
-* The event format that Powershell objects are serialized into.
+event_serialization_format = [kv|json]
+* The event format into which Powershell objects are serialized.
 * The supported event formats are "kv" and "json".
 * For example, given the following PowerShell object:
 
@@ -2927,7 +2991,7 @@ io_threads = <integer>
   based on the availability of CPU resources on the machine.
 
 event_serialization_format = [ kv | json ]
-* The event format that Powershell objects are serialized into.
+* The event format into which Powershell objects are serialized.
 * The supported event formats are "kv" and "json".
 * For example, given the following PowerShell object:
 
@@ -2963,7 +3027,7 @@ script = <string>
   should run.
 * No default.
 
-schedule = <schedule>
+schedule = <string>
 * How often to run the specified PowerShell command or script.
 * You can provide a valid cron schedule.
 * Default: Runs the command or script once, at startup.
@@ -3052,7 +3116,8 @@ remote_queue.sqs.secret_key = <string>
   system supporting the SQS API.
 * If not specified, the indexer looks for these environment variables:
   AWS_SECRET_ACCESS_KEY or AWS_SECRET_KEY (in that order). If the environment
-  variables are not set and the indexer is running on EC2, the indexer attempts to use the secret key from the IAM role.
+  variables are not set and the indexer is running on EC2, the indexer attempts
+  to use the secret key from the IAM role.
 * This setting is optional.
 * No default.
 
@@ -3067,7 +3132,7 @@ remote_queue.sqs.auth_region = <string>
 * This setting is optional.
 * No default.
 
-remote_queue.sqs.endpoint = <URL>
+remote_queue.sqs.endpoint = <string>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * The URL of the remote queue system supporting the SQS API.
@@ -3201,7 +3266,7 @@ remote_queue.sqs.min_pending_messages = <unsigned integer>
   still under development.
 * The default "minimum number of pending messages" to use before
   receiving messages off remote queue.
-  Messages are only received when the sum of internal queue message count and
+  Messages are only received when the sum of the internal queue message count and
   pending object GET (from large messages storage) count is below
   the set value.
 * This setting is optional.
@@ -3278,7 +3343,7 @@ remote_queue.kinesis.auth_region = <string>
 * This setting is optional.
 * No default.
 
-remote_queue.kinesis.endpoint = <URL>
+remote_queue.kinesis.endpoint = <string>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * The URL of the remote queue system supporting the Kinesis API.
@@ -3435,7 +3500,8 @@ remote_queue.sqs_smartbus.secret_key = <string>
   system supporting the SQS API.
 * If not specified, the indexer looks for these environment variables:
   AWS_SECRET_ACCESS_KEY or AWS_SECRET_KEY (in that order). If the environment
-  variables are not set and the indexer is running on EC2, the indexer attempts to use the secret key from the IAM role.
+  variables are not set and the indexer is running on EC2, the indexer attempts
+  to use the secret key from the IAM role.
 * This setting is optional.
 * No default.
 
@@ -3450,7 +3516,7 @@ remote_queue.sqs_smartbus.auth_region = <string>
 * This setting is optional.
 * No default.
 
-remote_queue.sqs_smartbus.endpoint = <URL>
+remote_queue.sqs_smartbus.endpoint = <string>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * The URL of the remote queue system supporting the SQS API.
@@ -3508,8 +3574,9 @@ remote_queue.sqs_smartbus.retry_policy = [max_count|none]
 remote_queue.sqs_smartbus.max_count.max_retries_per_part = <unsigned integer>
 * Currently not supported. This setting is related to a feature that is still
   under development.
-* When 'remote_queue.sqs_smartbus.retry_policy' is set to "max_count", sets the maximum
-  number of times a queue operation can be retried upon intermittent failure.
+* When 'remote_queue.sqs_smartbus.retry_policy' is set to "max_count", sets the
+  maximum number of times a queue operation can be retried upon
+  intermittent failure.
 * This setting is optional.
 * Default: 3
 
@@ -3590,6 +3657,13 @@ remote_queue.sqs_smartbus.min_pending_messages = <unsigned integer>
 * This setting is optional.
 * Default: 10
 
+remote_queue.sqs_smartbus.renew_retries = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The number of retries for a particular message on a given indexer after
+  being received from the remote queue, before it is proactively moved to the DLQ folder.
+* Default: 50
+
 remote_queue.sqs_smartbus.large_message_store.endpoint = <string>
 * Currently not supported. This setting is related to a feature that is
   still under development.
@@ -3622,6 +3696,70 @@ remote_queue.sqs_smartbus.large_message_store.path = <string>
 * This setting is optional.
 * No default.
 
+remote_queue.sqs_smartbus.large_message_store.sslVerifyServerCert = <boolean>
+* If set to true, the Splunk platform verifies the certificate presented by the S3
+  server and checks that the common name and alternate name match the ones
+  specified in 'remote_queue.sqs_smartbus.large_message_store.sslCommonNameToCheck' and
+  'remote_queue.sqs_smartbus.large_message_store.sslAltNameToCheck'.
+* Default: false
+
+remote_queue.sqs_smartbus.large_message_store.sslVersions = <versions_list>
+* Comma-separated list of SSL versions to connect to 'remote.sqs_smartbus.large_message_store.endpoint'.
+* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
+* The special version "*" selects all supported versions.  The version "tls"
+  selects all versions tls1.0 or newer.
+* If a version is prefixed with "-" it is removed from the list.
+* SSLv2 is always disabled; "-ssl2" is accepted in the version list
+  but does nothing.
+* When configured in FIPS mode, ssl3 is always disabled regardless
+  of this configuration.
+* Default: tls1.2
+
+remote_queue.sqs_smartbus.large_message_store.sslCommonNameToCheck = <commonName1>, <commonName2>, ..
+* If this value is set, and 'remote_queue.sqs_smartbus.large_message_store.sslVerifyServerCert' is set to true,
+  the Splunk platform instance checks the common name of the certificate presented by
+  the remote server (specified in 'remote_queue.sqs_smartbus.large_message_store.endpoint') against this list
+  of common names.
+* Default: not set
+
+remote_queue.sqs_smartbus.large_message_store.sslAltNameToCheck = <alternateName1>, <alternateName2>, ..
+* If this value is set, and 'remote_queue.sqs_smartbus.large_message_store.sslVerifyServerCert' is set to true,
+  the Splunk platform instance checks the alternate name(s) of the certificate presented by
+  the remote server (specified in 'remote_queue.sqs_smartbus.large_message_store.endpoint') against this list of
+  subject alternate names.
+* Default: not set
+
+remote_queue.sqs_smartbus.large_message_store.sslRootCAPath = <path>
+* Full path to the Certificate Authority (CA) certificate PEM format file
+  containing one or more certificates concatenated together. S3 certificate
+  will be validated against the CAs present in this file.
+* Default: [sslConfig/caCertFile] in server.conf
+
+remote_queue.sqs_smartbus.large_message_store.cipherSuite = <cipher suite string>
+* If set, uses the specified cipher string for the SSL connection.
+* If not set, uses the default cipher string.
+* Must specify 'dhFile' to enable any Diffie-Hellman ciphers.
+* Default: TLSv1+HIGH:TLSv1.2+HIGH:@STRENGTH
+
+remote_queue.sqs_smartbus.large_message_store.ecdhCurves = <comma-separated list>
+* ECDH curves to use for ECDH key negotiation.
+* Specify the curves in the order of preference.
+* The client sends these curves as a part of Client Hello.
+* Splunk software only supports named curves specified
+  by their short names.
+* The list of valid named curves by their short/long names can be obtained
+  by executing this command:
+  $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
+* e.g. ecdhCurves = prime256v1,secp384r1,secp521r1
+* Default: not set
+
+remote_queue.sqs_smartbus.large_message_store.dhFile = <path>
+* PEM format Diffie-Hellman parameter file name.
+* DH group size must be no less than 2048bits.
+* This file is required in order to enable any Diffie-Hellman ciphers.
+* Optional
+* Default: not set
+
 remote_queue.sqs_smartbus.dead_letter_queue.name = <string>
 * Currently not supported. This setting is related to a feature that is
   still under development.
@@ -3634,7 +3772,7 @@ remote_queue.sqs_smartbus.dead_letter_queue.process_interval = <number><unit>
 * Examples: 30s, 6h
 * Default: 1d
 
-remote_queue.sqs_smartbus.large_message_store.encryption_scheme = sse-s3 | sse-c | none
+remote_queue.sqs_smartbus.large_message_store.encryption_scheme = [sse-s3|sse-c|none]
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * The encryption scheme used by remote storage
@@ -3652,7 +3790,8 @@ remote_queue.sqs_smartbus.large_message_store.kms_endpoint = <string>
 remote_queue.sqs_smartbus.large_message_store.key_id = <string>
 * Currently not supported. This setting is related to a feature that is
   still under development.
-* The ID for the primary key that KMS uses to generate a data key pair. The primary key is stored in AWS.
+* The ID for the primary key that KMS uses to generate a data key pair. The
+  primary key is stored in AWS.
 * This setting is required if 'large_message_store.encryption_scheme' is
   set to sse-c.
 * Examples: alias/sqsssekeytrial, 23456789-abcd-1234-11aa-c50f99011223
@@ -3668,7 +3807,7 @@ remote_queue.sqs_smartbus.large_message_store.key_refresh_interval = <string>
 # Modular Inputs
 ############################################################################
 
-python.version = {default|python|python2|python3}
+python.version = [default|python|python2|python3]
 * For Python scripts only, selects which Python version to use.
 * Either "default" or "python" select the system-wide default Python version.
 * Optional.
@@ -3694,5 +3833,4 @@ run_introspection = <boolean>
 
   [myScheme]
   run_introspection = false
-
 * Default: true

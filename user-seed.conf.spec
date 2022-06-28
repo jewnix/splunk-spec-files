@@ -1,4 +1,4 @@
-#   Version 8.2.6
+#   Version 9.0.0
 #
 # Specification for user-seed.conf.  Allows configuration of Splunk's
 # initial username and password.  Currently, only one user can be configured

@@ -1,4 +1,4 @@
-#   Version 8.2.6
+#   Version 9.0.0
 #
 # This file documents the syntax of default-mode.conf for comprehension and
 # troubleshooting purposes.

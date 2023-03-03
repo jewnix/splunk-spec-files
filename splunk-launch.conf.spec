@@ -33,6 +33,7 @@
 
 * Any desired environment variable can be set to any value.
   Whitespace is trimmed from around both the key and value.
+  Variable substitution (VAR=$OTHER_VAL) is not supported.
 * Environment variables set here will be available to all Splunk 
   platform processes, barring operating system limitations.
 

@@ -1,4 +1,4 @@
-#   Version 9.0.3
+#   Version 9.0.4
 #
 # This file contains possible attributes and values you can use to configure
 # auditing in audit.conf.

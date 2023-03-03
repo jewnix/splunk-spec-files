@@ -1,4 +1,4 @@
-#   Version 9.0.3
+#   Version 9.0.4
 #
 # Forwarders require outputs.conf. Splunk instances that do not forward
 # do not use it. Outputs.conf determines how the forwarder sends data to
@@ -1745,35 +1745,6 @@ remote_queue.sqs_smartbus.large_message_store.key_refresh_interval = <string>
 [rfs]
 * Global settings that individual rfs output destinations can inherit.
 
-partitionBy = legacy | (year|month|day) [, sourcetype]
-* Specifies schema to partition and store events into seperate files on the
-  rfsoutput destination(s). It affects the file storage location specified by
-  the "path" for any given destination in the manner described below.
-  * legacy - no partitioning and the events are batched together on the order of
-    arrival. This appends path segments that encode the latest timestamp among
-    all events in the batch similar to the strftime format "%Y/%m/%d".
-  * year|month|day - span of event timestamp to use as the primary partition key.
-    This encodes primary field as multiple path segments and appends to the path
-    in the decreasing order of significance. For example, "day" produces
-    "year=%Y/month=%m/day=%d", "month" produces "year=%Y/month=%m" and "year"
-    produces "year=%Y".
-  * sourcetype - optional secondary partition key applied over primary partition key.
-    This appends a single path segment encoded in the form "sourcetype=<sourcetype>".
-* Examples:
-    Illustrated below is the set of possible settings and how they affect the
-    file storage path, for events generated on August 15, 2022.
-    * partitionBy = day, sourcetype
-       Results file path into "<path>/year=2022/month=08/day=15/sourcetype=<srctype>/"
-    * partitionBy = day
-       Results file path into "<path>/year=2022/month=08/day=15/"
-    * partitionBy = month
-       Results file path into "<path>/year=2022/month=08/"
-    * partitionBy = year
-       Results file path into "<path>/year=2022/"
-    * partitionBy = legacy
-       Results file path into "<path>/2022/08/15/"
-* Default: legacy
-
 dropEventsOnUploadError = <boolean>
 * Whether or not the ingest actions feature drops events if it encounters an
   error when uploading events to output destination.
@@ -2058,13 +2029,6 @@ authMethod = <string>
 * setting to “basic”.
 * Choosing “IAM role” in Splunk Web sets this setting to "iam".
 * No default.
-
-partitionBy = legacy | (year|month|day) [, sourcetype]
-* Specifies schema to partition and store events forwarded to this destination.
-  Any setting will override the global partitionBy settings of [rfs] stanza.
-  Refer to the detailed description of this property under global [rfs] stanza
-  and how it affects the file storage path.
-* Default: Inherited partitionBy setting from the global [rfs] stanza.
 
 dropEventsOnUploadError = <boolean>
 * Whether or not the ingest actions feature drops events if it encounters an

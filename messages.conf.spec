@@ -1,4 +1,4 @@
-#   Version 9.0.3
+#   Version 9.0.4
 #
 # This file contains attribute/value pairs for configuring externalized strings
 # in messages.conf.

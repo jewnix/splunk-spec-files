@@ -1,4 +1,4 @@
-#   Version 9.0.1
+#   Version 9.0.2
 #
 ############################################################################
 # OVERVIEW
@@ -234,7 +234,7 @@ deployer_lookups_push_mode = preserve_lookups | always_preserve | always_overwri
 * If set to "always_overwrite", the 'splunk apply shcluster-bundle' command
   ignores the '-preserve-lookups' option as it appears on the command line and
   lookup tables for this app are always overwritten.
-* Default: preserve_lookups
+* Default: always_preserve
 
 deployer_push_mode = full | merge_to_default | local_only | default_only
 * How the deployer pushes the configuration bundle to search head cluster

@@ -1,8 +1,7 @@
-#   Version 8.2.6
+#   Version 9.0.2
 #
 # This file contains possible setting and value pairs for federated provider entries
-# for use in Data Fabric Search (DFS), when the federated search functionality is
-# enabled.
+# for use when the federated search functionality is enabled.
 #
 # A federated search allows authorized users to run searches across multiple federated
 # providers. Only Splunk deployments are supported as federated providers. Information
@@ -15,34 +14,6 @@
 # documentation located at
 # http://docs.splunk.com/Documentation/Splunk/latest/Admin/Aboutconfigurationfiles
 #
-# Here are the settings for the federated provider stanzas.
-
-[<federated-provider-stanza>]
-* Create a unique stanza name for each federated provider.
-
-type = [splunk]
-* Specifies the type of the federated provider.
-* Only Splunk deployments are supported as of this revision.
-* Default: splunk
-
-ip = <IP address or Host Name>
-* Identifies the IP address or host name of the federated provider.
-* Default: No default.
-
-splunk.port = <port>
-* Identifies the splunkd REST port on the remote Splunk deployment.
-* No default.
-
-splunk.serviceAccount = <user>
-* Identifies an authorized user on the remote Splunk deployment.
-* The security credentials associated with this account are managed securely in
-  fshpasswords.conf.
-* No default.
-
-splunk.app = <string>
-* The name of the Splunk application on the remote Splunk deployment in which
-* to perform the search.
-* No default.
 
 #
 # Federated Provider Stanza
@@ -54,9 +25,13 @@ splunk.app = <string>
 * <unique-federated-provider-name> can contain only alphanumeric characters and 
   underscores.
 
-type = [splunk]
+type = [splunk | aws_s3]
 * Specifies the type of the federated provider.
-* Only Splunk deployments are supported as of this version.
+* A setting of 'splunk' means that the federated provider is a Splunk
+  deployment.
+* A setting of 'aws_s3' means that you are configuring this federated provider
+  to facilitate access to a data source in Amazon S3. This setting is reserved
+  for the Splunk structured data service.
 * Default: splunk
 
 hostPort = <Host_Name_or_IP_Address>:<service_port>
@@ -101,5 +76,84 @@ useFSHKnowledgeObjects = <boolean>
   federated search head (the local search head).
 * When set to 'true' federated searches with this provider use knowledge
   objects from the federated search head.
+* NOTE: This setting can be set to "true" only when the federated provider is in
+  transparent mode. If this setting is set to "true" on a standard mode
+  provider, the Splunk software considers the provider to be misconfigured and 
+  ignores this setting when you run searches on it. So Splunk software always
+  uses knowledge objects from the federated provider in standard mode.
+* Default: false
+
+mode = [ standard | transparent ]
+* Specifies whether a federated provider is in standard or transparent mode.
+* A setting of 'transparent' means that searches with the federated provider
+  can use only knowledge objects from the federated search head. In other
+  words, the value for 'useFSHKnowledgeObjects' is always interpreted by the
+  transparent mode federated provider as 'true'.
+* A setting of 'standard' means that the federated provider respects the
+  setting of 'useFSHKnowledgeObjects'. In other words, searches with the
+  federated provider can use knowledge objects from the remote search head or
+  the federated search head.
+* Default: standard
+
+
+#
+# General Federated Search Stanza
+#
+[general]
+* This stanza is for settings that are applicable to the overall logic for
+  search federation. They are typically applicable to all federated providers
+  and all search head cluster members.
+
+needs_consent = <boolean>
+* A setting of 'true' causes a checkbox to appear in the federated provider
+  definition UI. This checkbox requires that users legally acknowledge that
+  federated providers can be set up in a manner detrimental to regulatory
+  compliance.
 * Default: true
 
+heartbeatEnabled = <boolean>
+* Specifies whether the federated search heartbeat mechanism is running.
+* A setting of 'true' means the heartbeat mechanism is running on an interval
+  specified by 'heartbeatInterval'.
+* The heartbeat mechanism monitors the remote federated providers for this
+  Splunk platform instance. When you run federated searches and the heartbeat
+  mechanism has detected problems with the federated providers, it can tell you
+  what is wrong and take actions.
+  * If a federated provider is found to be unreachable a consecutive number of
+    times set by 'connectivityFailuresThreshold', the heartbeat mechanism sets
+    the federated provider to an invalid state, meaning it ignores the
+    unreachable provider in federated searches.
+	* When the heartbeat mechanism reconnects to the provider, it resets the
+	  provider to a valid state.
+  * If two transparent mode federated providers are found to point to the same
+    server ID, the heartbeat mechanism randomly chooses one provider to run the
+    search over.
+    * On Splunk Enterprise deployments, this functionality is extended so that
+      it also detects when two transparent mode federated providers share the
+      same cluster ID. For this extension to work, the service accounts for the
+      transparent mode federated providers must have the
+      list_search_head_clustering capability.
+* A setting of 'false' means the heartbeat mechanism does not take actions when
+  it detects problems with providers.
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+* Default: true
+
+heartbeatInterval = <integer>
+* The interval, in seconds, of the federated search heartbeat mechanism.
+  It's value should be greater than 5 seconds.
+* When 'heartbeatEnabled = true' the federated search heartbeat mechanism
+  performs its federated provider monitoring activities on this interval.
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+* Default: 60
+
+connectivityFailuresThreshold = <integer>
+* When the federated search heartbeat mechanism detects this number of
+  consecutive connectivity failures for a specific remote provider, the
+  heartbeat mechanism sets the remote provider to an invalid state.
+* When the heartbeat mechanism successfully reconnects to an invalid state
+  federated provider, it resets the federated provider to a valid state.
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+* Default: 3

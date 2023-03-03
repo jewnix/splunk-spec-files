@@ -1,4 +1,4 @@
-#   Version 9.0.1
+#   Version 9.0.2
 #
 # Forwarders require outputs.conf. Splunk instances that do not forward
 # do not use it. Outputs.conf determines how the forwarder sends data to
@@ -1742,25 +1742,45 @@ remote_queue.sqs_smartbus.large_message_store.key_refresh_interval = <string>
 ####
 # Remote File System (RFS) Output
 ####
+[rfs]
+* Global settings that individual rfs output destinations can inherit.
 
-[rfs:<name>]
-
-* This section explains the configuration settings for the Ingest Actions
-  feature to send data to a remote file system, such as Amazon S3.
-* Each rfs stanza represents an individually configured location.
-* The "name" is a unique identifier for the remote storage, and is shown
-  as a routing destination when using the Ingest Actions UI.
-* Only one remote stanza configuration is supported.
-* The only supported remote storage scheme is S3: "rfs:s3". All others
-  are currently not supported.
+partitionBy = legacy | (year|month|day) [, sourcetype]
+* Specifies schema to partition and store events into seperate files on the
+  rfsoutput destination(s). It affects the file storage location specified by
+  the "path" for any given destination in the manner described below.
+  * legacy - no partitioning and the events are batched together on the order of
+    arrival. This appends path segments that encode the latest timestamp among
+    all events in the batch similar to the strftime format "%Y/%m/%d".
+  * year|month|day - span of event timestamp to use as the primary partition key.
+    This encodes primary field as multiple path segments and appends to the path
+    in the decreasing order of significance. For example, "day" produces
+    "year=%Y/month=%m/day=%d", "month" produces "year=%Y/month=%m" and "year"
+    produces "year=%Y".
+  * sourcetype - optional secondary partition key applied over primary partition key.
+    This appends a single path segment encoded in the form "sourcetype=<sourcetype>".
+* Examples:
+    Illustrated below is the set of possible settings and how they affect the
+    file storage path, for events generated on August 15, 2022.
+    * partitionBy = day, sourcetype
+       Results file path into "<path>/year=2022/month=08/day=15/sourcetype=<srctype>/"
+    * partitionBy = day
+       Results file path into "<path>/year=2022/month=08/day=15/"
+    * partitionBy = month
+       Results file path into "<path>/year=2022/month=08/"
+    * partitionBy = year
+       Results file path into "<path>/year=2022/"
+    * partitionBy = legacy
+       Results file path into "<path>/2022/08/15/"
+* Default: legacy
 
 dropEventsOnUploadError = <boolean>
-* Whether or not the Ingest Actions feature drops events if it encounters an
-  error when uploading events to remote storage.
-* A value of "true" means that, if there is an error writing to a remote file system, the
+* Whether or not the ingest actions feature drops events if it encounters an
+  error when uploading events to output destination.
+* A value of "true" means that, if there is an error writing to the destination, the
   error will be logged, and the events in that batch dropped. Ingest will not be
   blocked, but data might be lost.
-* A value of "false" means, if there is an error writing to a remote file system, the
+* A value of "false" means, if there is an error writing to the destination, the
   error will be logged, and events will NOT be dropped. splunkd will continually
   attempt to write the batch. Because events are not dropped, this might cause
   queues to become blocked, and data ingestion to stop.
@@ -1769,58 +1789,55 @@ dropEventsOnUploadError = <boolean>
 
 batchSizeThresholdKB = <integer>
 * The size, in kilobytes, of the events in the RfsOutputProcessor send buffer.
-* RfsOutputProcessor batches events before flushing them to S3.
+* RfsOutputProcessor batches events before writing them into files on the destination.
 * If the current buffer size is greater than 'batchSizeThresholdKB' kilobytes, then
-* the data will be written to S3 immediately.
+* the data will be written to the destination immediately.
 * If you increase this setting, you may also want to increase the value of
   server.conf/[queue:rfsQueue]/maxSize.
 * Default: 2048
 
 batchTimeout = <integer>
-* RfsOutputProcessor batches events before flushing to S3.
-* If a batch has not hit any other criteria for being flushed to S3, and
-  the batch is at least this many seconds old, flush the batch to S3.
+* RfsOutputProcessor batches events before flushing to the destination.
+* If a batch has not hit any other criteria for being flushed, and
+  the batch is at least this many seconds old, flush the batch.
 * Default = 30
 
 compression = none|gzip|lz4|zstd
-* Sets the algorithm to use for compression when writing to S3. 
-* The RfsOutputProcessor writes files to S3 with the appropriate extension for the compression
+* Sets the algorithm to use for compressing files before writing to the destination.
+* The RfsOutputProcessor writes files with the appropriate extension for the compression
   algorithm, for example, .zst for zstd, .gz for gzip and .lz4 for lz4.
 * Default: zstd
 
 compressionLevel = <integer>
 * Sets compression level for the specified compression algorithm,
-  when RfsOutputProcessor writes files to S3. Must be between 0 and 10.
+  when RfsOutputProcessor writes files. Must be between 0 and 10.
 * Default: 3
 
-####
-# "rfs" stanzas, in addition to RfsOutputConfiguration, can take many storage
-# provider-specific settings, for example, for Amazon S3, GCP, or Azure. Refer to
-# "Volume settings" in indexes.conf for all settings. The below are a list of
-# common settings.
-####
+[rfs:<name>]
+
+* This section explains the configuration settings for the ingest actions feature
+  to send data to an external storage interface, such as AWS S3 or a file-system mount.
+* Each [rfs:<name>] stanza represents an individually configured location.
+* The "name" is a unique identifier for the storage destination, and is shown
+  as a routing destination when using the ingest actions UI.
+  For example: [rfs:syslog_filtered_events], [rfs:threat_detection_logs] etc.
 
 path = <string>
 * Required.
-* This setting points to the location on local file system or remote storage location
-  where indexes reside.
-* The format for local file system is:
-  file://<some_mount_point/path>
-* The format for remote storage location is:
-  <scheme>://<remote-location-specifier>
-    * The "scheme" identifies a supported external storage system type.
-    * The "remote-location-specifier" is an external system-specific string for
+* This setting points to the storage location where files would be stored.
+* The format for specifying storage location is:
+  <scheme>://<storage-location-specifier>
+    * The "scheme" identifies the storage interface used.
+    * Currently "s3" and "file" are the only supported schemes.
+    * The "storage-location-specifier" is a system-specific string for
       identifying a location inside the storage system.
-    * For Google Cloud Storage, this is specified as "gs://<bucket-name>/path/to/rfsoutput"
-    * For Microsoft Azure Blob storage, this is specified
-      as "azure://<container-name>/path/to/rfsoutput" Note that "<container-name>"
-      is needed here only if 'remote.azure.container_name' is not set.
-    * For Amazon S3 storage, this is specified as "s3://<bucket-name>/<path-to-rfs-output>"
+    * For AWS S3, this is specified as "path=s3://mybucket/some/path"
+    * For filesystem interface, this is specified as "file://my/local/path"
 
 description = <string>
 * Optional.
-* A general description to explain the configuration settings for the Ingest Actions
-  feature to send data to a remote file system.
+* A general description to explain the configuration settings for the ingest actions
+  feature to send data to a destination.
 * No default.
 
 remote.* = <string>
@@ -1838,7 +1855,7 @@ remote.* = <string>
 
 remote.s3.encryption = sse-s3 | sse-kms | sse-c | cse | none
 * The encryption scheme to use for data buckets that are currently being stored (data at rest).
-* sse-s3: Search for "Protecting Data Using Server-Side Encryption with Amazon S3-Managed
+* sse-s3: Search for "Protecting Data Using Server-Side Encryption with AWS S3-Managed
           Encryption Keys" on the Amazon Web Services documentation site.
 * sse-kms: Search for "Protecting Data Using Server-Side Encryption with CMKs Stored in AWS
            Key Management Service (SSE-KMS)" on the Amazon Web Services documentation site.
@@ -1915,7 +1932,7 @@ remote.s3.endpoint = <URL>
 
 remote.s3.encryption = sse-s3 | sse-kms | none
 * The encryption scheme to use for output to remote storage for data stored (data at rest).
-* sse-s3: Search for "Protecting Data Using Server-Side Encryption with Amazon S3-Managed
+* sse-s3: Search for "Protecting Data Using Server-Side Encryption with AWS S3-Managed
           Encryption Keys" on the Amazon Web Services documentation site.
 * sse-kms: Search for "Protecting Data Using Server-Side Encryption with CMKs Stored in AWS
            Key Management Service (SSE-KMS)" on the Amazon Web Services documentation site.
@@ -2041,3 +2058,49 @@ authMethod = <string>
 * setting to “basic”.
 * Choosing “IAM role” in Splunk Web sets this setting to "iam".
 * No default.
+
+partitionBy = legacy | (year|month|day) [, sourcetype]
+* Specifies schema to partition and store events forwarded to this destination.
+  Any setting will override the global partitionBy settings of [rfs] stanza.
+  Refer to the detailed description of this property under global [rfs] stanza
+  and how it affects the file storage path.
+* Default: Inherited partitionBy setting from the global [rfs] stanza.
+
+dropEventsOnUploadError = <boolean>
+* Whether or not the ingest actions feature drops events if it encounters an
+  error when uploading events to remote storage.
+* A value of "true" means that, if there is an error writing to a remote file system, the
+  error will be logged, and the events in that batch dropped. Ingest will not be
+  blocked, but data might be lost.
+* A value of "false" means, if there is an error writing to a remote file system, the
+  error will be logged, and events will NOT be dropped. splunkd will continually
+  attempt to write the batch. Because events are not dropped, this might cause
+  queues to become blocked, and data ingestion to stop.
+* This setting is optional.
+* Default: Inherited dropEventsOnUploadError setting from the global [rfs] stanza.
+
+batchSizeThresholdKB = <integer>
+* The size, in kilobytes, of the events in the RfsOutputProcessor send buffer.
+* RfsOutputProcessor batches events before flushing them to destination.
+* If the current buffer size is greater than 'batchSizeThresholdKB' kilobytes, then
+* the data will be written to the destination immediately.
+* If you increase this setting, you may also want to increase the value of
+  server.conf/[queue:rfsQueue]/maxSize.
+* Default: Inherited batchSizeThresholdKB setting from the global [rfs] stanza.
+
+batchTimeout = <integer>
+* RfsOutputProcessor batches events before flushing to the destination.
+* If a batch has not hit any other criteria for being flushed, and
+  the batch is at least this many seconds old, flush the batch.
+* Default: Inherited batchTimeout setting from the global [rfs] stanza.
+
+compression = none|gzip|lz4|zstd
+* Sets the algorithm to use for compressing files before writing to the destination.
+* The RfsOutputProcessor writes files with the appropriate extension for the compression
+  algorithm, for example, .zst for zstd, .gz for gzip and .lz4 for lz4.
+* Default: Inherited compression setting from the global [rfs] stanza.
+
+compressionLevel = <integer>
+* Sets compression level for the specified compression algorithm,
+  when RfsOutputProcessor writes files. Must be between 0 and 10.
+* Default: Inherited compressionLevel setting from the global [rfs] stanza.

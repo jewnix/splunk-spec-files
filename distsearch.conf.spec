@@ -1,4 +1,4 @@
-#   Version 9.0.1
+#   Version 9.0.2
 #
 # This file contains possible attributes and values you can use to configure
 # distributed search.
@@ -443,9 +443,7 @@ cascade_plan_replication_retry_fast = <boolean>
 * Determines whether a cascading bundle replication plan is retried
   if the number of replication failures exceed the threshold
   specified by 'cascade_plan_replication_threshold_failures'.
-* Do not change this setting without consulting
-  Splunk Support.
-* Default: false
+* Default: true
 
 cascade_plan_replication_threshold_failures = <integer>
 * The number of search peers that can fail during a cascading bundle replication

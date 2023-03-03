@@ -2360,19 +2360,16 @@ evt_ad_cache_disabled = <boolean>
 evt_ad_cache_exp = <integer>
 * The expiration time, in seconds, for AD object cache entries.
 * This setting is optional.
-* The minimum allowed value is 10 and the maximum allowed value is 31536000.
 * Default: 3600 (1 hour)
 
 evt_ad_cache_exp_neg = <integer>
 * The expiration time, in seconds, for negative AD object cache entries.
 * This setting is optional.
-* The minimum allowed value is 10 and the maximum allowed value is 31536000.
 * Default: 10
 
 evt_ad_cache_max_entries = <integer>
 * The maximum number of AD object cache entries.
 * This setting is optional.
-* The minimum allowed value is 10 and the maximum allowed value is 40000.
 * Default: 1000
 
 evt_exclude_fields = <comma-separated list>
@@ -2403,7 +2400,6 @@ evt_sid_cache_disabled = <boolean>
 evt_sid_cache_exp = <unsigned integer>
 * The expiration time, in seconds, for account SID cache entries.
 * This setting is global. It affects all Windows Event Log stanzas.
-* The minimum allowed value is 10 and the maximum allowed value is 31536000.
 * This setting is optional.
 * Default: 3600
 
@@ -2411,13 +2407,11 @@ evt_sid_cache_exp_neg = <unsigned integer>
 * The expiration time, in seconds, for negative account SID cache entries.
 * This setting is optional.
 * This setting is global. It affects all Windows Event Log stanzas.
-* The minimum allowed value is 10 and the maximum allowed value is 31536000.
 * Default: 10
 
 evt_sid_cache_max_entries = <unsigned integer>
 * The maximum number of account SID cache entries.
 * This setting is global. It affects all Windows Event Log stanzas.
-* The minimum allowed value is 10 and the maximum allowed value is 40000.
 * This setting is optional.
 * Default: 10
 
@@ -2888,21 +2882,18 @@ sid_cache_exp = <integer>
 * The expiration time, in seconds, for account SID cache entries.
 * Optional.
 * This setting is global. It affects all Windows Network Monitor stanzas.
-* The minimum allowed value is 10 and the maximum allowed value is 31536000.
 * Default: 3600
 
 sid_cache_exp_neg = <integer>
 * The expiration time, in seconds, for negative account SID cache entries.
 * Optional.
 * This setting is global. It affects all Windows Network Monitor stanzas.
-* The minimum allowed value is 10 and the maximum allowed value is 31536000.
 * Default: 10
 
 sid_cache_max_entries = <integer>
 * The maximum number of account SID cache entries.
 * Optional.
 * This setting is global. It affects all Windows Network Monitor stanzas.
-* The minimum allowed value is 10 and the maximum allowed value is 40000.
 * Default: 10
 
 disabled = <boolean>

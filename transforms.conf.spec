@@ -507,7 +507,7 @@ filename = <string>
 
 collection = <string>
 * Name of the collection to use for this lookup.
-* Collection should be defined in $SPLUNK_HOME/etc/apps/<app_name>/collections.conf
+* Collection should be defined in $SPLUNK_HOME/etc/apps/<app_name>/local/collections.conf
   for an <app_name>
 * If collection is in multiple collections.conf file, no layering is done.
 * Standard conf file precedence is used to disambiguate.

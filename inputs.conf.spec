@@ -1,4 +1,4 @@
-#   Version 9.0.2
+#   Version 9.0.3
 #
 ############################################################################
 # OVERVIEW
@@ -695,6 +695,56 @@ concurrentChannelLimit = <unsigned integer>
   exceed this value.
 * This setting only applies when the new forwarder protocol is in use.
 * Default: 300
+
+logRetireOldS2S = <boolean>
+* Whether or not the Splunk platform logs the usage of old versions of Splunk-to-Splunk (S2S) 
+  protocol.
+* The old S2S protocol retirement logs provide visibility into customers' usage 
+  of the old S2S protocol version V3 which is less performant than the current version V4.
+* A value of "true" means that splunkd generates warning logs for the old S2S protocol 
+  versions.  
+* See the 'logRetireOldS2SRepeatFrequency' setting for additional constraints on
+  when the Splunk platform logs the use of old S2S protocol versions. 
+* Default: true
+
+
+logRetireOldS2SMaxCache = <unsigned integer>
+* The size of the cache for tracking forwarders that use old S2S protocols.
+* The cache keeps track of unique forwarders that use the old S2S protocol. When a 
+  forwarder is in the cache, the Splunk platform doesn't log usage of the old protocol
+  for that forwarder for a time period of 'logRetireOldS2SRepeatFrequency', to avoid generating 
+  duplicate logs.
+* If the cache fills before the 'logRetireOldS2SRepeatFrequency' period elapses, 
+  the Splunk platform removes the forwarder that has been in the cache the longest
+  from the cache to make space.
+* Update this setting as per the number of forwarders that currently use the old S2S 
+  protocol to send data to indexers. If the number of forwarders that use 
+  old S2S protocols is larger than the cache size, some forwarders might generate duplicate 
+  logs even though the previous log was within the 'logRetireOldS2SRepeatFrequency' 
+  period.
+* When you restart Splunk Enterprise, the cache resets and the timer starts over.
+* This setting takes effect only when 'logRetireOldS2S' has a value of "true".
+* Default: 10000
+
+logRetireOldS2SRepeatFrequency = <timespan>
+* The interval between writing repeat entries into the retire old S2S warning log 
+  for a certain forwarder.
+* This setting helps reduce retire old S2S log size by providing control over how
+  often to log.
+* When a forwarder uses the old S2S protocol version to communicate with splunkd, splunkd 
+  adds the forwarder to a cache. Subsequent communication with the same 
+  forwarder won't generate a new entry to the log until a period of 
+  'logRetireOldS2SRepeatFrequency' has elapsed. Splunkd then resets the log timestamp and 
+  writes another "retire old S2S protocol" warning log entry.
+* The Splunk platform enforces this setting as long as the size of the cache
+  does not exceed 'logRetireOldS2SMaxCache' entries. When there are more than
+  'logRetireOldS2SMaxCache' entries, the cache removes the entry with the oldest
+  access time to make space.
+* When you restart Splunk Enterprise, the cache resets and the timer starts over.
+* This setting takes effect only when 'logRetireOldS2S' has a value of "true".
+* A value of "0" means that the platform logs old S2S protocol warning entries every time
+  it receives a communication using the old S2S protocol version.
+* Default: 1d
 
 # Forwarder-specific settings for splunktcp.
 

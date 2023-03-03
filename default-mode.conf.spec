@@ -1,4 +1,4 @@
-#   Version 9.0.2
+#   Version 9.0.3
 #
 # This file documents the syntax of default-mode.conf for comprehension and
 # troubleshooting purposes.

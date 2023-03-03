@@ -3350,7 +3350,8 @@ max_users_to_precache = <unsigned integer>
 interval = <integer>
 * Number of seconds between logging splunkd metrics to metrics.log.
 * Minimum of 10.
-* Default: 30
+* Default (Splunk Enterprise): 30
+* Default (Splunk Universal Forwarder): 60
 
 maxseries = <integer>
 * The number of series to include in the per_x_thruput reports in metrics.log.

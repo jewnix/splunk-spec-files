@@ -31,3 +31,14 @@ enable_unsupported_hotlinked_imports = <boolean>
   that the Splunk platform will delete in a future release.
 * CAUTION: Do not change this setting.
 * Default: true
+
+[feature:dashboard_inputs_localization]
+
+enable_dashboard_inputs_localization = <boolean>
+* Determines whether or not Splunk Web will attempt to localize input choices in
+  Classic dashboards.
+* A value of "true" means that localization for input choices will be enabled in
+  Classic Dashboards.
+* A value of "false" means that localization for input choices will be disabled in
+  Classic Dashboards.
+* Default: false

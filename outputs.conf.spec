@@ -1,4 +1,4 @@
-#   Version 9.0.0
+#   Version 9.0.1
 #
 # Forwarders require outputs.conf. Splunk instances that do not forward
 # do not use it. Outputs.conf determines how the forwarder sends data to
@@ -2024,6 +2024,12 @@ remote.s3.kms.<ssl_settings> = <...>
 * All of these settings are optional.
 * All of these settings have the same defaults as
   'remote.s3.<ssl_settings>'.
+
+remote.s3.metadata_max_attempts = <integer>
+* Imposes a maximum number of times an operation will be
+  retried upon failing to retrieve credentials from EC2 metadata service endpoint.
+* This value must be between 1 and 10.
+* Default: 10
 
 authMethod = <string>
 * The authentication method used to access the remote destination.

@@ -1,4 +1,4 @@
-#   Version 9.0.1
+#   Version 9.0.2
 #
 ############################################################################
 # OVERVIEW
@@ -3542,6 +3542,16 @@ upload_rectifier_timeout_secs = <unsigned integer>
   if the bucket needs to be re-uploaded.
 * This setting controls the timeout that the peer waits before checking.
 * Default: 2
+
+enable_encrypt_bundle = <boolean>
+* Whether or not an indexer cluster manager encrypts sensitive fields from the
+  'encrypt_fields' setting when it creates an indexer clustering bundle.
+* A value of "true" means that indexer clustering bundle encryption is enabled.
+* A value of "false" means that indexer clustering bundle encryption is disabled.
+* NOTE: If you disable this setting, confirm that all fields in files in the
+  configuration bundle on the manager node are not encrypted before you deploy
+  the bundle to the peer nodes.
+* Default: true
 
 [clustermanager:<cm-nameX>]
 * Valid for 'mode=searchhead' when the search head belongs to multiple indexer

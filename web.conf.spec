@@ -1,4 +1,4 @@
-#   Version 9.0.1
+#   Version 9.0.2
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -129,6 +129,24 @@ enableCertBasedUserAuth = <boolean>
   If you need this check to happen, then this setting *must* have a
   value of "false".
 * Default: false
+
+certBasedUserAuthMethod = <string>
+* The method that the Splunk platform uses to extract LDAP credentials from client certificates.
+* This setting takes one of the following values: 
+  * CommonName: Use the value contained in the Common Name field of a client certificate in its entirety
+  * EDIPI (Electronic Data Interchange Personal Identifier): Extract the EDIPI, the 10-digit numeric identifier 
+    from the Common Name. If the platform can't find the EDIPI, then it uses the Common Name in its entirety.
+  * PIV (Personal Identity Verification): Use PIV, a 16-digit numeric identifier typically formatted 
+    as xxxxxxxxxxxxxxxx@mil. It is extracted from an "Other Name" field in the Subject Alternate Name which 
+    corresponds to one of the object identifiers (OIDs) that you configure in 'certBasedUserAuthPivOidList'.
+* No default.
+
+certBasedUserAuthPivOidList = <comma-separated list>
+* A list of object identifiers (OIDs) that the Splunk platform uses to
+  lookup an end-user's PIV info in the Subject Alternate Name extension of the client certificate.
+* The Splunk platform queries OIDs sequentially in a client certificate until it finds an OID with a value.
+* The value contained in the matched OID is then used to authenticate the user.
+* Default: 1.3.6.1.4.1.311.20.2.3, Microsoft Universal Principal Name
 
 requireClientCert = <boolean>
 * Whether or not an HTTPS client that connects to the Splunk Web HTTPS server

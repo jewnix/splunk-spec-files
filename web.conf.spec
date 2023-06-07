@@ -809,18 +809,6 @@ allowSsoWithoutChangingServerConf = [0 | 1]
   in server.conf.
 * Default: 0
 
-testing_endpoint = <relative_uri_path>
-* The root URI path on which to serve Splunk Web unit and
-  integration testing resources.
-* NOTE: This is a development only setting, do not use in normal operations.
-* Default: /testing
-
-testing_dir = <relative_file_path>
-* The path relative to $SPLUNK_HOME that contains the testing
-  files to be served at endpoint defined by 'testing_endpoint'.
-* NOTE: This is a development only setting, do not use in normal operations.
-* Default: share/splunk/testing
-
 ssoAuthFailureRedirect = <scheme>://<URL>
 * The redirect URL to use if SSO authentication fails.
 * Examples:

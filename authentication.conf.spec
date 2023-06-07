@@ -1,4 +1,4 @@
-#   Version 9.0.4
+#   Version 9.0.5
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.
@@ -1120,6 +1120,20 @@ allowPartialSignatures = <boolean>
   signed (but not necessarily the entire SAML response).
 * When disabled, the entire SAML response must be signed for the login to succeed.
 * Defaults to 'true'
+
+allowEntities = <boolean>
+* Whether or not the Splunk authentication system considers 
+  SAML assertions with XML entity references as valid.
+* A value of "true" means the Splunk authentication system 
+  considers SAML assertions with XML entity references as
+  valid assertions.
+* A value of "false" means the Splunk authentication system
+  considers SAML assertions with XML entity references as invalid
+  assertions.
+* CAUTION: Changing this setting from its default value could 
+  potentially pose a security risk. Do not change the value without
+  explicit permission from Splunk Support.
+* Default: false
 
 #####################
 # Map roles

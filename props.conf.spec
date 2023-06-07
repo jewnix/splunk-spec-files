@@ -1,4 +1,4 @@
-#   Version 9.0.4
+#   Version 9.0.5
 #
 # This file contains possible setting/value pairs for configuring Splunk
 # software's processing properties through props.conf.

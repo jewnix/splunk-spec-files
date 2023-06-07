@@ -1,4 +1,4 @@
-#   Version 9.0.4
+#   Version 9.0.5
 #
 ############################################################################
 # OVERVIEW
@@ -43,3 +43,12 @@ enable_dashboard_inputs_localization = <boolean>
 * A value of "false" means that localization for input choices will be disabled in
   Classic Dashboards.
 * Default: false
+
+[feature:ui_prefs_optimizations]
+
+optimize_ui_prefs_performance = <boolean>
+* Determines whether or not Splunk Web will optimize performance of the API related to ui-prefs.conf.
+* DEPRECATED.
+* CAUTION: Do not change this setting.
+* A value of "false" means that Splunk Web will not optimize performance of the API related to ui-prefs.
+* Default: true

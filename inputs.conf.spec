@@ -1,4 +1,4 @@
-#   Version 9.0.4
+#   Version 9.0.5
 #
 ############################################################################
 # OVERVIEW
@@ -2317,6 +2317,19 @@ current_only = <boolean>
 * Default: 0 (false, gathering stored events first before monitoring
   live events)
 
+channel_wait_time = <integer>
+* How long, in seconds, that the Windows Event Log input waits for an Event Log
+  channel that is not available to become available again.
+* Some Event Log channels, like the Windows Defender channel, become
+  unavailable during a Windows Defender Platform update and it takes
+  some time to become available again.
+* If the Event Log input is unable to collect event logs from a certain
+  Event Log channel, change this setting to an appropriate value.
+  For example, if the input does not collect Windows Defender event logs
+  after a Windows Defender Platform update, increase this value.
+* The maximum wait time is 180 (3 minutes).
+* Default: 0
+
 batch_size = <integer>
 * How many Windows Event Log items to read per request.
 * If troubleshooting identifies that the Event Log input is a bottleneck in
@@ -2332,6 +2345,28 @@ checkpointInterval = <integer>
 * How often, in seconds, that the Windows Event Log input saves a checkpoint.
 * Checkpoints store the eventID of acquired events. This lets the input
   continue monitoring at the correct event after a shutdown or outage.
+* Default: 0
+
+checkpointSync = <boolean>
+* Determines whether the input processor forces writing a checkpoint file to disk
+  immediately or lets the operating system handle when writing of the
+  file to disk occurs.
+* A value of "true" means the input processor triggers writing of a checkpoint
+  file to disk immediately. It also saves the file to a temporary location and
+  renames it instead of overwriting the existing file.
+* Default: false
+
+channel_wait_time = <integer>
+* How long, in seconds, that the Windows Event Log input waits for an Event Log
+  channel that is not available to become available again.
+* Some Event Log channels, like the Windows Defender channel, become
+  unavailable during a Windows Defender Platform update and it takes
+  some time to become available again.
+* If the Event Log input is unable to collect event logs from a certain
+  Event Log channel, change this setting to an appropriate value.
+  For example, if the input does not collect Windows Defender event logs
+  after a Windows Defender Platform update, increase this value.
+* The maximum wait time is 180 (3 minutes).
 * Default: 0
 
 disabled = <boolean>

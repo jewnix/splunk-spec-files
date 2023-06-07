@@ -1,4 +1,4 @@
-#   Version 9.0.4
+#   Version 9.0.5
 #
 ############################################################################
 # OVERVIEW
@@ -2840,6 +2840,21 @@ generation_poll_interval = <positive integer>
 * This setting is valid only if 'mode=manager' or 'mode=searchhead'.
 * This setting reloads automatically and does not require a restart.
 * Default: 5
+
+generation_max_staleness = <interval><unit>
+* Search heads will ignore search generation information from a cluster
+  manager if it looks incomplete, either because it doesn't contain any
+  search peers, or because it consists of a subset of the search head's known
+  peers and at least one of the missing peers is currently joining
+  the cluster.
+* This setting specifies how old a search head's own information can be before
+  the search head forcefully accepts new search generation information from a
+  cluster manager.
+* When search performance is compromised by cluster manager restarts, increase
+  'generation_max_staleness' to the time it takes for all indexers to join the
+  cluster.
+* This setting is valid only when 'mode=searchhead'.
+* Default: 60s
 
 max_peer_build_load = <integer>
 * Only valid for 'mode=manager'.

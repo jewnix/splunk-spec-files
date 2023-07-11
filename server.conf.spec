@@ -1,4 +1,4 @@
-#   Version 9.0.5
+#   Version 9.1.0.1
 #
 ############################################################################
 # OVERVIEW
@@ -50,7 +50,7 @@ serverName = <ASCII string>
   (if not an IPv6 address) can only contain letters, numbers, underscores,
   dots, and dashes. The server name must start with a letter, number, or an
   underscore.
-* Default: <hostname>-<user_running_splunk>
+* Default: $HOSTNAME
 
 hostnameOption = [ fullyqualifiedname | clustername | shortname ]
 * The type of information to use to determine how splunkd sets the 'host'
@@ -98,6 +98,7 @@ logoutCacheRefreshInterval = <nonnegative integer>[s|m|h|d]
 * Default: 30s
 
 trustedIP = <IP address>
+* Only a single IP address is allowed.
 * All logins from specified IP addresses are trusted. This means a
   password is no longer required.
 * Only set this if you are using Single Sign-On (SSO).
@@ -462,6 +463,36 @@ regex_cache_hiwater = <integer>
 * When set to a negative value, no purge occurs, no matter how large
   the cache.
 * Default: 2500
+
+enable_search_process_long_lifespan = <boolean>
+* Controls whether the search process can have a long lifespan.
+* Configuring a long lifespan on a search process can optimize performance
+  by reducing the number of new processes that are launched and old 
+  processes that are reaped, and is a more efficient use of system 
+  resources. 
+* When set to "true": Splunk software does the following:
+  * Suppresses increases in the configuration generation. See the 
+    'conf_generation_include' setting for more information. 
+  * Avoids unnecessary replication of search configuration bundles.
+  * Allows a certain number of idle search processes to live.
+  * Sets the size of the pool of search processes.
+  * Checks memory usage before a search process is reused.
+* When set to "false": The lifespan of a search process at the 50th 
+  percentile is approximately 30 seconds. 
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: true
+
+conf_generation_include.<conf_file_name> = <boolean>
+* Controls whether conf generation bumps at a property change in a particular
+  type of *.conf file, mainly used on search head.
+* In general, do not bump when a property change needs to restart Splunk server
+  or is not related to search execution.
+* If set properly, Splunk server skips unnecessary generation increments to
+  maximize reuse of preforked search processes at search head. As a result, 
+  overall search performance is improved in shorter execution time and better
+  system resource utilization.
+* Has no effect if 'enable_search_process_long_lifespan' is set to "false".
+* Default: false
 
 encrypt_fields = <comma-separated list>
 * A list of the fields that need to be re-encrypted when a search head
@@ -922,7 +953,7 @@ certificateStatusValidationMethod = crl
     Authority (CA) before their scheduled expiration date and can no
     longer be trusted.
   * The default path for CRL files in a Splunk platform instance is
-    at $SPLUNK_HOME?etc/auth/crl. Any CRL files must reside there, in
+    at $SPLUNK_HOME/auth/crl. Any CRL files must reside there, in
     privacy-enhanced mail (PEM) format.
 * For more information on using CRLs and configuring CRL files on a Splunk
   platform instance, see the '[kvstore]:sslCRLPath' setting.
@@ -1063,13 +1094,7 @@ follow-symlinks = <boolean>
 disableDefaultPort = <boolean>
 * If set to "true", turns off listening on the splunkd management port,
   which is 8089 by default.
-* On Universal Forwarders, when  this value is "true" the value set 
-  for mgmtHostPort in web.conf will be ignored. Similarly, when set to "false", 
-  the value set for mgmtHostPort in web.conf will be used for binding management port.
-* NOTE: On Universal Forwarders, to reduce the risk of exploitation Splunk recommends 
-  the management port is disabled and local CLI is not used. If the management port is enabled, 
-  a valid TLS certification should be installed and the port should be bound to localhost.
-* NOTE: Changing this setting is not recommended on other Splunk instances.
+* NOTE: Changing this setting is not recommended.
   * This is the general communication path to splunkd.  If it is disabled,
     there is no way to communicate with a running splunk instance.
   * This means many command line splunk invocations cannot function,
@@ -1077,6 +1102,25 @@ disableDefaultPort = <boolean>
   * If you choose to disable the port anyway, understand that you are
     selecting reduced Splunk functionality.
 * Default: false
+
+mgmtMode = none|auto|tcp
+* Sets the transport layer protocol mode for Splunk CLI management commands.
+* A value of "none" means that only Splunk CLI commands that can be run
+  offline are available for use on the instance.
+* A value of "auto" means that CLI commands execute over a Unix Domain Socket (UDS),
+  which represents as $SPLUNK_HOME/var/run/splunk/cli.socket on the file system.
+  * If the OS does not support UDS, and if 'disableDefaultPort' has a value of "false",
+    the CLI executes over the splunkd management port.
+  * If 'disableDefaultPort' has a value of "true", only CLI commands that can be
+    run offline are available for use on the instance.
+* A value of "tcp" means the CLI commands execute over the splunkd
+  management port.
+* This setting is only available on the universal forwarder.
+* NOTE: There is a path length limit of 104-108 characters for the UDS socket file. This includes
+  whatever the $SPLUNK_HOME environment variable expands to. If you exceed this length for the
+  socket file, UDS does not work, and you must reinstall the universal forwarder, because you cannot
+  take corrective action to fix the UDS path. Verify the UDS path length when configuring this setting.
+* Default: auto
 
 acceptFrom = <network_acl> ...
 * Lists a set of networks or addresses from which to accept connections.
@@ -1310,7 +1354,11 @@ dedicatedIoThreads = [<integer>|auto]
                  129 - 192           |    6
                  193 and higher      |    8
 
-* You do not usually need to change this setting.
+* You do not usually need to change this setting. However, for an instance
+  running as a dedicated deployment server, the best practice is to set
+  'dedicatedIoThreads' to a value of CPU cores/2, or CPU cores-1, in the case
+  of a very active deployment server. For example, in the case of a deployment
+  server with 8 CPU cores, set 'dedicatedIoThreads' to 4 or 7.
 * Default: auto
 
 dedicatedIoThreadsSelectionPolicy = <round_robin | weighted_random>
@@ -1539,7 +1587,7 @@ sslCommonNameToCheck = <commonName1>, <commonName2>, ...
 * If this value is set, and 'sslVerifyServerCert' is set to true,
   splunkd checks the common name(s) of the certificate presented by
   the remote server (specified in 'url') against this list of common names.
-* Default: apps.splunk.com
+* Default: apps.splunk.com, cdn.apps.splunk.com
 
 sslCommonNameList = <commonName1>, <commonName2>, ...
 * DEPRECATED. Use the 'sslCommonNameToCheck' setting instead.
@@ -1549,7 +1597,7 @@ sslAltNameToCheck =  <alternateName1>, <alternateName2>, ...
   splunkd checks the alternate name(s) of the certificate presented by
   the remote server (specified in 'url') against this list of subject
   alternate names.
-* Default: splunkbase.splunk.com, apps.splunk.com
+* Default: splunkbase.splunk.com, apps.splunk.com, cdn.apps.splunk.com
 
 cipherSuite = <cipher suite string>
 * Uses the specified cipher string for making outbound HTTPS connection.
@@ -1882,7 +1930,7 @@ etc_filesize_limit = <non-negative integer>
   be a surprise to the administrator, and indicate problems).
 * You can disable this filter by setting the value to 0.
 * Currently, as a special exception, the file
-  $SPLUNK_HOME?etc/system/replication/ops.json is permitted to be 10x the
+  $SPLUNK_HOME/system/replication/ops.json is permitted to be 10x the
   size of this limit.
 * Default: 10000 (10MB)
 
@@ -2034,6 +2082,24 @@ pool_suggestion = <string>
         feature is limited in only allowing a suggestion of a single pool;
         This is not a common scenario however.
 * No default. (which means this feature is disabled)
+
+lm_uri = <comma-separated list>
+* A list of the URIs of license managers that this instance is to use when
+  in High Availability Redundancy Mode.
+* High Availability Redundancy mode lets you use multiple license managers
+  behind a load balancer.
+* Separate multiple entries with commas.
+* If you give this setting a value, that value cannot be empty.
+* This setting is valid only when you enable High Availability Redundancy mode,
+  which requires a special license and is only available to select customers.
+* No default.
+
+lm_ping_interval = <positive integer>
+* How often, in seconds, that license managers communicate with each other
+  to check if they are all online and have the same license.
+* This setting is valid only when you enable High Availability Redundancy mode,
+  which requires a special license and is only available to select customers.
+* Default: 86400 (once a day)
 
 [lmpool:auto_generated_pool_forwarder]
 * This is the auto generated pool for the forwarder stack
@@ -2339,10 +2405,10 @@ rcv_timeout = <integer>
 * Default: 60
 
 rep_cxn_timeout = <integer>
-* Only valid for 'mode=peer'.
+* Valid only for 'mode=peer'.
 * The low-level timeout, in seconds, for establishing connection for replicating
   data.
-* Default: 5
+* Default: 60
 
 rep_send_timeout = <integer>
 * Only valid for 'mode=peer'.
@@ -2353,7 +2419,7 @@ rep_send_timeout = <integer>
   resets the timeout for another 'rep_send_timeout' seconds and continues.  If
   target has failed or the cumulative timeout has exceeded the
   'rep_max_send_timeout', replication fails.
-* Default: 5
+* Default: 60
 
 rep_rcv_timeout = <integer>
 * Only valid for 'mode=peer'.
@@ -2363,7 +2429,7 @@ rep_rcv_timeout = <integer>
   it reset the timeout for another 'rep_send_timeout' interval and continues.
 * If target has failed or cumulative timeout has exceeded
   'rep_max_rcv_timeout', replication fails.
-* Default: 10
+* Default: 60
 
 rep_max_send_timeout = <integer>
 * Only valid for 'mode=peer'.
@@ -2780,7 +2846,7 @@ restart_timeout = <positive integer>
 * More specifically, the amount of time that the manager waits for a
   peer in the 'Restarting' status to transition to the 'Down' status.
 * Note that this only works with the offline command or if the peer
-  is restarted vi the UI.
+  is restarted through the UI.
 * You do not need to restart the cluster manager when making changes to
   this setting. This setting reloads automatically.
 * Default: 60
@@ -3139,7 +3205,7 @@ allow_default_empty_p4symmkey = <boolean>
   to the null string or the default password ("changeme").
 * A value of "true" means the manager posts a warning but still launches.
 * A value of "false" means the manager posts a warning and stops.
-* Default: true
+* Default: false
 
 register_replication_address = <string>
 * Only valid for 'mode=peer'.
@@ -3558,6 +3624,27 @@ upload_rectifier_timeout_secs = <unsigned integer>
 * This setting controls the timeout that the peer waits before checking.
 * Default: 2
 
+localization_based_primary_selection = [disabled|auto]
+* Only valid for 'mode=manager'.
+* This setting determines the behavior of the cluster manager when
+  assigning primacy to SmartStore bucket copies.  If set to 'auto',
+  the cluster manager examines each copy's localization flag and
+  assigns primacy to a bucket copy, if any, with existing localized
+  content. If multiple peers have localized content for the bucket,
+  the cluster manager assigns primacy to the copy on the peer with
+  the least number of total primary bucket copies.
+* If set to 'disabled' the localization flags of the buckets are not
+  taken into account during primary assignment.
+* Default: disabled
+
+localization_update_batch_size = <non-zero positive integer>
+* Only valid for 'mode=peer'.
+* Controls the number of bucket localization updates the peer sends
+  per batch to the manager every heartbeat_period.
+* CAUTION: Do not modify this setting without guidance from
+  Splunk personnel.
+* Default: 1000
+
 enable_encrypt_bundle = <boolean>
 * Whether or not an indexer cluster manager encrypts sensitive fields from the
   'encrypt_fields' setting when it creates an indexer clustering bundle.
@@ -3924,6 +4011,11 @@ collectionPeriodInSecs = <positive integer>
 * Default (on universal forwarders): 600 (10 minutes)
 * Default (on all other Splunk platform instance types): 10 (1/6th of a minute)
 
+disabled = <boolean>
+* Disables Resource Usage data collection.
+* Default (on universal forwarders): true
+* Default (on all other Splunk platform instance types): false
+
 [introspection:generator:resource_usage__iostats]
 * This stanza controls the collection of i-data about: IO Statistics data
 * "IO Statistics" here refers to: read/write requests; read/write sizes;
@@ -3939,6 +4031,11 @@ collectionPeriodInSecs = <positive integer>
   both directly (the collection itself) and indirectly (increased disk and
   bandwidth utilization, to store the produced i-data).
 * Default: 60 (1 minute)
+
+disabled = <boolean>
+* Disables IO Statistics data collection.
+* Default (on universal forwarders): true
+* Default (on all other Splunk platform instance types): false
 
 [introspection:generator:kvstore]
 * For 'introspection_generator_addon', packaged with Splunk Enterprise.
@@ -4191,7 +4288,7 @@ rcv_timeout_raft = <integer>
 rep_cxn_timeout = <integer>
 * Low-level timeout, in seconds, for establishing connection for replicating
   data.
-* Default: 5
+* Default: 60
 
 rep_send_timeout = <integer>
 * Low-level timeout, in seconds, for sending replication slice data
@@ -4201,7 +4298,7 @@ rep_send_timeout = <integer>
   it reset the timeout for another rep_send_timeout interval and continues.
   If target has failed or cumulative timeout has exceeded
   rep_max_send_timeout, replication fails.
-* Default: 5
+* Default: 60
 
 rep_rcv_timeout = <integer>
 * Low-level timeout, in seconds, for receiving acknowledgement data from
@@ -4211,7 +4308,7 @@ rep_rcv_timeout = <integer>
   it reset the timeout for another rep_send_timeout interval and continues.
   If target has failed or cumulative timeout has exceeded
   the 'rep_max_rcv_timeout' setting, replication fails.
-* Default: 10
+* Default: 60
 
 rep_max_send_timeout = <integer>
 * Maximum send timeout, in seconds, for sending replication slice data
@@ -4383,7 +4480,7 @@ enableS2SHeartbeat = <boolean>
 * Whether or not Splunk software monitors each replication connection for
   presence of a heartbeat.
 * A value of "true" means that Splunk software monitors the presence of a 
-  heartbeat. If the heartbeat is not seen for 's2sHeartbeatTimeout' seconds, 
+  heartbeat. If the heartbeat is not seen for 's2sHeartbeatTimeout' seconds,
   the instance that monitors the heartbeat closes the connection.
 * Default: true
 
@@ -4398,6 +4495,7 @@ s2sHeartbeatTimeout = <integer>
 captain_uri = [ static-captain-URI ]
 * The management URI of static captain is used to identify the cluster
   captain for a static captain.
+
 
 election = <boolean>
 * This is used to classify a cluster as static or dynamic (RAFT based).
@@ -4575,7 +4673,7 @@ artifact_status_fields = <comma-separated list>
   info.csv for each search artifact.
 * These fields are shown in the CLI/REST endpoint splunk list
   shcluster-member-artifacts
-* Default: user, app, label
+* Default: user, eai:acl.app , label
 
 encrypt_fields = <comma-separated list>
 * DEPRECATED. 
@@ -4613,6 +4711,15 @@ remote_job_retry_attempts = <positive integer>
   the total number of nodes in the Search Head Cluster. 
 * Default: 2
 
+
+allow_concurrent_dispatch_savedsearch = <boolean>
+* The search head cluster captain might dispatch multiple saved searches to a member 
+  through REST calls.
+* This option controls whether the member processes the dispatched REST calls 
+  concurrently or sequentially.
+* If true, the member processes the REST calls concurrently. 
+* If false, the member processes the REST calls sequentially. 
+* Default: false
 
 [replication_port://<port>]
 ############################################################################
@@ -5494,64 +5601,8 @@ pass4SymmKey_minLength = <integer>
   you specify with this setting, the platform warns you and advises that you
   change the pass4SymKey.
 * Default: 12
-@
-@
-@
-@
-@
-@
 
 
-
-@
-@[bucket_catalog_service]
-@
-@uri = <uri>
-@* Points to the tenant bucket catalog service.
-@* Required.
-@* Currently, only HTTP is supported by the service.
-@* Example: <scheme>://<hostname>:<port>/<tenantId>/<bucket_catalog_path>
-
-@
-@[cache_manager_service]
-@
-@uri = <uri>
-@* Points to the cache manager service.
-@* Required.
-@
-@ping_enabled = <boolean>
-@* Currently not supported. This setting is related to a feature that is
-@  still under development.
-@* Enables "ping" keep-alive transactions to the Cache Manager Service.
-@* Default: true
-@
-@timeout.ping = <unsigned integer>
-@* Currently not supported. This setting is related to a feature that is
-@  still under development.
-@* Sets the ping timeout, in milliseconds, to use when interacting with the
-@  Cache Manager Service.
-@* Default: 30000
-@
-@timeout.connect = <unsigned integer>
-@* Currently not supported. This setting is related to a feature that is
-@  still under development.
-@* Sets the connection timeout, in milliseconds, to use when connecting to the
-@  Cache Manager Service.
-@* Default: 5000
-@
-@timeout.read = <unsigned integer>
-@* Currently not supported. This setting is related to a feature that is
-@  still under development.
-@* Sets the read timeout, in milliseconds, to use when interacting with the
-@  Cache Manager Service.
-@* Default: 60000
-@
-@timeout.write = <unsigned integer>
-@* Currently not supported. This setting is related to a feature that is
-@  still under development.
-@* Sets the write timeout, in milliseconds, to use when interacting with the
-@  Cache Manager Service.
-@* Default: 60000
 
 ############################################################################
 # Remote Storage of Search Artifacts Configuration
@@ -5586,6 +5637,7 @@ upload_archive_format = [none|tar.lz4]
 * This can reduce time to upload and artifact when the remote storage has a high
   seek penalty and the search artifact contains more than 100 individual files
 * Default : none
+
 
 ############################################################################
 # S3 specific settings
@@ -6034,6 +6086,7 @@ disabled = <boolean>
 alert_store = local
 * Specifies location of alert state store
 * Default: local
+
 
 suppression_store = local
 * Specifies location of suppression state store

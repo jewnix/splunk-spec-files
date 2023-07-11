@@ -1,4 +1,4 @@
-#   Version 9.0.5
+#   Version 9.1.0.1
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.
@@ -646,6 +646,27 @@ idpCertPath = <string>
 * This setting is required if 'signedAssertion' is set to true.
 * Otherwise, it is optional.
 * No default.
+
+idpCertExpirationWarningDays = <positive integer>
+* The number of days before an identity provider certificate expires. During this period, when a
+  SAML login occurs, the Splunk platform generates a certificate expiration warning log.
+* You can control how often the Splunk platform generates warning logs for the
+  same certificate with the 'IdpCertExpirationCheckInterval' setting.
+* Minimum value: 1
+* Maximum value: 365
+* This setting is optional.
+* If you enable this setting on members of a search head cluster, the instance that
+  processes the login request generates the certificate expiration warning log.
+* Default: 90
+
+idpCertExpirationCheckInterval = <interval><unit>
+* How long a Splunk platform instance must wait, after generating a certificate
+  expiration warning log after a login, to generate another one.
+* The Splunk platform caches the certificate fingerprint when a SAML user logs in.
+  If the client sends the same certificate on another login, the Splunk platform reviews the 
+  cache. If at least 'idpCertExpirationCheckInterval' has not passed since the last time
+  it generated a log for a certificate that is in the cache, it won't generate another log.
+* Default: 1d
 
 idpSLOUrl = <string>
 * The protocol endpoint on the IDP (Identity Provider) where a SP
@@ -1618,3 +1639,5 @@ enableMfaAuthRest = <boolean>
 * If set to "false", splunkd does not require REST two-factor authentication.
 * This setting is optional.
 * Default: false
+
+

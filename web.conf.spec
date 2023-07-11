@@ -1,4 +1,4 @@
-#   Version 9.0.5
+#   Version 9.1.0.1
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -78,7 +78,7 @@ privKeyPath = <path>
   outside of $SPLUNK_HOME (e.g., no ../somewhere).
 * You can also specify an absolute path to an external key.
 * See also 'enableSplunkWebSSL' and 'serverCert'.
-* No default.
+* Default: $SPLUNK_HOME/etc/auth/splunkweb/privkey.pem
 
 serverCert = <path>
 * Full path to the Privacy Enhanced Mail (PEM) format Splunk web server certificate file.
@@ -451,17 +451,24 @@ verifyCookiesWorkDuringLogin = <boolean>
 * Default: true
 
 minify_js = <boolean>
-* Whether the static JavaScript files for modules are consolidated and minified.
-* Setting this to "true" improves client-side performance by reducing the number of HTTP
+* Whether or not the static JavaScript files for modules are consolidated and minified.
+* A value of "true" means that JavaScript files for modules are consolidated and 
+  minified. This improves client-side performance by reducing the number of HTTP
   requests and the size of HTTP responses.
+* A value of "false" means that JavaScript files for modules are not consolidated
+  or minified.
+* Default: true
 
 minify_css = <boolean>
-* Indicates whether the static CSS files for modules are consolidated and
-  minified
-* Setting this to "true" improves client-side performance by reducing the number of HTTP
+* Whether or not the static CSS files for modules are consolidated and minified.
+* A value of "true" means that static CSS files for modules are consolidated and 
+  minified. This improves client-side performance by reducing the number of HTTP
   requests and the size of HTTP responses.
-* Due to browser limitations, disabling this when using Internet Explorer
-  version 9 and earlier might result in display problems.
+* A value of "false" means that static CSS files for modules are not consolidated
+  or minified.
+* Due to browser limitations, setting this to "false" when using Internet Explorer
+  version 9 and lower might result in display problems.
+* Default: true
 
 trap_module_exceptions = <boolean>
 * Whether or not the JavaScript for individual modules is wrapped in a try/catch
@@ -599,33 +606,6 @@ dashboard_html_allowed_domains = <comma-separated list>
   * IPV4: 127.0.0.1, 127.0.0.*, 127.0-10.0.*, 127.0.0.1:8000
   * IPV6: ::1, [::1]:8000, 2001:db8:abcd:12::, 2001:db8::/32
 * Default: not set
-
-dashboards_csp_allowed_domains = <comma-separated list>
-* A list of domains to be included in the Content-Security-Policy (CSP) page
-  header in Dashboard Studio dashboards.
-* The CSP header determines the domains from which images can be loaded in Studio dashboards.
-* If web.conf:'enforce_dashboards_csp' has a value of "true", then the browser
-  displays a warning message to the dashboard user about domains it encountered that were
-  not in the list. It still loads images from those external domains.
-* If web.conf:'enforce_dashboards_csp' has a value of "false" then this list has no effect.
-* Examples:
-  * Only allow images from splunk.com and mozilla.org: *.splunk.com, *.mozilla.org
-  * Allow images from all external domains: *
-* Further documentation can be found by:
-  * searching for "Content Security Policy" on the Mozilla Developer Network Docs website.
-  * searching for and reading the Content Security Policy Quick Reference Guide.
-* Default: Not set
-
-enforce_dashboards_csp = <boolean>
-* Whether or not the Content-Security-Policy-Report-Only header is set in Dashboard Studio
-  dashboards.
-* A value of "true" means that the Content-Security-Policy-Report-Only header will be set
-  in all Studio dashboards. This causes the browser to display warnings for images it loads
-  from external domains that are not included in the web.conf:'dashboards_csp_allowed_domains'
-  setting. These images will still load in the dashboard.
-* A value of "false" means that no Content-Security-Policy header will be set for Studio
-  dashboards. All external images will load as usual and the browser will not show warnings.
-* Default: true
 
 pdfgen_trusted_hosts = <string> [, <string>]
 * A list of trusted hosts for inline image element source ('<image src="<URL>">')
@@ -879,7 +859,7 @@ log.access_maxsize = <integer>
 * Splunk Web rotates the file to web_access.log.0 after the 'log.access_maxsize' is reached.
 * See the 'log.access_maxfiles' setting to limit the number of backup files
   created.
-* Default: 0 (unlimited size).
+* Default: 25000000 (25 MB).
 
 log.access_maxfiles = <integer>
 * The maximum number of backup files to keep after the web_access.log
@@ -894,7 +874,7 @@ log.error_maxsize = <integer>
 * Splunk Web rotates the file to web_service.log.0 after the
   max file size is reached.
 * See 'log.error_maxfiles' to limit the number of backup files created.
-* Default: 0 (unlimited file size).
+* Default: 25000000 (25 MB).
 
 log.error_maxfiles = <integer>
 * The maximum number of backup files to keep after the web_service.log

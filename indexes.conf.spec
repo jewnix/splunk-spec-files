@@ -1,4 +1,4 @@
-#   Version 9.0.5
+#   Version 9.1.0.1
 #
 ############################################################################
 # OVERVIEW
@@ -319,7 +319,7 @@ processTrackerServiceInterval = <nonnegative integer>
   requests.
 * If set to 0, the indexer checks child process status every second.
 * Highest legal value is 4294967295.
-* Default: 15
+* Default: 1
 
 maxBucketSizeCacheEntries = <nonnegative integer>
 * This value is no longer needed. Its value is ignored.
@@ -710,8 +710,9 @@ coldToFrozenScript = <path to script interpreter> <path to script>
 * Add "$DIR" (including quotes) to this setting on Windows (see below
   for details).
 * Script Requirements:
-  * The script must accept at least one argument: An absolute path to the bucket directory
-    that is to be archived.
+  * The script must accept only one argument: An absolute path to the bucket directory
+    that is to be archived. The bundle push from a Cluster Manager 
+    fails if you use more than one argument.
   * In the case of metrics indexes, the script must also accept the flag "--search-files-required",
     to prevent the script from archiving empty rawdata files. For more details, see the entry for the
     "metric.stubOutRawdataJournal" setting.
@@ -1074,7 +1075,7 @@ maxMetaEntries = <nonnegative integer>
   is significant.
 * If set to 0, splunkd ignores this setting (it is treated as infinite)
 * Highest legal value is 4294967295.
-* No default.
+* Default: 1000000
 
 syncMeta = <boolean>
 * Whether or not splunkd calls a sync operation before the file descriptor
@@ -2607,20 +2608,32 @@ federated.dataset = <string>
 * Identifies the dataset located on the federated providers.
 * The dataset takes a format of <prefix>:<remote_name>.
 * If the 'federated.provider' is a "splunk" type provider:
-  * <prefix> can be "index", "datamodel", or "savedsearch".
+  * <prefix> can be "index", "datamodel", "lastjob", or "savedsearch".
   * <remote_name> is the name of an index, data model, or saved search,
     depending on the <prefix> value. The dataset must be defined on the remote
-    search head.
-* If the 'federated.provider' is an "aws_s3" type provider:,
-  * <prefix> must be "aws_glue_table".
-  * <remote_name> is the name of an AWS Glue table that is used as a dataset
-    schema.
-    * The AWS Glue table contains metadata which represents data in an S3 data
-      store.
-    * This table is in your AWS Glue catalog if you have set up a dataset with
-      that product.
+    search head. A saved search name can be provided as the <remote_name> for
+    both the savedsearch and lastjob <prefix> options.
+* If the 'federated.provider' is an "aws_s3" type provider:
+  * <prefix> must be "aws_glue_table" or "aws_s3_path".
+    * If <prefix> is "aws_glue_table", <remote_name> is the name of an AWS Glue 
+      Data Catalog table that is used as a dataset schema.
+      * The AWS Glue Data Catalog table contains metadata that represents data 
+        in an Amazon S3 data store.
+      * This table is in your AWS Glue Data Catalog if you have set up a 
+        dataset with AWS Glue.
+      * You use the 'sdselect' command to run federated searches against the 
+        AWS Glue Data Catalog table.
+      * Provide "aws_glue_table" as  <prefix> only if the 'federated.provider' 
+        has non-empty 'database' and 'aws_glue_tables_allowlist' settings. 
+    * If <prefix> is "aws_s3_path", <remote_name> is an Amazon S3 path that is 
+      used as a location of objects to be searched.
+      * You use the 's3select' command to run federated searches on objects 
+        under this Amazon S3 path.
+      * When the 'federated.dataset' <prefix> is "aws_s3_path", the 
+        'federated.dataset' setting ignores the 'database' and 
+        'aws_glue_tables_allowlist' settings for the 'federated.provider'.
 * If <prefix> is not defined, <prefix> defaults to 'index'.
-* Default: no default
+* No default
 
 
 ################################################################

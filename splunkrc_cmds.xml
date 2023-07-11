@@ -154,6 +154,15 @@ Type "./splunk help [topic name | object name | parameter name]" to get help on 
         </common>
     </item>
 
+    <item obj="rolling-upgrade" verb="true">
+        <common>
+            <help>
+                <header><![CDATA[Rolling upgrade automation for Search Head Clusters.]]></header>
+                <syntax><![CDATA[rolling-upgrade [shc-upgrade|shc-status|shc-recovery]]]></syntax>
+            </help>
+        </common>
+    </item>
+
      <item obj="upgrade-init" verb="true">
         <common>
             <help>
@@ -1980,6 +1989,44 @@ More information in the online documentation for the corresponding REST endpoint
         </cmd>
     </item>
 
+    <item obj="shc-upgrade">
+	    <cmd name="rolling-upgrade">
+		    <uri><![CDATA[/upgrade/shc/upgrade]]></uri>
+		    <type>create</type>
+        <help>
+          <title><![CDATA[Initiate a SHC rolling upgrade]]></title>
+          <syntax><![CDATA[rolling-upgrade shc-upgrade]]></syntax>
+          <required/>
+          <optional/>
+        </help>
+        <post_only/>
+	    </cmd>
+    </item>
+    <item obj="shc-status">
+	    <cmd name="rolling-upgrade">
+		    <uri><![CDATA[/upgrade/shc/status]]></uri>
+		    <type>list</type>
+        <help>
+          <title><![CDATA[Return the current status for an active SHC rolling upgrade]]></title>
+          <syntax><![CDATA[rolling-upgrade shc-status]]></syntax>
+          <required/>
+          <optional/>
+        </help>
+	    </cmd>
+    </item>
+    <item obj="shc-recovery">
+	    <cmd name="rolling-upgrade">
+		    <uri><![CDATA[/upgrade/shc/recovery]]></uri>
+		    <type>create</type>
+        <help>
+          <title><![CDATA[Initiate a recovery procedure for a failed SHC rolling upgrade]]></title>
+          <syntax><![CDATA[rolling-upgrade shc-recovery]]></syntax>
+          <required/>
+          <optional/>
+        </help>
+	    </cmd>
+    </item>
+
     <!-- rolling-restart|list cluster-peers -->
     <item obj="cluster-peers">
         <cmd name="list">
@@ -2855,10 +2902,8 @@ More information in the online documentation for the corresponding REST endpoint
             <uri><![CDATA[/shcluster/captain/kvstore-upgrade/start]]></uri>
             <help>
                 <title><![CDATA[Start KV store upgrade]]></title>
-                <required>
-                    <arg name="-version"><![CDATA[version to upgrade to ('4.0' or '4.2')]]></arg>
-                </required>
                 <optional>
+                    <arg name="-version"><![CDATA[version to upgrade to ('4.0' or '4.2')]]></arg>
                     <arg name="-maxRetries"><![CDATA[number of retries for upgrade per search head cluster member upon failure]]></arg>
                     <arg name="-isDryRun"><![CDATA[do preflight checks and exit without upgrading]]></arg>
                 </optional>

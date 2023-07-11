@@ -1,4 +1,4 @@
-#   Version 9.0.5
+#   Version 9.1.0.1
 #
 ############################################################################
 # OVERVIEW
@@ -73,17 +73,17 @@ author = <string>
 #
 # There is no setting in app.conf for screenshot or icon images.
 # Splunk Web places files you upload with your app into
-# the <app_directory>/appserver/static directory.
+# the $SPLUNK_HOME/etc/apps/<app_name>/static/ directory.
 # These images do not appear in your app.
 #
-# Move or place icon images in the <app_directory>/static directory.
-# Move or place screenshot images in the <app_directory>/default/static directory.
+# Move or place icon images in the $SPLUNK_HOME/etc/apps/<app_name>/static/ directory.
+# Move or place screenshot images in the $SPLUNK_HOME/etc/apps/<app_name>/static/ directory.
 # Launcher and Splunkbase automatically detect the images in those locations.
 #
 # For example:
 #
-#     <app_directory>/static/appIcon.png    (the capital "I" is required!)
-#     <app_directory>/default/static/screenshot.png
+#     <app_name>/static/appIcon.png    (the capital "I" is required!)
+#     <app_name>/static/screenshot.png
 #
 # An icon image must be a 36px by 36px PNG file.
 # An app screenshot must be a 623px by 350px PNG file.
@@ -144,7 +144,7 @@ is_configured = <boolean>
 build = <integer>
 * Required.
 * Must be a positive integer.
-* Increment this whenever you change files in appserver/static.
+* Increment this whenever you change files in <app_name>/static.
 * Every release must change both 'version' and 'build' settings.
 * Ensures browsers don't use cached copies of old static files
   in new versions of your app.
@@ -202,6 +202,7 @@ reload.<conf_file_name> = [ simple | never | rest_endpoints | access_endpoints <
 * If set to "never", Splunk Enterprise initiates a restart after any state change.
 * "rest_endpoints" is reserved for Splunk Enterprise internal use for reloading
   restmap.conf.
+* NOTE: The "conf_file_name" value does not include the file extension ".conf".
 
 # Stanza-level reload triggers
 reload.<conf_file_name>.<conf_stanza_prefix> = [ simple | never | access_endpoints <handler_url> | http_get <handler_url> | http_post <handler_url> ]
@@ -219,6 +220,7 @@ reload.<conf_file_name>.<conf_stanza_prefix> = [ simple | never | access_endpoin
   "missing" stanzas in the newly pushed cluster bundle.
 * NOTE: This setting is ONLY used by indexer-cluster peers and ONLY supported
   by inputs.conf and server.conf.
+* NOTE: The "conf_file_name" value does not include the file extension ".conf".
 
 [shclustering]
 deployer_lookups_push_mode = preserve_lookups | always_preserve | always_overwrite
@@ -315,10 +317,12 @@ setup_view = <string>
 * Optional.
 * Defines custom setup view found within the /data/ui/views REST endpoint.
 
-supported_themes = <string>
-* Optional.
-* Comma-separated list of supported themes by the app.
-* Supported values are "enterprise" and "dark".
+supported_themes = <comma-separated list>
+* A comma-separated list of themes supported by the app.
+* Supported values are "dark" and "light".
+* This setting is optional.
+* If you specify this setting, you must give it a value of "light".
+* No default.
 
 [credentials_settings]
 * This stanza controls credential-verification scripting (4.2+ versions only).

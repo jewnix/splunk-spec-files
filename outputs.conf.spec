@@ -1,4 +1,4 @@
-#   Version 9.0.5
+#   Version 9.1.0.1
 #
 # Forwarders require outputs.conf. Splunk instances that do not forward
 # do not use it. Outputs.conf determines how the forwarder sends data to
@@ -103,6 +103,23 @@ indexAndForward = <boolean>
   cannot be overridden in a target group.
 * Default: false
 
+enableOldS2SProtocol = <boolean>
+* Whether or not the forwarder enables use of versions 3 and lower of the Splunk-to-Splunk protocol,
+  otherwise known as the "old" S2S protocol, to connect with other Splunk platform instances.
+* A value of "true" means the forwarder can use the old protocol, depending on other settings
+  you configure.
+* A value of "false" means the forwarder uses only version 4 of the S2S protocol,
+  and does not use any of the old protocol versions.
+* When you disable the use of old S2S protocols, forwarders always use the new protocol. Indexers
+  that run a version of Splunk Enterprise below 6.0 only support the old protocol, and forwarders
+  can't connect to those indexers over S2S.
+* If you give 'negotiateProtocolLevel' a value of 0, or 'negotiateNewProtocol' a value of 
+  "false" in inputs.conf or outputs.conf to use the old S2S protocol, the forwarder will instead override these
+  settings to use the lowest protocol version that all instances support.
+* This setting is only available for configuration at the top level [tcpout] stanza. You 
+  can't override it in a target group with settings that force usage of the older protocol.
+* Default: false
+
 #----Target Group Configuration -----
 
 # If you specify multiple servers in a target group, the forwarder
@@ -176,6 +193,11 @@ token = <string>
 [tcpout<any of above>]
 
 #----General Settings----
+
+disabled = <boolean>
+* Whether or not to disable forwarding to the receiver or output group, as defined by the forwarding stanza.
+* Set to true to disable forwarding to this receiver or output group.
+* Default: false
 
 sendCookedData = <boolean>
 * Whether or not to send processed or unprocessed data to the receiving server.
@@ -1668,7 +1690,15 @@ remote_queue.sqs_smartbus.send_interval = <number><unit>
 * The interval that the remote queue output processor waits for data to
   arrive before sending a partial batch to the remote queue.
 * Examples: 100ms, 5s
-* Default: 2s
+* Default: 4s
+
+remote_queue.sqs_smartbus.consume_interval = <number><unit>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* The interval that the remote output worker consumes from data queue.
+* Examples: 50ms, 1s
+* Default: 100ms
 
 remote_queue.sqs_smartbus.max_queue_message_size = <integer>[KB|MB|GB]
 * Currently not supported. This setting is related to a feature that is
@@ -1691,6 +1721,23 @@ remote_queue.sqs_smartbus.enable_signed_payloads  = <boolean>
 * This setting is valid only for remote.s3.signature_version = v4
 * Default: true
 
+remote_queue.sqs_smartbus.drop_data = <boolean>
+* Currently not supported. This setting is related to a feature that is still
+  under development.
+* Determines whether Splunk software drops the data from all Splunk managed internal
+  indexes and indexes listed in 'remote_queue.sqs_smartbus.drop_data_index_list'
+* A value of "true" means that Splunk software drops the data.
+* Default: false
+
+remote_queue.sqs_smartbus.drop_data_index_list = <comma-separated list>
+* Currently not supported. This setting is related to a feature that is still
+  under development.
+* A comma-separated list of indexes for which you want to drop the data.
+  For example: index_1, index_2, index_3.
+* If 'remote_queue.sqs_smartbus.drop_data' is set to "true" then Splunk software
+  drops the data from 'drop_data_index_list'.
+* Default: not set
+
 remote_queue.sqs_smartbus.executor_max_workers_count = <positive integer>
 * Currently not supported. This setting is related to a feature that is
   still under development.
@@ -1698,15 +1745,15 @@ remote_queue.sqs_smartbus.executor_max_workers_count = <positive integer>
   worker tasks.
 * A value of 0 is equivalent to 1.
 * The maximum value for this setting is 20.
-* Default: 4
+* Default: 10
 
 remote_queue.sqs_smartbus.executor_max_jobs_count = <positive integer>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * The maximum number of jobs that each worker thread per pipeline set can queue.
 * A value of 0 is equivalent to 1.
-* The maximum value for this setting is 50.
-* Default: 20
+* The maximum value for this setting is 100.
+* Default: 50
 
 remote_queue.sqs_smartbus.large_message_store.encryption_scheme = sse-s3 | sse-c | none
 * Currently not supported. This setting is related to a feature that is
@@ -1739,11 +1786,49 @@ remote_queue.sqs_smartbus.large_message_store.key_refresh_interval = <string>
 * The time interval to refresh primary key.
 * Default: 24h
 
+remote_queue.sqs_smartbus.enable_inline_data = <boolean>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies whether to bypass S3 and use SQS directly to send events.
+* A value of "true" means that if the data packet is small enough to fit in
+  SQS (256KB max), the Splunk Cloud Platform will use SQS to send event data.
+* This setting only applies when remote_queue.sqs_smartbus.encoding_format=protobuf
+* Default: false
+
 ####
 # Remote File System (RFS) Output
 ####
 [rfs]
 * Global settings that individual rfs output destinations can inherit.
+
+partitionBy = legacy | (year|month|day) [, sourcetype]
+* Specifies schema to partition and store events into seperate files on the
+  rfsoutput destination(s). It affects the file storage location specified by
+  the "path" for any given destination in the manner described below.
+  * legacy - no partitioning and the events are batched together on the order of
+    arrival. This appends path segments that encode the latest timestamp among
+    all events in the batch similar to the strftime format "%Y/%m/%d".
+  * year|month|day - span of event timestamp to use as the primary partition key.
+    This encodes primary field as multiple path segments and appends to the path
+    in the decreasing order of significance. For example, "day" produces
+    "year=%Y/month=%m/day=%d", "month" produces "year=%Y/month=%m" and "year"
+    produces "year=%Y".
+  * sourcetype - optional secondary partition key applied over primary partition key.
+    This appends a single path segment encoded in the form "sourcetype=<sourcetype>".
+* Examples:
+    Illustrated below is the set of possible settings and how they affect the
+    file storage path, for events generated on August 15, 2022.
+    * partitionBy = day, sourcetype
+       Results file path into "<path>/year=2022/month=08/day=15/sourcetype=<srctype>/"
+    * partitionBy = day
+       Results file path into "<path>/year=2022/month=08/day=15/"
+    * partitionBy = month
+       Results file path into "<path>/year=2022/month=08/"
+    * partitionBy = year
+       Results file path into "<path>/year=2022/"
+    * partitionBy = legacy
+       Results file path into "<path>/2022/08/15/"
+* Default: legacy
 
 dropEventsOnUploadError = <boolean>
 * Whether or not the ingest actions feature drops events if it encounters an
@@ -1759,18 +1844,22 @@ dropEventsOnUploadError = <boolean>
 * Default: false
 
 batchSizeThresholdKB = <integer>
-* The size, in kilobytes, of the events in the RfsOutputProcessor send buffer.
-* RfsOutputProcessor batches events before writing them into files on the destination.
-* If the current buffer size is greater than 'batchSizeThresholdKB' kilobytes, then
-* the data will be written to the destination immediately.
+* The size, in kilobytes, of the uncompressed events in the RfsOutputProcessor send buffer.
+  RfsOutputProcessor batches events before writing them into files on the destination.
+  If the current buffer size is greater than 'batchSizeThresholdKB' kilobytes, then
+  the data will be written to the destination immediately.
+* This threshold may not be honored if the total memory usage for raw events exceeds
+  limits.conf/[ingest_actions]/rfs.provider.rawdata_limit_mb for a storage provider.
 * If you increase this setting, you may also want to increase the value of
   server.conf/[queue:rfsQueue]/maxSize.
-* Default: 2048
+* Default: 131072 (128 megabytes)
 
 batchTimeout = <integer>
 * RfsOutputProcessor batches events before flushing to the destination.
 * If a batch has not hit any other criteria for being flushed, and
   the batch is at least this many seconds old, flush the batch.
+* This threshold may not be honored if the total memory usage for raw events exceeds
+  limits.conf/[ingest_actions]/rfs.provider.rawdata_limit_mb for a storage provider.
 * Default = 30
 
 compression = none|gzip|lz4|zstd
@@ -1783,6 +1872,26 @@ compressionLevel = <integer>
 * Sets compression level for the specified compression algorithm,
   when RfsOutputProcessor writes files. Must be between 0 and 10.
 * Default: 3
+
+format = json|ndjson|raw
+* Specifies output format when RfsOutputProcessor writes events into files 
+  on the destination.
+* json: The file will include a JSON array. Each event will be element of 
+  the JSON array.
+* ndjson: The file will include multiple JSON objects separated by a newline 
+  character. Each event is corresponding to one JSON object.
+* raw: The file includes multiple raw events separated by a newline character.
+* Default: json
+
+format.json.index_time_fields = <boolean>
+* Specifies whether to include index-time fields when RfsOutputProcessor 
+  writes events to the destination in HEC JSON format.
+* Default: true
+
+format.ndjson.index_time_fields = <boolean>
+* Specifies whether to include index-time fields when RfsOutputProcessor 
+  writes events to the destination in new line delimited JSON format.
+* Default: true
 
 [rfs:<name>]
 
@@ -1823,22 +1932,6 @@ remote.* = <string>
   Refer to "Volume settings" in indexes.conf for all settings.
 * This setting is optional.
 * No default.
-
-remote.s3.encryption = sse-s3 | sse-kms | sse-c | cse | none
-* The encryption scheme to use for data buckets that are currently being stored (data at rest).
-* sse-s3: Search for "Protecting Data Using Server-Side Encryption with AWS S3-Managed
-          Encryption Keys" on the Amazon Web Services documentation site.
-* sse-kms: Search for "Protecting Data Using Server-Side Encryption with CMKs Stored in AWS
-           Key Management Service (SSE-KMS)" on the Amazon Web Services documentation site.
-* sse-c: Search for "Protecting Data Using Server-Side Encryption with Customer-Provided Encryption
-         Keys (SSE-C)" on the Amazon Web Services documentation site.
-         Currently not supported. This setting is related to a feature that is still under development.
- * cse: Search for "SmartStore client-side encryption" on the Splunk Enterprise documentation site,
-        and "Protecting Data Using Server-Side Encryption with Customer-Provided Encryption Keys (SSE-C)"
-        on the Amazon Web Services documentation site.
-        Currently not supported. This setting is related to a feature that is still under development.
-* Optional.
-* Default: none
 
 remote.s3.access_key = <string>
 * Specifies the access key to use when authenticating with the remote storage
@@ -1908,6 +2001,21 @@ remote.s3.encryption = sse-s3 | sse-kms | none
 * sse-kms: Search for "Protecting Data Using Server-Side Encryption with CMKs Stored in AWS
            Key Management Service (SSE-KMS)" on the Amazon Web Services documentation site.
 * Note: sse-c is not supported for RfsOutputProcessor
+* Optional.
+* No default.
+
+remote.s3.auth_region = <string>
+* The authentication region to use for signing requests when interacting
+  with the remote storage system supporting the S3 API.
+* Used with v4 signatures only.
+* If unset and the endpoint (either automatically constructed or explicitly
+  set with remote.s3.endpoint setting) uses an AWS URL (for example,
+  https://<bucketname>.s3-us-west-1.amazonaws.com), the instance attempts to extract
+  the value from the endpoint URL (for example, "us-west-1").  See the
+  description for the remote.s3.endpoint setting.
+* If unset and an authentication region cannot be determined, the request
+  will be signed with an empty region value. This can lead to rejected
+  requests when using non-AWS S3-compatible storage.
 * Optional.
 * No default.
 
@@ -2030,6 +2138,13 @@ authMethod = <string>
 * Choosing “IAM role” in Splunk Web sets this setting to "iam".
 * No default.
 
+partitionBy = legacy | (year|month|day) [, sourcetype]
+* Specifies schema to partition and store events forwarded to this destination.
+  Any setting will override the global partitionBy settings of [rfs] stanza.
+  Refer to the detailed description of this property under global [rfs] stanza
+  and how it affects the file storage path.
+* Default: Inherited partitionBy setting from the global [rfs] stanza.
+
 dropEventsOnUploadError = <boolean>
 * Whether or not the ingest actions feature drops events if it encounters an
   error when uploading events to remote storage.
@@ -2044,7 +2159,7 @@ dropEventsOnUploadError = <boolean>
 * Default: Inherited dropEventsOnUploadError setting from the global [rfs] stanza.
 
 batchSizeThresholdKB = <integer>
-* The size, in kilobytes, of the events in the RfsOutputProcessor send buffer.
+* The size, in kilobytes, of the uncompressed events in the RfsOutputProcessor send buffer.
 * RfsOutputProcessor batches events before flushing them to destination.
 * If the current buffer size is greater than 'batchSizeThresholdKB' kilobytes, then
 * the data will be written to the destination immediately.
@@ -2068,3 +2183,25 @@ compressionLevel = <integer>
 * Sets compression level for the specified compression algorithm,
   when RfsOutputProcessor writes files. Must be between 0 and 10.
 * Default: Inherited compressionLevel setting from the global [rfs] stanza.
+
+format = json|ndjson|raw
+* Specifies output format when RfsOutputProcessor writes events into files 
+  on the destination.
+* json: The file will include a JSON array. Each event will be element of 
+  the JSON array.
+* ndjson: The file will include multiple JSON objects separated by a newline 
+  character. Each event is corresponding to one JSON object.
+* raw: The file includes multiple raw events separated by a newline character.
+* Default: Inherited format setting from the global [rfs] stanza.
+
+format.json.index_time_fields = <boolean>
+* Specifies whether to include index-time fields when RfsOutputProcessor 
+  writes events to the destination in HEC JSON format.
+* Default: Inherited format.json.index_time_fields setting from the global 
+  [rfs] stanza.
+
+format.ndjson.index_time_fields = <boolean>
+* Specifies whether to include index-time fields when RfsOutputProcessor 
+  writes events to the destination in new line delimited JSON format.
+* Default: Inherited format.ndjson.index_time_fields setting from the global 
+  [rfs] stanza.

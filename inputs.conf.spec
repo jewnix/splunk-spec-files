@@ -1,4 +1,4 @@
-#   Version 9.0.5
+#   Version 9.1.0.1
 #
 ############################################################################
 # OVERVIEW
@@ -220,7 +220,7 @@ _INDEX_AND_FORWARD_ROUTING = <string>
 ############################################################################
 # Input types
 ############################################################################
-Valid input stanzas, along with their input-specific settings:
+Valid input stanzas, along with their input-specific settings, follow:
 
 ############################################################################
 # MONITOR:
@@ -1539,6 +1539,7 @@ disabled = <boolean>
 
 outputgroup = <string>
 * The name of the output group to which the event collector forwards data.
+* There is no support for using this setting to send data over HTTP with a heavy forwarder.
 * Default: empty string
 
 useDeploymentServer = <boolean>
@@ -1606,6 +1607,13 @@ maxThreads = <integer>
   to 'maxSockets'.
 * If set to a negative value, the input does not enforce a limit on threads.
 * Default: 0
+
+rollingRestartReturnServerBusy = <boolean>
+* Whether or not HTTP Event Collector endpoints return HTTP errors 404 (not found) or 503 (server busy)
+  when a client connects to an indexer that is currently shutting down during a rolling restart.
+* This setting applies to instances on the Classic Experience only.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: true
 
 keepAliveIdleTimeout = <integer>
 * How long, in seconds, that the HTTP Event Collector input lets a keep-alive
@@ -1906,6 +1914,7 @@ sourcetype = <string>
 
 outputgroup = <string>
 * The name of the forwarding output group to send data to.
+* There is no support for using this setting to send data over HTTP with a heavy forwarder.
 * Default: empty string
 
 queueSize = <integer>[KB|MB|GB]
@@ -2295,7 +2304,7 @@ suppress_opcode = <boolean>
 * Default: false
 
 current_only = <boolean>
-* Whether or not to acquire only events that arrive while the instance is
+* Whether or not to acquire only events that arrive while the instance is 
   running.
 * If you set this setting to 1, the input only acquires events that arrive
   while the instance runs and the input is enabled. The input does not read
@@ -2316,19 +2325,6 @@ current_only = <boolean>
   impossible combination.)
 * Default: 0 (false, gathering stored events first before monitoring
   live events)
-
-channel_wait_time = <integer>
-* How long, in seconds, that the Windows Event Log input waits for an Event Log
-  channel that is not available to become available again.
-* Some Event Log channels, like the Windows Defender channel, become
-  unavailable during a Windows Defender Platform update and it takes
-  some time to become available again.
-* If the Event Log input is unable to collect event logs from a certain
-  Event Log channel, change this setting to an appropriate value.
-  For example, if the input does not collect Windows Defender event logs
-  after a Windows Defender Platform update, increase this value.
-* The maximum wait time is 180 (3 minutes).
-* Default: 0
 
 batch_size = <integer>
 * How many Windows Event Log items to read per request.
@@ -2501,6 +2497,33 @@ evt_sid_cache_max_entries = <unsigned integer>
 * This setting is optional.
 * Default: 10
 
+wec_event_format = [raw_event|rendered_event]
+* The content format of the events that the Splunk platform expects to receive
+  from a Windows Event Collector (WEC) subscription, before WEC sends the
+  events to their destination log, for example, a Windows Event Log channel.
+* This setting helps associate incoming WEC event formats with the Splunk
+  platform internal interpretation before the platform looks up pre-rendered
+  messages in Windows event logs.
+* If the WEC subscription that targets this channel has its 'content Format'
+  set to "Events", then set 'wec_event_format' to "raw_event".
+* If the WEC subscription that targets this channel has its 'content Format'
+  set to "RenderedText", then set 'wec_event_format' to "rendered_event".
+* If multiple WEC subscriptions share the same value for the 'destination log'
+  setting, but have different 'content Format' values, you have two options: 
+  * You can update the WEC subscriptions so that they share the same values for 
+    'content format'.
+  * Or you can create custom ForwardedEvents channels for each WEC 
+    subscription, point each WEC subscription to a custom ForwardedEvents 
+    channel, and set equivalent values for 'wec_event_format' as described 
+    previously.
+* If Windows Event Collector does not forward these events, this setting is 
+  optional.
+* NOTE: You must restart the Splunk platform when you update WEC subscriptions,
+  to synchronize with the new subscription configuration.
+* Default (for 'ForwardedEvents' and custom channels named 'ForwardedEvents-1',
+  'ForwardedEvents-2', etc.): rendered_event
+* Default (for all other channels): raw_event
+
 index = <string>
 * Specifies the index that this input should send the data to.
 * This setting is optional.
@@ -2586,10 +2609,14 @@ blacklist9 = <comma-separated list> | key=regex [key=regex]
   * Category, CategoryString, ComputerName, EventCode, EventType, Keywords,
     LogName, Message, OpCode, RecordNumber, Sid, SidType, SourceName,
     TaskCategory, Type, User
-* There are two special keys that do not appear literally in the event.
+* There are three special keys that do not appear literally in the event.
   * $TimeGenerated: The time that the computer generated the event
   * $Timestamp: The time that the event was received and recorded by the
                 Event Log service.
+  * $XmlRegex: Use this key for filtering when you render Windows Event
+    log events in XML by setting the 'renderXml' setting to "true". Search
+    the online documentation for "Filter data in XML format with the
+    XmlRegex key" for details.
 * The 'EventType' key is only available on Windows Server 2003 /
   Windows XP and earlier.
 * The 'Type' key is only available on Windows Server 2008 /
@@ -2609,11 +2636,17 @@ suppress_text = <boolean>
 renderXml = <boolean>
 * Whether or not the input returns the event data in XML (eXtensible Markup
   Language) format or in plain text.
-* Set this to "true" to render events in XML.
-* Set this to "false" to output events in plain text.
-* If you set this setting to "true", you should also set the 'suppress_text',
-  'suppress_sourcename', 'suppress_keywords', 'suppress_task', and
-  'suppress_opcode' settings to "true" to improve thruput performance.
+* A value of "true" means that the input renders events in XML format.
+* A value of "false" means that the input renders events in plain text.
+* If you give this setting a value of "true", you should also give the
+  'suppress_text', 'suppress_sourcename', 'suppress_keywords', 'suppress_task', and
+  'suppress_opcode' settings a value of "true" to improve thruput performance.
+* A value of "true" also changes the method by which you create allow-
+  and deny lists to filter events. For these kinds of lists to work, you
+  must use the '$xmlRegex' special key and assign regular expression values
+  to use those lists. 
+* Search the Splunk Documentation for "Filter data in XML format with the
+  XmlRegex Key" for details.
 * Default: false
 
 ############################################################################
@@ -3910,3 +3943,162 @@ run_introspection = <boolean>
   [myScheme]
   run_introspection = false
 * Default: true
+
+###############################
+# LOGD (logd input for macOS)
+###############################
+
+[logd://<name>]
+* This is the macOS logd input component for the Splunk platform.
+
+logd-backtrace = <boolean>
+* Whether or not the logd input includes backtraces.
+* A value of “true” means that the logd input includes backtraces 
+  in its events.
+* Default: false
+
+logd-debug = <boolean>
+* Whether or not the logd input includes "Debug" events.
+* A value of “true” means that the logd input includes “Debug” level
+  events.
+* Default: false
+
+logd-info = <boolean>
+* Whether or not the logd input includes "Info" events.
+* A value of “true” means that the logd input includes “Info” 
+  level events.
+* Default: true
+
+logd-loss = <boolean>
+* Whether or not the logd input includes message loss events.
+* A value of “true” means that the logd input includes message loss events.
+* Default: false
+
+logd-signpost = <boolean>
+* Whether or not the logd input includes signposts.
+* A value of “true” means that the logd input includes signpost events.
+* Default: false
+
+logd-predicate = <string>
+* Filters messages using the provided predicate, or filter expression, 
+  that is based on the NSPredicate definition. 
+* The input supports a single predicate, but the predicate can be a
+  compound one.
+* Default: none
+
+logd-process = <comma-separated list>
+* The process ID on which to operate. 
+* You can supply multiple process IDs with commas, for example "220,221,223".
+* Default: none
+
+logd-source = <boolean>
+* Whether or not to include symbol names and source line numbers for
+  messages, if available.
+* Default: false
+
+logd-include-fields = <comma-separated list>
+* The fields to retrieve from a logD record.
+* Default:  all
+
+logd-exclude-fields = <comma-separated list>
+* The fields to ignore when parsing a logD record
+* Example setting: logd-exclude-fields = bootUUID,formatString
+* Default: formatString,timestamp,timezoneName
+
+logd-interval = <unsigned integer>
+* How often, in seconds, that the input is to query logd for events,
+* Default: 30
+
+logd-starttime = <string>
+* The earliest acceptable time for the input to query logd for events.
+* Use the format "YYYY-MM-DD HH:MM:SS" to specify the timestamp.
+* No default.
+
+logd-freetext = <string>
+* reserved for future use
+
+#######################################
+# JOURNALD (journald input for Linux)
+#######################################
+
+[journald://<name>]
+* This is the systemd-journald input component for Splunk
+
+journalctl-include-fields = <string>
+* This setting and the "journalctl-exclude-fields" setting control the fields
+  that the journald input retrieves. 
+* The input selects most of the fields if they are in 
+  "one of "journalctl-include-fields" and not in 'journalctl-exclude-fields'.
+* The exceptions are MESSAGE, CURSOR, and _REALTIME_TIMESTAMP. The system 
+  treats these fields specially.
+* An empty 'journalctl-include-fields' value means to output all fields.
+* If you want all fields except XYZ, leave 'journalctl-include-fields' empty,
+  and set journalctl-include-fields empty, and set 
+  journalctl-exclude-fields=XYZ
+* The input always retrieves the MESSAGE, __REALTIME_TIMESTAMP, and __CURSOR
+  fields, but uses the __REALTIME_TIMESTAMP and __CURSOR fields internally and
+  does not send them to the Splunk platform.
+* Fields __MONOTONIC_TIMESTAMP and __SOURCE_REALTIME_TIMESTAMP should always 
+  be suppressed to decrease cardinality of data. Use Splunk event time instead.
+* Default: PRIORITY,_SYSTEMD_UNIT,_SYSTEMD_CGROUP,_TRANSPORT,_PID,_UID,
+  _MACHINE_ID,_GID,_COMM,_EXE
+
+
+journalctl-exclude-fields = <comma-separated list>
+* The fields to exclude. use this setting to filter which fields 
+  to send to the Splunk platform.
+* This filter is more computationally expensive than journalctl-output-fields, 
+  as it is not natively supported by API and requires post-processing
+* Default: __MONOTONIC_TIMESTAMP,__SOURCE_REALTIME_TIMESTAMP
+
+journalctl-filter = <string>
+* These settings map directly to the arguments for the journalctl command.
+  See the documentation for journalctl.
+* Default: none
+
+journalctl-unit = <string>
+* Equivalent to ‘-u’ parameter of journalctl; show messages for the
+  specified systemd unit
+* Default: none
+
+journalctl-identifier = <string>
+* Equivalent to ‘-t’ parameter of journalctl; show messages for the
+  specified syslog identifier SYSLOG_IDENTIFIER
+* Default: none
+
+journalctl-priority = <string>
+* equivalent to ‘-p’ parameter of journalctl; filter output by message
+  priorities or priority ranges.
+* Default: 7
+
+journalctl-boot = <string>
+* Equivalent to ‘-b’ parameter of journalctl; messages from a specific boot
+* Default: none
+
+journalctl-facility = <string>
+* Equivalent to ‘--facility’ parameter of journalctl, syslog facility
+* Default: none
+
+journalctl-grep = <string>
+* Equivalent to ‘-g’ parameter of journalctl; filter output to entries
+  where the MESSAGE= field matches the specified regular expression.
+  PERL-compatible regular expressions are used
+* Default: none
+
+journalctl-user-unit = <string>
+* Equivalent to ‘--user-unit’ parameter of journalctl; show messages
+  for the specified user session unit.
+* Default: none
+
+journalctl-dmesg = <boolean>
+* Equivalent to ‘-k’ parameter of journalctl; show only kernel messages.
+* Default:  false
+
+journalctl-quiet = <boolean>
+* Equivalent to ‘-q’ parameter of journalctl; suppress all informational
+  messages
+* Default: false
+
+journalctl-freetext = <string>
+* reserved for future use
+

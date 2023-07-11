@@ -1,4 +1,4 @@
-#   Version 9.0.5
+#   Version 9.1.0.1
 #
 ############################################################################
 # OVERVIEW
@@ -158,7 +158,7 @@ python.version = {default|python|python2|python3}
 
 from = <string>
 * Email address from which the alert originates.
-* Default: splunk@$LOCALHOST
+* Default: splunk
 
 to      = <string>
 * The To email address receiving the alert.
@@ -190,15 +190,15 @@ message.alert = <string>
 
 subject = <string>
 * Specify an alternate email subject if useNSSubject is "false".
-* Default: SplunkAlert-<savedsearchname>
+* Default: Splunk Alert: $name$
 
 subject.alert = <string>
 * Specify an alternate email subject for an alert.
-* Default: SplunkAlert-<savedsearchname>
+* Default: Splunk Alert: $name$
 
 subject.report = <string>
 * Specify an alternate email subject for a scheduled report.
-* Default: SplunkReport-<savedsearchname>
+* Default: Splunk Report: $name$
 
 useNSSubject = <boolean>
 * Whether or not to use the namespaced subject, for example, subject.report or the
@@ -269,7 +269,7 @@ mailserver = <host>[:<port>]
 * When the 'use_ssl' setting (see below) is set to 1 (true), you
   must specify both <host> and <port>.
   (Example: "example.com:465")
-* Default: $LOCALHOST:25
+* Default: localhost
 
 use_ssl    = <boolean>
 * Whether to use SSL when communicating with the SMTP server.

@@ -1,4 +1,4 @@
-#   Version 9.0.5
+#   Version 9.1.0.1
 #
 #
 #########################################################################
@@ -114,7 +114,7 @@
 # example<number> (Optional)
 # comment<number> (Optional)
 # usage (Required)
-# tags (Required)
+# tags (Optional)
 # maintainer (Optional)
 # appears-in (Optional)
 # related (Optional)

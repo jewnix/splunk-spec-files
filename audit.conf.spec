@@ -1,4 +1,4 @@
-#   Version 9.0.5
+#   Version 9.1.0.1
 #
 # This file contains possible attributes and values you can use to configure
 # auditing in audit.conf.
@@ -20,6 +20,7 @@
 #  * If an attribute is defined at both the global level and in a specific
 #    stanza, the value in the specific stanza takes precedence.
 
+[auditTrail]
 queueing = <boolean>
 * Whether or not audit events are sent to the indexQueue.
 * If set to "true", audit events are sent to the indexQueue.

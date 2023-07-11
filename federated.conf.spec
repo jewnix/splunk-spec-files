@@ -1,4 +1,4 @@
-#   Version 9.0.5
+#   Version 9.1.0.1
 #
 # This file contains possible setting and value pairs for federated provider entries
 # for use when the federated search functionality is enabled.
@@ -25,13 +25,10 @@
 * <unique-federated-provider-name> can contain only alphanumeric characters and 
   underscores.
 
-type = [splunk | aws_s3]
+type = [splunk]
 * Specifies the type of the federated provider.
 * A setting of 'splunk' means that the federated provider is a Splunk
   deployment.
-* A setting of 'aws_s3' means that you are configuring this federated provider
-  to facilitate access to a data source in Amazon S3. This setting is reserved
-  for the Splunk structured data service.
 * Default: splunk
 
 hostPort = <Host_Name_or_IP_Address>:<service_port>
@@ -54,20 +51,27 @@ password = <password>
 * No default.
 
 appContext = <application_short_name>
-* Specifies the Splunk application context for the federated searches that will
-  be run with this federated provider definition.
+* Specifies the Splunk application context for the federated searches that are
+  run with this federated provider definition.
+* NOTE: Applicable only to federated providers that have 'type = splunk' and
+ 'mode = standard'.
+  * Federated providers with 'type = splunk' and 'mode = transparent' ignore
+    the 'appContext' property. Such providers instead apply the application
+    context of the federated search that is run from the local search head to
+    the remote portion of the federated search that is run on the remote
+    search head.
 * Provision of an application context ensures that federated searches which use
   the federated provider are limited to the knowledge objects that are
   associated with the named application. Application context can also affect
   search job quota and resource allocation parameters.
-* NOTE: This setting applies only when `useFSHKnowledgeObjects = false`.
-* <application_short_name> must be the "short name" of a Splunk application
+* '<application_short_name>' must be the short name of a Splunk application
   currently installed on the federated provider. For example, the short name of
   Splunk IT Service Intelligence is 'itsi'.
-* You can create multiple federated provider definitions for the same remote
-  search head that differ only by app context.
-* Find the short names of apps installed on a Splunk deployment by going to
-  'Apps > Manage Apps' and reviewing the values in the 'Folder name' column.
+  * Find the short names of apps installed on a Splunk deployment by going to
+    'Apps > Manage Apps' and reviewing the values in the 'Folder name' column.
+* You can create multiple federated provider definitions with 'type = splunk'
+  and 'mode = standard' for the same remote search head that differ only by
+  name and application context.
 * Default: search
 
 useFSHKnowledgeObjects = <boolean>
@@ -157,3 +161,23 @@ connectivityFailuresThreshold = <integer>
 * NOTE: Do not change this setting unless instructed to do so by Splunk
   Support.
 * Default: 3
+
+controlCommandsMaxThreads = <int>
+* The maximum number of threads that can run a federated search action, such as 
+  a search pause or search cancellation, from a local federated search head on 
+  the federated providers.
+* Change this setting only when directed to do so by Splunk Support.
+* Default: 5
+
+controlCommandsMaxTimeThreshold = <int>
+* The maximum number of seconds that a federated search action, such as
+  a search pause or search cancellation, from a local federated search head waits
+  for the federated providers to finish the same command.
+* Change this setting only when directed to do so by Splunk Support.
+* Default: 5
+
+controlCommandsFeatureEnabled = <boolean>
+* Specifies whether a federated search head can send a federated search action,
+  such as a search pause or search cancellation, to federated providers.
+* Change this setting only when directed to do so by Splunk Support.
+* Default: true

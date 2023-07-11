@@ -1,4 +1,4 @@
-#   Version 9.0.5
+#   Version 9.1.0.1
 #
 # This file configures the KV Store collections for a given app in Splunk.
 #
@@ -27,8 +27,9 @@ accelerated_fields.<name> = <json>
 * Example: 'acceleration.foo={"a":1, "b":-1}' is a compound acceleration
   that first sorts 'a' in ascending order and then 'b' in descending order.
 * There are restrictions in compound acceleration. A compound acceleration
-  must not have more than one field in an array. If it does, KV Store does
+  must not have more than one field in an array. If it does, KV store does
   not start or work correctly.
+* Duplicating fields in KV store acceleration definitions might cause KV store to fail.
 * If multiple accelerations with the same definition are in the same
   collection, the duplicates are skipped.
 * If the data within a field is too large for acceleration, you see a

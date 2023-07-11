@@ -1,4 +1,4 @@
-#   Version 9.0.5
+#   Version 9.1.0.1
 #
 # This file contains possible attributes and values you can use to configure
 # distributed search.
@@ -280,7 +280,7 @@ replicationPolicy = [classic | cascading | rfs | mounted]
 * The strategy used by the search head to replicate knowledge bundle across all
   search peers.
 * When set to 'classic', the search head replicates bundle to all search peers.
-* When set to 'cascading', the search head replicates bundle to select few
+* When set to 'cascading', the search head replicates bundle to a select few
   search peers who in turn replicate to other peers. For tuning parameters for
   cascading replication, refer to the `cascading_replication` stanza in
   server.conf.
@@ -328,14 +328,17 @@ maxMemoryBundleSize = <integer>
 maxBundleSize = <integer>
 * The maximum bundle size, in megabytes, for which replication can occur.
 * If a bundle is larger than this value, bundle replication does not occur and
-  Splunk logs an error message.
+  the Splunk platform logs an error message.
 * The maximum value is 102400 (100 GB).
-* If the bundle exceed 'maxBundleSize', you must increase this value or remove
+* If the bundle exceeds 'maxBundleSize', you must increase this value or remove
   files from the bundle to resume normal system operation.
 * This value must be larger than the current bundle size. Do not decrease
   it to a value less than the most recent bundle size.
 * Bundles reside in the $SPLUNK_HOME/var/run directory on the search head.
   Check the size of the most recent full bundle in that directory.
+* If the value for this setting is greater than the value of 
+  'server.conf:[HttpServer]/max_content_length' on indexers, bundle
+  replication failures can occur.
 * Default: 2048 (2GB)
 
 warnMaxBundleSizePerc = <integer>

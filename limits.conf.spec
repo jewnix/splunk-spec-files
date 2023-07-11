@@ -1,4 +1,4 @@
-#   Version 9.0.5
+#   Version 9.1.0.1
 #
 ############################################################################
 # OVERVIEW
@@ -53,11 +53,17 @@
 DelayArchiveProcessorShutdown = <boolean>
 * Specifies whether during splunk shutdown archive processor should finish
   processing archive file under process.
-* When set to “false”: The archive processor abandons further processing of
+* When set to "false": The archive processor abandons further processing of
   the archive file and will process again from start again.
-* When set to “true”: The archive processor will complete processing of
+* When set to "true": The archive processor will complete processing of
   the archive file. Shutdown will be delayed.
 * Default: false
+
+maxArchiveNestLevel = <non-negative integer>
+* Specifies the maximum number of nested levels for an archive file for processing.
+* If an archive file exceeds the maximum specified nested level, Splunk software ignores the archive file.
+* Maximum value: 10
+* Default: 4
 
 max_mem_usage_mb = <non-negative integer>
 * Provides a limitation to the amount of RAM, in megabytes (MB), a batch of
@@ -65,7 +71,7 @@ max_mem_usage_mb = <non-negative integer>
 * Operates on an estimation of memory use which is not exact. The estimation can
   deviate by an order of magnitude or so to both the smaller and larger sides.
 * The limitation is applied in an unusual way; if the number of results or
-  events exceeds maxresults, AND the estimated memory exceeds this limit, the
+  events exceeds maxresultrows, AND the estimated memory exceeds this limit, the
   data is spilled to disk.
 * This means, as a general rule, lower limits will cause a search to use more
   disk I/O and less RAM, and be somewhat slower, but should cause the same
@@ -74,11 +80,11 @@ max_mem_usage_mb = <non-negative integer>
   However, more will likely be added as it proves necessary.
 * The number is thus effectively a ceiling on batch size for many components of
   search for all searches run on this system.
-* When set to “0”: Specifies that the size is unbounded. Searches might be
+* When set to "0": Specifies that the size is unbounded. Searches might be
   allowed to grow to arbitrary sizes.
 * NOTE:
   * The mvexpand command uses the ‘max_mem_usage_mb’ value in a different way.
-    * The mvexpand command has no combined logic with ‘maxresults’.
+    * The mvexpand command has no combined logic with ‘maxresultrows’.
     * If the memory limit is exceeded, output is truncated, not spilled to disk.
   * The 'stats' and 'sdselect' command processors use the ‘max_mem_usage_mb’
     value in the following way.
@@ -103,7 +109,7 @@ max_mem_usage_mb = <non-negative integer>
 min_batch_size_bytes = <integer>
 * Specifies the size, in bytes, of the file/tar after which the
   file is handled by the batch reader instead of the trailing processor.
-* Global parameter, cannot be configured per input.
+* Global setting, cannot be configured per input.
 * NOTE: Configuring this to a very small value could lead to backing up of jobs
   at the tailing processor.
 * Default: 20971520
@@ -180,7 +186,7 @@ maxresultrows = <integer>
 
 tocsv_maxretry = <integer>
 * Maximum number of times to retry the atomic write operation.
-* When set to “1”: Specifies that there will be no retries.
+* When set to "1": Specifies that there will be no retries.
 * Default: 5
 
 tocsv_retryperiod_ms = <integer>
@@ -205,7 +211,7 @@ filteredindexes_log_level = [DEBUG|INFO|WARN|ERROR]
 infocsv_log_level = [DEBUG|INFO|WARN|ERROR]
 * Limits the messages which are added to the info.csv file to the stated
   level and above.
-* For example, if “infocsv_log_level” is WARN, messages of type WARN
+* For example, if "infocsv_log_level" is WARN, messages of type WARN
   and higher will be added to the info.csv file.
 * Default: INFO
 
@@ -230,22 +236,6 @@ show_warn_on_filtered_indexes = <boolean>
 * Read more about subsearches in the online documentation:
   http://docs.splunk.com/Documentation/Splunk/latest/Search/Aboutsubsearches
 
-enableConcurrentPipelineProcessing = <boolean>
-* When set to 'true' this setting incorporates subsearch processing into the
-  main search processing for specific commands.
-* This incorporation enables preview results to appear sooner than they would
-  otherwise, because the search is no longer waiting for subsearches to
-  complete before starting the main search process. This incorporation can also
-  cause some searches to take longer to complete.
-* The search auto-finalizes when it hits its search limits (role-based disk
-  quota enforcement, 'srchDiskQuota' in authorize.conf).
-* Currently only 'join' is affected by this setting.
-  * This setting does not apply when the 'usetime' argument for 'join' is set
-    to 'true'.
-* This optimization applies only to Splunk platform deployments that have
-  'phased_execution_mode=multithreaded' in limits.conf. It cannot be used by
-  deployments that are restricted to single-threaded search processing.
-* Default: false
 
 maxout = <integer>
 * Maximum number of results to return from a subsearch.
@@ -260,7 +250,7 @@ ttl = <integer>
 * The time to live (ttl), in seconds, of the cache for the results of a given
   subsearch.
 * Do not set this below 120 seconds.
-* See the definition in the [search] stanza under the “TTL” section for more
+* See the definition in the [search] stanza under the "TTL" section for more
   details on how the ttl is computed.
 * Default: 300 (5 minutes)
 
@@ -374,9 +364,9 @@ replication_period_sec  = <integer>
 * Default: 60
 
 sync_bundle_replication = [0|1|auto]
-* A flag that indicates whether configuration file replication blocks
+* Indicates whether configuration file replication blocks
   searches or is run asynchronously.
-* When set to “auto”: The Splunk software uses asynchronous
+* When set to "auto": The Splunk software uses asynchronous
   replication only if all of the peers support asynchronous bundle
   replication.
   Otherwise synchronous replication is used.
@@ -399,8 +389,10 @@ bundle_status_expiry_time = <interval>
 total_search_concurrency_limit = auto | <integer>
 * Specifies the maximum search concurrency limit for a search head cluster
   or standalone search head.
-* When set to "auto", the search head cluster or standalone search head applies
-  'base_max_searches + #cpus*max_searches_per_cpu' to calculate the search
+* When set to "auto", the search head cluster or standalone search head 
+  calculates the historical search concurrency limit using 
+  max_hist_searches = max_searches_per_cpu x number_of_cpus + base_max_searches.
+* The real-time search concurrency limit is calculated based on the historical search 
   concurrency limit.
 * When set to an integer, the setting specifies the maximum search concurrency limit.
   For a search head cluster, the number specifies the maximum search limit across
@@ -454,23 +446,23 @@ addpeer_skew_limit = <positive integer>
 * Absolute value of the largest time skew, in seconds, that is allowed when
   configuring a search peer from a search head, independent of time.
 * If the difference in time (skew) between the search head and the peer is
-  greater than “addpeer_skew_limit”, the search peer is not added.
+  greater than "addpeer_skew_limit", the search peer is not added.
 * This is only relevant to manually added peers. This setting has no effect
   on index cluster search peers.
 * Default: 600 (10 minutes)
 
 fetch_remote_search_log = [enabled|disabledSavedSearches|disabled]
-* When set to “enabled”: All remote search logs are downloaded barring
+* When set to "enabled": All remote search logs are downloaded barring
   the oneshot search.
-* When set to “disabledSavedSearches”: Downloads all remote logs other
+* When set to "disabledSavedSearches": Downloads all remote logs other
   than saved search logs and oneshot search logs.
-* When set to “disabled”: Irrespective of the search type, all remote
+* When set to "disabled": Irrespective of the search type, all remote
   search log download functionality is disabled.
 * NOTE:
   * The previous Boolean values:[true|false] are still
     supported, but are not recommended.
-  * The previous value of “true” maps to the current value of “enabled”.
-  * The previous value of “false” maps to the current value of “disabled”.
+  * The previous value of "true" maps to the current value of "enabled".
+  * The previous value of "false" maps to the current value of "disabled".
 * Default: disabledSavedSearches
 
 max_chunk_queue_size = <integer>
@@ -499,17 +491,17 @@ results_queue_min_size = <integer>
 * The minimum size, of search result chunks, that will be kept from peers
   for processing on the search head before throttling the rate that data
   is accepted.
-* The minimum queue size in chunks is the “results_queue_min_size” value
+* The minimum queue size in chunks is the "results_queue_min_size" value
   and the number of peers providing results, which ever is greater.
 * Default: 10
 
 result_queue_max_size = <integer>
-* The maximum size, in MB, that will be kept from peers for processing on
+* The maximum size, in bytes, that will be kept from peers for processing on
   the search head before throttling the rate that data is accepted.
-* The “results_queue_min_size” value takes precedence. The number of search
-  results chunks specified by “results_queue_min_size” will always be
+* The "results_queue_min_size" value takes precedence. The number of search
+  results chunks specified by "results_queue_min_size" will always be
   retained in the queue even if the combined size in MB exceeds the
-  “result_queue_max_size” value.
+  "result_queue_max_size" value.
 * Default: 100
 
 results_queue_read_timeout_sec = <integer>
@@ -544,12 +536,12 @@ fieldstats_update_freq = <number>
 * How often to update the field summary statistics, as a ratio to the elapsed
   run time so far.
 * Smaller values means update more frequently.
-* When set to “0”: Specifies to update as frequently as possible.
+* When set to "0": Specifies to update as frequently as possible.
 * Default: 0
 
 fieldstats_update_maxperiod = <number>
 * The maximum period, in seconds, for updating field summary statistics.
-* When set to “0”: Specifies that there is not maximum period. The period
+* When set to "0": Specifies that there is not maximum period. The period
   is dictated by the calculation:
   current_run_time x fieldstats_update_freq
 * Fractional seconds are allowed.
@@ -572,7 +564,42 @@ enable_history = <boolean>
 
 max_history_length = <integer>
 * Maximum number of searches to store in history for each user and application.
-* Default: 1000
+* Default: 500
+
+max_history_storage_retention_time = <integer>[s|m|h|d]
+* The maximum time to store search history records for each user and
+  application.
+* This setting and the 'max_history_length' setting determine how many search
+  history records appear in persistent storage.
+* Search stops storing search history records when either the retention time or
+  the number of search history records exceeds the values you configure with
+  these settings.
+* A value of 0 means that search only uses 'max_history_length' to retain
+  search history to persistent storage.
+* The time units you can specify for this setting are: 
+  s, sec, second, secs, seconds, m, min, minute, mins, minutes,
+  h, hr, hour, hrs, hours, d, day, days.
+* This setting is only applicable when 'search_history_storage_mode' has
+  a value of "kvstore".
+* Default: 90d
+
+search_history_storage_mode = <string>
+* The storage mode by which a search head cluster saves search history.
+* Valid storage modes include "csv" and "kvstore".
+* This setting is valid only when the 'enable_history' setting has a value of "true".
+* A value of "kvstore" means that the cluster can replicate search history across
+  all its members using the App Key Value Store service.
+* A value of "csv" means that search history is saved to CSV files only on the
+  local search head.
+* When you initially give this setting a value of "kvstore", the search head
+  migrates the existing search history records, if they are present in existing
+  CSV files, into the App Key Value Store service. This migration of search
+  history can only happen once. If you later change the storage mode to "csv",
+  then back to "kvstore", subsequent migrations do not occur.
+* NOTE: In the "kvstore" storage mode, the 'max_history_length' is the maximum
+  number of searches that the SHC can store for each user. In this case, the
+  maximum acceptable value of 'max_history_length' cannot exceed 1000.
+* Default: csv
 
 ############################################################################
 # Memory tracker
@@ -581,16 +608,16 @@ max_history_length = <integer>
 
 enable_memory_tracker = <boolean>
 * Specifies if the memory tracker is enabled.
-* When set to “false” (disabled): The search is not terminated even if
+* When set to "false" (disabled): The search is not terminated even if
   the search exceeds the memory limit.
-* When set to “true”: Enables the memory tracker.
-* Must be set to “true” to enable the “search_process_memory_usage_threshold”
-  setting or the “search_process_memory_usage_percentage_threshold” setting.
+* When set to "true": Enables the memory tracker.
+* Must be set to "true" to enable the "search_process_memory_usage_threshold"
+  setting or the "search_process_memory_usage_percentage_threshold" setting.
 * Default: false
 
 search_process_memory_usage_threshold = <double>
-* To use this setting, the “enable_memory_tracker” setting must be set
-  to “true”.
+* To use this setting, the "enable_memory_tracker" setting must be set
+  to "true".
 * Specifies the maximum memory, in MB, that the search process can consume
   in RAM.
 * Search processes that violate the threshold are terminated.
@@ -599,8 +626,8 @@ search_process_memory_usage_threshold = <double>
 * Default: 4000 (4GB)
 
 search_process_memory_usage_percentage_threshold = <decimal>
-* To use this setting, the “enable_memory_tracker” setting must be set
-  to “true”.
+* To use this setting, the 'enable_memory_tracker' setting must be set
+  to "true".
 * Specifies the percent of the total memory that the search process is
   entitled to consume.
 * Search processes that violate the threshold percentage are terminated.
@@ -617,15 +644,15 @@ search_process_memory_usage_percentage_threshold = <decimal>
 
 allow_inexact_metasearch = <boolean>
 * Specifies if a metasearch that is inexact be allowed.
-* When set to “true”: An INFO message is added to the inexact metasearches.
-* When set to “false”: A fatal exception occurs at search parsing time.
+* When set to "true": An INFO message is added to the inexact metasearches.
+* When set to "false": A fatal exception occurs at search parsing time.
 * Default: false
 
 indexed_as_exact_metasearch = <boolean>
 * Specifies if a metasearch can process <field>=<value> the same as
   <field>::<value>, if <field> is an indexed field.
-* When set to “true”: Allows a larger set of metasearches when the
-  “allow_inexact_metasearch” setting is “false”. However, some of the
+* When set to "true": Allows a larger set of metasearches when the
+  'allow_inexact_metasearch' setting is "false". However, some of the
   metasearches might be inconsistent with the results of doing a normal
   search.
 * Default: false
@@ -679,10 +706,10 @@ dispatch_dir_warning_size = <integer>
 
 do_not_use_summaries = <boolean>
 * Do not use this setting without working in tandem with Splunk support.
-* This setting is a very narrow subset of “summary_mode=none”.
-* When set to “true”: Disables some functionality that is necessary for
+* This setting is a very narrow subset of 'summary_mode=none'.
+* When set to "true": Disables some functionality that is necessary for
   report acceleration.
-  * In particular, when set to “true”, search processes will no longer query
+  * In particular, when set to "true", search processes will no longer query
     the main splunkd's /admin/summarization endpoint for report acceleration
      summary IDs.
 * In certain narrow use-cases this might improve performance if report
@@ -714,12 +741,12 @@ enable_conditional_expansion = <boolean>
 * Default: true
 
 force_saved_search_dispatch_as_user = <boolean>
-* Specifies whether to overwrite the “dispatchAs” value.
-* When set to “true”: The “dispatchAs” value is overwritten by “user”
+* Specifies whether to overwrite the "dispatchAs" value.
+* When set to "true": The "dispatchAs" value is overwritten by "user"
   regardless of the [user|owner] value in the savedsearches.conf file.
-* When set to “false”: The value in the savedsearches.conf file is used.
-* You might want to set this to “true” to effectively disable
-  “dispatchAs = owner” for the entire install, if that more closely aligns
+* When set to "false": The value in the savedsearches.conf file is used.
+* You might want to set this to "true" to effectively disable
+  "dispatchAs = owner" for the entire install, if that more closely aligns
   with security goals.
 * Default: false
 
@@ -747,7 +774,7 @@ get_summary_id_send_timeout = <integer>
 
 max_id_length = <integer>
 * Maximum length of the custom search job ID when spawned by using
-  REST API argument “id”.
+  REST API argument "id".
 * Default: 150
 
 max_id_length_before_hash = <integer>
@@ -812,10 +839,10 @@ stack_size = <integer>
 
 summary_mode = [all|only|none]
 * Specifies if precomputed summary data are to be used.
-* When set to “all”: Use summary data if possible, otherwise use raw data.
-* When set to “only”: Use summary data if possible, otherwise do not use
+* When set to "all": Use summary data if possible, otherwise use raw data.
+* When set to "only": Use summary data if possible, otherwise do not use
   any data.
-* When set to “none”: Never use precomputed summary data.
+* When set to "none": Never use precomputed summary data.
 * Default: all
 
 track_indextime_range = <boolean>
@@ -921,6 +948,13 @@ track_matching_sourcetypes = <boolean>
   search, and store that information in info.csv
 * Default: true
 
+search_launch_timeout_seconds = <positive integer>
+* The maximum amount of time, in seconds, to wait before a search job
+  is launched successfully.
+* If a search job does not launch after the timeout interval elapses, 
+  the job terminates as a search failure.
+* Default: 180
+
 max_audit_sourcetypes = <integer>
 * if track_matching_sourcetypes = true, the matching sourcetypes
   for a search will be written to the info=completed audit.log message
@@ -987,7 +1021,7 @@ use_directives = <boolean>
 # This section contains settings for multi-phased execution
 
 phased_execution = <boolean>
-DEPRECATED This setting has been deprecated.
+* DEPRECATED: This setting has been deprecated.
 
 phased_execution_mode = [multithreaded|auto|singlethreaded]
 * Controls whether searches use the multiple-phase method of search execution,
@@ -1015,13 +1049,13 @@ phased_execution_mode = [multithreaded|auto|singlethreaded]
 max_preview_period = <integer>
 * The maximum time, in seconds, between previews.
 * Used with the preview interval that is calculated with the
-  “preview_duty_cycle” setting.
-* When set to “0”: Specifies unlimited time between previews.
+  'preview_duty_cycle' setting.
+* When set to "0": Specifies unlimited time between previews.
 * Default: 0
 
 min_preview_period = <integer>
 * The minimum time, in seconds, required between previews. When the calculated
-  interval using “preview_duty_cycle” indicates previews should be run
+  interval using 'preview_duty_cycle' indicates previews should be run
   frequently. This setting is used to limit the frequency with which previews
   run.
 * Default: 1
@@ -1089,8 +1123,8 @@ queued_job_check_freq = <number>
 # This section contains settings for reading chunk controls.
 
 chunk_multiplier = <integer>
-* A multiplier that the “max_results_perchunk”, “min_results_perchunk”, and
-  “target_time_perchunk” settings are multiplied by for a long running search.
+* A multiplier that the 'max_results_perchunk', 'min_results_perchunk', and
+  'target_time_perchunk' settings are multiplied by for a long running search.
 * Default: 5
 
 long_search_threshold = <integer>
@@ -1100,18 +1134,18 @@ long_search_threshold = <integer>
 max_rawsize_perchunk = <integer>
 * The maximum raw size, in bytes, of results for each call to search
   (in dispatch).
-* When set to “0”: Specifies that there is no size limit.
-* This setting is not affected by the “chunk_multiplier” setting.
+* When set to "0": Specifies that there is no size limit.
+* This setting is not affected by the 'chunk_multiplier' setting.
 * Default: 100000000 (100MB)
 
 max_results_perchunk = <integer>
 * Maximum results for each call to search (in dispatch).
-* Must be less than or equal to the “maxresultrows” setting.
+* Must be less than or equal to the 'maxresultrows' setting.
 * Default: 2500
 
 min_results_perchunk = <integer>
 * The minimum results for each call to search (in dispatch).
-* Must be less than or equal to the “max_results_perchunk” setting.
+* Must be less than or equal to the 'max_results_perchunk' setting.
 * Default: 100
 
 target_time_perchunk = <integer>
@@ -1162,7 +1196,7 @@ bucket_localize_max_timeout_sec = <integer>
   in remote storage.
 * If the bucket contents (what is required for the search) cannot be localized
   in that timeframe, the bucket will not be searched.
-* When set to “0”: Specifies an unlimited amount of time.
+* When set to "0": Specifies an unlimited amount of time.
 * This setting is only relevant when using remote storage.
 * Default: 300 (5 minutes)
 
@@ -1225,7 +1259,7 @@ max_count = <integer>
 * Default: 500000
 
 max_events_per_bucket = <integer>
-* For searches with “status_buckets>0”, this setting limits the number of
+* For searches with 'status_buckets>0', this setting limits the number of
   events retrieved for each timeline bucket.
 * Default: 1000 in code.
 
@@ -1258,7 +1292,7 @@ role_based_field_filtering = <boolean>
 * Default: false
 
 truncate_report = [1|0]
-* Specifies whether or not to apply the “max_count” setting to report output.
+* Specifies whether or not to apply the 'max_count' setting to report output.
 * Default: 0 (false)
 
 write_multifile_results_out = <boolean>
@@ -1277,13 +1311,13 @@ write_multifile_results_out = <boolean>
 idle_process_cache_search_count = <integer>
 * The number of searches that the search process must reach, before purging
   older data from the cache. The purge is performed even if the
-  “idle_process_cache_timeout" has not been reached.
+  'idle_process_cache_timeout' has not been reached.
 * When a search process is allowed to run more than one search, the search
   process can cache some data between searches.
 * When set to a negative value: No purge occurs, no matter how many
   searches are run.
-* Has no effect on Windows if “search_process_mode” is not ”auto"
-  or if “max_searches_per_process” is set to 0 or 1.
+* Has no effect on Windows if 'search_process_mode' is not set to "auto"
+  or if 'max_searches_per_process' is set to "0" or "1".
 * Default: 8
 
 idle_process_cache_timeout = <number>
@@ -1293,10 +1327,10 @@ idle_process_cache_timeout = <number>
   process can cache some data between searches.
 * When set to a negative value: No purge occurs, no matter on how long the
   search process is idle.
-* When set to “0”: Purging always occurs, regardless of whether the process
+* When set to "0": Purging always occurs, regardless of whether the process
   has been idle or not.
-* Has no effect on Windows if “search_process_mode” is not "auto" or
-  if “max_searches_per_process” is set to 0 or 1.
+* Has no effect on Windows if 'search_process_mode' is not set to "auto" or
+  if 'max_searches_per_process' is set to "0" or "1".
 * Default: 0.5 (seconds)
 
 idle_process_regex_cache_hiwater = <integer>
@@ -1305,51 +1339,103 @@ idle_process_regex_cache_hiwater = <integer>
   purge some of the older entries.
 * When a search process is allowed to run more than one search, the search
   process can cache compiled regex artifacts.
-* Normally the "idle_process_cache_search count“ and the
-  “idle_process_cache_timeout” settings will keep the regex cache a
-  reasonable size.  This setting is to prevent the cache from growing
+* Usually the 'idle_process_cache_search_count' and the
+  'idle_process_cache_timeout' settings keep the regex cache at a
+  reasonable size.  This setting prevents the cache from growing
   extremely large during a single large search.
 * When set to a negative value: No purge occurs, not matter how large
   the cache.
-* Has no effect on Windows if “search_process_mode” is not "auto" or
-  if “max_searches_per_process” is set to 0 or 1.
+* Has no effect on Windows if 'search_process_mode' is not set to "auto" or
+  if 'max_searches_per_process' is set to "0" or "1".
 * Default: 2500
 
-idle_process_reaper_period = <number>
+idle_process_reaper_period = auto | <number>
 * The amount of time, in seconds, between checks to determine if there are
   too many idle search processes.
 * When a search process is allowed to run more than one search, the system
   checks if there are too many idle search processes.
-* Has no effect on Windows if “search_process_mode” is not "auto" or
-  if “max_searches_per_process” is set to 0 or 1.
+* Has no effect on Windows if 'search_process_mode' is not set to "auto" or
+  if 'max_searches_per_process' is set to "0" or "1".
 * Default: 30
 
-launcher_max_idle_checks = <integer>
+launcher_max_idle_checks = auto | <integer>
 * Specifies the number of idle processes that are inspected before giving up
   and starting a new search process.
 * When allowing more than one search to run for each process, the system
   attempts to find an appropriate idle process to use.
 * When set to a negative value: Every eligible idle process is inspected.
-* Has no effect on Windows if “search_process_mode” is not "auto" or
-  if “max_searches_per_process” is set to 0 or 1.
+* Has no effect on Windows if 'search_process_mode' is not set to "auto" or
+  if 'max_searches_per_process is set to "0" or "1".
 * Default: 5
 
 launcher_threads = <integer>
 * The number of server thread to run to manage the search processes.
 * Valid only when more than one search is allowed to run for each process.
-* Has no effect on Windows if “search_process_mode” is not "auto" or
-  if “max_searches_per_process” is set to 0 or 1.
+* Has no effect on Windows if 'search_process_mode' is not set to "auto" or
+  if 'max_searches_per_process' is set to "0" or "1".
 * Default: -1 (a value is selected automatically)
 
-max_old_bundle_idle_time = <number>
+max_idle_process_count = auto | <integer>
+* The maximum number of preforked search processes that are
+  allowed to be idle and reused by later search execution.
+* The setting is valid if the 'enable_search_process_long_lifespan' 
+  setting in the server.conf file is set to "true". Otherwise, it is
+  set to zero when "enable_search_process_long_lifespan = false".
+* If the total number of idle search processes exceeds this setting, 
+  some processes are reaped until the number meets the setting.
+* Adjust this setting to control how the Splunk server memory is used by 
+  idle search processes. The Splunk server can consume more system memory
+  when the number of idle search processes is higher.
+* When set to "auto": the initial value is set to 64.
+* When set to "-1" or another negative value: the setting has no limit.
+* This setting is not applied on computers running Windows or when 
+  'search_process_mode' is not "auto".
+* Default: auto
+
+max_idle_process_memory = auto | <integer>
+* The maximum amount of memory (RSS) in KB used by a search process that is
+  allowed to be idle and reused later after running successfully.
+* The setting is valid if the 'enable_search_process_long_lifespan' 
+  setting in the server.conf file is set to "true".
+* If the memory used by a search process when it runs exceeds this setting, 
+  the process is not reusable. As a result, the process exits after it runs.
+* Use this setting to prevent a search process from potential OOM issues 
+  due to the increase in memory usage after the process has been reused
+  too many times.
+* When set to "auto": The initial default value is set to "(1024*1024)" KB 
+  and subsequently adjusted automatically depending on the amount of system 
+  memory that is available to Splunk software.
+* When set to "-1" or another negative value: The memory size is not limited.
+* Has no effect on Windows or if “search_process_mode” is not "auto".
+* Default: auto
+
+max_search_process_pool = auto | <integer>
+* The maximum number of search processes that can be launched to run searches
+  in the pool of preforked search processes.
+* The setting is valid if the 'enable_search_process_long_lifespan' setting  
+  in the server.conf file is set to "true".
+* Use this setting to limit the total number of running search processes on
+  a search head or peer that is prevented from being overloaded or using
+  high system resources (CPU, Memory, etc).
+* When set to "auto": Splunk server determines the pool size by multiplying 
+  the number of CPU cores and the allowed number of search processes (16). 
+  The pool size is 64 at minimum.
+* When set to "-1" or another negative value: The pool size is not limited.
+* Has no effect on Windows or if “search_process_mode” is not "auto".
+* Default: 2048
+
+max_old_bundle_idle_time = auto | <number>
 * The amount of time, in seconds, that a process bundle must be idle before
   the process bundle is considered for reaping.
 * Used when reaping idle search processes and the process is not configured
   with the most recent configuration bundle.
-* When set to a negative value: The idle processes are not reaped sooner
+* When set to "auto": Splunk software uses the internal default value.
+  If the 'enable_search_process_long_lifespan' setting in the server.conf
+  file is set to "true", the default value is "300". Otherwise, it is "5".
+* When set to "-1" or negative value: The idle processes are not reaped sooner
   than normal if the processes are using an older configuration bundle.
-* Has no effect on Windows if “search_process_mode” is not "auto" or
-  if “max_searches_per_process” is set to 0 or 1.
+* Has no effect on Windows if 'search_process_mode' is not set to "auto" or
+  if 'max_searches_per_process' is set to "0" or "1".
 * Default: 5
 
 max_searches_per_process = <integer>
@@ -1357,10 +1443,10 @@ max_searches_per_process = <integer>
   before exiting.
 * After a search completes, the search process can wait for another search to
   start and the search process can be reused.
-* When set to “0” or “1”: The process is never reused.
+* When set to "0" or "1": The process is never reused.
 * When set to a negative value: There is no limit to the number of searches
   that a process can run.
-* Has no effect on Windows if search_process_mode is not "auto”.
+* Has no effect on Windows if 'search_process_mode' is not set to "auto".
 * Default: 500 (Linux) 
 * Default: 1 (Windows)
 
@@ -1371,11 +1457,11 @@ max_searches_started_per_cycle = <integer>
   improving search process reuse, and efficiency. 
 * Note: Do not change this setting unless instructed to do so by Splunk
   Support.
-* Has no effect on Windows if "search_process_mode" is not "auto" or if
-  "max_searches_per_process" is set to 0 or 1.
+* Has no effect on Windows if 'search_process_mode' is not set to "auto" or if
+  'max_searches_per_process' is set to "0" or "1".
 * Default: 30
 
-max_time_per_process = <number>
+max_time_per_process = auto | <number>
 * Specifies the maximum time, in seconds, that a process can spend running
   searches.
 * When a search process is allowed to run more than one search, limits how
@@ -1383,29 +1469,29 @@ max_time_per_process = <number>
   must exit.
 * When set to a negative value: There is no limit on the amount of time a
   search process can spend running.
-* Has no effect on Windows if “search_process_mode” is not "auto" or
-  if “max_searches_per_process” is set to 0 or 1.
-* NOTE: A search can run longer than the value set for “max_time_per_process”
+* Has no effect on Windows if 'search_process_mode' is not set to "auto" or
+  if 'max_searches_per_process' is set to "0" or "1".
+* NOTE: A search can run longer than the value set for 'max_time_per_process'
   without being terminated. This setting ONLY prevents the process from
   being used to run additional searches after the maximum time is reached.
-* Default: 300 (5 minutes)
+* Default: auto
 
 process_max_age = <number>
 * Specifies the maximum age, in seconds, for a search process.
 * When a search process is allowed to run more than one search, a process
   is not reused if the process is older than the value specified.
-* When set to a negative value: There is no limit on the the age of the
+* When set to a negative value: There is no limit on the age of the
   search process.
 * This setting includes the time that the process spends idle, which is
   different than "max_time_per_process" setting.
-* Has no effect on Windows if “search_process_mode” is not "auto" or
-  if “max_searches_per_process” is set to 0 or 1.
-* NOTE: A search can run longer than the the time set for “process_max_age”
+* Has no effect on Windows if 'search_process_mode' is not set to "auto" or
+  if 'max_searches_per_process' is set to "0" or "1".
+* NOTE: A search can run longer than the time set for 'process_max_age'
   without being terminated. This setting ONLY prevents that process from
   being used to run more searches after the search completes.
 * Default: 7200 (120 minutes or 2 hours)
 
-process_min_age_before_user_change = <number>
+process_min_age_before_user_change = auto | <number>
 * The minimum age, in seconds, of an idle process before using a process
   from a different user.
 * When a search process is allowed to run more than one search, the system
@@ -1414,19 +1500,19 @@ process_min_age_before_user_change = <number>
 * If no such idle process exists, the system tries to use an idle process
   from a different user. The idle process from a different user must be
   idle for at least the value specified for the
-  “process_min_age_before_user_change” setting.
-* When set to “0”: Any idle process by any Splunk user can be reused.
+  'process_min_age_before_user_change' setting.
+* When set to "0": Any idle process by any Splunk user can be reused.
 * When set to a negative value: Only a search process by same Splunk user
   can be reused.
-* Has no effect on Windows if “search_process_mode” is not "auto" or
-  if “max_searches_per_process” is set to 0 or 1.
+* Has no effect on Windows if 'search_process_mode' is not set to "auto" or
+  if 'max_searches_per_process' is set to "0" or "1".
 * Default: 4
 
 search_process_mode = [auto|traditional|debug <debugging-command> <debugging-args>]
 * Controls how search processes are started.
-* When set to “traditional”: Each search process is initialized completely
+* When set to "traditional": Each search process is initialized completely
   from scratch.
-* When set to “debug”: When set to a string beginning with "debug",
+* When set to "debug": When set to a string beginning with "debug",
   searches are routed through the <debugging-command>, where the user can
   "plug in" debugging tools.
   * The <debugging-command> must reside in one of the following locations:
@@ -1481,7 +1567,7 @@ log_search_messages = <boolean>
 * Splunkd promotes messages only after search has been audited.
 * The search_messages.log file follows this format when it logs messages:
   orig_component="..." sid="..." peer_name="..." message=...
-* Default: false
+* Default: true
 
 search_messages_severity = <string>
 * When 'log_search_messages = true', this setting specifies the lowest
@@ -1520,7 +1606,7 @@ reduce_duty_cycle = <number>
 reduce_freq = <integer>
 * When the specified number of chunks is reached, attempt to reduce
   the intermediate results.
-* When set to “0”: Specifies that there is never an attempt to reduce the
+* When set to "0": Specifies that there is never an attempt to reduce the
   intermediate result.
 * Default: 10
 
@@ -1529,7 +1615,7 @@ remote_reduce_limit = <unsigned long>
   is forced.
 * NOTE: this option applies only if the search is run with --runReduce=true
   (currently only Splunk Analytics for Hadoop does this)
-* When set to “0”: Specifies that there is no limit.
+* When set to "0": Specifies that there is no limit.
 * Default: 1000000
 
 unified_search = <boolean>
@@ -1586,14 +1672,14 @@ remote_timeline_connection_timeout = <integer>
 * Default: 5.
 
 remote_timeline_fetchall = <boolean>
-* When set to “1” (true): Splunk fetches all events accessible through the
+* When set to "1" (true): Splunk fetches all events accessible through the
   timeline from the remote peers before the job is considered done.
   * Fetching of all events might delay the finalization of some searches,
     typically those running in verbose mode from the main Search view in
     Splunk Web.
   * This potential performance impact can be mitigated by lowering the
-    “max_events_per_bucket” settings.
-* When set to “0” (false): The search peers might not ship all matching
+    'max_events_per_bucket' settings.
+* When set to "0" (false): The search peers might not ship all matching
   events to the search head, particularly if there is a very large number
   of them.
    * Skipping the complete fetching of events back to the search head will
@@ -1642,26 +1728,26 @@ remote_timeline_send_timeout = <integer>
 
 remote_timeline_thread = <boolean>
 * Specifies whether to use a separate thread to read the full events from
-  remote peers if “remote_timeline” is used and “remote_timeline_fetchall”
-  is set to “true”.
-  Has no effect if “remote_timeline” or “remote_timeline_fetchall” is set to
-  “false”.
+  remote peers if 'remote_timeline' is used and 'remote_timeline_fetchall'
+  is set to "true".
+  Has no effect if 'remote_timeline' or 'remote_timeline_fetchall' is set to
+  "false".
 * Default: 1 (true)
 
 remote_timeline_touchperiod = <number>
 * How often, in seconds, while a search is running to touch remote timeline
   artifacts to keep the artifacts from being deleted by the remote peer.
-* When set to “0”: The remote timelines are never touched.
+* When set to "0": The remote timelines are never touched.
 * Fractional seconds are allowed.
 * Default: 300 (5 minutes)
 
 timeline_events_preview = <boolean>
-* When set to “true”: Display events in the Search app as the events are
+* When set to "true": Display events in the Search app as the events are
   scanned, including events that are in-memory and not yet committed, instead
   of waiting until all of the events are scanned to see the search results.
   You will not be able to expand the event information in the event viewer
   until events are committed.
-* When set to “false”: Events are displayed only after the events are
+* When set to "false": Events are displayed only after the events are
   committed (the events are written to the disk).
 * This setting might increase disk usage to temporarily save uncommitted
   events while the search is running. Additionally, search performance might
@@ -1834,12 +1920,12 @@ maxresultrows = <integer>
 
 maxvalues = <integer>
 * Maximum number of distinct values for a field.
-* Default: 100000
+* Default: 0
 
 maxvaluesize = <integer>
 * Maximum size, in bytes, of any single value (truncated to this size if
   larger).
-* Default: 1000
+* Default: 0
 
 
 [associate]
@@ -1850,11 +1936,11 @@ maxfields = <integer>
 
 maxvalues = <integer>
 * Maximum number of values for any field to keep track of.
-* Default: 10000
+* Default: 0
 
 maxvaluesize = <integer>
 * Maximum length of a single value to consider.
-* Default: 1000
+* Default: 0
 
 
 [autoregress]
@@ -1965,6 +2051,20 @@ maxbins = <integer>
 * Default: 50000
 
 
+[eval]
+printf_max_precision = <non-negative integer>
+* The maximum usable precision for 'printf' format strings.
+* Default: 1000000
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+
+printf_max_width = <integer>
+* The maximum usable width for 'printf' format strings.
+* Default: 1000000
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+
+
 [findkeywords]
 
 maxevents = <integer>
@@ -2020,7 +2120,7 @@ mkdir_max_retries = <integer>
 
 db_path = <path>
 * The absolute path to the GeoIP database in the MMDB format.
-* The “db_path” setting does not support standard Splunk environment
+* The 'db_path' setting does not support standard Splunk environment
   variables such as SPLUNK_HOME.
 * Default: The database that is included with the Splunk platform.
 
@@ -2172,6 +2272,7 @@ enforce_auto_lookup_order = <boolean>
 * false: LOOKUP-<name>s in props.conf are looked up in random order.
 * Default : false
 
+
 [metadata]
 
 bucket_localize_max_lookahead = <integer>
@@ -2267,10 +2368,10 @@ target_per_timeseries = <unsigned integer>
 * This stanza allows for fine tuning of mvexpand search command.
 
 max_mem_usage_mb = <non-negative integer>
-* Overrides the default value for “max_mem_usage_mb”.
+* Overrides the default value for 'max_mem_usage_mb'.
 * Limits the amount of RAM, in megabytes (MB), a batch of events or results will
   use in the memory of a search process.
-* See definition in the [default] stanza for “max_mem_usage_mb”
+* See definition in the [default] stanza for 'max_mem_usage_mb'
   for more details.
 * Default: 500
 
@@ -2279,10 +2380,10 @@ max_mem_usage_mb = <non-negative integer>
 * This stanza allows for fine tuning of mvcombine search command.
 
 max_mem_usage_mb = <non-negative integer>
-* Overrides the default value for “max_mem_usage_mb”
+* Overrides the default value for 'max_mem_usage_mb'
 * Limits the amount of RAM, in megabytes (MB), a batch of events or results
   use in the memory of a search process.
-* See definition in the [default] stanza for “max_mem_usage_mb”
+* See definition in the [default] stanza for 'max_mem_usage_mb'
   for more details.
 * Default: 500
 
@@ -2322,12 +2423,21 @@ maxresultrows = <integer>
 
 maxvalues = <integer>
 * Maximum number of distinct field vector values to keep track of.
-* Default: 100000
+* Default: 0
 
 maxvaluesize = <integer>
 * Maximum length of a single value to consider.
-* Default: 1000
+* Default: 0
 
+[rest]
+
+allow_reload = <boolean>
+* Whether or not the '_reload' action is allowed for the 
+  'rest' search command. 
+* If you must use '_reload' with the 'rest' search command, 
+  set 'allow_reload' to "true".
+* Use of '_reload' with the 'rest' search command is deprecated.
+* Default: true
 
 [set]
 
@@ -2406,7 +2516,7 @@ max_keymap_rows = <integer>
 * Limits the number of result rows that the search head stores in the key map
   during the map phase of a 'stats' operation. The Splunk software looks up
   rows stored in the map and combines them greedily prior to final reduce.
-* 'Stats' performance is nonlinear with respect to the the number of rows in
+* 'Stats' performance is nonlinear with respect to the number of rows in
   the key map. Limiting the number of rows held can improve performance.
 * Excess rows expunged from the key map remain in memory, subject to
   max_mem_usage_mb.
@@ -2424,7 +2534,7 @@ maxmem_check_freq = <integer>
 
 maxresultrows = <integer>
 * Maximum number of rows allowed in the process memory.
-* When the search process exceeds “max_mem_usage_mb” and “maxresultrows”,
+* When the search process exceeds 'max_mem_usage_mb' and 'maxresultrows',
   data is sent to the disk.
 * If not specified, uses the value set for 'maxresultrows' in the
   [searchresults] stanza, which is 50000 by default.
@@ -2436,12 +2546,12 @@ max_stream_window = <integer>
 
 maxvalues = <integer>
 * Maximum number of values for any field to keep track of.
-* When set to “0”: Specifies an unlimited number of values.
+* When set to "0": Specifies an unlimited number of values.
 * Default: 0
 
 maxvaluesize = <integer>
 * Maximum length of a single value to consider.
-* When set to “0”: Specifies an unlimited number of values.
+* When set to "0": Specifies an unlimited number of values.
 * Default: 0
 
 max_valuemap_bytes = <integer>
@@ -2484,7 +2594,7 @@ perc_digest_type = rdigest|tdigest
 
 sparkline_maxsize = <integer>
 * Maximum number of elements to emit for a sparkline
-* Default: The value of the “list_maxsize” setting
+* Default: The value of the 'list_maxsize' setting
 
 sparkline_time_steps = <time-step-string>
 * Specify a set of time steps in order of decreasing granularity. Use an
@@ -2525,7 +2635,7 @@ rdigest_k = <integer>
 
 rdigest_maxnodes = <integer>
 * Maximum rdigest nodes before automatic compression is triggered.
-* When set to “1”: Specifies to automatically configure based on k value.
+* When set to "1": Specifies to automatically configure based on k value.
 * Default: 1
 
 tdigest_k = <integer>
@@ -2577,24 +2687,24 @@ min_chunk_size_kb = <integer>
   data is spilled to disk due to memory pressure.
 * Adjust this value only when such an adjustment is absolutely necessary. 
   * If the 'stats' process must use less memory in low cardinality cases, 
-    reduce this value at the cost of increased indexer node usage and possibly 
-    decreased search performance.
-  * If the 'stats' process must use fewer indexer nodes and create larger data 
-    chunks even for small searches, increase this value at the cost of memory 
-    in low cardinality searches.
+    reduce this value at the cost of increased filesystem inode usage and
+    possibly decreased search performance.
+  * If the 'stats' process must use fewer filesystem inodes and create larger
+    data chunks even for small searches, increase this value at the cost of
+    memory in low cardinality searches.
 * Default: 64
 
 max_chunk_size_kb = <integer>
 * Specifies the maximum size of a chunk of intermediate results during
   'stats' search processing. See 'chunk_size_double_every' for additional 
   details.
-* By limiting the maximum chunk size, this setting affects the number of data 
+* By limiting the maximum chunk size, this setting affects the number of data
   chunks that the 'stats' processor can create when intermediate data is 
   spilled to disk due to memory pressure.  
-* Increase this setting if you need to reduce the indexer node usage of your 
+* Increase this setting if you need to reduce the filesystem inode usage of your
   'stats' processes.
 * This setting should never exceed 1/20th of 'max_mem_usage_mb'.
-* Default: 1024
+* Default: 4096
 
 chunk_size_double_every = <integer>
 * The 'stats' processor stores intermediate data for 'stats' searches in data 
@@ -2611,12 +2721,12 @@ chunk_size_double_every = <integer>
 * This behavior lets the 'stats' processor begin 'stats' processes with small 
   data chunks, which reduces ram usage on low cardinality searches. It also 
   lets the 'stats' processor increase the chunk size when it spills a lot 
-  of data to disk, which reduces indexer node usage for high cardinality 
+  of data to disk, which reduces filesystem inode usage for high cardinality
   searches.
 * To minimize allocation of unused memory, increase the 
   'chunk_size_double_every' threshold to keep the chunks smaller for a longer 
   amount of time. 
-* To reduce indexer node usage, decrease the 'chunk_size_double_every' 
+* To reduce filesystem inode usage, decrease the 'chunk_size_double_every'
   threshold so the 'stats' processor reaches the 'max_chunk_size_kb' limit 
   quicker. This lowers the number of temporary files created by the search 
   process.
@@ -2842,8 +2952,8 @@ max_servers = <integer>
   or a similarly low number. 
 * For load balancing, the choice of remote search servers for typeahead 
   searches is random. 
-* A setting of '0' means 'no limit': all available search servers will be used 
-  for typeahead search jobs.
+* When set to "0": There is no limit and all available search servers 
+  are used for typeahead search jobs.
 * Default: 2
 
 min_prefix_length = <integer>
@@ -2889,14 +2999,6 @@ max_mem_usage_mb = <non-negative integer>
 # GENERAL SETTINGS
 ############################################################################
 # This section contains the stanzas for a variety of general settings.
-
-
-[authtokens]
-
-expiration_time = <integer>
-* Expiration time, in seconds, of auth tokens.
-* Default: 3600 (60 minutes)
-
 
 [auto_summarizer]
 
@@ -2944,7 +3046,7 @@ max_verify_ratio = <number>
 max_verify_total_time = <integer>
 * Maximum total time in seconds to spend doing verification, regardless if any
   buckets have failed or not
-* When set to “0”: Specifies no limit.
+* When set to "0": Specifies no limit.
 * Default: 0
 
 normalized_summaries = <boolean>
@@ -2957,16 +3059,16 @@ return_actions_with_normalized_ids = [yes|no|fromcontext]
   * Normalization improves the re-use of pre-built summaries but is not
     supported before 5.0. This config will determine the default value of how
     normalization works (regular/normalized)
-  * When set to ”fromcontext”: Specifies that the end points and summaries
+  * When set to 'fromcontext': Specifies that the end points and summaries
     would be operating based on context.
 * Normalization strategy can also be changed via admin/summarization REST calls
-  with the "use_normalization"  parameter which can take the values
+  with the 'use_normalization' argument, which can take the values
   "yes"/"no"/"fromcontext"
 * Default: fromcontext
 
 search_2_hash_cache_timeout = <integer>
 * The amount of time, in seconds, to cache search hash codes
-* Default: The value of the “cache_timeout” setting
+* Default: The value of the 'cache_timeout' setting
 
 shc_accurate_access_counts = <boolean>
 * Only relevant if you are using search head clustering
@@ -2976,6 +3078,12 @@ shc_accurate_access_counts = <boolean>
 
 verify_delete = <boolean>
 * Should summaries that fail verification be automatically deleted?
+* Default: false
+
+disable_transparent_mode_federation = <boolean>
+* Disable fowarding summarization searches to the remote search head for
+  federated search transparent mode.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: false
 
 
@@ -2996,7 +3104,7 @@ add_timestamp = <boolean>
 perf_warn_limit = <integer>
 * Warn when external scripted command is applied to more than this many
   events
-* When set to “0”: Specifies for no message (message is always INFO level)
+* When set to "0": Specifies for no message (message is always INFO level)
 * Default: 10000
 
 [auth]
@@ -3155,6 +3263,7 @@ time_before_close = <integer>
 * Specifying this setting in limits.conf is DEPRECATED, but overrides
   the setting for all inputs, for now.
 
+
 [journal_compression]
 
 threads = <integer>
@@ -3235,7 +3344,7 @@ max_accelerations_per_collection = <unsigned integer>
 
 max_documents_per_batch_save = <unsigned integer>
 * The maximum number of documents that can be saved in a single batch
-* Default: 1000
+* Default: 50000
 
 max_fields_per_acceleration = <unsigned integer>
 * The maximum number of fields that can be part of a compound acceleration
@@ -3527,12 +3636,12 @@ jobscontentmaxcount = <integer>
 * Default: 0
 
 time_format_reject = <regular expression>
-* HTTP parameters for time_format and output_time_format which match
+* HTTP arguments for time_format and output_time_format that match
   this regex will be rejected.
-* The regex will be satisfied by a substring match anywhere in the parameter.
+* The regex will be satisfied by a substring match anywhere in the argument.
 * Intended as defense-in-depth against XSS style attacks against browser users
   by crafting specially encoded URLS for them to access splunkd.
-* If unset, all parameter strings will be accepted.
+* If unset, all argument strings are accepted.
 * To disable this check entirely, set the value to empty.
   * Example of disabling: time_format_reject =
 * Default: [<>!] , which means that the less-than '<', greater-than '>', and
@@ -3544,6 +3653,11 @@ restprocessor_errors_fatal = <boolean>
 * An invalid REST command usage is a REST request that returns an HTTP status
   outside the range of [200, 300].
 * Default: false
+
+max_persistent_connections = <integer>
+* The maximum number of persistent processes that EAI custom REST handlers can create to serve REST API calls in persistent mode.
+* A value of "0" means that there is no limit to the number of processes that the handlers can create.
+* Default: 3000
 
 [reversedns]
 
@@ -3623,6 +3737,14 @@ async_saved_search_interval = <integer>
   will be fetched asynchronously.
 * Has no effect if async_saved_search_fetch is set to false.
 * Default: 30
+
+async_admission_eval_interval = <integer>
+* The interval, in seconds, that scheduled saved searches will be evaluated
+  for admission rules asynchronously.
+* Has no effect if async_saved_search_fetch is set to false.
+* If async_saved_search_fetch is false, admission rule evaluation for saved
+  searches is done on the scheduler thread.
+* Default: 600
 
 auto_summary_perc = <integer>
 * The maximum number of concurrent searches to be allocated for auto
@@ -4022,6 +4144,19 @@ poll_buckets_until_maxtime = <boolean>
   for individual data models that are sensitive to summarization latency delays.
 * Default: false
 
+auto_finalize_secs_after_maxtime = <integer>
+* The maximum amount of time, in seconds, that a summary search process is
+  allowed to run after having exceeded max_time before it is auto-finalized.
+* The Splunk software auto-finalizes searches after a period of time that is 
+  the combination of this setting with the 'acceleration.max_time' setting.
+  * For example, if you set 'acceleration.max_time' to 3600 and you set 
+    'auto_finalize_secs_after_maxtime' to 300, the Splunk software finalizes 
+    the search after 3900 seconds.
+* An 'acceleration.max_time' setting of "0" indicates that there is no time
+  limit for a summary search and causes the Splunk software to ignore the 
+  'auto_finalize_secs_after_maxtime' setting.
+* Default: 300
+
 sleep_seconds = <integer>
 * The amount of time, in seconds, to sleep between polling the summarization
   complete status.
@@ -4382,20 +4517,20 @@ required_tags = enabled|disabled
 * Enables the use of the required tags directive, which allows the search
   processor to load only the required tags from the conf system.
 * Disable this setting only to troubleshoot issues with search results.
-* Default: true
+* Default: enabled
 
 required_eventtypes = enabled|disabled
 * Enables the use of the required eventtypes directive, which allows the search
   processor to load only the required event types from the conf system.
 * Disable this setting only to troubleshoot issues with search results.
-* Default: true
+* Default: enabled
 
 read_summary = enabled|disabled
 * Enables the use of the read summary directive, which allows the search
   processor to leverage existing data model acceleration summary data when it
   performs event searches.
 * Disable this setting only to troubleshoot issues with search results.
-* Default: true
+* Default: enabled
 
 [parallelreduce]
 maxReducersPerPhase = <positive integer>
@@ -4421,12 +4556,14 @@ defaultReducersPerPhase = <positive integer>
 maxRunningPrdSearches = <unsigned integer>
 * DEPRECATED. Use the 'maxPrdSearchesPerCpu' setting instead.
 
-maxPrdSearchesPerCpu = <unsigned integer>
-* The maximum number of parallel reduce searches that can run, per CPU core,
-  on an indexer that has been configured as an intermediate reducer.
-* If you specify 0, there is no limit. The indexer runs as many parallel
-  reduce searches as the indexer hardware permits.
-* Default: 1
+maxPrdSearchesPerCpu = <unsigned integer> 
+* The maximum number of parallel reduce searches that can run, per CPU core, 
+  on an indexer.
+* If 'maxPrdSearchesPerCpu=1' and the number of concurrent searches exceeds the 
+  number of CPU cores on the indexer, new search requests will fail.  
+* If 'maxPrdSearchesPerCpu=0', there is no limit. The indexer runs as many 
+  parallel reduce searches as the indexer hardware permits
+* Default: 0
 
 reducers = <string>
 * Use this setting to configure one or more valid indexers as dedicated
@@ -4465,7 +4602,7 @@ rdinPairingTimeout = <positive integer>
 * The amount of time (in seconds) to wait so that indexers and intermediate
   indexers may get paired
 * Note: Only change this setting unless instructed to do so by Splunk Support.
-* Default: 300
+* Default: 30
 
 autoAppliedPercentage = <non-negative integer>
 * The percentage of search queries to be selected to run as prjob, should be
@@ -4494,14 +4631,14 @@ enablePreview = <boolean>
   search job completes.
 * Default: true
 
-disabledCommandList = <string>
+disabledCommandList = <comma-separated list>
 * Specifies a list of commands that are not run for searches that undergo
   parallel reduce search processing.
   * This list is comma-separated, without spaces.
 * For example, to disable the 'dedup' and 'sort' commands in parallel reduce
   searches, set 'disabledCommandList = dedup,sort'.
 * Note: Do not change this setting unless instructed to do so by Splunk Support.
-* Default: Not set
+* Default: addinfo,lookup
 
 previewReducerDutyCycle = <number>
 * Sets the maximum time to spend generating previews on intermediate reducers,
@@ -4523,7 +4660,7 @@ minSpanAllowed = <integer>
   intervals, you can encounter search concurrency problems, where some searches
   skip scheduled runs.
 * To reduce the risk of search concurrency issues, this setting ensures that
-  the the rollup summaries created for your have longer spans.
+  the rollup summaries created for your have longer spans.
 * Do not set below 60 seconds.
 * Default: 300
 
@@ -4538,7 +4675,7 @@ always_use_single_value_output = <boolean>
 * Default:true
 
 [segmenter]
-use_segmenter_v2 = <bool>
+use_segmenter_v2 = <boolean>
 * When set to true, this setting causes certain tokenization operations to use
   SSE (Streaming SIMD Extensions) instructions. This improves overall search
   performance.
@@ -4588,3 +4725,27 @@ stack_files_removal_period = <integer>
 * The interval can be specified as a string for minutes, seconds, hours, days.
 * For example; 60s, 1m, 1h, 1d etc.
 * Default: 1h
+
+
+############################################################################
+# Ingest Actions
+############################################################################
+[ingest_actions]
+rfs.provider.rawdata_limit_mb = <non-negative integer>
+* Limits the amount of RAM, in megabytes (MB), that a specific storage provider
+  type (such as AWS S3) can use for forwarding events to one or more destinations.
+* This limit is applied only to the raw event data held in memory or in the
+  process of being written to the storage endpoint.
+* If the limit is reached, the RFS worker thread will not fetch further events
+  from the pipeline, potentially causing upstream queues to fill up and eventually
+  block the overall event pipeline.
+* To avoid queue blocking, RFS worker thread may attempt to flush events more
+  frequently than required, resulting in creating smaller files than expected.
+  Therefore, a lower limit can result in smaller file sizes.
+* Default: 1024
+
+rfs.provider.max_workers = <non-negative integer>
+* Max number of worker threads per storage provider type (such as AWS S3) used
+  to serialize events into compressed JSON file for storing on one or more
+  destinations.
+* Default: 4

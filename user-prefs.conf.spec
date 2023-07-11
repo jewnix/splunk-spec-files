@@ -1,4 +1,4 @@
-#   Version 9.0.5
+#   Version 9.1.0.1
 #
 ############################################################################
 # OVERVIEW
@@ -67,15 +67,21 @@ lang = <string>
 * Optional quality settings are supported, such as "en-US,en;q=0.8,fr;q=0.6"
 * No default.
 
+
 install_source_checksum = <string>
 * Records a checksum of the tarball from which a given set of private user
   configurations was installed.
 * Analogous to <install_source_checksum> in the app.conf file.
 
-search_syntax_highlighting = [light|dark|black-white]
+search_syntax_highlighting = [default-system-theme|light|dark|black-white]
 * Highlights different parts of a search string with different colors.
 * Dashboards ignore this setting.
-* Default: light
+* default-system-theme = Inherits the default system theme if the current app
+  supports theming.
+* light = White background with dark colored text.
+* dark = Black background with light colored text.
+* black-white = White background with black text.
+* Default: default-system-theme
 
 search_use_advanced_editor = <boolean>
 * Specifies whether the search bar is run using the advanced editor or in just plain text.
@@ -86,11 +92,12 @@ search_assistant = [full|compact|none]
 * Specifies the type of search assistant to use when constructing a search.
 * Default: compact
 
-theme = [enterprise|dark]
-* Specifies the theme for the user.
-* Not all apps used with Splunk Enterprise support the dark theme. If supported, the theme is applied to the UI.
-  Otherwise, the default theme, "enterprise", is applied.
-* Default: enterprise
+theme = [default_system_theme|light|dark]
+* Specifies the preferred theme for the user.
+* Not all apps used with the Splunk platform support the dark theme. If
+  supported by the app, the theme is applied to the UI by Splunk Web.
+  Otherwise, Splunk Web applies the default system theme.
+* Default: default_system_theme
 
 search_auto_format = <boolean>
 * Specifies if auto-format is enabled in the search input.

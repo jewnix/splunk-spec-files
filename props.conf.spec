@@ -1,4 +1,4 @@
-#   Version 9.0.5
+#   Version 9.1.0.1
 #
 # This file contains possible setting/value pairs for configuring Splunk
 # software's processing properties through props.conf.
@@ -1116,11 +1116,11 @@ EXTRACT-<class> = [<regex>|<regex> in <src_field>]
     (a-z, A-Z, 0-9, and _).
   * It must already exist as a field that has either been extracted at
     index time or has been derived from an EXTRACT-<class> configuration
-    whose <class> ASCII value is *higher* than the configuration in which
+    whose <class> ASCII value is *lower* than the configuration in which
     you are attempting to extract the field. For example, if you
     have an EXTRACT-ZZZ configuration that extracts <src_field>, then
     you can only use 'in <src_field>' in an EXTRACT configuration with
-    a <class> of 'aaa' or lower, as 'aaa' is lower in ASCII value
+    a <class> of 'aaa' or higher, as 'aaa' is higher in ASCII value
     than 'ZZZ'.
   * It cannot be a field that has been derived from a transform field
     extraction (REPORT-<class>), an automatic key-value field extraction
@@ -1132,18 +1132,22 @@ EXTRACT-<class> = [<regex>|<regex> in <src_field>]
   field name, change the regex to end with '[i]n <string>' to ensure that
   Splunk software doesn't try to match <string> to a field name.
 
-KV_MODE = [none|auto|auto_escaped|multi|json|xml]
+KV_MODE = [none|auto|auto_escaped|multi|multi:<multikv.conf_stanza_name>json|xml]
 * Used for search-time field extractions only.
 * Specifies the field/value extraction mode for the data.
 * Set KV_MODE to one of the following:
-  * none: Disables field extraction for the host, source, or source type.
-  * auto_escaped: Extracts fields/value pairs separated by equal signs and
-                  honors \" and \\ as escaped sequences within quoted
-                  values. For example: field="value with \"nested\" quotes"
-  * multi: Invokes the 'multikv' search command, which extracts fields from 
-           table-formatted events.
-  * xml : Automatically extracts fields from XML data.
-  * json: Automatically extracts fields from JSON data.
+  * none - Disables field extraction for the host, source, or source type.
+  * auto_escaped - Extracts fields/value pairs separated by equal signs and
+                   honors \" and \\ as escaped sequences within quoted
+                   values. For example: field="value with \"nested\" quotes"
+  * multi - Invokes the 'multikv' search command, which extracts fields from 
+            table-formatted events.
+  * multi:<multikv.conf_stanza_name> - Invokes a custom multikv.conf 
+    configuration to extract fields from a specific type of table-formatted 
+    event. Use this option in situations where the default behavior of the 
+    'multikv' search command is not meeting your needs.
+  * xml - Automatically extracts fields from XML data.
+  * json - Automatically extracts fields from JSON data.
 * Setting to 'none' can ensure that one or more custom field extractions are not
   overridden by automatic field/value extraction for a particular host,
   source, or source type. You can also use 'none' to increase search 
@@ -1526,6 +1530,21 @@ unarchive_cmd = <string>
   software, such as on a forwarder that has configured inputs acquiring the
   data.
 * Default: empty string
+
+unarchive_cmd_start_mode = [direct|shell]
+* Determines how the Splunk platform runs the "unarchive_cmd" command.
+* A value of "direct" means that the Splunk daemon runs the 'unarchive_cmd' command
+  directly, and does not use a command shell. In this case, the Splunk daemon attempts
+  to run the first 'unarchive_cmd' value that you specify as a command. Any subsequent
+  values in the 'unarchive_cmd' are interpreted as the command's arguments.
+  * When this setting has a value of "direct", command shell operators such
+    as '&&' or ';' in the "unarchive_cmd" value cannot be used and will cause
+    unexpected results. If you need to run multiple commands consecutively or
+    conditionally using command shell syntax, give this setting a value of
+    "shell" instead.
+* A value of "shell" means that a shell process runs the "unarchive_cmd" commands.
+  This allows for execution of a command pipeline that consists of multiple commands.
+* Default: shell
 
 unarchive_sourcetype = <string>
 * Sets the source type of the contents of the matching archive file. Use

@@ -1,4 +1,4 @@
-# Version 9.0.5
+# Version 9.1.0.1
 #
 # This file contains possible attribute/value pairs for creating new
 # Representational State Transfer (REST) endpoints.
@@ -56,6 +56,15 @@ pythonHandlerPath = <path>
   located.
 * Typically you do not need to edit this setting.
 * Default: $SPLUNK_HOME/bin/rest_handler.py
+
+v1APIBlockGETSearchLaunch = <boolean>
+* Triggers breaking changes in default and v1 variants of the endpoints:
+* /search/jobs/export
+* /search/jobs/{sid}/(events|results|results_preview)
+* /search/jobs/oneshot
+* /search/parser
+* These changes involve removing the abilty to launch searches using
+  HTTP GET requests.
 
 [<rest endpoint name>:<endpoint description string>]
 * Settings under this stanza are applicable to all REST stanzas.
@@ -164,7 +173,7 @@ handler=<SCRIPT>.<CLASSNAME>
 xsl = <string>
 * The path to an XSL transform file.
 * Perform an XSL transform on data returned from the handler.
-* (OOPTIONAL) Only use this setting if the data is in XML format.
+* (OPTIONAL) Only use this setting if the data is in XML format.
 * Does not apply if the 'scripttype' setting is set to "persist".
 
 script = <string>
@@ -238,7 +247,9 @@ passSession = <boolean>
 * Default: true
 
 passHttpHeaders = <boolean>
-* If set to "true", sends the driver the HTTP headers of the request.
+* Determines whether splunkd passes HTTP request headers to the driver.
+* A value of "true" means splunkd passes the HTTP request headers
+  to the driver.
 * Only has effect if the 'scripttype' setting is set to "persist".
 * Default: false
 
@@ -269,6 +280,18 @@ members = <comma-separated list>
 * A list of handlers to expose at this URL.
 * See https://localhost:8089/services/admin
   for a list of all possible handlers.
+  
+maxCacheTime = <interval>
+* The maximum amount of time that the Splunk platform can cache a response for
+  this REST endpoint.
+* Determines how the endpoint handles the caching of HTTP responses.
+  Specifically, controls the value of HTTP cache control headers, which is 
+  important for those who use a reverse proxy or an external client to access
+  REST endpoints.
+* You can specify the interval in seconds (s), minutes (m), hours (h), or days (d).
+  For example: 60s, 1m, 1h, 1d; etc.
+* Maximum accepted value is 1 year.
+* Default: 0 (disabled)
 
 capability = <string>
 capability.<post|delete|get|put> = <string>
@@ -310,6 +333,23 @@ capability.<post|delete|get|put> = <string>
   custom handlers within each stanza.
 * No default.
 
+maxRestResults = <unsigned integer>
+* The maximum number of results that a REST API call can return.
+* A REST API call fails if it tries to retrieve more results than you specify here.
+* A value of 0, or no value, means that REST API calls can return any number of results, if possible.
+* Do not change this setting without first consulting with Splunk Support.
+* Default: 0
+
+streamlineXmlSerialization = <boolean>
+* Determines how the web server produces XML output for the results required by REST API calls.
+* Only applies when a REST API call asks for XML outputs.
+* A value of "true" means the web server produces XML output for each result one by one, which
+  consumes less memory.
+* A value of "false" means the web server produces XML output for all results at once, which
+  consumes more memory.
+* Do not change this setting without first consulting with Splunk Support.
+* Default: true
+
 [admin_external:<uniqueName>]
 * 'admin_external'
 * Register Python handlers for the Extensible Administration Interface (EAI).
@@ -333,6 +373,14 @@ handlerfile=<string>
 handlerpersistentmode = <boolean>
 * Set to "true" to run the script in persistent mode and
   keep the process running between requests.
+
+passHttpHeaders = <boolean>
+* Determines whether splunkd passes HTTP request headers to the handler.
+* A value of "true" means splunkd passes the HTTP request headers
+  to the handler.
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Default: false
 
 handleractions = <comma-separated list>
 * a list of EAI actions supported by this handler.

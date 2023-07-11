@@ -1,4 +1,4 @@
-#   Version 9.0.5
+#   Version 9.1.0.1
 #
 ############################################################################
 # OVERVIEW
@@ -423,6 +423,36 @@ cumulativeRTSrchJobsQuota = <integer>
   jobs that can run concurrently across all users with this role.
 * Default: 0
 
+kvstore_create.deny_list = <semicolon-separated list>
+* A list of collections that this role doesn't have permission to perform create operations on.
+* This setting can't be inherited from imported roles.
+* No Default
+
+kvstore_create.implicit_deny_list = <semicolon-separated list>
+* A list of collections that this role doesn't have permission to perform create operations on.
+* This setting can be inherited from imported roles.
+* No Default
+
+kvstore_update.deny_list = <semicolon-separated list>
+* A list of collections that this role doesn't have permission to perform update operations on.
+* This setting can't be inherited from imported roles.
+* No Default
+
+kvstore_update.implicit_deny_list = <semicolon-separated list>
+* A list of collections that this role doesn't have permission to perform update operations on.
+* This setting can be inherited from imported roles.
+* No Default
+
+kvstore_delete.deny_list = <semicolon-separated list>
+* A list of collections that this role doesn't have permission to perform delete operations on.
+* This setting can't be inherited from imported roles.
+* No Default
+
+kvstore_delete.implicit_deny_list = <semicolon-separated list>
+* A list of collections that this role doesn't have permission to perform delete operations on.
+* This setting can be inherited from imported roles.
+* No Default
+
 ####
 # Descriptions of Splunk system capabilities.
 # Capabilities are added to roles to which users are then assigned.
@@ -516,6 +546,10 @@ disabled = <boolean>
 [capability::change_authentication]
 * Lets a user change authentication settings through the authentication endpoints.
 * Lets the user reload authentication.
+
+[capability::change_audit]
+* Lets a user change audit settings through the audit endpoints.
+* Lets a user reload audit settings.
 
 [capability::change_own_password]
 * Lets a user change their own password. You can remove this capability
@@ -626,6 +660,7 @@ disabled = <boolean>
 * Lets the user add and edit journald inputs. 
 * This input is not available on Windows.
 
+
 [capability::edit_modinput_winhostmon]
 * Lets a user add and edit inputs for monitoring Windows host data.
 
@@ -676,6 +711,8 @@ disabled = <boolean>
 
 [capability::edit_search_schedule_window]
 * Lets a user edit a search schedule window.
+* Requires the 'schedule_search' capability.
+* For more about the search scheduler, see the Knowledge Manager Manual.
 
 [capability::edit_search_server]
 * Lets a user edit general distributed search settings like timeouts,
@@ -703,14 +740,13 @@ disabled = <boolean>
 [capability::edit_splunktcp_ssl]
 * Lets a user view and edit SSL-specific settings for Splunk TCP input.
 
-[capability::edit_user_seed]
-* Lets a user view and edit the user-seed.conf file used for initial username 
-  and password configration.
-
 [capability::edit_splunktcp_token]
 * Lets a user view or edit splunktcptokens. The tokens can be used on a
   receiving system to only accept data from forwarders that have been
   configured with the same token.
+
+[capability::edit_storage_passwords]
+* Lets a user read from (GET) and write to (POST) the /storage/passwords endpoint.
 
 [capability::edit_tcp]
 * Lets a user change settings for receiving general TCP inputs.
@@ -866,9 +902,8 @@ disabled = <boolean>
 * Lets a user create/edit metrics rollup defined on metric indexes.
 
 [capability::list_storage_passwords]
-* Lets a user access the /storage/passwords endpoint.
-* Lets the user perform GET operations.
-* The 'admin_all_objects' capability must be added to the role in order for the user to
+* Lets a user read from (GET) the /storage/passwords endpoint.
+* You must add the 'edit_storage_passwords' capability to the role for the user to
   perform POST operations to the /storage/passwords endpoint.
 
 [capability::list_token_http]

@@ -1,10 +1,8 @@
-#   Version 9.0.5
+#   Version 9.1.0.1
 #
 # This file contains descriptions of the settings that you can use to
 # create multikv rules.  Multikv is the process of extracting events 
-# from table-like events, such as the output of top, ps, ls, netstat, etc.
-#
-# There is NO DEFAULT multikv.conf. 
+# from table-like events, such as the output of top, ps, ls, netstat, etc. 
 #
 # To set custom configurations, create a new file with the name multikv.conf in
 # the $SPLUNK_HOME/etc/system/local/ directory. Then add the specific settings

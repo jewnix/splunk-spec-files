@@ -89,8 +89,8 @@ SPLUNK_BINDIP = <ip address>
 * This setting is useful for a host with multiple IP addresses, either to enable
   or restrict access. But using a firewall is typically a superior
   method of restriction.
-* Overrides the Splunkweb-specific web.conf/[settings]/server.socket_host
-  setting; use the latter when SplunkWeb behavior is the focus.
+* Does not override web.conf/[settings]/server.socket_host for SplunkWeb
+  if set; the latter is preferred when SplunkWeb behavior is the focus.
 * Default: not set
 
 SPLUNK_OS_USER = <string> | <nonnegative integer>
@@ -129,6 +129,13 @@ PYTHONHTTPSVERIFY = [0|1]
 * Whether or not the Splunk platform instance sets up TLS validation for the httplib
   module in the Python interpreter embedded with the Splunk package.
 * Default: 0
+
+PYTHONUTF8 = [0|1]
+* Determines whether the Splunk platform instance enables the UTF-8 mode
+  in the Python interpreter embedded with the Splunk package.
+* A value of 1 means UTF-8 mode is enabled.
+* This setting applies regardless of the system locale encoding.
+* Default: 1
 
 #*******
 # Service/server names.

@@ -130,6 +130,18 @@ suppress_status_update_ms = <number>
 display_name = <string>
 * A human readable name for the feature.
 
+distributed_disabled = <boolean>
+* Whether or not the distributed health report (DHR) tree view includes 
+  information about this feature.
+* A value of "true" means that the DHR does not include this feature in
+  its tree view, which means you won't see it when you open the Health Report
+  in Splunk Web.
+  * This value doesn't apply to the ability of the feature to
+    generate alerts, as appropriate.
+* A value of "false" means that the DHR includes this feature in
+  its tree view.
+* Default: 0
+
 snooze_end_time = <number>
 * Determines the snooze end time, in seconds since the epoch (Unix time), for this feature.
   Specifying a value for this setting enables a snooze period that suppresses color changes 
@@ -197,3 +209,6 @@ disabled = [0|1]
 action.<action parameter> = <string>
 * There are various parameters for different alert actions.
 * Each value defines one parameter for the alert action.
+
+* NOTE: [feature:master_connectivity], [feature:slave_state]
+*       feature:slave_version] stanzas are now DEPRECATED.

@@ -19,6 +19,7 @@
 #  * If an attribute is defined at both the global level and in a specific
 #    stanza, the value in the specific stanza takes precedence.
 
+[auditTrail]
 queueing = <boolean>
 * Whether or not audit events are sent to the indexQueue.
 * If set to "true", audit events are sent to the indexQueue.

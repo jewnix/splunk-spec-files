@@ -55,7 +55,7 @@ crossServerChecksum = <boolean>
 * Useful if you have multiple deployment servers behind a load-balancer.
 * Default: false
 
-excludeFromUpdate = <path>[,<path>]...
+excludeFromUpdate = <comma-separated list>
 * Specifies paths to one or more top-level files or directories (and their
   contents) to exclude from being touched during app update.  Note that
   each comma-separated entry MUST be prefixed by "$app_root$/"
@@ -103,7 +103,7 @@ endpoint = <URL template string>
   To acquire deployment application files from a third-party Web server, for
   extremely large environments.
 * Can be overridden at the serverClass level.
-* Default: $deploymentServerUri$/services/streams/deployment?name=$serverClassName$:$appName$
+* Default: $deploymentServerUri$/services/streams/deployment?name=$tenantName$:$serverClassName$:$appName$
 
 filterType = whitelist | blacklist
 * The whitelist setting indicates a filtering strategy that pulls in a
@@ -326,12 +326,12 @@ precompressBundles = <boolean>
   dashes, dots, tildes, and the '@' symbol.  It is case-sensitive.
 
 # NOTE:
-# The keys listed below are all described in detail in the
-# [global] section above. They can be used with serverClass stanza to
-# override the global setting
+# The following settings are all described in detail in the
+# previous [global] section. They can be used in the serverClass stanza to
+# override the global setting.
 continueMatching = <boolean>
 endpoint = <URL template string>
-excludeFromUpdate = <path>[,<path>]...
+excludeFromUpdate = <comma-separated list>
 filterType = whitelist | blacklist
 whitelist.<n> = <clientName> | <IP address> | <hostname>
 blacklist.<n> = <clientName> | <IP address> | <hostname>
@@ -369,7 +369,13 @@ appFile=<file name>
   you can use this parameter to specify the file name. Supported formats
   are: directories, .tar files, and .tgz files.
 
-# May override higher-level settings.
+# NOTE: The following settings may override settings at the global or
+  serverClass levels.
 issueReload = <boolean>
 restartIfNeeded = <boolean>
-excludeFromUpdate = <path>[,<path>]...
+excludeFromUpdate = <comma-separated list>
+filterType = whitelist | blacklist
+whitelist.<n> = <clientName> | <IP address> | <hostname>
+blacklist.<n> = <clientName> | <IP address> | <hostname>
+machineTypesFilter = <comma-separated list>
+stateOnClient = enabled | disabled | noop

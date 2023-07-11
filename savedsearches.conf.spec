@@ -119,7 +119,7 @@ allow_skew = <percentage>|<duration-specifier>
     m, min, minute, mins, minutes
     h, hr, hour, hrs, hours
     d, day, days
-  The <timescale> is required and can be omitted only when <integer> is 0.
+  The <timescale> is required.
 * Skew examples:
     100% (For an every-5-minute search = 5 minutes maximum)
     50%  (For an every-1-minute search = 30 seconds maximum)
@@ -561,12 +561,12 @@ dispatch.latest_time = <time-str>
   to format the value.
 * Default: empty string
 
-dispatch.index_earliest= <time-str>
+dispatch.index_earliest = <time-str>
 * Specifies the earliest index time for this search. Can be a relative or
   absolute time.
-* If this value is an absolute time, use the 'dispatch.time_format setting
+* If this value is an absolute time, use the 'dispatch.time_format' setting
   to format the value.
-* Defaults: empty string
+* Default: empty string
 
 dispatch.index_latest= <time-str>
 * Specifies the latest index time for this saved search. Can be a relative or

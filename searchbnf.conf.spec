@@ -113,7 +113,7 @@
 # example<number> (Optional)
 # comment<number> (Optional)
 # usage (Required)
-# tags (Required)
+# tags (Optional)
 # maintainer (Optional)
 # appears-in (Optional)
 # related (Optional)

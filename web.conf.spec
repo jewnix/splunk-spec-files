@@ -1,4 +1,4 @@
-#   Version 9.1.0.1
+#   Version 9.1.1
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -668,6 +668,34 @@ show_app_context = <boolean>
 * You can set this to "false" in situations where you do not want to display app contexts,
   for example, when apps are under cluster management.
 * Default: true
+
+cookieSameSite = [ not_specified | lax | strict | none ]
+* The value of the "SameSite" cookie attribute for which the Splunk web server
+  is to set in the web browser.
+* A value of "not_specified" means the Splunk web server does not set the "SameSite"
+  attribute. Some browsers, like Chrome, interpret this as if the web server set
+  "SameSite=Lax", according to the latest Internet-Drafts as published by the
+  Internet Engineering Task Force (IETF). Other browsers might interpret this as
+  if the web server set "SameSite=None".
+* A value of "lax" means the Splunk web server sets the "SameSite=Lax" attribute.
+* A value of "strict" means the Splunk web server sets the "SameSite=Strict" attribute.
+* A value of "none" means the Splunk web server sets the "SameSite=None"
+  cookie attribute, to let browsers send the cookies in all contexts.
+  A cookie with this attribute lets the browser embed a Splunk dashboard
+  into a third-party <iframe> component.
+  * <iframe> stands for "inline frame", and is a web page component within
+    which you can embed a dashboard.
+* If you want to embed a Splunk dashboard into an outside web application,
+  you must give this setting a value of "none". Otherwise, the third-party
+  <iframe> won't let the user authenticate and use the dashboard that
+  you embedded.
+* The "SameSite=None" attribute in a cookie requires that you set the
+  "Secure" attribute, otherwise the browser might reject the cookie. The Splunk web server
+  adds the "Secure" attribute for connections over HTTPS by default. Use the
+  'tools.sessions.secure' setting to configure this behavior.
+* You must also give the 'x_frame_options_sameorigin' setting a value of "false"
+  to allow for the embedding of a Splunk dashboard in the <iframe>.
+* Default: not_specified
 
 #
 # Splunk bar options

@@ -739,6 +739,10 @@ disabled = <boolean>
 [capability::edit_splunktcp_ssl]
 * Lets a user view and edit SSL-specific settings for Splunk TCP input.
 
+[capability::edit_user_seed]
+* Lets a user view and edit the user-seed.conf file used for initial username 
+  and password configration.
+
 [capability::edit_splunktcp_token]
 * Lets a user view or edit splunktcptokens. The tokens can be used on a
   receiving system to only accept data from forwarders that have been

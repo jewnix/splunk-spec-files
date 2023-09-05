@@ -218,3 +218,12 @@ OPTIMISTIC_ABOUT_FILE_LOCKING = [0|1]
 * When set to 1, Splunk software skips the file system check, and
   splunkd starts whether or not it can recognize the file system.
 * Defaults to 0 (Run the file system check.)
+
+SPLUNK_PYTHON_DONT_ESCAPE_PRINTABLE = 0|1
+* Determines whether the Splunk Python interpreter escapes non-printable
+  characters such as ASCII 0–32,127, when logging with the Python
+  logging module.
+* Exceptions: \t (chr(9)/0x09), \n (chr(10)/0x0a), \r (chr(13)/0x0d)
+* When set to 1, scripts that log when using Splunk's Python interpreter
+  will NOT escape non-printable characters and may be in log files
+* Defaults to 0 (Non-printable characters WILL be escaped)

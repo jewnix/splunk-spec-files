@@ -1,4 +1,4 @@
-#   Version 9.1.0.1
+#   Version 9.1.1
 #
 ############################################################################
 # OVERVIEW
@@ -463,6 +463,10 @@ fetch_remote_search_log = [enabled|disabledSavedSearches|disabled]
     supported, but are not recommended.
   * The previous value of "true" maps to the current value of "enabled".
   * The previous value of "false" maps to the current value of "disabled".
+* You can override this setting on a per-search basis by appending
+  '|noop remote_log_fetch=[*|<indexer1;indexer2...>]' to the search string, 
+  where <indexer1;indexer2...> is a list of indexers that contain the remote 
+  search logs that you want to collect. 
 * Default: disabledSavedSearches
 
 max_chunk_queue_size = <integer>
@@ -953,6 +957,10 @@ search_launch_timeout_seconds = <positive integer>
   is launched successfully.
 * If a search job does not launch after the timeout interval elapses, 
   the job terminates as a search failure.
+* If search jobs time out frequently before successfully launching, check 
+  whether the server running Splunk software is overloaded. Alternatively, 
+  change this setting to a number greater than 180.
+* For most deployments, 180 seconds is sufficient.
 * Default: 180
 
 max_audit_sourcetypes = <integer>

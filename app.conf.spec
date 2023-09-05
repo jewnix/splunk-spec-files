@@ -1,4 +1,4 @@
-#   Version 9.1.0.1
+#   Version 9.1.1
 #
 ############################################################################
 # OVERVIEW
@@ -223,7 +223,7 @@ reload.<conf_file_name>.<conf_stanza_prefix> = [ simple | never | access_endpoin
 * NOTE: The "conf_file_name" value does not include the file extension ".conf".
 
 [shclustering]
-deployer_lookups_push_mode = preserve_lookups | always_preserve | always_overwrite
+deployer_lookups_push_mode = preserve_lookups | always_preserve | always_overwrite | overwrite_on_change
 * Determines the deployer_lookups_push_mode for the 'splunk apply
   shcluster-bundle' command.
 * If set to "preserve_lookups", the 'splunk apply shcluster-bundle' command
@@ -236,6 +236,9 @@ deployer_lookups_push_mode = preserve_lookups | always_preserve | always_overwri
 * If set to "always_overwrite", the 'splunk apply shcluster-bundle' command
   ignores the '-preserve-lookups' option as it appears on the command line and
   lookup tables for this app are always overwritten.
+* If set to "overwrite_on_change", the 'splunk apply shcluster-bundle' command
+  ignores the '-preserve-lookups' option as it appears on the command line and
+  lookup tables for this app are overwritten if the app contents have changed.
 * Default: always_preserve
 
 deployer_push_mode = full | merge_to_default | local_only | default_only

@@ -1,4 +1,4 @@
-#   Version 9.1.0.1
+#   Version 9.1.1
 #
 ############################################################################
 # OVERVIEW
@@ -1310,22 +1310,19 @@ cookieAuthHttpOnly = <boolean>
 * Default: true
 
 cookieSameSiteSecure = <boolean>
-* Describes whether or not the Splunk web server will set all Splunk cookies
-  in the browser with the "SameSite=None;Secure" attribute.
-* Use this setting to toggle when cookies are to get this value as part of
-  embedding dashboards into third-party web applications outside of the 
-  Splunk platform instance.
-* A value of "true" means that the Splunk web server sets the "SameSite=None,Secure"
-  attribute for cookies to work with modern browsers. A cookie with this 
-  attribute lets the browser embed a Splunk dashboard into a third-party <iframe>.
-  * <iframe> stands for "inline frame", and is a web page component within 
-    which you can embed a dashboard.
-* A value of "false" means that the web server does not set cookies with
-  "SameSite=None,Secure" attribute.
-* If you want to embed a Splunk dashboard into an outside web application,
-  you must give this setting a value of "true". Otherwise, the third-party
-  <iframe> won't let the user authenticate and use the dashboard that
-  you embedded.
+* DEPRECATED.
+* Describes whether or not the Splunk REST server sets all Splunk cookies
+  with the "SameSite=None" cookie attribute.
+* A value of "true" means that the Splunk REST server sets the "SameSite=None"
+  attribute for all cookies.
+* A value of "false" means that the REST server does not set cookies with
+  the "SameSite=None" attribute.
+* NOTE: The REST server does not change the 'secure' cookie attribute with
+  this setting. Use the 'cookieAuthSecure' setting to perform this task.
+  The Splunk web server and the Splunk REST server use different
+  settings to make cookie modifications. To modify cookies that the
+  Splunk web server sets, use the 'cookieSameSite' setting in the
+  web.conf configuration file.
 * Default: false
 
 cookieAuthSecure = <boolean>
@@ -2236,10 +2233,21 @@ manager_switchover_mode = [disabled|auto|manual]
 * If set to "disabled", the cluster manager does not operate with redundancy.
 * The values "auto" and "manual" are valid only when the 'manager_uri' setting
   in server.conf includes multiple cluster manager values.
-* If set to 'auto', the cluster managers will try to automatically set their
-  redundancy state to "active" or "standby".
-* If set to "manual", the administrator must manually change the cluster
-  manager redundancy state to "active" or "standby".
+* If set to "auto", an eligible "standby" cluster manager will try to automatically
+  set its redundancy state to "active" upon consecutive loss of heartbeat to the
+  manager which is currently in active state.
+* If set to "manual", there is no automatic change of redundancy state to "active"
+  during heartbeat failure, but there can be other scenarios, where the redundancy
+  state may change automatically for some manager instances, as explained below:
+  * An eligible "standby" cluster manager will not set its redundancy state to
+    "active" upon consecutive loss of heartbeat to the manager which is currently
+    in active state. The administrator must manually change the cluster manager
+    redundancy state to "active" or "standby".
+  * However, when the administrator initiates a redundancy state change request
+    to one of the managers, the given manager may communicate with other
+    managers internally and can change their redundancy states appropriately
+    so that it can move to the correct redundancy state as requested by the
+    administrator.
 * Cluster manager redundancy solution is closely related to the general
   Splunk Enterprise deployment topology and network environment. In redundancy
   mode, the effectiveness of the chosen 'manager_switchover_mode' can be dependent

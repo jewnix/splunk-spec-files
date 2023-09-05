@@ -5771,6 +5771,7 @@ Examples:
                     <arg name="--app=SPLUNK_APP"><![CDATA[View the configuration data visible from the given app]]></arg>
                     <arg name="--dir=DIR"><![CDATA[Read configuration data from the given absolute path instead of $SPLUNK_HOME/etc]]></arg>
                     <arg name="--debug"><![CDATA[Print and log extra debugging information]]></arg>
+                    <arg name="--raw"><![CDATA[Do not escape non-printable control characters]]></arg>
                 </optional>
                 <syntax><![CDATA[btool <CONF_FILE> list [options]
         btool check [options]]]></syntax>

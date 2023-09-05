@@ -1,4 +1,4 @@
-#   Version 9.1.0.1
+#   Version 9.1.1
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.

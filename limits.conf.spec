@@ -1,4 +1,4 @@
-#   Version 9.1.1
+#   Version 9.1.2
 #
 ############################################################################
 # OVERVIEW
@@ -808,7 +808,9 @@ search_retry = <Boolean>
     clustering is enabled. Indexer reboots can also result in failures.
 * When set to 'true', the Splunk software attempts to rerun search processes 
   that are affected by indexer failures. The Splunk software can rerun entire 
-  searches and it can rerun searches from the indexer fail point. 
+  searches and it can rerun searches from the indexer fail point. Do not set 
+  the value to "1" to indicate "true", because some systems might not parse 
+  this value correctly.
   * NOTE: Splunk software performs search reruns on a best effort basis. When 
     you enable this setting it is possible for Splunk software to return 
     partial results for searches without warning.
@@ -1281,7 +1283,9 @@ read_final_results_from_timeliner = <boolean>
   controls the contents of the results.csv.gz and results.srs.zstd files in the
   search artifact.
 * When set to "true", the final results saved to disk by the search process on
-  the search head are a sample of events ready from the timeliner.
+  the search head are a sample of events ready from the timeliner. Do not set 
+  the value to "1" to indicate "true", because some systems might not parse 
+  this value correctly.
 * When set to "false", the final results saved to disk by the search process on
   the search head are all events produced by the last SPL command, up to a
   limit of 'max_count' events.
@@ -2890,6 +2894,16 @@ use_bloomfilter = <boolean>
   can improve search performance.
 * When set to 'false', the Splunk software searches tsidx summary files without 
   filtering out tsidx files that do not have relevant terms.  
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: true
+
+update_datamodel_usage_stats = <boolean>
+* Specifies whether or not Splunk software can call the summary touch endpoint
+  when it detects that it is using summaries from an accelerated data model.
+* The summary touch endpoint is an internal endpoint that helps track how
+  frequently a summary is being used, if ever.
+* When 'update_datamodel_usage_stats' is set to "false", Splunk software skips this
+  endpoint call.
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: true
 
@@ -4712,7 +4726,9 @@ stats = <boolean>
 * This setting only applies when 'use_stats_v2' is set to 'true' or
   'fixed-width' in 'limits.conf'
   * When Stats v2 is enabled and this setting is set to 'true', the stats
-    processor uses the Stats v2 version of required field optimization.
+    processor uses the Stats v2 version of required field optimization. 
+    Do not set the value to "1" to indicate "true", 
+    because some systems might not parse this value correctly.
   * When Stats v2 is enabled and this setting is set to 'false' the stats
     processor falls back to the older version of required field optimization.
 * Do not change this setting unless instructed to do so by Splunk support.

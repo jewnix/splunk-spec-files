@@ -1,4 +1,4 @@
-#   Version 9.1.1
+#   Version 9.1.2
 #
 ############################################################################
 # OVERVIEW
@@ -2306,7 +2306,10 @@ remote.s3.tsidx_compression = <boolean>
 * Whether or not the indexer compresses tsidx files before it uploads them to S3.
   A value of "true" means the indexer compresses tsidx files before it uploads
   them to S3.
-* Consult Splunk Support before changing this setting.
+* Ensure that every indexer is running Splunk version 9.0.0 or above before
+  enabling this feature.
+* This feature is not backward compatible. Once activated, you will not be able
+  to downgrade Splunk to versions earlier than 9.0.0.
 * Default: false
 
 remote.s3.multipart_download.part_size = <unsigned integer>

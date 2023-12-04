@@ -1,4 +1,4 @@
-#   Version 9.1.1
+#   Version 9.1.2
 #
 ############################################################################
 # OVERVIEW
@@ -111,11 +111,10 @@ internal.dashboards_trusted_domain.<name> = <string>
 
 disable_highcharts_accessibility = <boolean>
 * Disable accessibility module in the highcharts charting library.
-* DEPRECATED.
 * A value of true means that Splunk Web will not use the accessibility module in the Highcharts
   charting library.
 * CAUTION: Do not change this setting.
-* Default: false
+* Default: true
 
 [feature:dashboard_studio]
 
@@ -206,3 +205,18 @@ optimize_ui_prefs_performance = <boolean>
 * CAUTION: Do not change this setting.
 * A value of "false" means that Splunk Web will not optimize performance of the API related to ui-prefs.
 * Default: true
+
+[feature:splunk_web_optimizations]
+
+enable_app_bar_performance_optimizations = <boolean>
+* Determines whether or not Splunk Web will optimize performance when generating the app bar.
+* DEPRECATED.
+* CAUTION: Do not change this setting.
+* A value of "false" means that Splunk Web will not optimize performance when generating the app bar.
+* Default: true
+
+bypass_app_bar_performance_optimizations_apps = <comma separated list>
+* Splunk Web will not optimize performance when generating the app bar for this comma separated list of apps.
+* CAUTION: Do not change this setting.
+* A value of "splunk_monitoring_console,search" means that Splunk Web will not optimize performance when generating the app bar for the splunk_monitoring_console and search apps.
+* Default: "splunk_monitoring_console"

@@ -1,4 +1,4 @@
-#   Version 9.1.1
+#   Version 9.1.2
 
 # This file contains possible settings and values you can use to configure
 # event discovery through the search command "typelearner."

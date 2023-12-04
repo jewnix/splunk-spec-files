@@ -3073,6 +3073,11 @@ event_serialization_format = [kv|json]
    }
 * Default: kv
 
+process_completion_check_interval = <integer>
+* The interval, in milliseconds, between which the Splunk platform checks
+  whether a PowerShell process has completed running.
+* Default: 200
+
 [powershell://<name>]
 * Runs Windows PowerShell version 3 commands or scripts.
 
@@ -3126,6 +3131,10 @@ event_serialization_format = [ kv | json ]
    }
 * Default: kv
 
+process_completion_check_interval = <integer>
+* The interval, in milliseconds, between which the Splunk platform checks
+  whether a PowerShell process has completed running.
+* Default = 200
 
 [powershell2://<name>]
 * Runs Windows PowerShell version 2 commands or scripts.

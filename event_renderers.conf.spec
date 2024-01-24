@@ -1,4 +1,4 @@
-#   Version 9.1.2 
+#   Version 9.1.3 
 #
 # This file contains possible attribute/value pairs for configuring event rendering properties.
 #

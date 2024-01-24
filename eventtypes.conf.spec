@@ -1,4 +1,4 @@
-#   Version 9.1.2
+#   Version 9.1.3
 #
 # This file contains descriptions of the settings that you can use to
 # configure event types and their properties.

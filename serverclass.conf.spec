@@ -1,4 +1,4 @@
-#   Version 9.1.3
+#   Version 9.2.0
 #
 # This file contains possible attributes and values for defining server
 # classes to which deployment clients can belong. These attributes and
@@ -70,6 +70,40 @@ repositoryLocation = <path>
 * Can be overridden at the serverClass level.
 * Default: $SPLUNK_HOME/etc/deployment-apps
 
+syncMode = [none | sharedDir]
+* Specifies whether deployment apps are shared across multiple deployment servers.
+* A value of "none" means the set of deployment apps are specific to
+  this deployment server only and are not shared with any other
+  deployment servers.
+* A value of "sharedDir" means multiple deployment servers share the same
+  deployment app directory and will sync app bundles and serverclass.conf.
+* Each deployment server specifies its app directory with the
+  the 'repositoryLocation' setting.
+* When the deployment server reloads, either through manual intervention via
+  the CLI or the REST endpoint or automatically in response to the forwarder
+  management interface, the deployment server updates the
+  "_splunk_ds_info/_metadata" file in the shared deployment server app
+  directory. The other deployment servers sharing the directory periodically
+  check that file to determine whether they need to run a reload.
+* Default: "none"
+
+maxConcurrentDownloads = <positive integer>
+* The maximum number of deployment clients that can simultaneously download
+  the bundle from the deployment server.
+* If a deployment client fails to download the bundle because of this setting,
+  it retries the bundle download on the next phonehome until it successfully
+  downloads the bundle.
+* A value of "0" means there is no limit to the number of deployment clients
+  that can simultaneously download.
+* Default: 0
+
+reloadCheckInterval = <integer>
+* The interval, in seconds, between reload checks, where a deployment server
+  determines if it must run a reload to sync its configurations.
+* This setting only applies in the case where 'syncMode' has
+  a value of "sharedDir".
+* Default: 60
+
 targetRepositoryLocation = <path>
 * The location on the deployment client where the deployment server
   should install the apps.
@@ -112,10 +146,13 @@ filterType = whitelist | blacklist
     * Items are considered to not match the stanza by default.
     * Items that match any whitelist entry, and do not match any blacklist
       entry, are considered to match the stanza.
+    * Items that match any blacklist entry are not considered to match the
+      stanza, regardless of whitelist.
 * The blacklist setting indicates a filtering strategy that rules out a subset:
     * Items are considered to match the stanza by default.
-    * Items that match any deny list entry are considered to not match the
-      stanza, regardless of whitelist.
+    * Items that match any blacklist entry, and do not match any whitelist
+      entry, are considered to not match the stanza.
+    * Items that match any whitelist entry are considered to match the stanza.
 * More briefly:
     * whitelist: default no-match
     * blacklist: default match
@@ -239,7 +276,7 @@ blacklist.where_equals = <comma-separated list>
 * At most one where_equals may be given per stanza.
 
 machineTypesFilter = <comma-separated list>
-* Not used unless specified.
+* Optional.
 * Boolean OR logic is employed: a match against any element in the list
   constitutes a match.
 * This filter is used in boolean AND logic with whitelist/blacklist filters.
@@ -255,6 +292,40 @@ machineTypesFilter = <comma-separated list>
     * You can specify '*' to mean '.*'
 * Matches are always case-insensitive; you do not need to specify the '(?i)'
   prefix.
+* Unset by default.
+
+packageTypesFilter = <comma-separated list>
+* Optional.
+* Boolean OR logic is employed: a match against any element in the list
+  constitutes a match.
+* This filter is used in boolean AND logic with 'whitelist'/'blacklist'
+  filters. Only clients which match the 'whitelist'/'blacklist' AND which
+  match this packageTypesFilter are included.
+  * In other words, the match is an intersection of the matches for the
+    'whitelist'/'blacklist' and the matches for 'packageTypesFilter'.
+* You can override this filter at the serverClass and serverClass:app
+  levels.
+* These patterns are PCRE(Perl Compatible Regular Expressions) regular
+  expressions, with the following aids for easier entry:
+    * You can specify '.' to mean '\.'
+    * You can specify '*' to mean '.*'
+* Matches are always case-insensitive; you do not need to specify the '(?i)'
+  prefix.
+* Default: Not set
+
+updaterRunningFilter = <boolean>
+* This filter is used in boolean AND logic with 'whitelist'/'blacklist' filters.
+  Only clients which match the 'whitelist'/'blacklist' AND which match this
+  updaterRunningFilter are included.
+  * In other words, the match is an intersection of the matches for the
+    'whitelist'/'blacklist' and the matches for 'updaterRunningFilter'.
+* The self-updater is a process that must be installed separately to
+  upgrade the deployment client. This setting is applicable only if the
+  self-updater is installed.
+* A value of "true" means only the clients with self-updater running
+  on the host are included.
+* You can override this filter at the serverClass level and the
+  serverClass:app level.
 * Unset by default.
 
 restartSplunkWeb = <boolean>
@@ -313,6 +384,19 @@ precompressBundles = <boolean>
   require precompression.
 * Default: true
 
+cronSchedule = <string>
+* The cron schedule that is used to reload this serverclass in following format:
+* "<minute> <hour> <day of month> <month> <day of week>"
+* Special characters are acceptable. You can use combinations of "*",
+  ",", "/", and "-" to specify wildcards, separate values, ranges
+  of values, and step values. For example:
+    * Run reload at midnight from Monday to Friday: 0 0 * * 1-5
+    * Run reload at midnight on Dec 1: 0 0 1 12 *
+    * Run reload every hour at hh:03, hh:23, hh:43: 03,23,43 * * * *
+* This option is available only at the serverclass level.
+* You must set 'cronSchedule' in order to run reload jobs automatically
+  rather than manually.
+* No default.
 
 #################################################
 ########### SECOND LEVEL: serverClass ###########
@@ -337,6 +421,8 @@ filterType = whitelist | blacklist
 whitelist.<n> = <clientName> | <IP address> | <hostname>
 blacklist.<n> = <clientName> | <IP address> | <hostname>
 machineTypesFilter = <comma-separated list>
+packageTypesFilter = <comma-separated list>
+updaterRunningFilter = <boolean>
 restartSplunkWeb = <boolean>
 restartSplunkd = <boolean>
 issueReload = <boolean>
@@ -344,7 +430,7 @@ restartIfNeeded = <boolean>
 stateOnClient = enabled | disabled | noop
 repositoryLocation = <path>
 targetRepositoryLocation = <path>
-
+cronSchedule = <string>
 
 ########################################
 ########### THIRD LEVEL: app ###########
@@ -379,4 +465,6 @@ filterType = whitelist | blacklist
 whitelist.<n> = <clientName> | <IP address> | <hostname>
 blacklist.<n> = <clientName> | <IP address> | <hostname>
 machineTypesFilter = <comma-separated list>
+packageTypesFilter = <comma-separated list>
+updaterRunningFilter = <boolean>
 stateOnClient = enabled | disabled | noop

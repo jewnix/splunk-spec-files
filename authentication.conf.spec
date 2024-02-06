@@ -1,4 +1,4 @@
-#   Version 9.1.3
+#   Version 9.2.0
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.
@@ -803,6 +803,15 @@ attributeQueryTTL = <integer>
 * This setting is optional.
 * Default: 3600
 
+saml_negative_cache_timeout = <nonnegative decimal>
+* The amount of time, in seconds, that the Splunk platform remembers that a non-existent
+  user on a SAML provider does not exist.
+* This setting is useful when you want to avoid frequent SAML queries for users
+  that do not exist on the SAML provider.
+* This setting does not prevent SAML queries on login. Login always queries the SAML
+  provider to confirm that a user exists.
+* Default: 3600
+
 scriptPath = <string>
 * The name of the authentication extension script to run.
 * The auth system expects the script to be in Python version 3, and looks for
@@ -1012,10 +1021,10 @@ blacklistedAutoMappedRoles = <comma separated list>
 * DEPRECATED; use 'excludedAutoMappedRoles' instead.
 
 excludedAutoMappedRoles = <comma separated list>
-* A list of Splunk roles for which the Splunk platform is not to
-  auto-map from the identity provider response.
+* Comma separated list of splunk roles that should be prevented
+  from being auto-mapped by splunk from the IDP Response.
 * This setting is optional.
-* Default: admin, power
+* No default.
 
 blacklistedUsers = <comma separated list>
 * DEPRECATED; use 'excludedUsers' instead.

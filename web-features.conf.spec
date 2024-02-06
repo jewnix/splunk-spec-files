@@ -1,4 +1,4 @@
-#   Version 9.1.3
+#   Version 9.2.0
 #
 ############################################################################
 # OVERVIEW
@@ -17,7 +17,7 @@
 enable_search_v2_endpoint = <boolean>
 * Determines whether Splunk Web uses the v2 search endpoint.
 * A value of "true" means Splunk Web will use the v2 search endpoint.
-* Default: false
+* Default: true
 
 [feature:quarantine_files]
 
@@ -111,30 +111,88 @@ internal.dashboards_trusted_domain.<name> = <string>
 
 disable_highcharts_accessibility = <boolean>
 * Disable accessibility module in the highcharts charting library.
-* A value of true means that Splunk Web will not use the accessibility module in the Highcharts
+* DEPRECATED.
+* A value of "true" means that Splunk Web will not use the accessibility module in the Highcharts
   charting library.
 * CAUTION: Do not change this setting.
 * Default: true
 
 [feature:dashboard_studio]
 
+activate_conversion_report = <boolean>
+* Controls whether conversion related information is added to the XML of Studio Dashboards
+* converted from Classic Dashboards.
+* A value of "true" means that conversion information is added to Studio Dashboards.
+* Do not modify this value.
+* Default: true
+
 enable_inputs_on_canvas = <boolean>
-* Allow inputs directly on the canvas in Dashboard Studio.
-* A value of true will allow inputs directly on the dashboard canvas in Dashboard Studio.
+* Allows inputs directly on the canvas in Dashboard Studio.
+* A value of "true" will allow inputs directly on the dashboard canvas in Dashboard Studio.
 * Do not modify this value.
 * Default: true
 
 enable_show_hide = <boolean>
-* Allow absolute "Show/Hide" panels in Dashboard Studio.
-* A value of true will allow "Show/Hide" panels in the editor of Dashboard Studio.
+* Allows absolute "Show/Hide" panels in Dashboard Studio.
+* A value of "true" will allow "Show/Hide" panels in the editor of Dashboard Studio.
 * Do not modify this value.
 * Default: true
 
 enable_events_viz = <boolean>
-* Allow "splunk.events" visualization type in Dashboard Studio.
-* A value of true means the "splunk.events" visualization type is available in Dashboard Studio.
+* Allows "splunk.events" visualization type in Dashboard Studio.
+* A value of "true" means the "splunk.events" visualization type is available in Dashboard Studio.
 * Do not modify this value.
 * Default: true
+
+activate_workflow_actions_for_events_viz = <boolean>
+* Allows workflow actions in the events visualization in Dashboard Studio.
+* A value of "true" means that workflow actions will appear on the events visualization in Dashboard Studio.
+* Do not modify this value.
+* Default: true
+
+activate_link_to_report = <boolean>
+* Allows the Link to Report Interaction in Dashboard Studio.
+* A value of "true" means the Link to Report Interaction is available in Dashboard Studio.
+* Do not modify this value.
+* Default: true
+
+activate_link_to_search = <boolean>
+* Allows the Link to Search Interaction in Dashboard Studio.
+* A value of "true" means the Link to Search Interaction is available in Dashboard Studio.
+* Do not modify this value.
+* Default: true
+
+activate_trellis_for_visualizations = <boolean>
+* Allows trellis layout for supported visualizations in Dashboard Studio.
+* A value of "true" means trellis layout is available for supported visualizations in Dashboard Studio.
+* Do not modify this value.
+* Default: true
+
+activate_expanded_source_editor = <boolean>
+* Uses a larger inline source editor for Dashboard Studio.
+* A value of "true" means the expanded source editor is available in Dashboard Studio.
+* Do not modify this value.
+* Default: true
+
+activate_dsl_webworkers_for_visualizations = <boolean>
+* Uses WebWorkers for Dynamic Options Syntax execution to isolate from overall dashboard loading and performance.
+* A value of "true" means the WebWorkers are being used in Dashboard Studio.
+* Do not modify this value.
+* Default: false
+
+activate_save_report_to_dashboard_studio = <boolean>
+* Determines if users see an Add to Dashboard dropdown list in the Splunk Web Reports page and Save Search to Report dialogs.
+  The dropdown menu allows adding a report to a new or existing Dashboard Studio dashboard.
+* A value of "false" means Splunk Web does not display the dropdown menu, and users can only add reports to Classic Simple XML dashboards.
+* Do not modify this value.
+* Default: true
+
+activate_source_mode_validation = <boolean>
+# Determines whether the source mode validation in Dashboard Studio is activated.
+# A value of "true" means that source mode is validated in Dashboard Studio.
+# Do not modify this value.
+* Default: true
+
 
 
 
@@ -164,6 +222,13 @@ enable_home_vnext = <boolean>
 * CAUTION: Do not change this setting.
 * Default: true
 
+enable_datasets_vnext = <boolean>
+* Determines whether or not Splunk Web loads the new datasets page.
+* DEPRECATED.
+* A value of "true" means that Splunk Web does load the new datasets page.
+* CAUTION: Do not change this setting.
+* Default: true
+
 [feature:dashboard_inputs_localization]
 
 enable_dashboard_inputs_localization = <boolean>
@@ -180,7 +245,7 @@ enable_dashboard_inputs_localization = <boolean>
 enable_share_job_control = <boolean>
 * Determines whether or not users can share jobs using the "Share Job" button in
   the Search app in Splunk Web.
-* A value of "true" means that users can use the "Share Job" button in the 
+* A value of "true" means that users can use the "Share Job" button in the
   Search app to share search jobs.
 * A value of "false" means that users cannot use the "Share Job" button to
   share search jobs. Instead, they receive a notice that job sharing has
@@ -219,4 +284,22 @@ bypass_app_bar_performance_optimizations_apps = <comma separated list>
 * Splunk Web will not optimize performance when generating the app bar for this comma separated list of apps.
 * CAUTION: Do not change this setting.
 * A value of "splunk_monitoring_console,search" means that Splunk Web will not optimize performance when generating the app bar for the splunk_monitoring_console and search apps.
-* Default: "splunk_monitoring_console"
+* Default: ""
+
+[feature:spotlight_search]
+
+enable_spotlight_search = <boolean>
+* Determines whether Splunk Web displays the Spotlight Search bar in the
+  Settings menu.
+* A value of "true" means that Splunk Web will display the Spotlight Search
+  bar in the Settings menu.
+* Default: false
+
+[feature:o11y_preview]
+
+enable_o11y_preview = <boolean>
+* Determines whether Splunk Web displays the preview links and
+  Splunk Observability preview sidebar in Search & Reporting.
+* A value of "true" means that Splunk Web will show preview links and
+  Splunk Observability preview sidebar in Search & Reporting.
+* Default: true

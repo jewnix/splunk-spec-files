@@ -1,4 +1,4 @@
-#   Version 9.1.3
+#   Version 9.2.0
 #
 ############################################################################
 # OVERVIEW
@@ -1902,22 +1902,7 @@ indexes = <comma-separated list>
 * If you do not specify this value, the index list is empty, and any index
   can be used.
 * Separate multiple indexes with commas.
-* The Splunk platform accepts and indexes events without a specified
-  index to a default index.
 * No default.
-
-s2s_indexes_validation = [ disabled | disabled_for_internal | enabled_for_all ]
-* The method of index validation for Splunk-to-Splunk (S2S) events for this
-  token.
-* A value of "disabled" means the Splunk platform doesn't validate the
-  event's index and the "indexes" setting has no effect for the S2S events.
-* A value of "disabled_for_internal" means the Splunk platform doesn't
-  validate internal indexes and allows all S2S events destined for them. The
-  platform validates other indexes according to the "indexes" setting.
-* A value of "enabled_for_all" means the platform validates all indexes
-  according to the "indexes" setting.
-* The platform silently drops rejected events.
-* Default: disabled
 
 index = <string>
 * The default index to use for this token.

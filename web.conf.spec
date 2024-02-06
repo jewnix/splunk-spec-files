@@ -1,4 +1,4 @@
-#   Version 9.1.3
+#   Version 9.2.0
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -628,16 +628,6 @@ pdfgen_trusted_hosts = <string> [, <string>]
   For example, "!192.0.2.0/24, *" allows connections from everywhere except
   the 192.0.2.* network.
 * Default: not set. All links will fail by default.
-
-splunk_dashboard_app_name = <string>
-* Please do not change.
-* Set the name for the Splunk Dashboard App.
-* Default: splunk-dashboard-studio
-
-enable_splunk_dashboard_app_feature = <boolean>
-* Whether or not splunk dashboard app integrated features are available.
-* If set to "true", then splunk dashboard app integrated features will be available.
-* Default: true
 
 max_view_cache_size = <integer>
 * The maximum number of views to cache in the appserver.
@@ -1326,7 +1316,7 @@ enableSearchJobXslt = <boolean>
   to format search results.
 * If set to "false", the search job request does not accept XSL as input
   to format search results.
-* Default: true
+* Default: false
 
 customFavicon = <pathToMyFile, myApp:pathToMyFile, or blank for default>
 * Customizes the favicon image across the entire application.
@@ -1465,6 +1455,21 @@ allow_insecure_libraries_toggle = <boolean>
 # The Django bindings component and all associated [framework] settings have been
 # removed. Configuring these settings no longer has any effect, and Splunk Enterprise
 # ignores any existing settings that are related to the component.
+
+[remoteUI]
+* Set options to control the loading of remote hosted UI pages in Splunk Cloud
+* If you do not specify an entry for each setting, Splunk Web uses the
+  default value.
+
+optInRemoteUI = <boolean>
+* This setting maps to the Splunk Cloud "Automatic UI updates" menu item.
+* Determines whether Splunk Cloud fetches configured UI pages from an external
+  content delivery network or from the $SPLUNK_HOME directory.
+* Default: false
+
+allowExternalRemote = <boolean>
+* Determines whether or not Splunk Web displays the "Automatic UI updates" menu item.
+* Default: false
 
 
 

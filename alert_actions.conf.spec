@@ -1,4 +1,4 @@
-#   Version 9.1.3
+#   Version 9.2.0
 #
 ############################################################################
 # OVERVIEW
@@ -212,7 +212,7 @@ escapeCSVNewline = <boolean>
 footer.text = <string>
 * Specify an alternate email footer.
 * Default: "If you believe you've received this email in error, please 
-see your Splunk administrator.\\ splunk > the engine for machine data"
+see your Splunk administrator.\\ Splunk > the key to enterprise resilience"
 
 format = [table|raw|csv]
 * Specify the format of inline results in the email.

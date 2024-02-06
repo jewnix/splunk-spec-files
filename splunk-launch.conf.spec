@@ -1,4 +1,4 @@
-#   Version 9.1.3
+#   Version 9.2.0
 
 # splunk-launch.conf contains values used at startup time, by the Splunk
 # command and by Windows services.
@@ -220,6 +220,7 @@ OPTIMISTIC_ABOUT_FILE_LOCKING = [0|1]
   splunkd starts whether or not it can recognize the file system.
 * Defaults to 0 (Run the file system check.)
 
+<<<<<<< HEAD
 SPLUNK_PYTHON_DONT_ESCAPE_PRINTABLE = 0|1
 * Determines whether the Splunk Python interpreter escapes non-printable
   characters such as ASCII 0–32,127, when logging with the Python
@@ -228,3 +229,9 @@ SPLUNK_PYTHON_DONT_ESCAPE_PRINTABLE = 0|1
 * When set to 1, scripts that log when using Splunk's Python interpreter
   will NOT escape non-printable characters and may be in log files
 * Defaults to 0 (Non-printable characters WILL be escaped)
+
+ENABLE_CPUSHARES = <boolean>
+* Whether or not Splunk software adds 'CPUShares=1024' to the systemd service
+  unit file named Splunkd.service by default, in /etc/systemd/system.
+* Supported for only Linux.
+* Defaults: true

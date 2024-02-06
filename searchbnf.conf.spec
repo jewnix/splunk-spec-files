@@ -1,4 +1,4 @@
-#   Version 9.1.3
+#   Version 9.2.0
 #
 #
 #########################################################################
@@ -115,8 +115,8 @@
 # comment<number> (Optional)
 # usage (Required)
 # tags (Optional)
-# maintainer (Optional)
-# appears-in (Optional)
+# maintainer (Deprecated)
+# appears-in (Deprecated)
 # related (Optional)
 
 #########################################################################
@@ -193,15 +193,15 @@ tags = <tag list>
 * Optional
 
 maintainer = <name>
-* The name of person who originally worked on the command or who is 
+* The name of person who originally worked on the command or who is
   responsible for the command now.
 * Does not appear in the search assistant.
-* Optional
+* Deprecated
 
 appears-in = <version>
-* The version that the custom command first appeared in. 
+* The version that the custom command first appeared in.
 * Does not appear in the search assistant.
-* Optional
+* Deprecated
 
 related = <command list>
 * List of SPL commands related to this command. 

@@ -198,9 +198,9 @@ caCertFile = <path>
 
 sslCommonNameToCheck = <commonName1>, <commonName2>, ...
 * If this value is set, and 'sslVerifyServerCert' is set to true,
-  splunkd checks the common name(s) of the certificate presented by
-  the Deployment Server (specified in 'targetUri') against this list of
-  common names.
+  splunkd reads the Deployment Servers from 'targetUri', gets the common 
+  names from these servers' certificates, and checks if they are in this 
+  list of common names.
 * Default: The 'sslCommonNameToCheck' value in the server.conf file
   [sslConfig] stanza.
 

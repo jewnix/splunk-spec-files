@@ -113,9 +113,6 @@ useDisabledListAsBlacklist = <boolean>
   and participate in search.
 * Default: false
 
-shareBundles = <boolean>
-* DEPRECATED.
-
 useSHPBundleReplication =[true|false|always]
 * Whether the search heads in the pool compete with each other to decide which
   one handles the bundle replication (every time bundle replication needs
@@ -464,9 +461,6 @@ cascade_plan_replication_threshold_failures = <integer>
 ################################################################
 # RFS (AKA S3/REMOTE FILE SYSTEM) REPLICATION-SPECIFIC SETTINGS
 ################################################################
-
-enableRFSReplication = <boolean>
-* DEPRECATED.
 
 enableRFSMonitoring = <boolean>
 * Currently not supported. This setting is related to a feature that is

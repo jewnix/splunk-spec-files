@@ -112,7 +112,7 @@ acceleration.manual_rebuilds = <boolean>
 * The Splunk platform considers a summary to be outdated when either of these
   conditions are present:
   * The data model search stored in its metadata no longer matches its current
-	data model search.
+    data model search.
   * The data model search stored in its metadata cannot be parsed.
 * When set to "true", the Splunk platform does not rebuild outdated summaries
   using the 'summarize' command.

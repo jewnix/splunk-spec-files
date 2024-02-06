@@ -154,6 +154,15 @@ Type "./splunk help [topic name | object name | parameter name]" to get help on 
         </common>
     </item>
 
+    <item obj="abort-rolling-restart" verb="true">
+        <common>
+            <help>
+                <header><![CDATA[Abort restarting nodes in an indexer.]]></header>
+                <syntax><![CDATA[abort-rolling-restart [cluster-peers]]]></syntax>
+            </help>
+        </common>
+    </item>
+
     <item obj="rolling-upgrade" verb="true">
         <common>
             <help>
@@ -2064,6 +2073,17 @@ More information in the online documentation for the corresponding REST endpoint
             <type>edit</type>
             <post_only/>
         </cmd>
+        <cmd name="abort-rolling-restart">
+            <uri><![CDATA[/cluster/master/control/default/abort_restart]]></uri>
+            <help>
+                <title><![CDATA[Abort a phased restart of the nodes in an indexer cluster.]]></title>
+                <syntax><![CDATA[abort-rolling-restart cluster-peers]]></syntax>
+                <required/>
+		<optional/>
+            </help>
+            <type>edit</type>
+            <post_only/>
+        </cmd>
         <cmd name="upgrade-init">
             <uri><![CDATA[/cluster/master/control/default/rolling_upgrade_init]]></uri>
             <help>
@@ -3619,16 +3639,18 @@ list forward-server]]></syntax>
         <cmd name="reload">
             <help>
                 <title><![CDATA[Reload you deployment server, in entirety or by serverclass]]></title>
-                <syntax><![CDATA[reload deploy-server [-class <serverclass_name>] [-timeout <sec>]]]></syntax>
+                <syntax><![CDATA[reload deploy-server [-class <serverclass_name>] [-timeout <sec>] [-validate-only true] [-ignore-conflict true]]]></syntax>
                 <optional>
                     <arg name="class"><![CDATA[serverclass to be reloaded.]]></arg>
-                    <arg name="validate-only"><![CDATA[when this parameter is supplied, any possible validation errors are logged in splunkd.log serverclass isn't actually reloaded.]]></arg>
+                    <arg name="validate-only"><![CDATA[Do not reload the serverclass; log possible validation errors in splunkd.log]]></arg>
+                    <arg name="ignore-conflict"><![CDATA[Ignore current changes on the shared drive and enforce the reload]]></arg>
                     <arg name="timeout"><![CDATA[Time CLI waits for operation to complete before exiting.]]></arg>
                 </optional>
                 <examples>
                     <ex><![CDATA[./splunk reload deploy-server]]></ex>
                     <ex><![CDATA[./splunk reload deploy-server -class my_serverclass]]></ex>
                     <ex><![CDATA[./splunk reload deploy-server -class my_serverclass -validate-only true]]></ex>
+                    <ex><![CDATA[./splunk reload deploy-server -ignore-conflict true]]></ex>
                 </examples>
             </help>
         </cmd>
@@ -5436,6 +5458,8 @@ Supported commands and objects:
         rollback            cluster-bundle
 
         rolling-restart     cluster-peers|shcluster-members
+
+        abort-rolling-restart cluster-peers
 
         rotate              splunk-secret|shcluster-splunk-secret
 

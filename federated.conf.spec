@@ -1,4 +1,4 @@
-#   Version 9.2.1
+#   Version 9.2.2
 #
 # This file contains possible setting and value pairs for federated provider entries
 # for use when the federated search functionality is enabled.
@@ -219,10 +219,32 @@ verbose_mode = <boolean>
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: true
 
-#
-# Configs for blocking unsupported commands for standard mode configs
+max_preview_generation_duration = <unsigned integer>
+* The maximum amount of time, in seconds, that the search head can spend to 
+  generate search result previews.
+* NOTE: This setting applies only to federated searches.
+* This limit does not stop federated searches from completing and returning 
+  final result sets. 
+* When this limit is reached by a federated search, preview generation is 
+  halted, but the search continues gathering results until it completes and 
+  displays the final result set.
+* Change the value of this setting to a number above zero if you find that your 
+  federated searches are being terminated because their preview generation 
+  duration exceeds a timeout set by another component in your network, such as 
+  an elastic load balancer (ELB). 
+  * For example, if you have an ELB that times out at 60 seconds, you might set 
+    the 'max_preview_generation_duration' to '55'. 
+* A setting of '0' means that the preview generation duration of federated 
+  searches is unlimited. 
+* Default: 0
+
+
+############################################################################
+# Configs for blocking unsupported commands in Federated Search
+############################################################################
+
 # Change this setting only when instructed to do so by Splunk Support.
-[s2s_smode_unsupported_command:metadata]
+[s2s_standard_mode_unsupported_command:metadata]
 * This stanza controls whether the metadata command is blocked for 
   Federated Search for Splunk on standard mode federated providers.
 
@@ -238,7 +260,7 @@ active = <boolean>
 * Default: false
 
 # Change this setting only when instructed to do so by Splunk Support.
-[s2s_smode_unsupported_command:metasearch]
+[s2s_standard_mode_unsupported_command:metasearch]
 * This stanza controls whether the metasearch command is blocked for 
   Federated Search for Splunk on standard mode federated providers.
 
@@ -295,3 +317,232 @@ allow_target = <boolean>
 * NOTE: Do not change this setting unless instructed to do so by Splunk 
   Support. 
 * Default: true
+
+# Change this setting only when instructed to do so by Splunk Support.
+[s2s_transparent_mode_unsupported_command:delete]
+* This stanza controls whether the delete command is blocked for 
+  Federated Search for Splunk on transparent mode federated providers.
+
+active = <boolean>
+* Whether Splunk software blocks the 'delete' command for transparent mode 
+  federated search.
+  * A value of "true" means that the 'delete' command is not blocked for 
+    transparent mode federated search.
+  * A value of "false" means that the 'delete' command is blocked for 
+    transparent mode federated search. 
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support. 
+* Default: false
+
+# Change this setting only when instructed to do so by Splunk Support.
+[s2s_transparent_mode_unsupported_command:dump]
+* This stanza controls whether the dump command is blocked for 
+  Federated Search for Splunk on transparent mode federated providers.
+
+active = <boolean>
+* Whether Splunk software blocks the 'dump' command for transparent mode 
+  federated search.
+  * A value of "true" means that the 'dump' command is not blocked for 
+    transparent mode federated search.
+  * A value of "false" means that the 'dump' command is blocked for 
+    transparent mode federated search. 
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support. 
+* Default: false
+
+# Change this setting only when instructed to do so by Splunk Support.
+[s2s_transparent_mode_unsupported_command:map]
+* This stanza controls whether the map command is blocked for 
+  Federated Search for Splunk on transparent mode federated providers.
+
+active = <boolean>
+* Whether Splunk software blocks the 'map' command for transparent mode 
+  federated search.
+  * A value of "true" means that the 'map' command is not blocked for 
+    transparent mode federated search.
+  * A value of "false" means that the 'map' command is blocked for 
+    transparent mode federated search. 
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support. 
+* Default: false
+
+# Change this setting only when instructed to do so by Splunk Support.
+[s2s_transparent_mode_unsupported_command:run]
+* This stanza controls whether the run command is blocked for 
+  Federated Search for Splunk on transparent mode federated providers.
+
+active = <boolean>
+* Whether Splunk software blocks the 'run' command for transparent mode 
+  federated search.
+  * A value of "true" means that the 'run' command is not blocked for 
+    transparent mode federated search.
+  * A value of "false" means that the 'run' command is blocked for 
+    transparent mode federated search. 
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support. 
+* Default: false
+
+# Change this setting only when instructed to do so by Splunk Support.
+[s2s_transparent_mode_unsupported_command:runshellscript]
+* This stanza controls whether the runshellscript command is blocked for 
+  Federated Search for Splunk on transparent mode federated providers.
+
+active = <boolean>
+* Whether Splunk software blocks the 'runshellscript' command for transparent mode 
+  federated search.
+  * A value of "true" means that the 'runshellscript' command is not blocked for 
+    transparent mode federated search.
+  * A value of "false" means that the 'runshellscript' command is blocked for 
+    transparent mode federated search. 
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support. 
+* Default: false
+
+# Change this setting only when instructed to do so by Splunk Support.
+[s2s_transparent_mode_unsupported_command:script]
+* This stanza controls whether the script command is blocked for 
+  Federated Search for Splunk on transparent mode federated providers.
+
+active = <boolean>
+* Whether Splunk software blocks the 'script' command for transparent mode 
+  federated search.
+  * A value of "true" means that the 'script' command is not blocked for 
+    transparent mode federated search.
+  * A value of "false" means that the 'script' command is blocked for 
+    transparent mode federated search. 
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support. 
+* Default: false
+
+# Change this setting only when instructed to do so by Splunk Support.
+[s2s_transparent_mode_unsupported_command:sendalert]
+* This stanza controls whether the sendalert command is blocked for 
+  Federated Search for Splunk on transparent mode federated providers.
+
+active = <boolean>
+* Whether Splunk software blocks the 'sendalert' command for transparent mode 
+  federated search.
+  * A value of "true" means that the 'sendalert' command is not blocked for 
+    transparent mode federated search.
+  * A value of "false" means that the 'sendalert' command is blocked for 
+    transparent mode federated search. 
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support. 
+* Default: false
+
+# Change this setting only when instructed to do so by Splunk Support.
+[s2s_transparent_mode_unsupported_command:sendemail]
+* This stanza controls whether the sendemail command is blocked for 
+  Federated Search for Splunk on transparent mode federated providers.
+
+active = <boolean>
+* Whether Splunk software blocks the 'sendemail' command for transparent mode 
+  federated search.
+  * A value of "true" means that the 'sendemail' command is not blocked for 
+    transparent mode federated search.
+  * A value of "false" means that the 'sendemail' command is blocked for 
+    transparent mode federated search. 
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support. 
+* Default: false
+
+# Change this setting only when instructed to do so by Splunk Support.
+[s2s_transparent_mode_unsupported_command:rest]
+* This stanza controls whether the rest command is blocked for 
+  Federated Search for Splunk on transparent mode federated providers.
+
+active = <boolean>
+* Whether Splunk software blocks the 'rest' command for transparent mode 
+  federated search.
+  * A value of "true" means that the 'rest' command is not blocked for 
+    transparent mode federated search.
+  * A value of "false" means that the 'rest' command is blocked for 
+    transparent mode federated search. 
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support. 
+* Default: false
+
+# Change the settings in this stanza only when Splunk Support instructs you to 
+# do so.
+[s2s_transparent_mode_unsupported_command:summarize]
+* This stanza controls whether Splunk software blocks the 'summarize' command
+  on transparent mode federated providers for Federated Search for Splunk.
+* Note: The 'summarize' command is an internal command. Use it only under the 
+  direction of Splunk Support. 
+
+active = <boolean>
+* Controls whether Splunk software blocks the 'summarize' command for
+  transparent mode federated search.
+  * A value of "true" means that Splunk software does not block the
+    'summarize' command for transparent mode federated search.
+  * A value of "false" means that Splunk software blocks the 'summarize'
+    command for transparent mode federated search. The 'summarize' command
+    still runs on your local search head.
+* Transparent mode federated providers with lower versions encounter  
+  complications when they run the 'summarize' command. For those providers, the 
+  command must always be blocked. The 'rsh_min_version_cloud' and 
+  'rsh_version_onprem' settings ensure that 'summarize' is blocked for 
+  transparent mode federated providers that have versions lower than the 
+  versions those settings specify, even when 'active=true'. 
+* Default: true
+
+rsh_min_version_cloud = <string>
+* Specifies the minimal Splunk Cloud Platform version with full support for 
+  'summarize'. 
+* Affects only transparent mode federated providers.
+* This setting blocks 'summarize' for any Splunk Cloud Platform transparent 
+  mode federated provider with a version lower than this setting.
+* Default: 9.0.2303.100
+
+rsh_min_version_onprem = <string>
+* Specifies the minimal Splunk Enterprise version with full support for 
+  'summarize'. 
+* Affects only transparent mode federated providers.
+* This setting blocks 'summarize' for any Splunk Enterprise transparent mode 
+  federated provider with a version lower than this setting.
+* Default: 9.1.0
+
+# Change the settings in this stanza only when Splunk Support instructs you to 
+# do so.
+[s2s_transparent_mode_unsupported_command:tstats]
+* This stanza controls whether Splunk software blocks the 'tstats' command
+  on transparent mode federated providers for Federated Search for Splunk.
+
+active = <boolean>
+* Controls whether Splunk software blocks the 'tstats' command for
+  transparent mode federated search.
+  * A value of "true" means that Splunk software does not block the
+    'tstats' command for transparent mode federated search.
+  * A value of "false" means that Splunk software blocks the 'tstats'
+    command for transparent mode federated search. The 'tstats' command
+    still runs on your local search head.
+* Under certain conditions, transparent mode federated providers with lower 
+  versions encounter complications when they run the 'tstats' command.
+  * The 'rsh_min_version_cloud' and 'rsh_version_onprem' settings block 
+    'tstats' searches that inlude 'FROM' clauses for transparent mode
+    federated providers that have versions lower than the versions the
+    'rsh_min_version_cloud' and 'rsh_version_onprem' settings specify,
+    even when 'active=true'.
+  * However, if a 'tstats' search on a lower-version transparent mode federated 
+    provider does not include a 'FROM' clause, Splunk software ignores the 
+    'rsh_min_version_cloud' and 'rsh_version_onprem' settings and allows the 
+    'tstats' search to proceed.
+* Default: true
+
+rsh_min_version_cloud = <string>
+* Specifies the minimal Splunk Cloud Platform version with full support for 
+  'tstats'.
+* Affects only transparent mode federated providers.
+* This setting blocks 'tstats' for any Splunk Cloud Platform transparent mode 
+  federated provider with a version lower than this setting, when the 'tstats' 
+  search includes a 'FROM' clause.
+* Default: 9.0.2303.100
+
+rsh_min_version_onprem = <string>
+* Specifies the minimal Splunk Enterprise version with full support for 
+  'tstats'.
+* Affects only transparent mode federated providers.
+* This setting blocks 'tstats' for any Splunk Enterprise transparent mode 
+  federated provider with a version lower than this setting, when the 'tstats' 
+  search includes a 'FROM' clause.
+* Default: 9.1.0

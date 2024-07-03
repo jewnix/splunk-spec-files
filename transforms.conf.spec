@@ -1,4 +1,4 @@
-#   Version 9.2.1
+#   Version 9.2.2
 #
 # This file contains settings and values that you can use to configure
 # data transformations.

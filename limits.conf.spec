@@ -1,4 +1,4 @@
-#   Version 9.2.1
+#   Version 9.2.2
 #
 ############################################################################
 # OVERVIEW
@@ -559,7 +559,7 @@ remote_search_requests_send_capabilities_list = <boolean>
   user running the search to every search peer participating in the search.
 * This makes it possible to uniformly enforce user-level role-based access 
   control (RBAC).
-* Default: true
+* Default: false
 
 remote_search_requests_reject_if_capabilities_list_absent = <boolean>
 * When turned on for a search peer, the search peer rejects search requests that

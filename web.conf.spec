@@ -1309,6 +1309,7 @@ enable_risky_command_check_dashboard = <boolean>
 * Default: true
 
 enableSearchJobXslt = <boolean>
+* REMOVED. This setting no longer has any effect.
 * Whether or not the search job request accepts XML stylesheet language (XSL)
   as input to format search results.
 * If set to "true", the search job request accepts XSL as input

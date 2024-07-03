@@ -1,4 +1,4 @@
-#   Version 9.2.0
+#   Version 9.1.3
 #
 # This file contains settings and values that you can use to configure
 # data transformations.
@@ -109,7 +109,7 @@ REGEX = <regular expression>
       * REGEX  = (?<_KEY_1>[a-z]+)=(?<_VAL_1>[a-z]+)
     * When using either of the above formats, in a search-time extraction,
       the regular expression attempts to match against the source text,
-      extracting as many fields as can be identified in the source text.
+	  extracting as many fields as can be identified in the source text.
 * Default: empty string
 
 FORMAT = <string>
@@ -129,9 +129,9 @@ FORMAT = <string>
     * Example: FORMAT = ipaddress::$1.$2.$3.$4
   * When you create concatenated fields with FORMAT, "$" is the only special
     character. It is treated as a prefix for regular expression capturing
-    groups only if it is followed by a number and only if the number applies to
-    an existing capturing group. So if REGEX has only one capturing group and
-    its value is "bar", then:
+	groups only if it is followed by a number and only if the number applies to
+	an existing capturing group. So if REGEX has only one capturing group and
+	its value is "bar", then:
       * "FORMAT = foo$1" yields "foobar"
       * "FORMAT = foo$bar" yields "foo$bar"
       * "FORMAT = foo$1234" yields "foo$1234"
@@ -152,7 +152,7 @@ FORMAT = <string>
     configuration will not return events.
   * If you configure FORMAT with a variable <field-name>, such as in the second
     example above, the regular expression is repeatedly applied to the source
-    key to match and extract all field/value pairs in the event.
+	key to match and extract all field/value pairs in the event.
   * When you use FORMAT to set both the field and the value (such as FORMAT =
     third::other-value), and the value is not an indexed token, you must set the
     field to INDEXED_VALUE = false in fields.conf. Not doing so can cause
@@ -928,11 +928,11 @@ MetaData:Sourcetype : The source type of the event.
 
 _TCP_ROUTING        : Comma separated list of tcpout group names (from
                       outputs.conf)
-                      Defaults to groups present in 'defaultGroup' for [tcpout].
+					  Defaults to groups present in 'defaultGroup' for [tcpout].
 
 _SYSLOG_ROUTING     : Comma separated list of syslog-stanza  names (from
                       outputs.conf)
-                      Defaults to groups present in 'defaultGroup' for [syslog].
+					  Defaults to groups present in 'defaultGroup' for [syslog].
 
 * NOTE: Any KEY (field name) prefixed by '_' is not indexed by Splunk software,   in general.
 

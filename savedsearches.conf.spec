@@ -1,4 +1,4 @@
-#   Version 9.2.0
+#   Version 9.1.3
 #
 # This file contains possible setting/value pairs for saved search entries in
 # the savedsearches.conf file.  You can configure saved searches by creating
@@ -146,7 +146,7 @@ realtime_schedule = <boolean>
   time based on the last run time for the search. This is called continuous
    scheduling.
     * NOTE: When set to 'false', the scheduler never skips scheduled execution
-      periods. However, the execution of the saved search might fall behind
+	  periods. However, the execution of the saved search might fall behind
       depending on the scheduler's load.
     * Use continuous scheduling whenever you enable the 'summary index' option.
 * The scheduler tries to run searches that have 'realtime_schedule' set to true
@@ -517,27 +517,19 @@ run_n_times = <unsigned integer>
 #*******
 
 dispatch.ttl = <integer>[p]
-* Indicates the time to live (ttl), in seconds, for the search job artifacts 
-  produced by the scheduled search, if no actions are triggered.
+* Indicates the time to live (ttl), in seconds, for the artifacts of the
+  scheduled search, if no actions are triggered.
 * If the integer is followed by the letter 'p', the ttl is calculated as a
   multiple of the execution period for the scheduled search.
-  * For example, if the search is scheduled to run hourly and ttl is set to 2p,
-    the ttl of the artifacts is set to 2 hours.
-* If an action is triggered for the scheduled search, the ttl changes to the 
-  ttl for the action. If multiple actions are triggered, the action with the 
-  largest ttl is applied to the artifacts. To set the ttl for an action, refer 
-  to the alert_actions.conf.spec file.
-* If the scheduled search is configured as an alert, the alert must have a 
-  minimum ttl of 1p. At all times an alert must have an artifact accessible
-  within its cron schedule. 
-  * If the alert has "rises by" or "drops by" in its trigger condition, the 
-    alert must have a minimum ttl of 2p to make this trigger condition 
-    possible. The "rises by" and "drops by" trigger condition elements require 
-    that at any given point in time the most recent two artifacts of the alert 
-    are available.
+  For example, if the search is scheduled to run hourly and ttl is set to 2p,
+  the ttl of the artifacts is set to 2 hours.
+* If an action is triggered, the ttl is changed to the ttl for the action. If
+  multiple actions are triggered, the action with the largest ttl is applied
+  to the artifacts. To set the ttl for an action, refer to the
+  alert_actions.conf.spec file.
 * For more information on the ttl for a search, see the limits.conf.spec file
   [search] stanza ttl setting.
-* Default: 2p
+* Default: 2p, which is 2 times the period of the scheduled search
 
 dispatch.buckets  = <integer>
 * The maximum number of timeline buckets.

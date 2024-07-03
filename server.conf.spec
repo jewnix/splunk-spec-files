@@ -1,4 +1,4 @@
-#   Version 9.2.0
+#   Version 9.1.3
 #
 ############################################################################
 # OVERVIEW
@@ -373,12 +373,6 @@ remoteStorageRecreateIndexesInStandalone = <boolean>
 
 cleanRemoteStorageByDefault = <boolean>
 * Allows 'splunk clean eventdata' to clean the remote indexes when set to true.
-* Default: false
-
-is_remote_queue_accounting_batched = <boolean>
-* Allows indexer to maintain a batched count of events that have been uploaded to
-  remote storage when set to true.
-* This count is subsequently used to delete corresponding messages from remote queue.
 * Default: false
 
 recreate_index_fetch_bucket_batch_size = <positive integer>
@@ -782,45 +776,6 @@ sslVerifyServerName = <boolean>
   validation check. If the server presents an otherwise valid certificate, the
   client-to-server connection proceeds normally.
 * Default: false
-
-caTrustStore = <[splunk],[OS]>
-* The type of trust store that the Splunk platform accesses to validate 
-  connections over TLS.
-* The Splunk platform uses this setting to load certificate authority
-  certificates for this kind of validation.
-* A value of "splunk" means the platform only uses the certificate authority
-  certificates in the trust store that the 'sslRootCAPath' setting references.
-* A value of "OS" means the platform only uses the CA certificates in
-  the trust store that the operating system on the instance defines.
-* Splunk provides support for OS trust store usage on the Linux
-  operating system.
-  There is currently no support for loading certificate trust stores on macOS
-  or Windows.
-* Providing both values ("splunk,OS") means that the platform uses CA 
-  certificates within both the Splunk platform and operating system
-  trust stores.
-* If a duplicate certificate exists in both types of trust store, the platform
-  prioritizes using the certificate in the Splunk platform trust store.
-* This values for this setting are not case sensitive.
-* Default: splunk
-
-caTrustStorePath = <string>
-* The path to the location of the certificate authority trust store on
-  a machine that runs a distribution of Linux.
-* Different Linux distributions use different locations for the CA
-  trust store. This setting lets you configure where the
-  Splunk platform looks for the trust store, based on the distribution
-  of Linux you run.
-* If 'caTrustStore' has a value of "OS", but this setting has either
-  no value or an invalid value, then the Splunk platform does not
-  attempt to load any certificates from the OS trust store to
-  validate TLS, and logs an error message in the splunkd.log log file. 
-* Following are example trust store locations for popular
-  Linux distributions:
-  Debian/Ubuntu/Gentoo: /etc/ssl/certs/ca-certificates.crt
-  Fedora/RHEL 6:        /etc/pki/tls/certs/ca-bundle.crt
-  CentOS/RHEL 7:        /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
-* No default.
 
 cipherSuite = <cipher suite string>
 * If set, Splunk uses the specified cipher string for the HTTP server.
@@ -1625,21 +1580,11 @@ caCertFile = <path>
 * Used only if 'sslRootCAPath' is not set.
 * Used for validating SSL certificate from https://apps.splunk.com/
 
-caTrustStore = <[splunk],[OS]>
-* See the description of 'caTrustStore' under the [sslConfig] stanza
-  for details on this setting.
-* Default: splunk
-
-caTrustStorePath = <string>
-* See the description of 'caTrustStorePath' under the [sslConfig] stanza
-  for details on this setting.
-* No default.
-
 sslCommonNameToCheck = <commonName1>, <commonName2>, ...
 * If this value is set, and 'sslVerifyServerCert' is set to true,
   splunkd checks the common name(s) of the certificate presented by
   the remote server (specified in 'url') against this list of common names.
-* Default: splunkbase.splunk.com, apps.splunk.com, cdn.apps.splunk.com
+* Default: apps.splunk.com, cdn.apps.splunk.com
 
 sslCommonNameList = <commonName1>, <commonName2>, ...
 * DEPRECATED. Use the 'sslCommonNameToCheck' setting instead.
@@ -2059,19 +2004,19 @@ active_group = Enterprise|Trial|Forwarder|Free
 * Default: <empty>
 
 connection_timeout = <integer>
-* Maximum time, in seconds, to wait before sending data to the manager times out.
-* This timeout applies only if 'manager_uri' is set.
-* Default: 30
+ * Maximum time, in seconds, to wait before sending data to the manager times out.
+ * This timeout applies only if 'manager_uri' is set.
+ * Default: 30
 
 send_timeout = <integer>
-* Maximum time, in seconds, to wait before sending data to the manager times out.
-* This timeout applies only if 'manager_uri' is set.
-* Default: 30
+ * Maximum time, in seconds, to wait before sending data to the manager times out.
+ * This timeout applies only if 'manager_uri' is set.
+ * Default: 30
 
 receive_timeout = <integer>
-* Maximum time, in seconds, to wait before receiving data from the manager times out
-* This timeout applies only if 'manager_uri' is set.
-* Default: 30
+ * Maximum time, in seconds, to wait before receiving data from the manager times out
+ * This timeout applies only if 'manager_uri' is set.
+ * Default: 30
 
 squash_threshold = <positive integer>
 * Periodically the indexer must report to license manager
@@ -2818,7 +2763,6 @@ available_sites = <comma-separated list>
 * This is a comma-separated list of all the sites in the cluster.
 * If 'multisite=true' then 'available_sites' must be
   explicitly set.
-* Example: available_sites = site1,site2,site3
 * Default: an empty string
 
 forwarder_site_failover = <comma-separated list>
@@ -3340,23 +3284,6 @@ heartbeat_period = <non-zero positive integer>
   to send heartbeats to the manager node.
 * Only valid for 'mode=peer'.
 * Default: 1
-
-auto_fix_corrupt_buckets = <boolean>
-* Only valid for 'mode=manager'.
-* If set to "true", the manager performs automatic fixup of
-  corrupted buckets.
-* To fix a corrupted bucket, the manager fetches the current
-  searchable events count from all copies of the bucket. It then
-  selects a copy with the largest searchable events count as
-  the canonical copy. The manager tells all peers holding copies
-  with smaller events counts to discard their copies. The cluster
-  then replicates the canonical copy as needed until the cluster
-  holds the configured replication factor number of copies.
-* The manager's peer nodes must be running a version that supports
-  this feature.
-* This feature is available only for non-SmartStore buckets.
-  SmartStore buckets require manual fixup.
-* Default: true
 
 bucketsize_mismatch_strategy = smallest|largest
 * Only valid for 'mode=manager'.
@@ -4304,9 +4231,8 @@ pass4SymmKey_minLength = <integer>
 * Default: 12
 
 async_replicate_on_proxy = <boolean>
-* If the jobs/${sid} REST endpoint or its sub-resources (e.g.
-  jobs/${sid}/results, jobs/${sid}/summary, etc.) had to be proxied to a
-  different member due to missing local replica, this setting automatically
+* If the jobs/${sid}/results REST endpoint had to be proxied to a different
+  member due to missing local replica, this setting automatically
   schedules an async replication to that member when set to true.
 * Default: true
 
@@ -4762,47 +4688,10 @@ encrypt_fields = <comma-separated list>
 * Use the setting in the '[general]' stanza instead.
 
 enable_jobs_data_lite = <boolean>
-* DEPRECATED.
-* Use the 'jobs_data_lite.enabled' instead.
-
-jobs_data_lite.enabled = <boolean>
-* Enable memory optimizations for sharing search job status within search head
-  clustering.
+* This is for memory reduction on the captain for Search head clustering,
+  leads to lower memory in captain while slaves send the artifacts
+  status.csv as a string.
 * Default: true
-
-jobs_data_lite.exclude_fields = <comma separated list>
-* List of job status fields to be excluded from truncation when
-  jobs_data_lite.enabled is true.
-* Fields to exclude must be in a comma separated list.
-* No default
-
-jobs_data_lite.search_field_len = <non-negative integer>
-* Maximum length for any search-based field in the search job status when
-  jobs_data_lite.enabled is true.  Fields longer than this value will be
-  truncated.
-* Any field larger than this size will be truncated unless configured in the
-  jobs_data_lite.exclude_fields list.
-* Search fields include: remote_search, normalized_search, optimized_search,
-  phase_0_search, phase_1_search, report_search, and events_search.
-* Default: 100
-
-jobs_data_lite.default_field_len = <non-negative integer>
-* Maximum length for any nonsearch-based field in the search job status
-  when jobs_data_lite.enabled is true.  Fields longer than this value will be
-  truncated.
-* Any field larger than this size will be truncated unless configured in the
-  jobs_data_lite.exclude_fields list.
-* Default: 1000000
-
-jobs_data_lite.max_status_size_per_hb = <non-negative integer>
-* The maximum size, in megabyte, of status.csv
-* status.csv tracks job statuses and is sent between the captain and each cluster
-  member in each heartbeat.
-  Limiting the size of status.csv helps to stabilize the communication between the
-  captain and members by preventing the heartbeat from growing overly large.
-* Default: 700
-* Recommended range: 500-1000
-* Absolute range: 100-1500
 
 shcluster_label = <string>
 * This specifies the label of the search head cluster.
@@ -4838,7 +4727,7 @@ allow_concurrent_dispatch_savedsearch = <boolean>
   concurrently or sequentially.
 * If true, the member processes the REST calls concurrently. 
 * If false, the member processes the REST calls sequentially. 
-* Default: true
+* Default: false
 
 [replication_port://<port>]
 ############################################################################
@@ -5567,32 +5456,31 @@ responseTimeout = <decimal>
   value instead.
 * Default: 8
 
-actions = <comma-separated list>
+actions = <actions_list>
 * A comma-separated list of actions that execute sequentially when a blocked
   thread is encountered.
-* The following actions can be included in the list: 'pstacks', 'script', and
-  'bulletin'.
-  * 'pstacks' enables call stack generation for a blocked thread.
-    * Call stack generation gives the user immediate information on the
-      potential thread bottleneck or deadlock.
-    * The watchdog saves each call stack in a separate file in
-      $SPLUNK_HOME/var/log/watchdog with the following file name format:
-      wd_stack_<pid>_<thread_name>_%Y_%m_%d_%H_%M_%S.%f_<uid>.log.
-  * 'script' executes the script configured by the
-    [watchdogaction:script] stanza.
-  * 'bulletin' causes a message to be displayed on the web interface.
-* NOTE: Use this setting only under the guidance of a Splunk Support engineer.
-  It might degrade performance by increasing CPU and disk usage.
+* Currently, the only available actions are 'pstacks', 'script', and 'bulletin'.
+* 'pstacks' enables call stack generation for a blocked thread.
+* Call stack generation gives the user immediate information on the potential
+  bottleneck or deadlock.
+* The watchdog saves each call stack in a separate file in
+  $SPLUNK_HOME/var/log/watchdog with the following file name format:
+  wd_stack_<pid>_<thread_name>_%Y_%m_%d_%H_%M_%S.%f_<uid>.log.
+* 'script' executes specified script.
+* 'bulletin' shows a message on the web interface.
+* NOTE: This setting should be used only during troubleshooting, and if you have
+  been asked to set it by a Splunk Support engineer. It might degrade
+  performance by increasing CPU and disk usage.
 * Default: empty list (no action executed)
 
 actionsInterval = <decimal>
-* The interval, in seconds, that the watchdog uses while tracing a blocked
+* The timeout, in seconds, that the watchdog uses while tracing a blocked
   thread. The watchdog executes each action every 'actionsInterval' seconds.
 * The minimum value for 'actionsInterval' is 0.01.
 * If you set 'actionsInterval' to lower than 0.01, the setting uses the minimum
   value instead.
-* NOTE: A very brief interval might reduce performance by increasing CPU usage.
-  Frequently-executed actions can also slow down performance.
+* NOTE: A very small timeout may have impact performance by increasing CPU usage.
+  Splunk may be also slowed down by frequently executed action.
 * Default: 1
 
 pstacksEndpoint = <boolean>
@@ -5609,54 +5497,16 @@ usePreloadedPstacks = <boolean>
   have been explicitly asked to disable it by a Splunk Support engineer.
 * Default: true
 
-[watchdog:<threadname>]
-* Settings under this stanza apply only to the specified "<threadname>".
-* When these per-thread settings are defined, they take precedence over the
-  default settings in the [watchdog] stanza.
-* NOTE: Use this feature only under the guidance of Splunk Support. A Splunk
-  engineer will provide the <threadname>.
-
-disabled = <boolean>
-* Disables thread monitoring for the specified thread.
-* If the thread has been blocked for more than 'responseTimeout' milliseconds
-  the Splunk platform logs it to $SPLUNK_HOME/var/log/watchdog/watchdog.log
-* Default: false.
-
-responseTimeout = <decimal>
-* Maximum time, in seconds, that this thread can take to respond before the
+[watchdog:timeouts]
+reaperThread = <decimal>
+* Maximum time, in seconds, that a reaper thread can take to respond before the
   watchdog logs a 'thread blocked' incident.
-* The minimum value for 'responseTimeout' is 0.1.
-* If you set 'responseTimeout' to lower than 0.1, the setting uses the minimum
+* The minimum value for 'reaperThread' is 0.1.
+* If you set 'reaperThread' to lower than 0.1, the setting uses the minimum
   value instead.
-* Default: 8
-
-actions = <comma-separated list>
-* The actions that are to execute sequentially when this
-  thread is blocked.
-* The following actions can be included in the list: 'pstacks', 'script', and
-  'bulletin'.
-  * 'pstacks' enables call stack generation for the blocked thread.
-    * Call stack generation gives the user immediate information on the
-      potential thread bottleneck or deadlock.
-    * The watchdog saves each call stack in a separate file in
-      $SPLUNK_HOME/var/log/watchdog with the following file name format:
-      wd_stack_<pid>_<thread_name>_%Y_%m_%d_%H_%M_%S.%f_<uid>.log.
-  * 'script' executes the script configured by the
-    [watchdogaction:script] stanza.
-  * 'bulletin' causes a message to be displayed on the web interface.
-* NOTE: Use this setting only under the guidance of a Splunk Support engineer.
-  It might degrade performance by increasing CPU and disk usage.
-* Default: empty list (no action executed)
-
-actionsInterval = <decimal>
-* The interval, in seconds, that the watchdog uses while tracing this blocked
-  thread. The watchdog executes each action every 'actionsInterval' seconds.
-* The minimum value for 'actionsInterval' is 0.01.
-* If you set 'actionsInterval' to lower than 0.01, the setting uses the minimum
-  value instead.
-* NOTE: A very brief interval might reduce performance by increasing CPU usage.
-  Frequently-executed actions can also slow down performance.
-* Default: 1
+* This value is used only for threads dedicated to clean up dispatch directories
+  and search artifacts.
+* Default: 30
 
 [watchdogaction:pstacks]
 * Setting under this stanza are ignored if 'pstacks' is not enabled in the
@@ -5928,14 +5778,14 @@ remote.s3.max_count.max_retries_per_part = <unsigned integer>
 * The count is maintained separately for each file part in a multipart download
   or upload.
 * Optional.
-* Default: 1
+* Default: 9
 
 remote.s3.max_count.max_retries_in_total = <unsigned integer>
 * When the remote.s3.retry_policy setting is max_count, sets the maximum number
   of times a file operation is retried upon intermittent failure.
 * The count is maintained for each file as a whole.
 * Optional.
-* Default: 1
+* Default: 128
 
 remote.s3.timeout.connect = <unsigned integer>
 * Set the connection timeout, in milliseconds, to use when interacting with
@@ -6252,7 +6102,6 @@ suppression_store = local
 
 
 
-
 [manager_pages]
 sanitize_uri_param = <boolean>
 * Determines whether the URI parameter received in the manager pages will be  
@@ -6264,27 +6113,3 @@ sanitize_uri_param = <boolean>
 * Note: It is critical to sanitize the URI parameter if possible as it can be 
   abused.
 * Default: true
-
-[localProxy]
-max_concurrent_requests = <decimal>
-* Currently not supported. This setting relates to a feature that is
-  still under development.
-* The maximum number of concurrent requests to proxy by using the 'local-proxy'
-  REST endpoint.
-* Maximum accepted value for this setting is "100".
-* Minimum accepted value for this setting is "1".
-* Default: 10
-
-response_timeout_ms = <decimal>
-* Currently not supported. This setting relates to a feature that is
-  still under development.
-* The maximum time, in milliseconds, to wait for the proxy destination to complete a
-  response.
-* Maximum accepted value for this setting is "3600000" milliseconds (1 hour).
-* Minimum accepted value for this setting is "100" milliseconds.
-* CAUTION: Setting this to a value close to the lower bound might result in
-  timeouts due to insufficient time for the operation to complete, causing
-  error or interruption.
-* CAUTION: Setting this to a value close to the upper bound might delay
-  cleaning up unresponsive sessions.
-* Default: 600000 (10 minutes)

@@ -1,4 +1,4 @@
-#   Version 9.2.0
+#   Version 9.1.3
 #
 # This file contains possible setting and value pairs for federated provider entries
 # for use when the federated search functionality is enabled.
@@ -127,8 +127,8 @@ heartbeatEnabled = <boolean>
     times set by 'connectivityFailuresThreshold', the heartbeat mechanism sets
     the federated provider to an invalid state, meaning it ignores the
     unreachable provider in federated searches.
-      * When the heartbeat mechanism reconnects to the provider, it resets the
-        provider to a valid state.
+	* When the heartbeat mechanism reconnects to the provider, it resets the
+	  provider to a valid state.
   * If two transparent mode federated providers are found to point to the same
     server ID, the heartbeat mechanism randomly chooses one provider to run the
     search over.
@@ -182,39 +182,96 @@ controlCommandsFeatureEnabled = <boolean>
 * Change this setting only when directed to do so by Splunk Support.
 * Default: true
 
-proxyBundlesTTL = <int>
-* Specifies the time to live in seconds of a proxy bundle on the remote search 
-  head after the last time it was used for a search.
-* Change this setting only when directed to do so by Splunk Support.
-* Default: 172800
+#
+# Configs for blocking unsupported commands for standard mode configs
+# Change this setting only when instructed to do so by Splunk Support.
+[s2s_smode_unsupported_command:eventcount]
+* This stanza controls whether the eventcount command is blocked for 
+  Federated Search for Splunk on standard mode federated providers.
 
-remoteEventsDownloadRetryCountMax = <integer>
-* When you run a verbose-mode federated search, the federated search head 
-  downloads events from the federated provider. 
-* If this event download fails, the federated search head retries the download.
-* This setting sets the maximum number of event download retries that the 
-  federated search head can make before it reports a failure.
-* See 'remoteEventsDownloadRetryTimeoutMs' for the interval between retries.
-* Change this setting only when directed to do so by Splunk Support.
-* Default: 20
+active = <boolean>
+* Whether Splunk software blocks the 'eventcount' command for standard mode    
+  federated search.
+  * A value of "true" means that the 'eventcount' command is not blocked for 
+    standard mode federated search.
+  * A value of "false" means that the 'eventcount' command is blocked for 
+    standard mode federated search. 
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support. 
+* Default: false
 
-remoteEventsDownloadRetryTimeoutMs = <int>
-* Specifies the interval, in milliseconds, between retries of a failed event 
-  download from a federated provider. 
-* See 'remoteEventsDownloadRetryCountMax' for the total number of event 
-  download retries a federated search head can make before it must report a 
-  failure.
-* Change this setting only when directed to do so by Splunk Support.
-* Default: 1000
 
-verbose_mode = <boolean>
-* Specifies whether federated searches can be run in verbose mode. 
-* A setting of 'false' restricts the ability of federated searches to run in 
-  verbose mode, while allowing federated searches to run in fast and smart 
-  mode.  
-* In Transparent Mode, a setting of 'false' means that Splunk software runs 
-  only the local portion of a verbose mode federated search.
-* In Standard Mode, a setting of 'false' terminates verbose mode federated 
-  searches without displaying their results.  
-* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+# Change this setting only when instructed to do so by Splunk Support.
+[s2s_smode_unsupported_command:metadata]
+* This stanza controls whether the metadata command is blocked for 
+  Federated Search for Splunk on standard mode federated providers.
+
+active = <boolean>
+* Whether Splunk software blocks the 'metadata' command for standard mode 
+  federated search.
+  * A value of "true" means that the 'metadata' command is not blocked for 
+    standard mode federated search.
+  * A value of "false" means that the 'metadata' command is blocked for 
+    standard mode federated search. 
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support. 
+* Default: false
+
+# Change this setting only when instructed to do so by Splunk Support.
+[s2s_smode_unsupported_command:metasearch]
+* This stanza controls whether the metasearch command is blocked for 
+  Federated Search for Splunk on standard mode federated providers.
+
+active = <boolean>
+* Whether Splunk software blocks the 'metasearch' command for standard mode 
+  federated search.
+  * A value of "true" means that the 'metasearch' command is not blocked for 
+    standard mode federated search.
+  * A value of "false" means that the 'metasearch' command is blocked for 
+    standard mode federated search. 
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support. 
+* Default: false
+
+# Change this setting only when instructed to do so by Splunk Support.
+[s2s_transparent_mode_unsupported_command:makeresults]
+* This stanza controls whether Splunk software blocks the 'makeresults' command 
+  on transparent mode federated providers for Federated Search for Splunk.
+
+active = <boolean>
+* Controls whether Splunk software blocks the 'makeresults' command for 
+  transparent mode federated search.
+  * A value of "true" means that Splunk software does not block the 
+    'makeresults' command for transparent mode federated search.
+  * A value of "false" means that Splunk software blocks the 'makeresults' 
+    command for transparent mode federated search. The 'makeresults' command 
+    still runs on your local search head.
+* Even when 'active=false', you can run a 'makeresults' search over a 
+  transparent mode federated provider when the following things are true:
+  * The 'allow_target' setting is set to 'true' and you use the 'splunk_server' 
+    or 'splunk_server_group' arguments in conjunction with the 'makeresults' 
+    command. 
+  * The 'splunk_server' or 'splunk_server_group' arguments point to a server or 
+    server group that exists on the transparent mode federated provider.
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support. 
+* Default: false
+
+allow_target = <boolean>
+* Determines whether you can run the 'makeresults' command over transparent 
+  mode federated providers with the 'splunk_server' or 'splunk_server_group' 
+  arguments even when 'active = false'.
+  * A value of "true" means that you can run the specified command over 
+    transparent mode federated providers when you use the 'splunk_server' or 
+    'splunk_server_group' argument in conjunction with the command. 
+    * If you do not specify a server or server group that exists on the the 
+      transparent mode federated provider, Splunk software blocks 'makeresults' 
+      for transparent mode federated search, and runs only on your local search 
+      head.
+  * A value of "false" means that you cannot run 'makeresults' over transparent 
+    mode federated providers even when you use the 'splunk_server' or 
+   'splunk_server_group' arguments to specify servers or server groups that 
+   exist on the transparent mode provider.  
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support. 
 * Default: true

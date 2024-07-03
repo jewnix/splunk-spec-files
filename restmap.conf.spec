@@ -1,4 +1,4 @@
-# Version 9.2.0
+# Version 9.1.3
 #
 # This file contains possible attribute/value pairs for creating new
 # Representational State Transfer (REST) endpoints.
@@ -65,7 +65,6 @@ v1APIBlockGETSearchLaunch = <boolean>
 * /search/parser
 * These changes involve removing the abilty to launch searches using
   HTTP GET requests.
-* Default: false
 
 [<rest endpoint name>:<endpoint description string>]
 * Settings under this stanza are applicable to all REST stanzas.
@@ -281,7 +280,7 @@ members = <comma-separated list>
 * A list of handlers to expose at this URL.
 * See https://localhost:8089/services/admin
   for a list of all possible handlers.
-
+  
 maxCacheTime = <interval>
 * The maximum amount of time that the Splunk platform can cache a response for
   this REST endpoint.

@@ -1,4 +1,4 @@
-#   Version 9.2.0
+#   Version 9.1.3
 #
 # This file contains possible attributes and values you can use to configure
 # distributed search.
@@ -113,6 +113,9 @@ useDisabledListAsBlacklist = <boolean>
 * If set to “false”, search peers that appear in both lists are enabled
   and participate in search.
 * Default: false
+
+shareBundles = <boolean>
+* DEPRECATED.
 
 useSHPBundleReplication =[true|false|always]
 * Whether the search heads in the pool compete with each other to decide which
@@ -462,6 +465,9 @@ cascade_plan_replication_threshold_failures = <integer>
 ################################################################
 # RFS (AKA S3/REMOTE FILE SYSTEM) REPLICATION-SPECIFIC SETTINGS
 ################################################################
+
+enableRFSReplication = <boolean>
+* DEPRECATED.
 
 enableRFSMonitoring = <boolean>
 * Currently not supported. This setting is related to a feature that is

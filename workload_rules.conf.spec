@@ -1,4 +1,4 @@
-#   Version 9.2.0
+#   Version 9.1.3
 #
 ############################################################################
 # OVERVIEW
@@ -38,19 +38,6 @@
 #     what you are doing.  Improperly configured workload rules might result in
 #     splunkd crashes, memory overuse, or both.
 
-[general]
-numeric_search_time_range = <bool>
-* Specifies whether the search_time_range predicate accepts numerical values.
-* A value of "true" means search_time_range accepts numerical values.
-* Allows assigning numerical values to the search_time_range predicate when 
-  defining workload rules and admission rules. For example, 
-  "search_time_range>7d" or "search_time_range<=24h". 
-* The search_time_range predicate accepts the value "alltime" regardless of 
-  the value of this setting.
-* This setting applies only to the default stanza as a global setting.  
-* Note: This setting can cause slower search performance.
-* Default: false
-
 [workload_rule:<rule_name>]
 predicate = <string>
 * Specifies the predicate of this workload classification rule.
@@ -71,12 +58,8 @@ predicate = <string>
   "report_acceleration" and "summary_index".
 * For "search_mode" type, the value is the mode of the search. Valid modes 
   include "realtime" and "historical".
-* For "search_time_range" type, the value is the time range of the search.
-  Value can be "alltime" or a numerical value. For example, 
-  "search_time_range>7d" or "search_time_range<=24h".
-  To specify a numerical value, the 'numerical_search_time_range' flag
-  must be set to "true".
-
+* For "search_time_range" type, the value is the time range of the search. 
+  For now, value can only be "alltime".
 * For "runtime" type, the value is the amount of time a search must run in a 
   workload pool to trigger a specified action, such as alert, move or abort.
   Valid units for runtime values include s, second, seconds, m, minute, minutes,

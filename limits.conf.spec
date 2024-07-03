@@ -1,4 +1,4 @@
-#   Version 9.2.0
+#   Version 9.1.3
 #
 ############################################################################
 # OVERVIEW
@@ -88,14 +88,10 @@ max_mem_usage_mb = <non-negative integer>
     * If the memory limit is exceeded, output is truncated, not spilled to disk.
   * The 'stats' and 'sdselect' command processors use the ‘max_mem_usage_mb’
     value in the following way.
-    * If the estimated memory usage exceeds the specified limit, the results 
-      are cached to the disk. This means that when a large volume of data 
-      exceeds the 'max_mem_usage_mb' setting, the search processor doesn't 
-      store all the data in memory. Instead, the search processor puts some 
-      data into temporary data files on disk, so that it can do further  
-      processing on that data later as needed.
-    * If 0 is specified, the results are cached to the disk when the number of
-      results exceeds the ‘maxresultrows’ setting.
+    * If the estimated memory usage exceeds the specified limit, the results are
+      spilled to disk.
+    * If 0 is specified, the results are spilled to the disk when the number of
+      results exceed the ‘maxresultrows’ setting.
   * The eventstats command processor uses the ‘max_mem_usage_mb’ value in the
     following way.
     * Both the ‘max_mem_usage_mb’ and the ‘maxresultrows’ settings are used to
@@ -123,35 +119,35 @@ regex_cpu_profiling = <boolean>
   metrics.log file.
   Entries in metrics.log will appear per_host_regex_cpu, per_source_regex_cpu,
   per_sourcetype_regex_cpu, per_index_regex_cpu.
-* Default: true
+* Default: false
 
 agg_cpu_profiling = <boolean>
 * Enable CPU time metrics for AggregatorProcessor. Output will be in the
   metrics.log file.
   Entries in metrics.log will appear per_host_agg_cpu, per_source_agg_cpu,
   per_sourcetype_agg_cpu, per_index_agg_cpu.
-* Default: true
+* Default: false
 
 msp_cpu_profiling = <boolean>
 * Enable CPU time metrics for MetricSchemaProcessor. Output will be in the
   metrics.log file.
   Entries in metrics.log will appear per_host_msp_cpu, per_source_msp_cpu,
   per_sourcetype_msp_cpu, per_index_msp_cpu.
-* Default: true
+* Default: false
 
 mp_cpu_profiling = <boolean>
 * Enable CPU time metrics for MetricsProcessor. Output will be in the
   metrics.log file.
   Entries in metrics.log will appear per_host_mp_cpu, per_source_mp_cpu,
   per_sourcetype_mp_cpu, per_index_mp_cpu.
-* Default: true
+* Default: false
 
 lb_cpu_profiling = <boolean>
 * Enable CPU time metrics for LineBreakingProcessor. Output will be in the
   metrics.log file.
   Entries in metrics.log will appear per_host_lb_cpu, per_source_lb_cpu,
   per_sourcetype_lb_cpu, per_index_lb_cpu.
-* Default: true
+* Default: false
 
 clb_cpu_profiling = <boolean>
 * Enable CPU time metrics for ChunkedLBProcessor. Output will be in the
@@ -172,29 +168,6 @@ file_and_directory_eliminator_reaper_interval = <integer>
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default (on Windows): 60
 * Default (otherwise): 0
-
-interval = <integer>
-* Number of seconds between logging splunkd metrics to metrics.log
-  for different subgroups.
-* Check metrics.log for the list of configurable "metrics_modules".
-* Set "interval" under the desired "metrics_module" stanza.
-* Example:
-  * If you want 60 seconds metrics logging interval for "thruput:thruput",
-    * [thruput:thruput]
-    * interval = 60
-* Minimum value is 10 seconds.
-* Valid value is multiple of 10.
-* If value is not exact multiple of 10, it will be adjusted to nearest
-  downward multiple.
-* Recommended value multiple of 30. Splunk will decide how often to check for
-  metrics reporting based on greatest common divisor across different values.
-  If "interval" is set 30, 40 for two different components, then
-  greatest common divisor for 30, 40 and 60(default) is 10. It's expensive
-  for metrics reporting thread to log every 10 sec.
-  If "interval" is set 30, 900 for two different components, then
-  greatest common divisor for 30, 90 and 60(default) is 30. It's less
-  expensive for metrics reporting thread to log every 30 sec.
-* Default : "interval" config value set under [metrics] stanza.
 
 [searchresults]
 * This stanza controls search results for a variety of Splunk search commands.
@@ -490,6 +463,10 @@ fetch_remote_search_log = [enabled|disabledSavedSearches|disabled]
     supported, but are not recommended.
   * The previous value of "true" maps to the current value of "enabled".
   * The previous value of "false" maps to the current value of "disabled".
+* You can override this setting on a per-search basis by appending
+  '|noop remote_log_fetch=[*|<indexer1;indexer2...>]' to the search string, 
+  where <indexer1;indexer2...> is a list of indexers that contain the remote 
+  search logs that you want to collect. 
 * Default: disabledSavedSearches
 
 max_chunk_queue_size = <integer>
@@ -554,22 +531,6 @@ remote_search_requests_throttling_type = disabled | per_cpu | physical_ram
 * Do not use this feature in conjunction with workload management.
 * Default: disabled
 
-remote_search_requests_send_capabilities_list = <boolean>
-* When turned on, the search head sends the list of all capabilities of the
-  user running the search to every search peer participating in the search.
-* This makes it possible to uniformly enforce user-level role-based access 
-  control (RBAC).
-* Default: false
-
-remote_search_requests_reject_if_capabilities_list_absent = <boolean>
-* When turned on for a search peer, the search peer rejects search requests that
-  do not also specify the full capability list for the user running the search.
-* The search head sends the full capability list for users running the
-  search when 'send_capabilities_list_to_indexer' is set to true.
-* Turn this on only if all search heads have already set
-  'send_capabilities_list_to_indexers' to true.
-* Default: false
-
 ############################################################################
 # Field stats
 ############################################################################
@@ -607,8 +568,6 @@ enable_history = <boolean>
 
 max_history_length = <integer>
 * Maximum number of searches to store in history for each user and application.
-* When 'search_history_storage_mode' has a value of "kvstore", this value is 
-  applicable per user only, and not per user and application combination.
 * Default: 500
 
 max_history_storage_retention_time = <integer>[s|m|h|d]
@@ -908,7 +867,7 @@ use_bloomfilter = <boolean>
   filtering out tsidx files that do not have relevant terms.  
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: true
-
+     
 use_metadata_elimination = <boolean>
 * Control whether to use metadata to rule out buckets.
 * Default: true
@@ -936,7 +895,6 @@ record_search_telemetry = <boolean>
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: true
 
-
 search_telemetry_file_limit = <integer>
 * Sets a limit to the number of telemetry files that the Splunk software can
   copy to the var/run/splunk/search_telemetry/ directory, so that it may index
@@ -945,7 +903,6 @@ search_telemetry_file_limit = <integer>
   to the directory for indexing.
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: 500
-
 
 search_telemetry_component_limit = <integer>
 * Sets a limit to the size (in bytes) of each of the constituent components in
@@ -1005,7 +962,7 @@ search_launch_timeout_seconds = <positive integer>
 * If search jobs time out frequently before successfully launching, check 
   whether the server running Splunk software is overloaded. Alternatively, 
   change this setting to a number greater than 180.
-* For most deployments, 180 seconds is sufficient.  
+* For most deployments, 180 seconds is sufficient.
 * Default: 180
 
 max_audit_sourcetypes = <integer>
@@ -1077,7 +1034,6 @@ phased_execution = <boolean>
 * DEPRECATED: This setting has been deprecated.
 
 phased_execution_mode = [multithreaded|auto|singlethreaded]
-* DEPRECATED: This setting has been deprecated.
 * Controls whether searches use the multiple-phase method of search execution,
   which is required for parallel reduce functionality as of Splunk Enterprise
   7.1.0.
@@ -1738,9 +1694,9 @@ remote_timeline_fetchall = <boolean>
 * When set to "0" (false): The search peers might not ship all matching
   events to the search head, particularly if there is a very large number
   of them.
-    * Skipping the complete fetching of events back to the search head will
-      result in prompt search finalization.
-    * Some events may not be available to browse in the UI.
+   * Skipping the complete fetching of events back to the search head will
+     result in prompt search finalization.
+   * Some events may not be available to browse in the UI.
 * This setting does NOT affect the accuracy of search results computed by
   reporting searches.
 * Default: 1 (true)
@@ -1845,7 +1801,6 @@ remote_ttl = <integer>
 * How long, in seconds, the search artifacts from searches run in behalf of
   a search head should be stored on the indexer after completion.
 * Default: 600 (10 minutes)
-
 
 ttl = <integer>
 * How long, in seconds, the search artifacts should be stored on disk after
@@ -2725,6 +2680,17 @@ tmpfile_compression_level = <int>
 * For lz4 higher numbers indicate lower speed, and higher compression ratios.
 * Default: 0
 
+use_stats_v2 = [fixed-width | <boolean>]
+* Specifies whether to use the v2 stats processor.
+* When set to 'fixed-width', the Splunk software uses the v2 stats processor
+  for operations that do not require the allocation of extra memory for new
+  events that match certain combinations of group-by keys in memory. Operations
+  that cause the Splunk software to use v1 stats processing include the
+  'eventstats' and 'streamstats' commands, usage of wildcards, and stats
+  functions such as list(), values(), and dc().
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: true
+
 min_chunk_size_kb = <integer>
 * Specifies the minimum size of a chunk of intermediate results during 'stats' 
   search processing. See 'chunk_size_double_every' for additional details.
@@ -2977,7 +2943,6 @@ use_bloomfilter = <boolean>
   filtering out tsidx files that do not have relevant terms.  
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: true
-
 
 [typeahead]
 
@@ -3517,7 +3482,7 @@ max_users_to_precache = <unsigned integer>
 interval = <integer>
 * Number of seconds between logging splunkd metrics to metrics.log.
 * Minimum of 10.
-* Default (Splunk Enterprise): 60
+* Default (Splunk Enterprise): 30
 * Default (Splunk Universal Forwarder): 60
 
 maxseries = <integer>
@@ -3543,14 +3508,6 @@ suppress_derived_info = <boolean>
   not be emitted.
 * Default: false
 
-idle_connections_log_frequency =  <integer>
-* For each splunktcp connection from forwarder, splunk logs metrics information
-  every metrics interval "[metrics]->interval". There may be large number of
-  idle connections. Idle connection received zero bytes during last
-  "[metrics]->interval"*idle_connections_log_frequency seconds.
-* Setting to skip logging idle connection metrics to metrics.log.
-* A value of 1 means always log idle connection metrics to metrics.log.
-* Default: 1
 
 [pdf]
 
@@ -4227,14 +4184,6 @@ sleep_seconds = <integer>
   complete status.
 * Default: 5
 
-sleep_rebuild_deletion_seconds = <integer>
-* The maximum amount of time, in seconds, for Splunk software to wait for data 
-  model acceleration summary deletion to occur during an automatic summary rebuild.
-  When this interval is reached the summary rebuild process moves on to the next 
-  bucket. 
-* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
-* Default: 5
-
 stale_lock_seconds = <integer>
 * The amount of time, in seconds, to have elapse since the mod time of
   a .lock file before summarization considers * that lock file stale
@@ -4459,10 +4408,7 @@ enabled = <boolean>
 * Enables projection elimination optimization
 * Default: true
 
-cmds_black_list = <comma separated list>
-* DEPRECATED. Use the 'excluded_commands' setting instead.
-
-excluded_commands = <Commands List>
+cmds_black_list = <Commands List>
 * A comma-separated list of commands that are not affected by projection
   elimination optimization.
 * No default.
@@ -4777,11 +4723,14 @@ stats = <boolean>
   optimization methods of Stats V2, or if it falls back to the older, less
   optimized version of required field optimization that was used prior to Stats
   v2.
-* When set to 'true': the stats processor uses the Stats v2 version of the
-    required field optimization. Do not set the value to "1" to indicate "true", 
+* This setting only applies when 'use_stats_v2' is set to 'true' or
+  'fixed-width' in 'limits.conf'
+  * When Stats v2 is enabled and this setting is set to 'true', the stats
+    processor uses the Stats v2 version of required field optimization. 
+    Do not set the value to "1" to indicate "true", 
     because some systems might not parse this value correctly.
-* When set to 'false': the stats processor falls back to the older version of
-    the required field optimization.
+  * When Stats v2 is enabled and this setting is set to 'false' the stats
+    processor falls back to the older version of required field optimization.
 * Do not change this setting unless instructed to do so by Splunk support.
 * Default: false
 
@@ -4824,21 +4773,3 @@ rfs.provider.max_workers = <non-negative integer>
   to serialize events into compressed JSON file for storing on one or more
   destinations.
 * Default: 4
-
-rfsS3DestinationOff = <boolean>
-* Specifies whether Ingest Actions S3 destination configuration is turned off.
-* If S3 destination configuration is turned off, users will not see "Destination"
-  page in the UI.
-* If S3 destination configuration is turned off, users will not be able to configure
-  S3 destination through REST endpoint.
-* S3 destination configuration is turned off by default in GCP instances.
-* Default: false
-
-############################################################################
-# SPL2
-############################################################################
-[spl2]
-origin = [all|none|<search-origin>]
-* Limits where the SPL2 search can originate from.
-* Use a comma-separated list for the value. Currently, the only supported value is "ad-hoc".
-* Default: all

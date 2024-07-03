@@ -1,4 +1,4 @@
-#   Version 9.2.0
+#   Version 9.1.3
 #
 ############################################################################
 # OVERVIEW
@@ -170,7 +170,7 @@ fieldFilter-<fieldname> = <option>
       results with corresponding characters provided by the sed expression (y).
       * The syntax for using the sed (s) command to replace strings in search
         results that are matched by a regular expression is:
-          s/<regex>/<replacement>/<flags>
+	       s/<regex>/<replacement>/<flags>
       * <regex> is a PCRE regular expression, which can include capturing
         groups.
       * <replacement> is a string that replaces the regular expression match.
@@ -181,7 +181,7 @@ fieldFilter-<fieldname> = <option>
     * The syntax for using the sed (y) command to transliterate characters
       that the Splunk software finds in search results with corresponding
       characters that you provide is:
-        y/<source_characters>/<destination_characters>/
+	       y/<source_characters>/<destination_characters>/
       * The (y) command syntax transliterates the <source_characters> in
         search results with corresponding <destination_characters> that you
         provide in the expression.
@@ -462,12 +462,6 @@ kvstore_delete.implicit_deny_list = <semicolon-separated list>
 [tokens_auth]
 * Settings for token authorization.
 
-disabled = <boolean>
-* Whether or not Splunk token authorization is active.
-* A value of "true" disables token authentication, and a value of
-  "false" enables it.
-* Default: false
-
 expiration = <relative-time-modifier>|never
 * The relative time when an authorization token expires.
 * The syntax for using time modifiers is:
@@ -518,6 +512,10 @@ ephemeralExpiration = <relative-time-modifier>
 * Maximum: +6h
 * Default: +1h
 
+disabled = <boolean>
+* Disables and enables Splunk token authorization.
+* Default: true
+
 [capability::accelerate_datamodel]
 * Lets a user enable or disable data model acceleration.
 
@@ -539,18 +537,6 @@ ephemeralExpiration = <relative-time-modifier>
 [capability::list_all_objects]
 * Lets a user list all configuration settings for the configuration endpoints.
 * This capability prevents unauthorized access to configuration endpoints.
-
-[capability::list_all_users]
-* Lets a user list all users by accessing the /services/authentication/users 
-  REST endpoint.
-* For full access to listing users, roles, and capabilities, the user must also
-  have or assign the 'list_all_roles' capability.
-
-[capability::list_all_roles]
-* Lets a user list all roles and the capabilities that are assigned to
-  those roles.
-* For full access to listing users, roles, and capabilities, the user must also
-  have or assign the 'list_all_users' capability.
 
 [capability::edit_tokens_settings]
 * Lets a user access all token auth settings in the system, such as turning the
@@ -650,8 +636,8 @@ ephemeralExpiration = <relative-time-modifier>
 * Also used by Indexer Discovery admin handlers.
 
 [capability::edit_ingest_rulesets]
-* Lets a user add, edit, and delete ingest action rule sets
-  through the data/ingest/rulesets endpoint.
+ * Lets a user add, edit, and delete ingest action rule sets
+   through the data/ingest/rulesets endpoint.
 
 [capability::edit_input_defaults]
 * Lets a user change the default hostname for input data through the server
@@ -700,9 +686,8 @@ ephemeralExpiration = <relative-time-modifier>
   set of roles.
 * To limit this ability, also assign the 'edit_roles_grantable' capability
   and configure the 'grantableRoles' setting in authorize.conf.
-    * For example:
-        grantableRoles = role1;role2;role3
-
+  	* For example:
+		grantableRoles = role1;role2;role3
         This configuration lets a user create roles using the subset of
         capabilities that the user has in their 'grantable_roles' setting.
 
@@ -796,7 +781,7 @@ ephemeralExpiration = <relative-time-modifier>
 * To let users grant additional roles, assign the
   'edit_roles_grantable' capability and configure the
   'grantableRoles' setting in authorize.conf.
-    * Example: grantableRoles = role1;role2;role3
+	* Example: grantableRoles = role1;role2;role3
 
 [capability::edit_view_html]
 * Lets a user create, edit, or otherwise modify HTML-based views.

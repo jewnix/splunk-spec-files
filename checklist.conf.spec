@@ -1,4 +1,4 @@
-#   Version 9.2.0
+#   Version 9.1.3
 #
 # This file contains the set of attributes and values you can use to
 # configure checklist.conf to run health checks in Monitoring Console.
@@ -86,17 +86,17 @@ search = <ASCII string>
 *   The user should be able to look at this field to get some idea of what made the instance fail this check.
 *
 * <level number> (required) could be one of the following:
-*   - -1 (N/A) means: "Not Applicable"
-*   - 0 (ok) means: "all good"
-*   - 1 (info) means: "just ignore it if you don't understand"
-*   - 2 (warning) means: "well, you'd better take a look"
-*   - 3 (error) means: "FIRE!"
+*   - -1 (N/A)		means: "Not Applicable"
+*   - 0	(ok) 		means: "all good"
+* 	- 1 (info)		means: "just ignore it if you don't understand"
+* 	- 2 (warning)	means: "well, you'd better take a look"
+* 	- 3 (error)		means: "FIRE!"
 *
 * Please also note that the search string must contain either of the following
   token to properly scope to either a single instance or a group of instances,
   depending on the settings of checklistsettings.conf.
-    $rest_scope$ - used for "|rest" search
-    $hist_scope$ - used for historical search
+* 	$rest_scope$ 		- used for "|rest" search
+* 	$hist_scope$ 		- used for historical search
 
 drilldown = <ASCII string>
 * (optional) Link to a search or Monitoring Console dashboard for additional information.

@@ -1,4 +1,4 @@
-#   Version 9.2.0
+#   Version 9.1.3
 #
 ############################################################################
 # OVERVIEW
@@ -18,11 +18,6 @@
 # that you want to customize to the local configuration file.
 # For examples, see indexes.conf.example. You must restart the Splunk instance
 # to enable configuration changes.
-#
-# Some settings changes might require a restart or reload. To determine when a
-# restart or reload is required, refer to the "Managing Indexers and
-# Clusters of Indexers" documentation:
-# http://docs.splunk.com/Documentation/Splunk/latest/Indexer/Determinerestart
 #
 # To learn more about configuration files (including file precedence) see the
 # documentation located at
@@ -641,8 +636,7 @@ maxGlobalRawDataSizeMB = <nonnegative integer>
 
 maxGlobalDataSizeMB = <nonnegative integer>
 * The maximum size, in megabytes, for all warm buckets in a SmartStore
-  index. If the index was migrated from non-SmartStore to SmartStore this
-  size also includes the size of all migrated cold buckets.
+  index on a cluster.
 * This setting includes the sum of the size of all buckets that reside
   on remote storage, along with any buckets that have recently rolled
   from hot to warm on a peer node and are awaiting upload to remote storage.
@@ -1273,12 +1267,12 @@ metric.stubOutRawdataJournal = <boolean>
 * Searches over metrics indexes do not use the rawdata file. Therefore, changing this
   setting to "true" does not affect search results.
 * The benefits of setting to true are:
-    * Reduces storage requirements, by reducing rawdata files to the minimal size.
-    * Potentially improves search time, because the maximum bucket size (controlled by "maxDataSizeMB")
-      now allows for larger tsidx files, since the rawdata file no longer occupies significant space.
-      The rawdata file size is discounted from the overall bucket size while writing continues in a hot bucket,
-      even though the rawdata file is not removed until the bucket rolls to warm. Thus, the hot bucket might
-      exceed "maxDataSizeMB", but, once the bucket rolls to warm, its size will no longer exceed "maxDataSizeMB".
+   * Reduces storage requirements, by reducing rawdata files to the minimal size.
+   * Potentially improves search time, because the maximum bucket size (controlled by "maxDataSizeMB")
+     now allows for larger tsidx files, since the rawdata file no longer occupies significant space.
+     The rawdata file size is discounted from the overall bucket size while writing continues in a hot bucket,
+     even though the rawdata file is not removed until the bucket rolls to warm. Thus, the hot bucket might
+     exceed "maxDataSizeMB", but, once the bucket rolls to warm, its size will no longer exceed "maxDataSizeMB".
 * Caution: Because setting this attribute to "true" eliminates the data in the rawdata files, those
   files can no longer be used in bucket repair operations.
 * Default: true
@@ -2022,9 +2016,7 @@ archiver.selfStorageProvider = <string>
   still under development.
 * Specifies the storage provider for Self Storage.
 * Optional. Only required when using Self Storage.
-* Self Storage only supports the Simple Storage Service (S3) and Google Cloud Storage (GCS)
-  for Amazon Web Services (AWS) and Google Cloud Platform (GCP), respectively.
-* NOTE: This setting value is case-sensitive.
+* The only providers currently supported are S3 and GCS for AWS and GCP, respectively.
 
 archiver.selfStorageBucket = <string>
 * Currently not supported. This setting is related to a feature that is
@@ -2056,7 +2048,7 @@ archiver.selfStorageEncryption = sse-s3 | none
 * A value of 'none' disables server-side encryption. Data is stored unencrypted
   on the Self Storage.
 * Optional.
-* Default: sse-s3
+* Default: none
 
 #**************************************************************************
 # Dynamic Data Archive lets you move your data from your Splunk Cloud indexes to a
@@ -2076,9 +2068,7 @@ archiver.coldStorageProvider = <string>
  Do not configure this setting in a Splunk Enterprise environment.
 * Specifies the storage provider for Dynamic Data Archive.
 * Optional. Only required when using Dynamic Data Archive.
-* The only providers currently supported are Glacier and GCSArchive for
-  Amazon Web Services (AWS) and Google Cloud Platform (GCP), respectively.
-* NOTE: This setting value is case-sensitive.
+* The only providers currently supported are Glacier and GCSArchive for AWS and GCP, respectively.
 
 archiver.coldStorageRetentionPeriod = <unsigned integer>
 * This feature is supported on Splunk Cloud only.
@@ -2154,8 +2144,8 @@ path = <path on server>
 * If storageType is set to its default value of "local":
   * The 'path' setting points to the location on the file system where all
     indexes that will use this volume reside.
-  * This location must not overlap with the location for any other volume
-    or index.
+   * This location must not overlap with the location for any other volume
+     or index.
 * If storageType is set to "remote":
   * The 'path' setting points to the remote storage location where indexes
     reside.
@@ -2219,8 +2209,6 @@ remote.s3.access_key = <string>
   AWS_ACCESS_KEY_ID or AWS_ACCESS_KEY (in that order).
 * If the environment variables are not set and the indexer is running on EC2,
   the indexer attempts to use the access key from the IAM role.
-* Unencrypted access key cannot begin with "$1$" or "$7$". These prefixes are reserved
-  for use by Splunk software to signify that the access key is already encrypted.
 * Optional.
 * No default.
 
@@ -2231,8 +2219,6 @@ remote.s3.secret_key = <string>
   AWS_SECRET_ACCESS_KEY or AWS_SECRET_KEY (in that order).
 * If the environment variables are not set and the indexer is running on EC2,
   the indexer attempts to use the secret key from the IAM role.
-* Unencrypted secret key cannot begin with "$1$" or "$7$". These prefixes are reserved
-  for use by Splunk software to signify that the secret key is already encrypted.
 * Optional.
 * No default.
 
@@ -2616,17 +2602,6 @@ remote.s3.use_sdk = true|false|auto
   S3-compatible.
 * Default: false
 
-remote.s3.data_integrity_validation = disabled | sha256
-* Specifies the signature algorithm that SmartStore uses to generate file
-  signatures in buckets. SmartStore uses file signatures to test the data 
-  integrity of buckets.
-* A value of "disabled" means that SmartStore ignores existing file signatures
-  in buckets.
-* A value of "sha256" means SmartStore uses the SHA-256 encryption algorithm
-  to generate signatures.
-* This setting is optional.
-* Default: disabled
-
 federated.provider = <provider_name>
 * Identifies the federated provider on which this search is run.
 * Select the stanza for the federated provider defined in the federated.conf file.
@@ -2642,9 +2617,9 @@ federated.dataset = <string>
     search head. A saved search name can be provided as the <remote_name> for
     both the savedsearch and lastjob <prefix> options.
 * If the 'federated.provider' is an "aws_s3" type provider:
-  * <prefix> must be "aws_glue_table".
-    * <remote_name> is the name of an AWS Glue Data Catalog table that is used
-      as a dataset schema.
+  * <prefix> must be "aws_glue_table" or "aws_s3_path".
+    * If <prefix> is "aws_glue_table", <remote_name> is the name of an AWS Glue 
+      Data Catalog table that is used as a dataset schema.
       * The AWS Glue Data Catalog table contains metadata that represents data 
         in an Amazon S3 data store.
       * This table is in your AWS Glue Data Catalog if you have set up a 
@@ -2653,6 +2628,13 @@ federated.dataset = <string>
         AWS Glue Data Catalog table.
       * Provide "aws_glue_table" as  <prefix> only if the 'federated.provider' 
         has non-empty 'database' and 'aws_glue_tables_allowlist' settings. 
+    * If <prefix> is "aws_s3_path", <remote_name> is an Amazon S3 path that is 
+      used as a location of objects to be searched.
+      * You use the 's3select' command to run federated searches on objects 
+        under this Amazon S3 path.
+      * When the 'federated.dataset' <prefix> is "aws_s3_path", the 
+        'federated.dataset' setting ignores the 'database' and 
+        'aws_glue_tables_allowlist' settings for the 'federated.provider'.
 * If <prefix> is not defined, <prefix> defaults to 'index'.
 * No default
 
@@ -2889,17 +2871,6 @@ remote.gs.gcp_kms.key = <string>
 * Specifies the name of the encryption key used for uploading data to GCS.
 * Default: none.
 
-remote.gs.data_integrity_validation = disabled | sha256
-* Specifies the signature algorithm that SmartStore uses to generate file
-  signatures in buckets. SmartStore uses file signatures to test the data 
-  integrity of buckets.
-* A value of "disabled" means that SmartStore ignores existing file signatures
-  in buckets.
-* A value of "sha256" means SmartStore uses the SHA-256 encryption algorithm
-  to generate signatures.
-* This setting is optional.
-* Default: disabled
-
 ################################################################
 ##### Microsoft Azure Storage settings
 ################################################################
@@ -3098,14 +3069,3 @@ remote.azure.backoff.max_retry_delay_ms = <unsigned integer>
 * This setting specifies the maximum delay before the next retry, in
   milliseconds
 * Default: 2 * 60 * 1000 (120s)
-
-remote.azure.data_integrity_validation = disabled | sha256
-* Specifies the signature algorithm that SmartStore uses to generate file
-  signatures in buckets. SmartStore uses file signatures to test the data 
-  integrity of buckets.
-* A value of "disabled" means that SmartStore ignores existing file signatures
-  in buckets.
-* A value of "sha256" means SmartStore uses the SHA-256 encryption algorithm
-  to generate signatures.
-* This setting is optional.
-* Default: disabled

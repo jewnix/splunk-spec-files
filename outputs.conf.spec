@@ -1,4 +1,4 @@
-#   Version 9.2.0
+#   Version 9.1.3
 #
 # Forwarders require outputs.conf. Splunk instances that do not forward
 # do not use it. Outputs.conf determines how the forwarder sends data to
@@ -242,16 +242,12 @@ compressed = <boolean>
 * Whether or not forwarders and receivers communicate with one another in 
   compressed format.
 * A value of "true" means the receiver communicates with the forwarder in
-  compressed format for forwarding that does not use TLS/SSL.
-* A value of "true" means the receiver communicates with the forwarder in
-  compressed format for TLS/SSL forwarding if either
-  'useClientSSLCompression' has a value of "false" or the TLS/SSL
-  connection does not use 'zlib' compression.
-* If set to "true", you do not need to set the 'compressed' setting to
-  "true" in the inputs.conf file on the receiver for compression of data
-  to occur.
-* If you use this setting, the 'tcpout_connections' group in the metrics.log
-  file shows throughput values after compression has occurred.
+  compressed format.
+* If set to "true", you do not need to set the 'compressed' setting to "true"
+  in the inputs.conf file on the receiver for compression
+  of data to occur.
+* This setting applies to non-SSL forwarding only. For SSL forwarding,
+  Splunk software uses the 'useClientSSLCompression' setting.
 * Default: false
 
 negotiateProtocolLevel = <unsigned integer>
@@ -370,29 +366,30 @@ maxQueueSize = [<integer>|<integer>[KB|MB|GB]|auto]
 dropEventsOnQueueFull = <integer>[ms|s|m]
 * The amount of time to wait before the output queue throws out all
   new events until it has space.
-* If set to 0ms(milliseconds), 0s(seconds), or 0m(minutes),
-  the queue immediately throws out all new events until it has space.
-* If set to a positive number, the queue waits the specified number of
-  milliseconds, seconds, or minutes before throwing out all new events.
-  If "ms", "s", or "m" is not specified, the default unit is seconds. 
-* If set to -1 or 0, the output queue is blocked because it is full, but events 
-  are not dropped. 
+* If set to 0ms(milliseconds) or 0s(seconds) or 0m(minutes),
+  the queue throws out all new events immediately until it has space.
+* If set to a positive number, the queue waits 'dropEventsonQueueFull'
+  seconds before throwing out all new events.
+* If set to -1 or 0, the output queue blocks when it is full. This further
+  blocks events up the processing chain.
 * If any target group queue is blocked, no more data reaches any other
   target group.
-* CAUTION: Do not set to a positive integer if you are monitoring files 
-  because the files will not be fully ingested if the queue remains blocked
-  for the specified amount of time.
+* Using auto load-balancing is the best way to minimize this condition.
+  In this case, multiple receivers must be down (or jammed up) before
+  queue blocking can occur.
+* CAUTION: DO NOT SET THIS TO A POSITIVE INTEGER IF YOU ARE
+  MONITORING FILES.
 * Default: -1
 
 dropClonedEventsOnQueueFull = <integer>[ms|s|m]
 * The amount of time to wait before dropping events from the group.
-* If set to 0ms(milliseconds), 0s(seconds), or 0m(minutes), the queue 
-  immediately throws out all new events until it has space.
+* If set to 0ms(milliseconds) or 0s(seconds) or 0m(minutes),
+  the queue throws out all new events immediately until it has space.
 * If set to a positive number, the queue does not block completely, but
-  waits up to the specified number of milliseconds, seconds, or minutes to 
-  queue events to a group.
-  * If it cannot queue to a group for more than the specified amount of time, 
-    the queue begins dropping events from the group and makes sure that at
+  waits up to 'dropClonedEventsOnQueueFull' seconds to queue events to a
+  group.
+  * If it cannot queue to a group for more than 'dropClonedEventsOnQueueFull'
+    seconds, it begins dropping events from the group. It makes sure that at
     least one group in the cloning configuration can receive events.
   * The queue blocks if it cannot deliver events to any of the cloned groups.
 * If set to -1, the TcpOutputProcessor ensures that each group
@@ -746,14 +743,8 @@ sslAltNameToCheck = <comma-separated list>
 * Default: no alternate name checking
 
 useClientSSLCompression = <boolean>
-* Whether or not compression on TLS/SSL connections is enabled.
-* Server-side compression in splunkd is on by default. Configuring this
-  setting on the client side enables compression between both server and
-  client.
-* If server-side compression is off, this client-side setting has no effect.
-* A value of "true" means compression on TLS/SSL is enabled.
-* If you use this setting, the 'tcpout_connections' group in the metrics.log
-  file shows throughput values before compression occurs.
+* Whether or not compression on SSL connections is enabled.
+* A value of "true" means compression on SSL is enabled.
 * Default: true
 
 sslQuietShutdown = <boolean>
@@ -1087,12 +1078,11 @@ remote_queue.* = <string>
 * This setting is optional.
 * No default.
 
-remote_queue.type = sqs|kinesis|sqs_smartbus|sqs_smartbus_cp
+remote_queue.type = sqs|kinesis|sqs_smartbus
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Required.
-* Specifies the remote queue type, which can be "SQS", "Kinesis", "SQS Smartbus", or "SQS Smartbus CP".
-* If the type is "sqs_smartbus_cp", the [cloud_processing_queue] stanza must be present.
+* Specifies the remote queue type, either SQS or Kinesis or SQS Smartbus.
 
 compressed = <boolean>
 * See the description for TCPOUT SETTINGS in outputs.conf.spec.
@@ -1427,9 +1417,9 @@ remote_queue.kinesis.large_message_store.path = <string>
   * The "remote-location-specifier" is an external system-specific string for
     identifying a location inside the storage system.
 * The following external systems are supported:
-  * Object stores that support AWS's S3 protocol. These stores use the
-    scheme "s3".
-    For example, "path=s3://mybucket/some/path".
+   * Object stores that support AWS's S3 protocol. These stores use the
+     scheme "s3".
+     For example, "path=s3://mybucket/some/path".
 * If not specified, the queue drops messages exceeding the underlying queue's
   maximum message size.
 * Optional.
@@ -1467,12 +1457,8 @@ remote_queue.kinesis.tenantId = <string>
 * Default: not set
 
 ####
-# Simple Queue Service Smartbus (SQS Smartbus) or Simple Queue Service Smartbus CP (SQS Smartbus CP) specific settings
+# Simple Queue Service Smartbus (SQS Smartbus) specific settings
 ####
-
-# The settings for SQS Smartbus (sqs_smartbus) and SQS Smartbus CP (sqs_smartbus_cp)
-# are identical in the remote queue output. The following section uses "sqs_smartbus"
-  as an example. 
 
 remote_queue.sqs_smartbus.encoding_format = protobuf|s2s
 * Currently not supported. This setting is related to a feature that is
@@ -1629,7 +1615,7 @@ remote_queue.sqs_smartbus.large_message_store.path = <string>
 
 remote_queue.sqs_smartbus.large_message_store.sslVerifyServerCert = <boolean>
 * If set to true, the Splunk platform verifies the certificate presented by the S3
-  server and checks that the common name and alternative name match the ones
+  server and checks that the common name and alternate name match the ones
   specified in 'remote_queue.sqs_smartbus.large_message_store.sslCommonNameToCheck' and
   'remote_queue.sqs_smartbus.large_message_store.sslAltNameToCheck'.
 * Default: false
@@ -1809,44 +1795,6 @@ remote_queue.sqs_smartbus.enable_inline_data = <boolean>
 * This setting only applies when remote_queue.sqs_smartbus.encoding_format=protobuf
 * Default: false
 
-remote_queue.sqs_smartbus.check_replication_enabled = <boolean>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* Specifies whether to enable cross-region replication status checks of
-  uploaded ingest blobs on remote storage.
-* Default: false
-
-remote_queue.sqs_smartbus.check_replication_interval = <number><unit>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* Optional.
-* The interval that the remote queue output processor waits before checking
-  the replication status of an uploaded ingest blob on remote storage.
-* Examples: 100ms, 5s
-* Default: 60s
-
-remote_queue.sqs_smartbus.check_replication_executor_max_workers_count = <positive integer>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* The maximum number of worker threads available per pipeline set to execute SQS output
-  replication related tasks such as replication status checks.
-* A value of 0 is equivalent to 5.
-* Default: 5
-
-remote_queue.sqs_smartbus.check_replication_executor_max_jobs_count = <positive integer>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* The maximum number of jobs that each replication executor worker thread per pipeline set
-  can queue.
-* A value of 0 is equivalent to 1000.
-* Default: 1000
-
-remote_queue.sqs_smartbus.enable_shared_receipts = <boolean>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* If "true", receipts will be shared among ingest blobs.
-* Default: false
-
 ####
 # Remote File System (RFS) Output
 ####
@@ -1904,8 +1852,7 @@ batchSizeThresholdKB = <integer>
   limits.conf/[ingest_actions]/rfs.provider.rawdata_limit_mb for a storage provider.
 * If you increase this setting, you may also want to increase the value of
   server.conf/[queue:rfsQueue]/maxSize.
-* Default: 131072 (128 MiB)
-* Max threshold value: 5242880 (5 GiB)
+* Default: 131072 (128 megabytes)
 
 batchTimeout = <integer>
 * RfsOutputProcessor batches events before flushing to the destination.
@@ -2153,7 +2100,7 @@ remote.s3.kms.auth_region = <string>
 * No default.
 
 remote.s3.kms.key_id = <string>
-* Required if remote.s3.encryption = sse-kms
+* Required if remote.s3.encryption = sse-c | sse-kms | cse
 * Specifies the identifier for Customer Master Key (CMK) on KMS. It can be the
   unique key ID or the Amazon Resource Name (ARN) of the CMK or the alias
   name or ARN of an alias that refers to the CMK.
@@ -2179,36 +2126,6 @@ remote.s3.metadata_max_attempts = <integer>
   retried upon failing to retrieve credentials from EC2 metadata service endpoint.
 * This value must be between 1 and 10.
 * Default: 10
-
-remote.sts.assume_role.role_arn = <string>
-* This feature is supported on Splunk Cloud only.
-* The Amazon Resource Name (ARN) of the role to assume.
-* Normally, splunkd will use whatever credentials are available (i.e. access_key/secret_key, instance
-  IAM roles, etc) to directly access AWS services, such as S3 and KMS. If this is set, instead of
-  using those credentials directly, splunkd will contact the STS AssumeRole API to get credentials
-  associated with the role here, and use that "assumed" role to access other services.
-* Make sure only to specify this when need temporary security credentials
-  to access AWS resources that you might not normally have access to.
-* Example:
-  arn:aws:iam::111122223333:role/SplunkIngestActions
-* Only applicable when the rfs destination is an aws s3 destination (path starts with 's3://').
-* No default
-
-remote.sts.assume_role.external_id = <string>
-* This feature is supported on Splunk Cloud only.
-* A unique identifier that might be required when you assume a role in another account.
-* If the account to which the role belongs requires an external ID to assume,
-  then must provide that value here.
-* No default
-
-remote.sts.assume_role.duration_secs = <integer>
-* The duration, in seconds, of the role session.
-* The value specified can range from 900 seconds (15 minutes) up to
-  the maximum session duration set for the role.
-* If you specify a value higher than this setting or the administrator setting (whichever is lower),
-  the operation fails. For example, if you specify a session duration of 12 hours,
-  but your administrator set the maximum session duration to 6 hours, your operation fails.
-* Default: 3600
 
 authMethod = <string>
 * The authentication method used to access the remote destination.
@@ -2288,119 +2205,3 @@ format.ndjson.index_time_fields = <boolean>
   writes events to the destination in new line delimited JSON format.
 * Default: Inherited format.ndjson.index_time_fields setting from the global 
   [rfs] stanza.
-
-####
-# Cloud Processing Queue Output
-####
-
-[cloud_processing_queue]
-
-* This section explains possible settings for configuring a cloud processing queue.
-* Each cloud_processing_queue stanza represents an individually configured cloud
-  processing queue output.
-* NOTE: Only 1 cloud processing queue stanza is supported as an
-  output queue.
-
-cloud_processing_queue.* = <string>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* Optional.
-* This section explains possible settings for configuring a cloud processing queue.
-* With cloud processing queues, the indexer might require additional configuration,
-  which is specific to the type of cloud processing queue.
-  You can pass configuration information to the indexer by specifying the settings
-  through the following schema: cloud_processing_queue.<scheme>.<config-variable> = <value>.
-  For example:
-  cloud_processing_queue.cp_queue.encoding_format = s2s
-* No default.
-
-cloud_processing_queue.type = cp_queue
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* Required.
-* Specifies the cloud processing queue type, for example, CP Queue.
-
-####
-# Cloud Processing Queue (CP Queue) specific settings
-####
-
-cloud_processing_queue.cp_queue.encoding_format = s2s
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* Specifies the encoding format used to write data to the
-  cloud processing queue.
-* Default: s2s
-
-cloud_processing_queue.cp_queue.retry_policy = max_count|none
-* Sets the retry policy to use for cloud processing queue operations.
-* A retry policy specifies whether and how to retry file operations that fail
-  for those failures that might be intermittent.
-* Retry policies:
-  + "max_count": Imposes a maximum number of times a queue operation is
-    retried upon intermittent failure. Set "max_count" with the
-    'max_count.max_retries_per_part' setting.
-  + "none": Do not retry file operations upon failure.
-* Optional.
-* Default: max_count
-
-cloud_processing_queue.cp_queue.max_count.max_retries_per_part = <unsigned integer>
-* When the 'cloud_processing_queue.cp_queue.retry_policy' setting is "max_count", 
-  sets the maximum number of times a queue operation will be retried upon intermittent
-  failure.
-* Optional.
-* Default: 3
-
-cloud_processing_queue.cp_queue.large_message_store.sslVerifyServerCert = <boolean>
-* A value of "true" means the Splunk platform verifies the certificate presented by the S3
-  server and checks that the common name and alternate name match the ones
-  specified in 'cloud_processing_queue.cp_queue.large_message_store.sslCommonNameToCheck' and
-  'cloud_processing_queue.cp_queue.large_message_store.sslAltNameToCheck'.
-* Default: false
-
-cloud_processing_queue.cp_queue.large_message_store.sslVersions = <comma-separated list>
-* A list of TLS versions to use to connect to the large message store.
-* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
-* The special version "*" selects all supported versions.  The version "tls"
-  selects all versions tls1.0 or newer.
-* If a version is prefixed with "-" it is removed from the list.
-* SSLv2 is always disabled; "-ssl2" is accepted in the version list
-  but does nothing.
-* When configured in FIPS mode, ssl3 is always disabled regardless
-  of this configuration.
-* Default: tls1.2
-
-cloud_processing_queue.cp_queue.large_message_store.sslRootCAPath = <string>
-* Full path to the Certificate Authority (CA) certificate PEM format file
-  containing one or more certificates concatenated together.
-  The S3 certificate will be validated against the CAs present in this file.
-* Default: The value of [sslConfig]/'caCertFile' in server.conf
-
-cloud_processing_queue.cp_queue.large_message_store.cipherSuite = <cipher suite string>
-* If set, uses the specified cipher string for the SSL connection.
-* If not set, uses the default cipher string.
-* You must specify 'dhFile' to enable any Diffie-Hellman ciphers.
-* Default: TLSv1+HIGH:TLSv1.2+HIGH:@STRENGTH
-
-cloud_processing_queue.cp_queue.large_message_store.ecdhCurves = <comma-separated list>
-* ECDH curves to use for ECDH key negotiation.
-* Specify the curves in the order of preference.
-* The client sends these curves as a part of Client Hello.
-* Splunk software only supports named curves specified
-  by their short names.
-* The list of valid named curves by their short/long names can be obtained
-  by executing this command:
-  $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
-* e.g. ecdhCurves = prime256v1,secp384r1,secp521r1
-* Default: not set
-
-cloud_processing_queue.cp_queue.large_message_store.encryption_scheme = sse-s3 | none
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* The encryption scheme used by remote storage.
-* Default: none.
-
-cloud_processing_queue.cp_queue.large_message_store.key_refresh_interval = <string>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* The time interval to refresh primary key.
-* Default: 24h

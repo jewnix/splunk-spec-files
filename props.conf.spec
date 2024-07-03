@@ -1,4 +1,4 @@
-#   Version 9.2.0
+#   Version 9.1.3
 #
 # This file contains possible setting/value pairs for configuring Splunk
 # software's processing properties through props.conf.
@@ -772,9 +772,13 @@ STATSD-DIM-TRANSFORMS = <statsd_dim_stanza_name1>,<statsd_dim_stanza_name2>..
   dimensions, and the stanza name is the same as that of sourcetype name.
 * Stanza names must start with prefix "statsd-dims:"
   For example, in props.conf: 
+  
         STATSD-DIM-TRANSFORMS = statsd-dims:extract_ip 
+
   In transforms.conf, stanza should be prefixed also as so:
+  
         [statsd-dims:extract_ip]
+
 * Default: not set
 
 STATSD_EMIT_SINGLE_MEASUREMENT_FORMAT = <boolean>

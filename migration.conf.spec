@@ -1,4 +1,4 @@
-#   Version 9.2.0
+#   Version 9.2.1
 #
 # This file maintains the migration status in Splunk Enterprise.
 #

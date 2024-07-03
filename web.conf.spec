@@ -1,4 +1,4 @@
-#   Version 9.2.0
+#   Version 9.2.1
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -1310,6 +1310,7 @@ enable_risky_command_check_dashboard = <boolean>
 * Default: true
 
 enableSearchJobXslt = <boolean>
+* REMOVED. This setting no longer has any effect.
 * Whether or not the search job request accepts XML stylesheet language (XSL)
   as input to format search results.
 * If set to "true", the search job request accepts XSL as input

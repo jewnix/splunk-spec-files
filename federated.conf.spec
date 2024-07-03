@@ -1,4 +1,4 @@
-#   Version 9.2.0
+#   Version 9.2.1
 #
 # This file contains possible setting and value pairs for federated provider entries
 # for use when the federated search functionality is enabled.
@@ -217,4 +217,81 @@ verbose_mode = <boolean>
 * In Standard Mode, a setting of 'false' terminates verbose mode federated 
   searches without displaying their results.  
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: true
+
+#
+# Configs for blocking unsupported commands for standard mode configs
+# Change this setting only when instructed to do so by Splunk Support.
+[s2s_smode_unsupported_command:metadata]
+* This stanza controls whether the metadata command is blocked for 
+  Federated Search for Splunk on standard mode federated providers.
+
+active = <boolean>
+* Whether Splunk software blocks the 'metadata' command for standard mode 
+  federated search.
+  * A value of "true" means that the 'metadata' command is not blocked for 
+    standard mode federated search.
+  * A value of "false" means that the 'metadata' command is blocked for 
+    standard mode federated search. 
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support. 
+* Default: false
+
+# Change this setting only when instructed to do so by Splunk Support.
+[s2s_smode_unsupported_command:metasearch]
+* This stanza controls whether the metasearch command is blocked for 
+  Federated Search for Splunk on standard mode federated providers.
+
+active = <boolean>
+* Whether Splunk software blocks the 'metasearch' command for standard mode 
+  federated search.
+  * A value of "true" means that the 'metasearch' command is not blocked for 
+    standard mode federated search.
+  * A value of "false" means that the 'metasearch' command is blocked for 
+    standard mode federated search. 
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support. 
+* Default: false
+
+# Change this setting only when instructed to do so by Splunk Support.
+[s2s_transparent_mode_unsupported_command:makeresults]
+* This stanza controls whether Splunk software blocks the 'makeresults' command 
+  on transparent mode federated providers for Federated Search for Splunk.
+
+active = <boolean>
+* Controls whether Splunk software blocks the 'makeresults' command for 
+  transparent mode federated search.
+  * A value of "true" means that Splunk software does not block the 
+    'makeresults' command for transparent mode federated search.
+  * A value of "false" means that Splunk software blocks the 'makeresults' 
+    command for transparent mode federated search. The 'makeresults' command 
+    still runs on your local search head.
+* Even when 'active=false', you can run a 'makeresults' search over a 
+  transparent mode federated provider when the following things are true:
+  * The 'allow_target' setting is set to 'true' and you use the 'splunk_server' 
+    or 'splunk_server_group' arguments in conjunction with the 'makeresults' 
+    command. 
+  * The 'splunk_server' or 'splunk_server_group' arguments point to a server or 
+    server group that exists on the transparent mode federated provider.
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support. 
+* Default: false
+
+allow_target = <boolean>
+* Determines whether you can run the 'makeresults' command over transparent 
+  mode federated providers with the 'splunk_server' or 'splunk_server_group' 
+  arguments even when 'active = false'.
+  * A value of "true" means that you can run the specified command over 
+    transparent mode federated providers when you use the 'splunk_server' or 
+    'splunk_server_group' argument in conjunction with the command. 
+    * If you do not specify a server or server group that exists on the the 
+      transparent mode federated provider, Splunk software blocks 'makeresults' 
+      for transparent mode federated search, and runs only on your local search 
+      head.
+  * A value of "false" means that you cannot run 'makeresults' over transparent 
+    mode federated providers even when you use the 'splunk_server' or 
+   'splunk_server_group' arguments to specify servers or server groups that 
+   exist on the transparent mode provider.  
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support. 
 * Default: true

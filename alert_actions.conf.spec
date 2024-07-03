@@ -1,4 +1,4 @@
-#   Version 9.2.0
+#   Version 9.2.2
 #
 ############################################################################
 # OVERVIEW
@@ -69,7 +69,7 @@ ttl = <integer>[p]
 * Default: 10p
 * Default (for email, rss)                    : 86400 (24 hours)
 * Default (for script)                        :   600 (10 minutes)
-* Default (for summary_index, populate_lookup):   120 (2 minutes)
+* Default (for summary_index):   120 (2 minutes)
 
 maxtime = <integer>[m|s|h|d]
 * The maximum amount of time that the execution of an action is allowed to
@@ -561,6 +561,8 @@ _name = <string>
 # populate_lookup: these settings are prefaced by the [populate_lookup] stanza
 ################################################################################
 [populate_lookup]
+* This alert action is deprecated and will be disabled 
+  in a future release. Use the 'lookup' alert action instead. 
 dest = <string>
 * Name of the lookup table to populate (stanza name in the transforms.conf file),
   or the lookup file path where you want the data written to. If a path is

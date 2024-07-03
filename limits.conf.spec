@@ -1,4 +1,4 @@
-#   Version 9.2.0
+#   Version 9.2.2
 #
 ############################################################################
 # OVERVIEW
@@ -1007,6 +1007,15 @@ search_launch_timeout_seconds = <positive integer>
   change this setting to a number greater than 180.
 * For most deployments, 180 seconds is sufficient.  
 * Default: 180
+
+search_startup_config_timeout_ms = <positive integer>
+* The amount of time allowed in milliseconds to initialize a search job's  
+  configuration, including the knowledge bundle.
+* If initializing the search configuration takes longer than the time allowed 
+  by this setting, the 'DISPATCH_RUNNER:SLOW_CONFIG_INITIAL' warning message 
+  is displayed in Splunk Web.
+* This setting is used only to monitor search performance. 
+* Default: 3000
 
 max_audit_sourcetypes = <integer>
 * if track_matching_sourcetypes = true, the matching sourcetypes

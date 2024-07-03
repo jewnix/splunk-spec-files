@@ -1,4 +1,4 @@
-#   Version 9.2.0
+#   Version 9.2.2
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -146,7 +146,7 @@ certBasedUserAuthPivOidList = <comma-separated list>
   lookup an end-user's PIV info in the Subject Alternate Name extension of the client certificate.
 * The Splunk platform queries OIDs sequentially in a client certificate until it finds an OID with a value.
 * The value contained in the matched OID is then used to authenticate the user.
-* Default: 1.3.6.1.4.1.311.20.2.3, Microsoft Universal Principal Name
+* Default: 1.3.6.1.4.1.311.20.2.3, Microsoft Universal Principal Name, Microsoft User Principal Name
 
 requireClientCert = <boolean>
 * Whether or not an HTTPS client that connects to the Splunk Web HTTPS server
@@ -1310,6 +1310,7 @@ enable_risky_command_check_dashboard = <boolean>
 * Default: true
 
 enableSearchJobXslt = <boolean>
+* REMOVED. This setting no longer has any effect.
 * Whether or not the search job request accepts XML stylesheet language (XSL)
   as input to format search results.
 * If set to "true", the search job request accepts XSL as input

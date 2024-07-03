@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.2.0
 #
 ############################################################################
 # OVERVIEW
@@ -578,8 +578,8 @@ ephemeralExpiration = <relative-time-modifier>
 * NOTE: The 'delete' command does not actually delete the raw data on disk.
   Instead, it masks the data (via the index) from showing up in search results.
 
-[capability::edit_messages]
-* Lets a user create and delete system messages that appear in the Splunk Web navigation bar.
+[capability::delete_messages]
+* Lets a user delete system messages that appear in the UI navigation bar.
 
 [capability::edit_log_alert_event]
 * Lets a user log an event when an alert condition is met. Also lets the user

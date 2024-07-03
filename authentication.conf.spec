@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.2.0
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.
@@ -1021,10 +1021,10 @@ blacklistedAutoMappedRoles = <comma separated list>
 * DEPRECATED; use 'excludedAutoMappedRoles' instead.
 
 excludedAutoMappedRoles = <comma separated list>
-* A list of Splunk roles for which the Splunk platform is not to
-  auto-map from the identity provider response.
+* Comma separated list of splunk roles that should be prevented
+  from being auto-mapped by splunk from the IDP Response.
 * This setting is optional.
-* Default: admin, power
+* No default.
 
 blacklistedUsers = <comma separated list>
 * DEPRECATED; use 'excludedUsers' instead.

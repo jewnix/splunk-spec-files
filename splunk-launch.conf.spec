@@ -219,7 +219,6 @@ OPTIMISTIC_ABOUT_FILE_LOCKING = [0|1]
   splunkd starts whether or not it can recognize the file system.
 * Defaults to 0 (Run the file system check.)
 
-<<<<<<< HEAD
 SPLUNK_PYTHON_DONT_ESCAPE_PRINTABLE = 0|1
 * Determines whether the Splunk Python interpreter escapes non-printable
   characters such as ASCII 0–32,127, when logging with the Python

@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.3.0
 #
 # This file contains possible attribute/value pairs for configuring
 # data models.  To configure a datamodel for an app, put your custom
@@ -38,7 +38,6 @@ acceleration = <boolean>
   you can specify with 'acceleration.cron_schedule'. You can search them with
   the 'tstats' command.
 * Default: false
-
 
 acceleration.earliest_time = <relative time string>
 * Specifies how far back in time the Splunk platform keeps the column stores
@@ -338,7 +337,7 @@ tags_whitelist = <comma-separated list>
   by them) are loaded when you perform searches with this data model.
 * When you update this setting for an accelerated data model, the Splunk
   software rebuilds the data model unless you have enabled
-  accleration.manual_rebuild for it.
+  acceleration.manual_rebuilds for it.
 * If this setting is not set, the Splunk platform attempts to optimize out
   unnecessary tag fields when you perform searches with this data model.
 * Default: empty (not set)

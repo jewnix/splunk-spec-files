@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.3.0
 #
 ############################################################################
 # OVERVIEW
@@ -258,8 +258,6 @@ show_warn_on_filtered_indexes = <boolean>
 
 [subsearch]
 * This stanza controls subsearch results.
-* NOTE: This stanza DOES NOT control subsearch results when a subsearch is
-  called by commands such as join, append, or appendcols.
 * Read more about subsearches in the online documentation:
   http://docs.splunk.com/Documentation/Splunk/latest/Search/Aboutsubsearches
 
@@ -461,6 +459,12 @@ shc_adhoc_quota_enforcement = on | off | overflow
   searches, it defers to the captain for permission to run the search. The captain will
   check which search head has the capacity, and tell the local search head to proxy the search
   to the remote search head to run it.
+* NOTE: Setting it to "on" or "overflow" lets a user run more ad hoc searches
+        than individual cluster member concurrency limits allow. While this
+        can help a user/role with heavier ad hoc search requirements, it can lead
+        to under-counting of the cluster-wide ad hoc search numbers and cause
+        the ad hoc search count to exceed cluster-wide quota limits. Do not
+        change this setting without consulting Splunk Support.
 * Default: off
 
 ############################################################################
@@ -490,6 +494,10 @@ fetch_remote_search_log = [enabled|disabledSavedSearches|disabled]
     supported, but are not recommended.
   * The previous value of "true" maps to the current value of "enabled".
   * The previous value of "false" maps to the current value of "disabled".
+* You can override this setting on a per-search basis by appending
+  '|noop remote_log_fetch=[*|<indexer1;indexer2...>]' to the search string, 
+  where <indexer1;indexer2...> is a list of indexers that contain the remote 
+  search logs that you want to collect. 
 * Default: disabledSavedSearches
 
 max_chunk_queue_size = <integer>
@@ -774,9 +782,7 @@ enable_datamodel_meval = <boolean>
 * default: true
 
 enable_file_command = <boolean>
-* Enables the deprecated 'file' search command.
-* This deprecated command is now disabled by default.
-* default: false
+* DEPRECATED. This setting has been deprecated and has no effect.
 
 enable_conditional_expansion = <boolean>
 * Determines whether or not scoped conditional expansion of knowledge
@@ -867,7 +873,7 @@ search_retry_max_historical = <integer>
 * This setting applies only to historical searches.
 * When the number of attempts exceeds 'search_retry_max_historical', the search 
   fails with an error stating that results are incomplete.
-* Default: 1
+* Default: 15
 
 
 search_retry_waiting_time = <integer>
@@ -1352,9 +1358,12 @@ read_final_results_from_timeliner = <boolean>
       results.
 * Default: true
 
-role_based_field_filtering = <boolean>
-* Enable the role-based field filtering feature.
-* Default: false
+field_filters = <boolean>
+* Determines whether field filters can be used to protect sensitive data in
+  Splunk platform indexes.
+* When set to "true": field filters are turned on.
+* When set to "false": field filters are turned off.
+* Default: true
 
 truncate_report = [1|0]
 * Specifies whether or not to apply the 'max_count' setting to report output.
@@ -2500,10 +2509,7 @@ maxvaluesize = <integer>
 allow_reload = <boolean>
 * Whether or not the '_reload' action is allowed for the 
   'rest' search command. 
-* If you must use '_reload' with the 'rest' search command, 
-  set 'allow_reload' to "true".
-* Use of '_reload' with the 'rest' search command is deprecated.
-* Default: true
+* Default: false
 
 [set]
 
@@ -2830,7 +2836,7 @@ keepresults = <boolean>
 optimize_max_size_mb = <unsigned integer>
 * The maximum size in megabytes of files to create with optimize
 * Specify 0 for no limit (may create very large tsidx files)
-* Default: 1024
+* Default: 256
 
 
 [tstats]
@@ -3410,7 +3416,8 @@ max_accelerations_per_collection = <unsigned integer>
 
 max_documents_per_batch_save = <unsigned integer>
 * The maximum number of documents that can be saved in a single batch
-* Default: 50000
+* Default: 1000
+
 
 max_fields_per_acceleration = <unsigned integer>
 * The maximum number of fields that can be part of a compound acceleration
@@ -3573,6 +3580,17 @@ render_endpoint_timeout = <unsigned integer>
   it has not yet finished rendering the PDF output.
 * Default: 3600 (60 minutes)
 
+render_chromium_timeout = <unsigned integer>
+* The number of seconds after which the Chromium engine will timeout if the
+  engine still needs to render the dashboard output.
+  This setting does not impact the render_chromium_screenshot_delay.
+* Default: 30
+
+render_chromium_screenshot_delay = <unsigned integer>
+* The number of seconds after which the Chromium engine takes a screenshot
+  of a dashboard to render before exporting the dashboard. 
+  This setting does not impact the render_chromium_timeout setting.
+* Default: 0
 
 [realtime]
 
@@ -4293,6 +4311,24 @@ installed_files_integrity = enabled | log_only | disabled
 * When "disabled", no check will be attempted or reported.
 * Default: enabled
 
+installed_files_integrity_interval = <interval>
+* The amount of time between each installed file integrity check.
+* Has no effect if 'installed_files_integrity' is disabled.
+* Specify the interval as a string with minutes, seconds, hours, days.
+  For example: 60s, 1m, 1h, 1d, etc.
+* Default: 12h
+
+installed_files_anomalous_integrity_interval = <interval>
+* The interval at which splunkd checks the $SPLUNK_HOME/bin
+  and $SPLUNK_HOME/lib directories for files that exist in
+  those directories but should not, according to the
+  Splunk manifest file.
+* Has no effect if 'installed_files_integrity' is disabled.
+* Specify the interval as a string with minutes, seconds, hours, days.
+  For example: 60s, 1m, 1h, 1d, etc.
+* Default: 5m
+
+
 orphan_searches = enabled|disabled
 * Enables/disables automatic UI message notifications to admins for
   scheduled saved searches with invalid owners.
@@ -4843,6 +4879,7 @@ rfsS3DestinationOff = <boolean>
 * S3 destination configuration is turned off by default in GCP instances.
 * Default: false
 
+
 ############################################################################
 # SPL2
 ############################################################################
@@ -4851,3 +4888,5 @@ origin = [all|none|<search-origin>]
 * Limits where the SPL2 search can originate from.
 * Use a comma-separated list for the value. Currently, the only supported value is "ad-hoc".
 * Default: all
+
+

@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.3.0
 #
 # This file contains all possible attributes and value pairs for a
 # transactiontypes.conf file.  Use this file to configure transaction searches
@@ -37,6 +37,8 @@ maxspan = [<integer> s|m|h|d|-1]
 * Set the maximum pause between the events in a transaction.
 * Can be in seconds, minutes, hours, or days, or -1 for an unlimited timespan.
   * Example:  5s, 6m, 12h or 30d.
+* If value is negative, the maxspan constraint is disabled and there is 
+  no limit. 
 * This setting is accurately documented even though its name is inconsistent 
   with its description.
 * Default: maxspan=-1
@@ -45,6 +47,12 @@ maxpause = [<integer> s|m|h|d|-1]
 * Set the maximum time span for the transaction.
 * Can be in seconds, minutes, hours, or days, or -1 for an unlimited pause.
   * Example:  5s, 6m, 12h or 30d.
+* The events in the transaction must span less than the integer specified 
+  for maxpause. 
+* Events that exceed the maxpause limit are treated as part of a 
+  separate transaction. 
+* If the value is negative, the maxpause constraint is disabled and there is 
+  no limit. 
 * This setting is accurately documented even though its name is inconsistent 
   with its description.
 * Default: maxpause=-1

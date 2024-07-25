@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.3.0
 #
 ############################################################################
 # OVERVIEW
@@ -147,123 +147,35 @@ grantableRoles = <semicolon-separated list>
 * Default (if 'admin' role is edited): admin
 * Default (otherwise): No default
 
-srchFilter = <semicolon-delimited list>
+srchFilter = <string>
 * A list of search filters for this role.
-* To override any search filters from imported roles, set this to "*", as
-  the 'admin' role does.
-* Default: the Splunk platform does not perform search filtering
+* Users who hold this role have their searches filtered by the expression
+  provided by this setting.
+* The value for this setting can contain one or more of the following terms:
+  * 'source='
+  * 'host=' and host tags
+  * 'index=' and index names
+  * 'eventtype=' and event type tags
+  * 'sourcetype='
+  * search fields
+  * wildcards
+* You can use the AND and OR operators to include multiple terms or
+  make searches more restrictive.
+* The value for this setting can't be any of the following:
+  * saved searches
+  * time operators
+  * regular expressions
+  * any fields or modifiers Splunk Web can overwrite
+* To override any search filters from imported roles, give this setting
+  a value of "*", as the 'admin' role does.
+* Default: empty string (the Splunk platform does not perform search filtering)
 
-fieldFilter-<fieldname> = <option>
-* Use the 'fieldFilter' configuration to apply a field filter to a specific role
-  at search time. This field filter affects the results of searches run by
-  users that have the role. The field filter can remove indexed or default
-  fields from the results, or it can censor values of specific fields when
-  those fields appear in the results.
-  * NOTE: Role-based field filters do not support searches that use generating
-    commands other than the 'search' command.
-* The values available for <option> depend on whether the value of <fieldname>
-  is "_raw" or any other field name.
-  * When the value of <fieldname> is "_raw", <option> is a sed expression.
-    * The sed expression acts on searches to which this filter is applied. The
-      sed expression replaces strings in search results that are matched by a
-      regular expression (s) or transliterates characters found in search
-      results with corresponding characters provided by the sed expression (y).
-      * The syntax for using the sed (s) command to replace strings in search
-        results that are matched by a regular expression is:
-          s/<regex>/<replacement>/<flags>
-      * <regex> is a PCRE regular expression, which can include capturing
-        groups.
-      * <replacement> is a string that replaces the regular expression match.
-        Use \<n> for back references, where <n> is a single digit.
-      * <flags> can either be "g", to globally replace all matches, or a
-        number to replace a specified number of matches. Other sed flags for
-        the (s) command are not supported.
-    * The syntax for using the sed (y) command to transliterate characters
-      that the Splunk software finds in search results with corresponding
-      characters that you provide is:
-        y/<source_characters>/<destination_characters>/
-      * The (y) command syntax transliterates the <source_characters> in
-        search results with corresponding <destination_characters> that you
-        provide in the expression.
-      * For example, 'y/abc/def/' replaces 'a' with 'd', 'b' with 'e', and 'c'
-        with 'f'. This expression would change the string 'aaabbc' to
-        'dddeef'.
-      * The lists of <source_characters> and <destination_characters> must
-        contain the same number of characters.
-  * When the value of <fieldname> is any field name other than "_raw", <option>
-    can be [NULL|SHA256|SHA512|<string>].
-    * NULL: If <option> is NULL, the Splunk software removes the <fieldname>
-      from results of searches to which this filter is applied.
-    * SHA256: The Splunk software hashes the <fieldname> value with SHA-256
-      encryption wherever the <fieldname> appears in results of searches to
-      which this filter is applied.
-    * SHA512: The Splunk software hashes the <fieldname> value with SHA-512
-      encryption wherever the <fieldname> appears in results of searches to
-      which this filter is applied.
-    * <string>: The Splunk software replaces the <fieldname> value with the
-      specified <string> wherever the <fieldname> appears in results of
-      searches to which this filter is applied.
-* The Splunk software processes 'fieldFilter' configurations at search time
-  ahead of all other search-time operations that add fields to events,
-  including field extractions.
-  * This means that <fieldname> must be an indexed or default field. Fields
-    that are extracted or added at search time do not exist when 'fieldFilter'
-    configurations are processed.
-* You cannot use wildcards to specify multiple fields for <fieldname>.
-* The following example shows how you can use the 'fieldFilter' configuration
-  to perform operations on fields in searches run by users with a specific role:
-  * At your organization, the indexed field 'user_name' is sensitive for
-    security reasons. You have a role named A, and you want users with the A
-    role to be unable to access the 'user_name' field in their search results.
-    Meanwhile, users with other roles should be able to see 'user_name' fields
-    and values as usual.
-    * If you want to remove the field from the results of searches run by
-      people with role A, apply the following configuration to role A. This
-      configuration provides a NULL value for <option>, which means that
-      'user_name' is removed from the results of searches by people with role A:
-        fieldFilter-user_name = NULL
-    * If you want users with role A to see the 'user_name' field in results,
-      but with censored values, such as 'user_name = XXXX', apply the following
-      configuration to role A:
-        fieldFilter-user_name = XXXX
-* When you specify 'fieldFilter' configurations for a role that is importing
-  other roles (also with 'fieldFilter' configurations), the Splunk software
-  processes 'fieldFilter' configurations for the imported roles before it
-  processes 'fieldFilter' configurations for roles that are importing other
-  roles.
-  * For example, say role A has 'fieldFilter-user_name = YYY' and role B has
-    'fieldFilter-user_name = XXXX'. If role B imports role A, the Splunk
-    software will process the 'fieldFilter' defined for role A first, and
-    then it will process the 'fieldFilter' defined for role B. This means that
-    users with role B always see 'user_name = XXXX' in their results because
-    the role B 'fieldFilter' configuration is processed last.
-* The Splunk software runs each role in an import hierarchy only once. If
-  multiple roles in an import hierarchy apply a 'fieldFilter' configuration to
-  a field, the Splunk software runs them in the order of imported roles to
-  roles that are importing other roles in the import hierarchy, from left to
-  right as listed in 'importRoles'.
-* Do not use the 'fieldFilter' to add new fields. Use calculated fields if you
-  want to add fields at search time.
-* No default.
-
-fieldFilterLimit = [sourcetype::<sourcetype>|host::<host>|source::<source>]
-* Use the 'fieldFilterLimit' configuration to limit the field filters that are
-  specified in a role to events with a specific 'host', 'source', or 'source
-  type'.
-* For example, say role A has this 'fieldFilter' configuration, which
-  censors values of the 'user_name' field in searches run by users with that
-  role:
-     fieldFilter-user_name = xxxx
-  * By itself, 'fieldFilter-user_name' configuration applies to all events with
-    the 'user_name' field.
-  * To apply 'fieldFilter-user_name' only to events that have the 'user_name'
-    field and the "zebra" 'source type', you can add this 'fieldFilterLimit'
-    configuration to role A:
-     fieldFilterLimit = sourcetype::zebra
-* When a 'fieldFilterLimit' setting is associated with a role, it applies to
-  all 'fieldFilter' settings also associated with that role.
-* You can specify only one value. 'fieldFilterLimit' does not support
-  statements that include wildcards or the following operators: AND, OR.
+fieldFilterExemption = <comma-separated list>
+* A list of field filters from which this role is exempt.
+* If a role is exempt from a field filter, the field filter is not run
+  at search time for any users with this role.
+* Roles inherit all field filter exemptions from imported roles. 
+  You can't remove inherited field filter exemptions.
 * No default.
 
 srchTimeWin = <integer>
@@ -322,32 +234,39 @@ srchDiskQuota = <integer>
 * Default: 100
 
 srchJobsQuota = <integer>
-* The maximum number of concurrently running historical searches that a user
-  with this role can have.
-* When set to 0, this setting does not limit the number of historical search
-  jobs that can run concurrently for a user with this role.
-* When 'enable_cumulative_quota = true' in limits.conf, the
-  'cumulativeSrchJobsQuota' setting overrides this setting.
-  * For example, under this condition, if you have a role named 'foo' for which
-    'cumulativeSrchJobsQuota = 350' while 'srchJobsQuota = 100' and you have 4
-    users with the 'foo' role, those users can only run 350 searches
-    concurrently. If you set 'enable_cumulative_quota = false' those users can
-    run 400 searches concurrently.
-* This setting excludes real-time searches. See the 'rtSrchJobsQuota' setting.
+* The maximum number of historical searches that a user who holds this role
+  can run concurrently.
+* A value of 0 means that there is no limit to the number of historical
+  searches that a user who holds this role can run concurrently.
+* If you give the 'enable_cumulative_quota' setting in the limits.conf file
+  a value of "true", then the 'cumulativeSrchJobsQuota' setting in this
+  file also has an effect on the number of concurrent searches that a user
+  who holds this role can run.
+  * For example, in this scenario, if you have a role named 'srchUsers' 
+    for which "cumulativeSrchJobsQuota = 350" while "srchJobsQuota = 100"
+    and you have 4 users who hold the 'srchUsers' role, those users can only
+    run 350 searches in total concurrently. 
+  * If 'enable_cumulative_quota' has a value of "false", those same 4 users can
+    run a total of 400 searches concurrently.
+* This setting does not control the number of real-time searches that can be
+  run currently. See the 'rtSrchJobsQuota' setting.
 * Default: 3
 
 rtSrchJobsQuota = <integer>
-* The maximum number of concurrently running real-time searches that a user
-  with this role can have.
-* When set to 0, this setting does not limit the number of real-time search
-  jobs that can run concurrently for a user with this role.
-* When 'enable_cumulative_quota = true' in limits.conf, the
-  'cumulativeRTSrchJobsQuota' setting overrides this setting.
-  * For example, under this condition, if you have a role named 'foo' for which
-    'cumulativeRTSrchJobsQuota = 350' while 'rtSrchJobsQuota = 100' and you
-    have 4 users with the 'foo' role, those users can only run 350 searches
-    concurrently. If you set 'enable_cumulative_quota = false' those users can
-    run 400 searches concurrently.
+* The maximum number of real-time searches that a user who holds this role
+  can run concurrently.
+* A value of 0 means that there is no limit to the number of real-time
+  search jobs that a user who holds this role can run concurrently.
+* If you give the 'enable_cumulative_quota' setting in the limits.conf file
+  a value of "true", then the 'cumulativeSrchJobsQuota' setting in this
+  file also has an effect on the number of concurrent searches that a user
+  who holds this role can run.
+  * For example, under this condition, if you have a role named 'rt_srchUsers'
+    for which "cumulativeRTSrchJobsQuota = 350" while "rtSrchJobsQuota = 100" 
+    and you have 4 users who hold the 'rt_srchUsers' role, those users can
+    only run 350 searches in total concurrently. 
+  * If 'enable_cumulative_quota' has a value of "false", those same 4 users can
+    run a total of 400 real-time searches concurrently.
 * Default: 6
 
 srchMaxTime = <integer><unit>
@@ -394,32 +313,32 @@ deleteIndexesAllowed = <semicolon-separated list>
 * No default.
 
 cumulativeSrchJobsQuota = <integer>
-* The maximum total number of concurrently running historical searches
-  across all members of this role.
-* For this setting to take effect, you must set the 'enable_cumulative_quota'
-  setting to "true" in limits.conf.
-* If a user belongs to multiple roles, the user's searches count against
+* The total number of historical searches that can run concurrently
+  across all users who hold this role.
+* For this setting to take effect, you must give the 'enable_cumulative_quota'
+  setting in the limits.conf file a value of "true".
+* If a user holds multiple roles, that user's searches count against
   the role with the largest cumulative search quota. Once the quota for
   that role is consumed, the user's searches count against the role with
   the next largest quota, and so on.
-* In search head clustering environments, this setting takes effect on a
-  per-member basis. There is no cluster-wide accounting.
-* When set to 0, this setting does not limit the number of real-time search
+* In search head clustering environments, this setting takes effect for each
+  cluster member. There is no cluster-wide accounting.
+* A value of 0 means there is no limit to the number of historicl search
   jobs that can run concurrently across all users with this role.
-* Default: 0
+* Default: 50
 
 cumulativeRTSrchJobsQuota = <integer>
-* The maximum total number of concurrently running real-time searches
-  across all members of this role.
-* For this setting to take effect, you must set the 'enable_cumulative_quota'
-  setting to "true" in limits.conf.
-* If a user belongs to multiple roles, the user's searches count against
-  the role with the largest cumulative search quota. Once the quota for
+* The total number of real-time searches that can run concurrently
+  across all users who hold this role.
+* For this setting to take effect, you must give the 'enable_cumulative_quota'
+  setting in the limits.conf file a value of "true".
+* If a user holds multiple roles, that user's searches count against
+  the role with the largest cumulative search quota. After the quota for
   that role is consumed, the user's searches count against the role with
   the next largest quota, and so on.
 * In search head clustering environments, this setting takes effect
-  on a per-member basis. There is no cluster-wide accounting.
-* When set to 0, this setting does not limit the number of historical search
+  for each cluster member. There is no cluster-wide accounting.
+* A value of 0 means there is no limit to the number of real-time search
   jobs that can run concurrently across all users with this role.
 * Default: 0
 
@@ -896,7 +815,8 @@ ephemeralExpiration = <relative-time-modifier>
   through the data/ingest/rulesets endpoint.
 
 [capability::list_inputs]
-* Lets a user view the list of inputs including files, TCP, UDP, scripts, and so on.
+* Lets a user view the list of inputs including files, TCP, UDP, scripts, the Windows
+  Registry structure, and so on.
 
 [capability::list_introspection]
 * Lets a user read introspection settings and statistics for indexers, search,
@@ -1001,12 +921,13 @@ ephemeralExpiration = <relative-time-modifier>
 * Lets a user run the 'walklex' command even if they have a role with a search filter.
 
 [capability::run_commands_ignoring_field_filter]
-* Lets a user run commands that return index information even when a
-  'fieldFilter' is configured for that user's role.
-* Some commands can return sensitive index information to which a role
-  with a 'fieldFilter' should not have access.
-* The following commands require this capability for roles configured with a
-  'fieldFilter':  walklex, typeahead, tstats, mstats, mpreview.
+* When field filters are in use, this capability lets users run searches 
+  across field filtered indexes using certain restricted commands that return
+  protected data.
+* This capability is required for a role to run the following commands that 
+  are restricted by default: tstats, mstats, mpreview, walklex, and typeahead. 
+* These commands can return sensitive indexed data that is protected by field
+  filters and should not be accessed by a role without this capability.
 
 [capability::schedule_rtsearch]
 * Lets a user schedule real-time saved searches.
@@ -1027,8 +948,7 @@ ephemeralExpiration = <relative-time-modifier>
   'refresh search-process-config' CLI command.
 
 [capability::use_file_operator]
-* Lets a user use the 'file' command.
-* The 'file' command is DEPRECATED.
+* DEPRECATED. This setting has been deprecated and has no effect.
 
 [capability::upload_lookup_files]
 * Lets a user upload files which can be used in conjunction with lookup definitions.
@@ -1036,11 +956,20 @@ ephemeralExpiration = <relative-time-modifier>
 [capability::upload_mmdb_files]
 * Lets a user upload mmdb files, which are used for iplocation searches.
 
+[capability::create_external_lookup]
+* Lets a user create external lookup definitions.
+
+[capability::edit_external_lookup]
+* Lets a user edit or remove external lookup definitions.
+
 [capability::web_debug]
 * Lets a user access /_bump and /debug/** web debug endpoints.
 
 [capability::edit_field_filter]
-* Lets a user use an API to update role-based 'fieldFilter' configurations.
+* Lets a user use an API to update field filter configurations.
+
+[capability::list_field_filter]
+* Lets a user use an API to list and view field filter configurations.
 
 [capability::edit_statsd_transforms]
 * Lets a user define regular expressions to extract manipulated dimensions out of
@@ -1119,5 +1048,8 @@ ephemeralExpiration = <relative-time-modifier>
 
 [capability::edit_web_features]
 * Lets a user write to the '/web-features' REST endpoint.
+
+[capability::edit_spl2_permissions]
+* Lets a user create and edit permissions to SPL2 items through the REST API.
 
 

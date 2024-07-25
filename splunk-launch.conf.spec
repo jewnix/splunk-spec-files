@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.3.0
 
 # splunk-launch.conf contains values used at startup time, by the Splunk
 # command and by Windows services.
@@ -57,11 +57,11 @@ SPLUNK_HOME = <string>
   based on the location of the splunk CLI executable.
     * Specifically, the parent of the directory containing splunk or splunk.exe
 * Must be set if Common Criteria mode is enabled.
-* NOTE: Splunk plans to submit Splunk Enterprise for Common Criteria
-  evaluation. Splunk does not support using the product in Common
-  Criteria mode until it has been certified by the National Information Assurance
-  Partnership (NIAP). See the "Securing Splunk Enterprise" manual for information on
-  the status of Common Criteria certification.
+* NOTE: Splunk supports using the product in Common Criteria mode
+  for specific software configurations that the National Information 
+  Assurance Partnership (NIAP) certifies only. See the "Securing Splunk
+  Enterprise for Common Criteria" manual for specific information on the
+  status of Common Criteria certification.
 * Default: not set
 
 SPLUNK_DB = <string>

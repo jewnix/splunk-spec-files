@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.3.0
 ############################################################################
 # OVERVIEW
 ############################################################################
@@ -54,10 +54,14 @@ type = <string>
 * The type of script. Valid values are python and perl.
 * Default: python
 
-python.version = {default|python|python2|python3}
+python.version = {default|python|python2|python3|python3.7|python3.9|latest}
 * For Python scripts only, specifies which Python version to use.
 * Set to either "default" or "python" to use the system-wide default Python
   version.
+* Set to "python3" or "python3.7" to use the Python 3.7 version.
+* Set to "python3.9" to use the Python 3.9 version.
+* In the context of configuring apps, the "latest" value is not currently
+  supported. It is related to a feature that is still under development.
 * Optional.
 * Default: Not set; uses the system-wide Python version.
 

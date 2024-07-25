@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.3.0
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.
@@ -31,6 +31,15 @@ authType = [Splunk|LDAP|Scripted|SAML|ProxySSO]
 * Specify which authentication system to use.
 * Supported values: Splunk, LDAP, Scripted, SAML, ProxySSO.
 * Default: Splunk
+
+authTypePreferredForUserCollision = [Splunk|SAML]
+* The authentication scheme to use when the Splunk platform detects
+  username collision between native authentication and SAML users.
+* A value of "Splunk" means the Splunk platform assumes native authentication
+  user roles when the SAML username matches a native authentication user.
+* A value of "SAML" means the Splunk platform assigns roles mapped from SAML
+  groups and ignores roles from native authentication users.
+* Default: SAML
 
 authSettings = <authSettings-key>,<authSettings-key>,...
 * Key to look up the specific configurations of chosen authentication
@@ -306,17 +315,20 @@ enableRangeRetrieval = <boolean>
 * Default: false
 
 timelimit = <integer>
-* Limits the amount of time, in seconds, that the Splunk platform waits for an LDAP search
+* The amount of time, in seconds, that the Splunk platform waits for an LDAP search
   request to complete.
 * If your searches finish quickly, lower this value from the default.
-* Maximum value is 30 seconds
+* Maximum value is 30.
 * Default: 15
 
 network_timeout = <integer>
-* Limits the amount of time a socket polls a connection without activity
-* This is useful for determining if your LDAP server cannot be reached
-* NOTE: As a connection could be waiting for search results, this value
-        must be higher than 'timelimit'.
+* The amount of time, in seconds, that a network socket polls a connection
+  that has no activity.
+* This is useful for determining if your Splunk platform instance cannot 
+  reach your LDAP server.
+* NOTE: As a connection could potentially be waiting for search results, 
+  this value must be higher than 'timelimit'. If you set it lower, you could
+  terminate the connection to your server before an LDAP search completes.
 * Like 'timelimit', if you have a fast connection to your LDAP server,
   lower this value.
 * Maximum value is -1 (unlimited)
@@ -359,10 +371,14 @@ ldap_negative_cache_timeout = <nonnegative decimal>
 [<authSettings-key>]
 * Follow this stanza name with the following setting/value pairs:
 
-python.version = {default|python|python2|python3}
+python.version = {default|python|python2|python3|python3.7|python3.9|latest}
 * For Python scripts only, selects which Python version to use.
 * Set to either "default" or "python" to use the system-wide default Python
   version.
+* Set to "python3" or "python3.7" to use the Python 3.7 version.
+* Set to "python3.9" to use the Python 3.9 version.
+* In the context of configuring apps, the "latest" value is not currently
+  supported. It is related to a feature that is still under development.
 * Optional.
 * Default: Not set; uses the system-wide Python version.
 
@@ -594,7 +610,7 @@ fqdn = <string>
   present, the Splunk platform uses the SSL setting for Splunk Web.
 * This setting is optional.
 * the Splunk platform uses this information to populate the 'assertionConsumerServiceUrl'.
-* Default: empty string
+* Default: $HOSTNAME
 
 redirectPort = <port number>
 * The port where SAML responses are sent.
@@ -604,7 +620,7 @@ redirectPort = <port number>
   instead of the Splunk Web port.
 * To prevent any port information to be appended in the
   'assertionConsumerServiceUrl' setting, set this to 0.
-* No default.
+* Default: The value of 'httpport' in the web.conf file
 
 idpSSOUrl = <url>
 * The protocol endpoint on the IDP (Identity Provider) where the
@@ -772,6 +788,7 @@ defaultRoleIfMissing = <string>
 * If the IdP does not return any AD groups or Splunk roles as a part of the
   assertion, the Splunk platform uses this value if provided.
 * This setting is required when you configure 'skipAttributeQueryRequestForUsers'. Otherwise, it is optional.
+* The Splunk platform ignores this setting if 'enableAutoMappedRoles' has a value of "false".
 * No default.
 
 skipAttributeQueryRequestForUsers = <comma-separated list of users>
@@ -801,7 +818,7 @@ attributeQueryTTL = <integer>
 * After the ttl expires, the Splunk platform makes an attribute query request to
   retrieve the role information.
 * This setting is optional.
-* Default: 3600
+* Default: 21600
 
 saml_negative_cache_timeout = <nonnegative decimal>
 * The amount of time, in seconds, that the Splunk platform remembers that a non-existent
@@ -818,10 +835,14 @@ scriptPath = <string>
   it in the $SPLUNK_HOME/etc/auth/scripts directory.
 * No default.
 
-python.version = {default|python|python2|python3}
+python.version = {default|python|python2|python3|python3.7|python3.9|latest}
 * For Python scripts only, selects which Python version to use.
 * Set to either "default" or "python" to use the system-wide default Python
   version.
+* Set to "python3" or "python3.7" to use the Python 3.7 version.
+* Set to "python3.9" to use the Python 3.9 version.
+* In the context of configuring apps, the "latest" value is not currently
+  supported. It is related to a feature that is still under development.
 * Optional.
 * Default: Not set; uses the system-wide Python version.
 
@@ -862,9 +883,9 @@ getUserInfoTtl = <string>
 * This value also applies if users are retrieved en masse using the scripts
   getUsers() function.
 * If you configure both AQR and authentication extensions (meaning, you configure
-  both 'attributeQueryTTL' and 'getUserInfoTTL', this setting takes precedence.
+  both 'attributeQueryTTL' and 'getUserInfoTtl'), this setting takes precedence.
 * This setting is optional.
-* Default: 10s
+* Default: 21600s
 
 scriptSecureArguments = <key:value>;[<key:value>;]...
 * A list of inputs, expressed as key-value pairs, that will be made available
@@ -886,6 +907,31 @@ useAuthExtForTokenAuthOnly = <boolean>
   will use the persistent cache that is defined in the [userToRoleMap_<saml-authSettings-key>] stanza.
 * This setting is optional.
 * Default: true
+
+cacheSAMLUserInfotoDisk = <boolean>
+* Whether the Splunk auth system only keeps SAML user mapping 
+  information in server memory or additionally caches the information
+  locally in the authentication.conf configuration file.
+* Using this setting helps keep SAML users consistent in distributed
+  Splunk platform environments such as search head clusters.
+* This setting is only valid in one of the following scenarios:
+  * When the SAML identity provider that you use supports Attribute
+    Query Responses (AQR), or
+  * When the SAML identity provider does not support AQR, and you
+    configure both authentication extensions and the 'useAuthExtForTokenAuthOnly'
+    setting with a value of "false".
+* A value of "true" means that the auth system writes SAML user map
+  information to the authentication.conf file, under the '[userToRoleMap_SAML]' stanza. 
+  For example: jdoe = admin,power::John Doe::jdoe@company.com
+* A value of "false" means that the auth system keeps SAML user map
+  information in server memory only, and does not write information to
+  the authentication.conf file.
+* If the SAML IdP does not support AQR, and you configure authentication
+  extensions and give 'useAuthExtforTokenAuthOnly' a value of "true", then
+  the auth system automatically caches SAML user info to disk, as if you
+  had configured this setting with a value of "true".
+* This setting is optional.
+* Default: false 
 
 assertionTimeSkew = <integer>
 * The amount of clock skew, in seconds, that can occur between the Splunk platform and
@@ -1019,6 +1065,18 @@ sslVerifyServerName = <boolean>
 
 blacklistedAutoMappedRoles = <comma separated list>
 * DEPRECATED; use 'excludedAutoMappedRoles' instead.
+
+enableAutoMappedRoles = <boolean>
+* Whether or not the Splunk platform maps SAML groups on an identity provider
+  to Splunk local roles with the same name automatically.  
+* A value of "true" means the Splunk platform tries to map IdP groups to 
+  local roles with matching names.
+* If the IdP groups are empty, the Splunk platform tries to 
+  map 'defaultRoleIfMissing' if it has a value.
+* A value of "false" means the Splunk platform uses predefined 
+  SAML group mappings only, and ignores the 'defaultRoleIfMissing' setting.
+* This setting is optional.
+* Default: false
 
 excludedAutoMappedRoles = <comma separated list>
 * A list of Splunk roles for which the Splunk platform is not to

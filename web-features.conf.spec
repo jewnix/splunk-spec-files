@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.3.0
 #
 ############################################################################
 # OVERVIEW
@@ -15,8 +15,9 @@
 [feature:search_v2_endpoint]
 
 enable_search_v2_endpoint = <boolean>
+* REMOVED. This setting no longer has any effect.
 * Determines whether Splunk Web uses the v2 search endpoint.
-* A value of "true" means Splunk Web will use the v2 search endpoint.
+* A value of "true" means Splunk Web uses the v2 search endpoint.
 * Default: true
 
 [feature:quarantine_files]
@@ -119,58 +120,9 @@ disable_highcharts_accessibility = <boolean>
 
 [feature:dashboard_studio]
 
-activate_conversion_report = <boolean>
-* Controls whether conversion related information is added to the XML of Studio Dashboards
-* converted from Classic Dashboards.
-* A value of "true" means that conversion information is added to Studio Dashboards.
-* Do not modify this value.
-* Default: true
-
-enable_inputs_on_canvas = <boolean>
-* Allows inputs directly on the canvas in Dashboard Studio.
-* A value of "true" will allow inputs directly on the dashboard canvas in Dashboard Studio.
-* Do not modify this value.
-* Default: true
-
 enable_show_hide = <boolean>
 * Allows absolute "Show/Hide" panels in Dashboard Studio.
 * A value of "true" will allow "Show/Hide" panels in the editor of Dashboard Studio.
-* Do not modify this value.
-* Default: true
-
-enable_events_viz = <boolean>
-* Allows "splunk.events" visualization type in Dashboard Studio.
-* A value of "true" means the "splunk.events" visualization type is available in Dashboard Studio.
-* Do not modify this value.
-* Default: true
-
-activate_workflow_actions_for_events_viz = <boolean>
-* Allows workflow actions in the events visualization in Dashboard Studio.
-* A value of "true" means that workflow actions will appear on the events visualization in Dashboard Studio.
-* Do not modify this value.
-* Default: true
-
-activate_link_to_report = <boolean>
-* Allows the Link to Report Interaction in Dashboard Studio.
-* A value of "true" means the Link to Report Interaction is available in Dashboard Studio.
-* Do not modify this value.
-* Default: true
-
-activate_link_to_search = <boolean>
-* Allows the Link to Search Interaction in Dashboard Studio.
-* A value of "true" means the Link to Search Interaction is available in Dashboard Studio.
-* Do not modify this value.
-* Default: true
-
-activate_trellis_for_visualizations = <boolean>
-* Allows trellis layout for supported visualizations in Dashboard Studio.
-* A value of "true" means trellis layout is available for supported visualizations in Dashboard Studio.
-* Do not modify this value.
-* Default: true
-
-activate_expanded_source_editor = <boolean>
-* Uses a larger inline source editor for Dashboard Studio.
-* A value of "true" means the expanded source editor is available in Dashboard Studio.
 * Do not modify this value.
 * Default: true
 
@@ -188,10 +140,37 @@ activate_save_report_to_dashboard_studio = <boolean>
 * Default: true
 
 activate_source_mode_validation = <boolean>
-# Determines whether the source mode validation in Dashboard Studio is activated.
-# A value of "true" means that source mode is validated in Dashboard Studio.
-# Do not modify this value.
+* Determines whether the source mode validation in Dashboard Studio is activated.
+* A value of "true" means that source mode is validated in Dashboard Studio.
+* Do not modify this value.
 * Default: true
+
+allow_multiple_interactions = <boolean>
+* This setting turns on or off the UI to add multiple interactions on a visualization in Dashboard Studio during its initial rollout.
+* A value of "true" means that the option to add multiple interactions appears in the Dashboard Studio UI.
+* The setting will be removed without notice in a future release.
+* Do not modify this value.
+* Default: true
+
+show_corner_radius_editor = <boolean>
+* This setting turns on or off the ability to specify a corner radius for visualizations in Dashboard Studio during its initial rollout.
+* A value of "true" means that the corner radius editor appears in the Dashboard Studio UI.
+* The setting will be removed without notice in a future release.
+* Do not modify this value.
+* Default: true
+
+activate_scheduled_export = <boolean>
+* This setting turns on or off scheduled email export in Dashboard Studio during its initial rollout.
+* A value of "true" means the Scheduled Export option is available in Dashboard Studio.
+* The setting will be removed without notice in a future release.
+* Do not modify this value.
+* Default: true
+
+execute_chain_searches_with_tokens_in_search_process = <boolean>
+* This setting determines whether Dashboard Studio runs chain searches that use tokens ahead of time in the search process instead of the main splunkd process. If the base search is a scheduled save search, the search runs in the main splunkd process.
+* A value of "true" means that Dashboard Studio runs chain searches that use tokens ahead of time in the search process.
+* A value of "false" means that Dashboard Studio runs chain searches that use tokens in the main splunkd process rather than ahead of time in the search process.
+* Default: false
 
 
 
@@ -227,6 +206,32 @@ enable_datasets_vnext = <boolean>
 * DEPRECATED.
 * A value of "true" means that Splunk Web does load the new datasets page.
 * CAUTION: Do not change this setting.
+* Default: true
+
+enable_authoverview_vnext = <boolean>
+* Whether or not Splunk Web loads the updated authentication methods page that
+  uses the React JavaScript library.
+* A value of "true" means that Splunk Web loads the updated authentication methods 
+  page that uses the React JavaScript library.
+* A value of "false" means that Splunk Web loads the existing authentication methods
+  page.
+* Default: true
+
+enable_react_users_page = <boolean>
+* Whether or not Splunk Web loads the "Users" page that uses the React JavaScript library.
+* A value of "true" means that Splunk Web loads the "Users" page
+  implemented with the React library instead of the Backbone library.
+* A value of "false" means that Splunk Web loads the page that uses the existing Backbone
+  library.
+* Default: true
+
+enable_password_management_page_vnext = <boolean>
+* Determines whether or not Splunk Web loads the "Password Management" page that uses
+  the React JavaScript library.
+* A value of "true" means that Splunk Web loads the new "Password Management" page
+  implemented with the React library instead of the Backbone library.
+* A value of "false" means that Splunk Web loads the page that uses the existing
+  Backbone library.
 * Default: true
 
 [feature:dashboard_inputs_localization]
@@ -286,6 +291,12 @@ bypass_app_bar_performance_optimizations_apps = <comma separated list>
 * A value of "splunk_monitoring_console,search" means that Splunk Web will not optimize performance when generating the app bar for the splunk_monitoring_console and search apps.
 * Default: ""
 
+enable_app_bar_caching = <boolean>
+# Splunk Web will cache the app bar to optimize performance when generating the app bar.
+# CAUTION: Do not change this setting.
+* A value of "false" means that Splunk Web will not cache the app bar and not optimize performance when generating the app bar.
+* Default: true
+
 [feature:spotlight_search]
 
 enable_spotlight_search = <boolean>
@@ -293,13 +304,40 @@ enable_spotlight_search = <boolean>
   Settings menu.
 * A value of "true" means that Splunk Web will display the Spotlight Search
   bar in the Settings menu.
-* Default: false
-
-[feature:o11y_preview]
-
-enable_o11y_preview = <boolean>
-* Determines whether Splunk Web displays the preview links and
-  Splunk Observability preview sidebar in Search & Reporting.
-* A value of "true" means that Splunk Web will show preview links and
-  Splunk Observability preview sidebar in Search & Reporting.
 * Default: true
+
+[feature:search_sidebar]
+
+enable_sidebar_preview = <boolean>
+* Determines whether the Search & Reporting app displays a "preview"
+  column for events, and allows the preview sidebar in the Events view.
+* A value of "true" means that Splunk Web will show preview links and
+  the preview sidebar will render.
+
+[feature:field_filters]
+
+enable_field_filters_ui = <boolean>
+* Determines whether Splunk Web displays field filters.
+* A value of "false" means that field filters are not visible in Splunk Web.
+* Default: true
+
+[feature:identity_sidecar_scim]
+
+enabled = <boolean>
+* Whether or not Splunk Web displays Automated User Management (AUM) controls for System
+  for Cross-Domain Identity Management (SCIM) in the SAML configuration dialog page.
+* A value of "true" means that Splunk Web shows AUM controls in the SAML
+  configuration dialog.
+* A value of "false" means that Splunk Web does not show AUM controls in
+  the SAML configuration dialog.
+* Default: true
+
+
+[feature:appserver]
+
+python.version = <string>
+* Determines whether the appserver uses Python 3.9 or Python 3.7.
+* A value of "python3.9" means that the appserver uses Python 3.9.
+* A value of "python3.7" means that the appserver uses Python 3.7.
+* A value of "latest" means that the appserver uses latest version of Python available in the release.
+* Default: latest

@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.3.0
 #
 ############################################################################
 # OVERVIEW
@@ -362,7 +362,7 @@ hotBucketTimeRefreshInterval = <positive integer>
   every service (and accept minor performance overhead), set to 1.
 * Default: 10 (services)
 
-fileSystemExecutorWorkers = <positive iinteger>
+fileSystemExecutorWorkers = <positive integer>
 * Determines the number of threads to use for file system io operations.
 * This maximum applies to all of splunkd, not per index. If you have N
   indexes, there will be at most 'fileSystemExecutorWorkers' workers,
@@ -772,13 +772,19 @@ coldToFrozenScript = <path to script interpreter> <path to script>
 * The script must be in $SPLUNK_HOME/bin or a subdirectory thereof.
 * No default.
 
-python.version = {default|python|python2|python3}
+python.version = {default|python|python2|python3|python3.7|python3.9|latest}
 * For Python scripts only, selects which Python version to use.
 * This setting is valid for 'coldToFrozenScript' only when the value starts
   with the canonical path to the Python interpreter, in other words,
-  $SPLUNK_HOME/bin/python. If you use any other path, this setting is ignored.
+  "$SPLUNK_HOME/bin/python". If you use any other path, the Splunk platform
+  ignores this setting.
+
 * Set to either "default" or "python" to use the system-wide default Python
   version.
+* Set to "python3" or "python3.7" to use the Python 3.7 version.
+* Set to "python3.9" to use the Python 3.9 version.
+* In the context of configuring apps, the "latest" value is not currently
+  supported. It is related to a feature that is still under development.
 * Optional.
 * Default: Not set; uses the system-wide Python version.
 
@@ -909,7 +915,7 @@ maxHotSpanSecs = <positive integer>
   of hot buckets managed by other ingestion pipelines. Each ingestion pipeline
   independently applies this setting only to its own set of hot buckets.
 * If you set 'maxHotBuckets' to 1, splunkd attempts to send all
-  events to the single hot bucket and does not enforce 'maxHotSpanSeconds'.
+  events to the single hot bucket and does not enforce 'maxHotSpanSecs'.
 * If you set this setting to less than 3600, it will be automatically
   reset to 3600.
 * NOTE: If you set this setting to too small a value, splunkd can generate
@@ -1190,12 +1196,6 @@ coldPath.maxDataSizeMB = <nonnegative integer>
 * Splunkd ignores this setting for remote storage enabled indexes.
 * The highest legal value is 4294967295.
 * Default: 0
-
-disableGlobalMetadata = <boolean>
-* NOTE: This option was introduced in version 4.3.3, but as of 5.0 it
-  is obsolete and splunkd ignores it if you set it.
-* It used to disable writing to the global metadata. In 5.0,  global metadata
-  was removed.
 
 repFactor = 0|auto
 * Valid only for indexer cluster peer nodes.
@@ -1998,111 +1998,6 @@ splitter.file.split.maxsize = <integer>
 * Maximum size, in bytes, for file splits.
 * Default: Long.MAX_VALUE
 
-#**************************************************************************
-# Dynamic Data Self Storage settings.
-# This section describes settings that affect the archiver-
-# optional and archiver-mandatory settings only.
-#
-# As the first step in the Dynamic Data Self Storage feature, it allows users
-# to move their data from Splunk indexes to customer-owned external storage
-# in AWS S3 when the data reaches the end of the retention period. Note that
-# only the raw data and delete marker files are transferred to the external
-# storage.
-#
-# Future development may include the support for storage hierarchies and the
-# automation of data rehydration.
-#
-# For example, use the following settings to configure Dynamic Data Self Storage.
-#   archiver.selfStorageProvider     = S3
-#   archiver.selfStorageBucket       = mybucket
-#   archiver.selfStorageBucketFolder = folderXYZ
-#**************************************************************************
-archiver.selfStorageProvider = <string>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* Specifies the storage provider for Self Storage.
-* Optional. Only required when using Self Storage.
-* Self Storage only supports the Simple Storage Service (S3) and Google Cloud Storage (GCS)
-  for Amazon Web Services (AWS) and Google Cloud Platform (GCP), respectively.
-* NOTE: This setting value is case-sensitive.
-
-archiver.selfStorageBucket = <string>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* Specifies the destination bucket for Self Storage.
-* Optional. Only required when using Self Storage.
-
-archiver.selfStorageBucketFolder = <string>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* Specifies the folder on the destination bucket for Self Storage.
-* Optional.
-* If not specified, data is uploaded to the root path in the destination bucket.
-
-archiver.selfStorageDisableMPU = <boolean>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* A value of "true" disables uploading in multiple chunks. Files are uploaded to
-  the destination bucket as a single (large) chunk.
-* Optional.
-* Default: false
-
-archiver.selfStorageEncryption = sse-s3 | none
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* Specifies the scheme to use for server-side encryption for Self Storage.
-* A value of sse-s3 enables SSE-S3 server-side encryption mode on Amazon S3 for
-  Self Storage.
-* A value of 'none' disables server-side encryption. Data is stored unencrypted
-  on the Self Storage.
-* Optional.
-* Default: sse-s3
-
-#**************************************************************************
-# Dynamic Data Archive lets you move your data from your Splunk Cloud indexes to a
-# storage location. You can configure Splunk Cloud to automatically move the data
-# in an index when the data reaches the end of the Splunk Cloud retention period
-# you configure. In addition, you can restore your data to Splunk Cloud if you need
-# to perform some analysis on the data.
-# For each index, you can use Dynamic Data Self Storage or Dynamic Data Archive,
-# but not both.
-#
-# For example, use the following settings to configure Dynamic Data Archive.
-#   archiver.coldStorageProvider        = Glacier
-#   archiver.coldStorageRetentionPeriod = 365
-#**************************************************************************
-archiver.coldStorageProvider = <string>
-* This feature is supported on Splunk Cloud only.
- Do not configure this setting in a Splunk Enterprise environment.
-* Specifies the storage provider for Dynamic Data Archive.
-* Optional. Only required when using Dynamic Data Archive.
-* The only providers currently supported are Glacier and GCSArchive for
-  Amazon Web Services (AWS) and Google Cloud Platform (GCP), respectively.
-* NOTE: This setting value is case-sensitive.
-
-archiver.coldStorageRetentionPeriod = <unsigned integer>
-* This feature is supported on Splunk Cloud only.
- Do not configure this setting in a Splunk Enterprise environment.
-* Defines how long Splunk will maintain data in days, including the
-  archived period.
-* Optional. Only required when using Dynamic Data Archive.
-* Must be greater than 0
-
-archiver.enableDataArchive = <boolean>
-* This feature is supported on Splunk Cloud only.
- Do not configure this setting in a Splunk Enterprise environment.
-* If set to true, Dynamic Data Archiver is enabled for the index.
-* Default: false
-
-archiver.maxDataArchiveRetentionPeriod = <nonnegative integer>
-* This feature is supported on Splunk Cloud only.
- Do not configure this setting in a Splunk Enterprise environment.
-* The maximum total time in seconds, that data for the specified index is
-  maintained by Splunk, including the archived period.
-* The archiver.maxDataArchiveRetentionPeriod controls the maximum value of the
-  coldStorageRetentionPeriod. coldStorageRetentionPeriod cannot exceed this
-  value.
-* Default: 0
 
 #**************************************************************************
 # Volume settings.  This section describes settings that affect the volume-
@@ -2599,6 +2494,14 @@ remote.s3.kms.<ssl_settings> = <...>
 * All of these settings are optional.
 * All of these settings have the same defaults as
   'remote.s3.<ssl_settings>'.
+
+remote.s3.max_batchremove_batch_size = <unsigned integer>
+* Specifies the maximum number of remote objects that can be included in
+  a single batch removal request for AWS S3.
+* Setting this value to 0 or 1 disables the batch removal feature.
+* The highest permissible value is 1000. If set to a value greater than 1000,
+  it will default to 1000.
+* Default: 1
 
 remote.s3.max_download_batch_size = <unsigned integer>
 * The maximum number of objects that can be downloaded in a single batch
@@ -3109,3 +3012,13 @@ remote.azure.data_integrity_validation = disabled | sha256
   to generate signatures.
 * This setting is optional.
 * Default: disabled
+
+remote.azure.tsidx_compression = <boolean>
+* Whether the indexer compresses tsidx files before it uploads them to Azure.
+* A value of "true" means the indexer compresses tsidx files before it uploads
+  them to Azure.
+* Confirm that every indexer runs Splunk Enterprise version 9.3.0 or higher 
+  before you turn on tsidx file compression for Azure.
+* This setting is not backward compatible. When you activate it, you cannot
+  downgrade your Splunk platform deployment to versions earlier than 9.3.0.
+* Default: false

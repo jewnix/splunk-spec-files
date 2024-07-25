@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.3.0
 #
 # Forwarders require outputs.conf. Splunk instances that do not forward
 # do not use it. Outputs.conf determines how the forwarder sends data to
@@ -50,32 +50,6 @@
 # Default: true
 # If set to 'true', prevents the logs from being forwarded to the indexing tiers.
 
-[httpout]
-
-httpEventCollectorToken = <string>
-* The value of the HEC token.
-* HEC uses this token to authenticate inbound connections.
-* No default.
-
-uri = <string>
-* The URI and management port of the Http Event Collector(HEC) end point.
-* For example, https://SplunkHEC01.example.com:8088
-* No default.
-
-batchSize = <integer>
-* The size, in bytes, of the HTTP OUT send buffer.
-* HTTP OUT batch pipeline data before sending out.
-* If the current buffer size is greater than 'batchSize', HEC sends the data
-  out immediately.
-* Default: 65536
-
-batchTimeout = <integer>
-* How often, in seconds, to send out pipeline data.
-* HTTP OUT batch pipeline data before sending out.
-* If the wait time is greater than 'batchTimeout', HEC sends the data 
-  out immediately.
-* Default: 30
-
 #----TCP Output Global Configuration -----
 # You can overwrite the global configurations specified here in the
 # [tcpout] stanza in stanzas for specific target groups, as described later.
@@ -119,6 +93,12 @@ enableOldS2SProtocol = <boolean>
 * This setting is only available for configuration at the top level [tcpout] stanza. You 
   can't override it in a target group with settings that force usage of the older protocol.
 * Default: false
+
+certRotationCheckInterval = <positive integer>[s|m|h|d]
+* The interval between attempts to rotate forwarder certificates automatically.
+* This setting is valid on forwarders only. It does not work
+  with other Splunk platform instances. 
+* Default: 1d
 
 #----Target Group Configuration -----
 
@@ -218,17 +198,29 @@ heartbeatFrequency = <integer>
 * Default: 30
 
 blockOnCloning = <boolean>
-* Whether or not the TcpOutputProcessor should wait until at least one
-  of the cloned output groups receives events before attempting to send
-  more events.
-* If set to "true", the TcpOutputProcessor blocks until at least one of the
-  cloned groups receives events. It does not drop events when all the
-  cloned groups are down.
-* If set to "false", the TcpOutputProcessor drops events when all the
-  cloned groups are down and all queues for the cloned groups are full.
-  When at least one of the cloned groups is up and queues are not full,
-  the events are not dropped.
-* Default: true
+* Whether or not the tcpout processor blocks, or stops processing events,
+  in situations where they cannot be sent to cloned output target groups.
+* This setting only applies when you have defined multiple output target 
+  groups for a forwarder, and are thus cloning the data. It does not
+  apply to single output groups.
+* A value of "true" means that when a situation occurs where all target groups
+  that you have defined are unable to receive events, then the tcpout
+  processor waits for 'dropClonedEventsonQueueFull' seconds before
+  it begins to drop events.
+  * If 'dropClonedEventsonQueueFull' has a value of "-1", then the tcpout 
+    processor stops processing events indefinitely. This prevents the tcpout
+    processor from dropping events, but can cause further blocking up
+    the processing chain.
+  * See the 'dropClonedEventsonQueueFull' setting description for 
+    additional information on the setting.
+* A value of "false" means the tcpout processor drops events as soon
+  as all cloned output groups are down and the queues for those groups
+  fill up.
+* If at least one output group is up and at least one queue for 
+  the group is not full, then the processor does not drop events.
+* Default: true (stop processing events when an output group blockage
+  occurs, but do not drop events for at least
+  'dropClonedEventsOnQueueFull' seconds)
 
 blockWarnThreshold = <integer>
 * The output pipeline send failure count threshold, after which a
@@ -773,6 +765,32 @@ sslVersions = <comma-separated list>
 * The default can vary. See the 'sslVersions' setting in
   $SPLUNK_HOME/etc/system/default/outputs.conf for the current default.
 
+#----Forwarder Certificate Renewal Settings----
+
+autoCertRotation = <boolean>
+* Whether or not forwarders attempt to renew TLS certificates that they use 
+  before the certificates expire.
+* TLS certificates expire after a certain period of validity. When a forwarder has been
+  configured to use a TLS certificate for network connections, it can attempt to renew
+  the certificate automatically up to and including the certificate expiration time.
+* Forwarder certificate renewal works with forwarders that connect to Splunk Cloud
+  Platform instances only.
+* A forwarder performs a check every 'certRotationCheckInterval' to determine if a forwarder
+  certificate needs renewal.
+* A TLS certificate meets renewal criteria when:
+  * It has been configured for the forwarder to use it
+  * It is within its validity window, which means the current date must be between
+    its 'Not Before' and 'Not After' dates, inclusive
+  * Less than or equal to 50% of its validity period remains. For example, a certificate with a
+    validity period of 52 weeks is eligible for renewal after 26 weeks from its start of validity.
+* A certificate that has not been renewed remains until it either expires
+  or the forwarder successfully completes forwarder certificate renewal.
+* After forwarder certificate renewal is complete, the renewed certificate replaces the existing one.
+* A value of "true" means that the forwarder attempts to automatically perform forwarder certificate renewal
+  check and attempts to renew the certificate until the certificate successfully renews.
+* A value of "false" means that the forwarder does not attempt to perform forwarder certificate renewal.
+* Default: false
+
 #----Indexer Acknowledgment ----
 # Indexer acknowledgment ensures that forwarded data is reliably delivered
 # to the receiver.
@@ -806,6 +824,204 @@ useACK = <boolean>
   stanza levels. You cannot set it for individual servers at the
   [tcpout-server: ...] stanza level.
 * Default: false
+
+####
+# HTTP Output stanzas
+####
+
+[httpout]
+
+httpEventCollectorToken = <string>
+* The value of the HEC token.
+* HEC uses this token to authenticate inbound connections.
+* No default.
+
+uri = <string>
+* The URI and management port of the Http Event Collector(HEC) end point.
+* For example, https://SplunkHEC01.example.com:8088
+* No default.
+
+batchSize = <integer>
+* The size, in bytes, of the HTTP OUT send buffer.
+* HTTP OUT batch pipeline data before sending out.
+* If the current buffer size is greater than 'batchSize', HEC sends the data
+  out immediately.
+* Default: 65536
+
+batchTimeout = <integer>
+* How often, in seconds, to send out pipeline data.
+* HTTP OUT batch pipeline data before sending out.
+* If the wait time is greater than 'batchTimeout', HEC sends the data 
+  out immediately.
+* Default: 30
+
+# These settings can be used to configure TLS for HTTP output.
+
+clientCert = <path>
+* The full path to the location of the client TLS/SSL certificate.
+* The certificate file must be in Privacy Enhanced Mail (PEM) format.
+* No default.
+
+sslPassword = <string>
+* The password for the client certificate.
+* This setting is optional.
+* No default.
+
+cipherSuite = <string>
+* The cipher string to use for negotiating ciphers with the TLS server.
+* This setting ensures that the client does not accept connections using weak
+  encryption protocols.
+* The default can vary. See the 'cipherSuite' setting in
+  $SPLUNK_HOME/etc/system/default/server.conf for the current default.
+
+ecdhCurves = <comma-separated list>
+* A list of elliptic curves to use for the Elliptic-curve Diffie-Hellman
+  (ECDH) key negotiation protocol.
+* The client sends elliptic curves as part of the Client Hello
+* during a TLS handshake.
+* Specify elliptic curves in the order that you prefer them.
+* The server supports only the curves specified in the list.
+* Splunk software only supports named curves that you specify
+  by their short names.
+* You can get the list of valid named curves by their short and long names
+  by running this CLI command:
+  $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
+* Example configuration: "ecdhCurves = prime256v1,secp384r1,secp521r1"
+* See the 'ecdhCurves' setting in
+  $SPLUNK_HOME/etc/system/default/server.conf for the current default.
+
+sslVerifyServerCert = <boolean>
+* Whether or not splunkd, as a client, validates the TLS certificate that a server presents
+  to it when it connects to a server.
+* This setting serves as an additional step for authenticating connections to indexers.
+* A value of "true" means that the client inspects and validates the certificate
+  that it receives from the server upon connecting to it.
+  * This ensures that the server you are connecting to has a valid
+    TLS/SSL certificate. 
+  * The client then checks both the Common Name and the Subject Alternative Name 
+    of the server in the certificate for a match.
+  * If the validation check does not pass, the client terminates the handshake
+    between it and the server immediately, which terminates the connection.
+  * NOTE: Certificates that contain the same X.509 Common Name as a certificate
+    authority (CA) certificate are not suitable for this validation check, even
+    if the same CA issued the certificate. 
+  * A value of "false" means that the client does not check the TLS certificate that
+    it receives as part of the session negotiation. The client considers any valid
+    TLS certificate as acceptable
+* Default: false
+
+tlsHostname = <string>
+* The host name of the server that the client is trying to reach when
+  it initiates a TLS connection to that server.
+* As part of the TLS handshake, when a client connects to a server, the
+  client can provide that server with the host name it was trying to
+  reach when it initiated the connection. This prevents problems with
+  mismatches of Common Names when the TLS connection begins.
+* This is called Server Name Indication (SNI), and is an extension of
+  the TLS protocol.
+* The client performs SNI during the TLS Client Hello.
+* Default: empty string
+
+sslVerifyServerName = <boolean>
+* Whether or not splunkd, as a client, performs a TLS hostname validation check
+  on a TLS certificate that it receives upon an initial connection
+  to a server.
+* A TLS hostname validation check ensures that a client
+  communicates with the correct server, and has not been redirected to
+  another by a machine-in-the-middle attack, where a malicious party inserts
+  themselves between the client and the target server, and impersonates
+  that server during the session.
+* Specifically, the validation check forces splunkd to verify that either
+  the Common Name or the Subject Alternative Name in the certificate that the
+  server presents to the client matches the host name portion of the URL that
+  the client used to connect to the server.
+* For this setting to have any effect, the 'sslVerifyServerCert' setting must
+  have a value of "true". If it doesn't, TLS hostname validation is not possible
+  because certificate verification is not on.
+* A value of "true" for this setting means that splunkd performs a TLS hostname
+  validation check, in effect, verifying the server's name in the certificate.
+  If that check fails, splunkd terminates the TLS handshake immediately. This terminates
+  the connection between the client and the server. Splunkd logs this failure at
+  the ERROR logging level.
+* A value of "false" means that splunkd does not perform the TLS hostname
+  validation check. If the server presents an otherwise valid certificate, the
+  client-to-server connection proceeds normally.
+* Default: false
+
+sslCommonNameToCheck = <comma-separated list>
+* One or more Common Names of the server certificate that the client checks against
+  when it connects to a server using TLS.
+* The Common Name (CN) is an X.509 standard field in a certificate that identifies the
+  host name that is associated with the certificate.
+  * The CN can be a short host name or a fully qualified domain name. For example, 
+    the CN can be one of "example", "www.example.com", or "example.com".
+* If the client cannot match the CN in the certificate that the server presents,
+  then the client cannot authenticate the server, and terminates the session 
+  negotiation immediately.
+* For this setting to have any affect, the 'sslVerifyServerCert' setting must have
+  a value of "true".
+* This setting is optional.
+* Default: empty string (no common name checking).
+
+sslAltNameToCheck = <comma-separated list>
+* One or more Subject Alternative Names of the server certificate that the client checks
+  against when it connects to a server using TLS.
+* The Subject Alternative Name (SAN) is an extension to the X.509 standard that
+  lets you specify additional host names for a TLS certificate. The SAN can be a
+  short host name or a fully qualified domain name.
+* If the client cannot match the SAN in the certificate that the server presents,
+  then the client cannot authenticate the server, and terminates the session 
+  negotiation immediately.
+* For this setting to have any affect, the 'sslVerifyServerCert' setting must have
+  a value of "true".
+* This setting is optional.
+* Default: empty string (no alternate name checking)
+
+useClientSSLCompression = <boolean>
+* Whether or not compression of network traffic that passes through
+  a TLS/SSL connection is turned on.
+* Server-side compression in splunkd is on by default. Configuring this
+  setting on the client side enables compression between both server and
+  client.
+* If server-side compression is off, this client-side setting has no effect.
+* A value of "true" means TLS/SSL compression is turned on.
+* A value of "false" means TLS/SSL compression is turned off.
+* If you use this setting, the 'tcpout_connections' group in the metrics.log
+  file shows throughput values before compression occurs.
+* Default: true
+
+sslQuietShutdown = <boolean>
+* Whether or not quiet SSL shutdown mode is turned on.
+* When a client is finished with a TLS connection, it can shut that
+  connection down normally or quietly.
+* A normal SSL shutdown between a local node, in this case the client, 
+  and a peer node, in this case the server, involves either
+  node sending a message to the other to terminate the TLS/SSL connection. 
+  This message is called the "close_notify" message.
+* When a local node sends this message, the peer node returns the same message
+  upon receipt, then stops sending further messages over TLS. The TLS connection
+  remains open until the peer also closes the connection on its side.
+* A "quiet" SSL shutdown means that neither node sends this message when it
+  terminates the TLS connection. Instead, the node sets the connection to the
+  "shutdown" state immediately.
+* A value of "true" means that the client uses quiet SSL shutdown mode to
+  terminate TLS connections.
+* A value of false means that the client shuts down TLS connections using the
+  normal shutdown process.
+* Default: false
+
+sslVersions = <comma-separated list>
+* A list of TLS or SSL versions to support for secure network connections.
+* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2"
+* The special version "*" selects all supported versions. The version "tls"
+  selects all versions tls1.0 or newer
+* If you prefix a version with "-", it is removed from the list.
+* SSLv2 is always disabled; "-ssl2" is accepted in the version list, but
+  does nothing.
+* When the Splunk platform instance operates in Federal Information 
+  Processing Standards (FIPS) mode, the "ssl3" version is not valid.
+* The default can vary. See the 'sslVersions' setting in
+  $SPLUNK_HOME/etc/system/default/outputs.conf for the current default.
 
 ############
 #----Syslog output----
@@ -1904,6 +2120,7 @@ batchSizeThresholdKB = <integer>
   limits.conf/[ingest_actions]/rfs.provider.rawdata_limit_mb for a storage provider.
 * If you increase this setting, you may also want to increase the value of
   server.conf/[queue:rfsQueue]/maxSize.
+* Not applicable if the rfs destination is a file system destination; that is, if the pathname starts with 'file://'.
 * Default: 131072 (128 MiB)
 * Max threshold value: 5242880 (5 GiB)
 
@@ -1919,6 +2136,7 @@ compression = none|gzip|lz4|zstd
 * Sets the algorithm to use for compressing files before writing to the destination.
 * The RfsOutputProcessor writes files with the appropriate extension for the compression
   algorithm, for example, .zst for zstd, .gz for gzip and .lz4 for lz4.
+* To change the compression setting, delete the destination and recreate again with desired compression type.
 * Default: zstd
 
 compressionLevel = <integer>
@@ -1945,6 +2163,36 @@ format.ndjson.index_time_fields = <boolean>
 * Specifies whether to include index-time fields when RfsOutputProcessor 
   writes events to the destination in new line delimited JSON format.
 * Default: true
+
+fs.appendToFileUntilSizeMB = <integer>
+* Applicable only if rfs destination is a file system (local or nfs) destination.
+* For file system, rfs output will create one active output file for each hour of that partition
+  and will continuously append the events in its respective hourly output file.
+* Note: For file system, only partitionBy = day[, sourcetype] is allowed.
+* Once the size of the output file for the current hour exceeds fs.appendToFileUntilSizeMB,
+  a new hourly output file with a new sequence number will be created.
+* The recommended value for fs.appendToFileUntilSizeMB is the default value, 2048.
+* Do not set the value below 250, otherwise this threshold might not be honored, causing
+  file size to potentially be much larger.
+* Output file size may not be precisely equal to fs.appendToFileUntilSizeMB, as it depends
+  on how much data can be fetched from the pipeline. To ensure file size is similar to the
+  given value for fs.appendToFileUntilSizeMB, set fs.appendToFileUntilSizeMB to 2048 or larger.
+* Default: 2048
+* Max threshold value: 17180 (16 GiB)
+
+fs.timeBeforeClosingFileSecs = <integer>
+* Applicable only if rfs destination is a file system (local or nfs) destination.
+* After every batchTimeout seconds, the instance checks whether an open file descriptor
+  has not been used within the last fs.timeBeforeClosingFileSecs seconds. If so, the
+  instance closes the file descriptor.
+* Do not manually remove the destination files while the instance has the file descriptor
+  opened. Doing so can result in data loss.
+* A high value setting can result in less file descriptor availability for other system uses.
+* The effective closing time for an open file descriptor can be in a range from batchTimeout
+  to (batchTimeout + fs.timeBeforeClosingFileSecs)
+* Must be set to a non-zero positive number. Otherwise, the value is overridden
+  by the default value specified in the global [rfs] stanza.
+* Default: 30
 
 [rfs:<name>]
 
@@ -2248,6 +2496,7 @@ batchSizeThresholdKB = <integer>
 * the data will be written to the destination immediately.
 * If you increase this setting, you may also want to increase the value of
   server.conf/[queue:rfsQueue]/maxSize.
+* Not applicable if the rfs destination is a file system destination; that is, if the pathname starts with 'file://'
 * Default: Inherited batchSizeThresholdKB setting from the global [rfs] stanza.
 
 batchTimeout = <integer>
@@ -2288,6 +2537,35 @@ format.ndjson.index_time_fields = <boolean>
   writes events to the destination in new line delimited JSON format.
 * Default: Inherited format.ndjson.index_time_fields setting from the global 
   [rfs] stanza.
+
+fs.appendToFileUntilSizeMB = <integer>
+* Applicable only if rfs destination is a file system (local or nfs) destination.
+* For file system, rfs output will create one active output file for each hour of that partition
+  and will continuously append the events in its respective hourly output file.
+* Note: For file system, only partitionBy = day[, sourcetype] is allowed.
+* Once the size of the output file for the current hour exceeds fs.appendToFileUntilSizeMB,
+  a new hourly output file with a new sequence number will be created.
+* The recommended value for fs.appendToFileUntilSizeMB is the default value, 2048.
+* Do not set the value below 250, otherwise this threshold might not be honored, causing
+  file size to potentially be much larger.
+* Output file size may not be precisely equal to fs.appendToFileUntilSizeMB, as it depends
+  on how much data can be fetched from the pipeline. To ensure file size is similar to the
+  given value for fs.appendToFileUntilSizeMB, set fs.appendToFileUntilSizeMB to 2048 or larger.
+* Default: Inherited fs.appendToFileUntilSizeMB setting from the global [rfs] stanza.
+
+fs.timeBeforeClosingFileSecs = <integer>
+* Applicable only if rfs destination is a file system (local or nfs) destination.
+* After every batchTimeout seconds, the instance checks whether an open file descriptor
+  has not been used within the last fs.timeBeforeClosingFileSecs seconds. If so, the
+  instance closes the file descriptor.
+* Do not manually remove the destination files while the instance has the file descriptor
+  opened. Doing so can result in data loss.
+* A high value setting can result in less file descriptor availability for other system uses.
+* The effective closing time for an open file descriptor can be in a range from batchTimeout
+  to (batchTimeout + fs.timeBeforeClosingFileSecs)
+* Must be set to a non-zero positive number. Otherwise, the value is overridden
+  by the default value specified in the global [rfs] stanza.
+* Default: Inherited fs.timeBeforeClosingFileSecs setting from the global [rfs] stanza.
 
 ####
 # Cloud Processing Queue Output

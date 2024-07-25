@@ -1,14 +1,16 @@
-#   Version 9.2.2
+#   Version 9.3.0
 #
 # This file contains possible setting and value pairs for federated provider entries
 # for use when the federated search functionality is enabled.
 #
-# A federated search allows authorized users to run searches across multiple federated
-# providers. Only Splunk deployments are supported as federated providers. Information
-# on the Splunk deployment (i.e. the federated provider) is added in the federated
-# provider stanza of the federated.conf file. A federated search deployment can have
-# multiple federated search datasets. The settings for federated search dataset stanzas
-# are located in savedsearches.conf.
+# A federated search lets authorized users run searches across one or more 
+# federated providers. A federated provider is a remote data source, such as 
+# another Splunk deployment. Each federated provider is defined by a federated 
+# provider stanza in federated.conf. A Splunk deployment that runs federated 
+# searches can have multiple federated indexes. Each federated index maps to a 
+# dataset in a federated provider. You can set up role-based access control for 
+# each federated index, just as you do for regular indexes. Federated indexes 
+# are defined by stanzas in indexes.conf.
 #
 # To learn more about configuration files (including precedence) please see the
 # documentation located at

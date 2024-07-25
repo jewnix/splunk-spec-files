@@ -166,7 +166,7 @@ Type "./splunk help [topic name | object name | parameter name]" to get help on 
     <item obj="rolling-upgrade" verb="true">
         <common>
             <help>
-                <header><![CDATA[Rolling upgrade automation for Search Head Clusters.]]></header>
+                <header><![CDATA[Rolling upgrade automation for Splunk deployments.]]></header>
                 <syntax><![CDATA[rolling-upgrade [shc-upgrade|shc-status|shc-recovery]]]></syntax>
             </help>
         </common>
@@ -1854,6 +1854,31 @@ The package might be referenced either via a url or a local path.]]>
         </cmd>
     </item>
 
+    <item obj="cluster-usage">
+        <common>
+           <help>
+                <header><![CDATA[Manage usage in indexer cluster.]]></header>
+                <syntax><![CDATA[rebalance cluster-usage -action start|stop|status]]></syntax>
+           </help>
+        </common>
+        <cmd name="rebalance">
+            <uri><![CDATA[/cluster/master/control/control/rebalance_buckets_usage]]></uri>
+            <help>
+                <title><![CDATA[Perform usage rebalance operations on an indexer cluster. Run this command from the cluster manager node.]]></title>
+                <required>
+                       <arg name="action"><![CDATA[Specify the rebalance action to perform. Accepted values are: start|stop|status.]]></arg>
+                </required>
+                <examples>
+                        <ex><![CDATA['./splunk rebalance cluster-usage -action start']]></ex>
+                        <ex><![CDATA['./splunk rebalance cluster-usage -action stop']]></ex>
+                        <ex><![CDATA['./splunk rebalance cluster-usage -action status']]></ex>
+                </examples>
+            </help>
+            <type>edit</type>
+            <post_only/>
+        </cmd>
+    </item>
+
     <!-- remove excess-buckets -->
     <item obj="excess-buckets">
         <common>
@@ -2035,7 +2060,67 @@ More information in the online documentation for the corresponding REST endpoint
         </help>
 	    </cmd>
     </item>
-
+    <item obj="cluster-recovery">
+        <cmd name="rolling-upgrade">
+            <uri><![CDATA[/upgrade/cluster/recovery]]></uri>
+            <type>create</type>
+        <help>
+          <title><![CDATA[Initiate a recovery procedure for a failed cluster rolling upgrade or a failed standalone indexer upgrade]]></title>
+          <syntax><![CDATA[rolling-upgrade cluster-recovery]]></syntax>
+          <required/>
+          <optional/>
+        </help>
+        </cmd>
+    </item>
+    <item obj="cluster-all-peers">
+        <cmd name="rolling-upgrade">
+            <uri><![CDATA[/upgrade/cluster/all_peers]]></uri>
+            <type>create</type>
+            <help>
+                <title><![CDATA[Initiate indexer peers rolling upgrade]]></title>
+                <syntax><![CDATA[rolling-upgrade cluster-all-peers]]></syntax>
+                <required/>
+                <optional/>
+            </help>
+            <post_only/>
+        </cmd>
+    </item>
+    <item obj="cluster-status">
+        <cmd name="rolling-upgrade">
+            <uri><![CDATA[/upgrade/cluster/status]]></uri>
+            <type>list</type>
+            <help>
+                <title><![CDATA[Displays status of CM and cluster peers upgrades]]></title>
+                <syntax><![CDATA[rolling-upgrade cluster-status]]></syntax>
+            </help>
+        </cmd>
+    </item>
+    <item obj="cluster-manager">
+	    <cmd name="rolling-upgrade">
+		    <uri><![CDATA[/upgrade/cluster/manager]]></uri>
+		    <type>create</type>
+            <help>
+                <title><![CDATA[Initiate upgrade of the cluster manager]]></title>
+                <syntax><![CDATA[rolling-upgrade cluster-manager]]></syntax>
+                <required/>
+                <optional/>
+            </help>
+            <post_only/>
+	    </cmd>
+    </item>
+    <item obj="standalone">
+	    <cmd name="rolling-upgrade">
+		    <uri><![CDATA[/upgrade/standalone]]></uri>
+		    <type>create</type>
+            <help>
+                <title><![CDATA[Initiate upgrade of a standalone instance]]></title>
+                <syntax><![CDATA[rolling-upgrade standalone]]></syntax>
+                <required/>
+                <optional/>
+            </help>
+            <post_only/>
+	    </cmd>
+    </item>
     <!-- rolling-restart|list cluster-peers -->
     <item obj="cluster-peers">
         <cmd name="list">

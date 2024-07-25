@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.3.0
 #
 ############################################################################
 # OVERVIEW
@@ -139,10 +139,14 @@ alert.execute.cmd.arg.<n> = <string>
 * Provide additional arguments to the 'alert.execute.cmd'.
   Environment variables are substituted.
 
-python.version = {default|python|python2|python3}
+python.version = {default|python|python2|python3|python3.7|python3.9|latest}
 * For Python scripts only, selects which Python version to use.
 * Set to either "default" or "python" to use the system-wide default Python
   version.
+* Set to "python3" or "python3.7" to use the Python 3.7 version.
+* Set to "python3.9" to use the Python 3.9 version.
+* In the context of configuring apps, the "latest" value is not currently
+  supported. It is related to a feature that is still under development.
 * Optional.
 * Default: Not set; uses the system-wide Python version.
 
@@ -169,13 +173,17 @@ cc      = <string>
 bcc     = <string>
 * Any blind courtesy copy (bcc) email addresses receiving the alert.
 
-allowedDomainList = <comma-separated list of domains>
-* Optional. This setting specifies a list of domains to which users are allowed
-  to send email.
-* If this setting is set for an alert, and a user adds an address with a domain
-  not on this list, the Splunk software removes that address from the
-  recipients list.
-* 'action.email.allowedDomainList' in savedsearches.conf will not be honored.
+allowedDomainList = <comma-separated list>
+* A list of domains to which users can send email with the 'sendemail'
+  search command or email alert action.
+* If you configure this setting for an alert, and a user adds an email
+  address with a domain that is not in this list, Splunk software removes
+  the address from the recipient list.
+* The Splunk platform does not honor the 'action.email.allowedDomainList'
+  setting in the savedsearches.conf configuration file.
+* CAUTION: Security Risk: If you do not configure this setting, then users can send 
+  email alerts with search results to any domain, which is a security risk.
+* This setting is optional.
 * No default.
 
 message.report = <string>
@@ -212,7 +220,7 @@ escapeCSVNewline = <boolean>
 footer.text = <string>
 * Specify an alternate email footer.
 * Default: "If you believe you've received this email in error, please 
-see your Splunk administrator.\\ Splunk > the key to enterprise resilience"
+see your Splunk administrator.\\ splunk>"
 
 format = [table|raw|csv]
 * Specify the format of inline results in the email.
@@ -301,6 +309,10 @@ sendpdf = <boolean>
 
 sendcsv = <boolean>
 * Whether or not to create and send the results as a CSV file.
+* Default: 0 (false)
+
+sendpng = <boolean>
+* Whether or not to create and send Dashboard Studio results as a PNG file.
 * Default: 0 (false)
 
 allow_empty_attachment = <boolean>

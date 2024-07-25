@@ -1,4 +1,4 @@
-# Version 9.2.2
+# Version 9.3.0
 #
 # This file contains possible attribute/value pairs for creating new
 # Representational State Transfer (REST) endpoints.
@@ -156,10 +156,14 @@ scripttype = <string>
   uses the protocol from persistconn/appserver.py.
 * Default: python
 
-python.version={default|python|python2|python3}
+python.version={default|python|python2|python3|python3.7|python3.9|latest}
 * For Python scripts only, selects which Python version to use.
 * Set to either "default" or "python" to use the system-wide default Python
   version.
+* Set to "python3" or "python3.7" to use the Python 3.7 version.
+* Set to "python3.9" to use the Python 3.9 version.
+* In the context of configuring apps, the "latest" value is not currently
+  supported. It is related to a feature that is still under development.
 * (OPTIONAL)
 * Default: Not set (Uses the system-wide Python version.)
 
@@ -269,6 +273,14 @@ stream = <boolean>
 * Only has effect if the 'scripttype' setting is set to "persist".
 * Default: false
 
+
+maxConcurrent = <integer>
+* Specifies the maximum number of concurrent requests that this handler accepts.
+* A value of "-1" means the handler accepts an unlimited number of concurrent requests.
+* If the handler receives more than the maximum number of concurrent requests, it returns HTTP 429 errors until the total request count returns below the limit.
+* Only has effect if the 'scripttype' setting is set to "python".
+* Default: -1
+
 [admin:<uniqueName>]
 * 'admin'
 * The built-in handler for the Extensible Administration Interface (EAI).
@@ -361,9 +373,13 @@ streamlineXmlSerialization = <boolean>
 * The script type.
 * Currently the only valid value is "python".
 
-python.version={default|python|python2|python3}
+python.version={default|python|python2|python3|python3.7|python3.9|latest}
 * For Python scripts only, selects which Python version to use.
 * Either "default" or "python" select the system-wide default Python version.
+* Set to "python3" or "python3.7" to use the Python 3.7 version.
+* Set to "python3.9" to use the Python 3.9 version.
+* In the context of configuring apps, the "latest" value is not currently
+  supported. It is related to a feature that is still under development.
 * Optional.
 * Default: not set; uses the system-wide Python version.
 

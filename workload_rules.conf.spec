@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.3.0
 #
 ############################################################################
 # OVERVIEW
@@ -45,7 +45,7 @@ numeric_search_time_range = <bool>
 * Allows assigning numerical values to the search_time_range predicate when 
   defining workload rules and admission rules. For example, 
   "search_time_range>7d" or "search_time_range<=24h". 
-* The search_time_range predicate accepts the value "alltime" regardless of 
+* The search_time-range predicate accepts the value "alltime" regardless of 
   the value of this setting.
 * This setting applies only to the default stanza as a global setting.  
 * Note: This setting can cause slower search performance.

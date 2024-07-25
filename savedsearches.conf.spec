@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.3.0
 #
 # This file contains possible setting/value pairs for saved search entries in
 # the savedsearches.conf file.  You can configure saved searches by creating
@@ -362,8 +362,8 @@ action.email.include.view_link = [1|0]
     (or the 'include.view_link' setting in the alert_actions.conf file)
 
 action.email.inline = [1|0]
-* Specify whether to include search results in the body of the alert
-  notification email.
+* Specify whether to include search results or PNG exports in the body of
+  the alert notification email.
 * Default: 0 (false)
     (or the 'inline' setting in the alert_actions.conf file)
 
@@ -384,6 +384,11 @@ action.email.sendpdf = [1|0]
 * Specify whether to send results as a PDF file.
 * Default: 0 (false)
     (or the 'sendpdf' setting in the alert_actions.conf file)
+
+action.email.sendpng = [1|0]
+* Specify whether to send Dashboard Studio results as a PNG file.
+* Default: 0 (false)
+    (or the 'sendpng' setting in the alert_actions.conf file)
 
 action.email.sendresults = [1|0]
 * Specify whether to include search results in the alert notification email.
@@ -895,8 +900,12 @@ alert.expires = <time-specifier>
 * Default: 24h
 
 alert.digest_mode = <boolean>
-* Specifies whether Splunk applies the alert actions to the entire result set
-  or to each individual result.
+* Whether or not the Splunk platform applies the alert actions to the entire 
+  result set or to each individual result.
+* A value of "true" means that the Splunk platform applies the alert actions
+  to the entire result set.
+* A value of "false" means that the Splunk platform applies the alert actions
+  to each individual result.
 * Default: true
 
 alert.track = <boolean> | auto

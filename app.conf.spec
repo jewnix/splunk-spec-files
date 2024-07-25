@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.3.0
 #
 ############################################################################
 # OVERVIEW
@@ -42,16 +42,16 @@ version = <string>
 * Version numbers are a number followed by a sequence of dots and numbers.
 * The best practice for version numbers for releases is to use three digits
   formatted as Major.Minor.Revision.
-* Pre-release versions can append a single-word suffix like "beta" or
-  "preview".
-* Use lower case and no spaces when you designate a pre-release version.
-* Example versions:
+* Pre-release versions can append a single-word suffix like "beta" or "preview" 
+  along with a "+" or "-" sign.
+* Version must not contain any spaces.
+* Examples:
   * 1.2.0
   * 3.2.1
   * 11.0.34
-  * 2.0beta
-  * 1.3beta2
-  * 1.0preview
+  * 1.1.1+alpha
+  * 2.0.0-beta
+  * 1.3.4-preview
 
 description = <string>
 * A short explanatory string that appears below the title of the app in
@@ -166,10 +166,14 @@ install_source_local_checksum = <string>
 * Splunk Enterprise automatically populates this value upon install.
 * Do not set this value explicitly within your app!
 
-python.version = {default|python|python2|python3}
+python.version = {default|python|python2|python3|python3.7|python3.9|latest}
 * When 'installit.py' exists, selects which Python version to use.
 * Set to either "default" or "python" to use the system-wide default Python
   version.
+* Set to "python3" or "python3.7" to use the Python 3.7 version.
+* Set to "python3.9" to use the Python 3.9 version.
+* In the context of configuring apps, the "latest" value is not currently
+  supported. It is related to a feature that is still under development.
 * Optional.
 * Default: Not set; uses the system-wide Python version.
 
@@ -345,13 +349,18 @@ verify_script = <string>
   * For example, a path including $SPLUNK_HOME should be quoted, as likely
     will expand to C:\Program Files\Splunk
 
-python.version = {default|python|python2|python3}
-* This property is used only when verify_script begins with the canonical path
-  to the Python interpreter, in other words, $SPLUNK_HOME/bin/python.  If any
-  other path is used, this property is ignored.
+python.version = {default|python|python2|python3|python3.7|python3.9|latest}
 * For Python scripts only, selects which Python version to use.
+* This setting is used only when the 'verify_script' setting has a value that
+  starts with the canonical path to the Python interpreter, in other words,
+  "$SPLUNK_HOME/bin/python". If you use any other path, the Splunk platform
+  ignores this setting.
 * Set to either "default" or "python" to use the system-wide default Python
   version.
+* Set to "python3" or "python3.7" to use the Python 3.7 version.
+* Set to "python3.9" to use the Python 3.9 version.
+* In the context of configuring apps, the "latest" value is not currently
+  supported. It is related to a feature that is still under development.
 * Optional.
 * Default: Not set; uses the system-wide Python version.
 

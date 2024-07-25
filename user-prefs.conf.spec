@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.3.0
 #
 ############################################################################
 # OVERVIEW
@@ -6,13 +6,13 @@
 # This file contains descriptions of the settings that you can use to
 # configure on a per-user basis for use by the Splunk Web UI.
 #
-# There is a user-prefs.conf file in the $SPLUNK_HOME/etc/system/default/ directory.
+# There is a user-prefs.conf file in the $SPLUNK_HOME/etc/apps/user-prefs/default/ directory.
 # Never change or copy the configuration files in the default directory.
 # The files in the default directory must remain intact and in their original
 # location.
 #
 # To set custom configurations, create a new file with the name user-prefs.conf in
-# the $SPLUNK_HOME/etc/system/local/ directory. Then add the specific settings
+# the $SPLUNK_HOME/etc/apps/user-prefs/local/ directory. Then add the specific settings
 # that you want to customize to the local configuration file.
 # For examples, see user-prefs.conf.example. You must restart the Splunk instance
 # to enable configuration changes.
@@ -67,6 +67,15 @@ lang = <string>
 * Optional quality settings are supported, such as "en-US,en;q=0.8,fr;q=0.6"
 * No default.
 
+restart_background_jobs = <boolean>
+* Specifies whether background search jobs that have not completed should restart
+* when splunkd restarts.
+* When "restart_background_jobs" is set to 'true', jobs marked to run in the background
+* will auto start when splunkd restarts.
+* When "restart_background_jobs" is set to 'false', jobs marked to run in the background
+* will not start when splunkd restarts.
+* Default: false.
+
 
 install_source_checksum = <string>
 * Records a checksum of the tarball from which a given set of private user
@@ -98,6 +107,10 @@ theme = [default_system_theme|light|dark]
   supported by the app, the theme is applied to the UI by Splunk Web.
   Otherwise, Splunk Web applies the default system theme.
 * Default: default_system_theme
+
+app_bar_cache_timeout_min = <integer>
+* The amount of time, in minutes, that the app bar cache remains valid before the app bar definition regenerates.
+* Default: 1440
 
 search_auto_format = <boolean>
 * Specifies if auto-format is enabled in the search input.

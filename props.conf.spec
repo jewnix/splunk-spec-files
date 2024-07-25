@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.3.0
 #
 # This file contains possible setting/value pairs for configuring Splunk
 # software's processing properties through props.conf.
@@ -462,6 +462,7 @@ EVENT_BREAKER = <regular expression>
 * Default: "([\r\n]+)"
 
 LB_CHUNK_BREAKER = <regular expression>
+* DEPRECATED. Use 'EVENT_BREAKER' instead.
 * A regular expression that specifies the event boundary for a
   universal forwarder to use to determine when it can send events
   to an indexer.
@@ -480,9 +481,12 @@ LB_CHUNK_BREAKER = <regular expression>
 * Default: ([\r\n]+)
 
 LB_CHUNK_BREAKER_TRUNCATE = <non-negative integer>
-* The maximum length of data chunk sent by LB_CHUNK_BREAKER, in bytes.
-* Although this is in bytes, length is rounded down when this would
-  otherwise land mid-character for multi-byte characters.
+* The maximum length, in bytes, of a chunk of data that a forwarder
+  sends over HTTP.
+* Although this is a byte value, the forwarder rounds down the length
+  when this would otherwise land mid-character for multi-byte characters.
+* This setting is valid only if you configure an [httpout] stanza in the
+  outputs.conf configuration file.
 * Default: 2000000
 
 #******************************************************************************
@@ -1128,7 +1132,7 @@ EXTRACT-<class> = [<regex>|<regex> in <src_field>]
   field name, change the regex to end with '[i]n <string>' to ensure that
   Splunk software doesn't try to match <string> to a field name.
 
-KV_MODE = [none|auto|auto_escaped|multi|multi:<multikv.conf_stanza_name>json|xml]
+KV_MODE = [none|auto|auto_escaped|multi|multi:<multikv.conf_stanza_name>|json|xml]
 * Used for search-time field extractions only.
 * Specifies the field/value extraction mode for the data.
 * Set KV_MODE to one of the following:
@@ -1507,7 +1511,7 @@ force_local_processing = <boolean>
 * Forces a universal forwarder to process all data tagged with this sourcetype
   locally before forwarding it to the indexers.
 * Data with this sourcetype is processed by the linebreaker,
-  aggerator, and the regexreplacement processors in addition to the existing
+  aggregator, and the regexreplacement processors in addition to the existing
   utf8 processor.
 * Note that switching this property potentially increases the cpu
   and memory consumption of the forwarder.

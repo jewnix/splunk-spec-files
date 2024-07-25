@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.3.0
 #
 ############################################################################
 # OVERVIEW
@@ -36,8 +36,14 @@
 #     multiple default stanzas, settings are combined. In the case of
 #     multiple definitions of the same setting, the last definition in the
 #     file wins.
-#   * If an setting is defined at both the global level and in a specific
+#   * If a setting is defined at both the global level and in a specific
 #     stanza, the value in the specific stanza takes precedence.
+#   * Do not add any new global settings to the [default] stanza unless you 
+#     understand all the repercussions of your changes. It is especially 
+#     important not to add new settings if your inputs.conf file is created 
+#     in an app that has global permissions or is located in the 
+#     $SPLUNK_HOME/etc/system directory. 
+#   * Modifying the inputs.conf file might cause other apps or splunkd to fail.
 
 ############################################################################
 # GENERAL SETTINGS:
@@ -1150,7 +1156,7 @@ sslServerHandshakeTimeout = <integer>
 [udp://<remote server>:<port>]
 * Similar to the [tcp://] stanza, except that this stanza causes the Splunk
   instance to listen on a UDP port.
-* Only one stanza per port number is currently supported.
+* Only 1 stanza per port number is currently supported.
 * Configures the instance to listen on a specific port.
 * If you specify <remote server>, the specified port only accepts data
   from that host.
@@ -1317,10 +1323,14 @@ passAuth = <string>
   user and passes it to the script through the stdin data stream.
 * No default.
 
-python.version = [default|python|python2|python3]
+python.version = [default|python|python2|python3|python3.7|python3.9|latest]
 * For Python scripts only, selects which Python version to use.
 * Set to either "default" or "python" to use the system-wide default Python
   version.
+* Set to "python3" or "python3.7" to use the Python 3.7 version.
+* Set to "python3.9" to use the Python 3.9 version.
+* In the context of configuring apps, the "latest" value is not currently
+  supported. It is related to a feature that is still under development.
 * Optional.
 * Default: Not set; uses the system-wide Python version.
 
@@ -1877,6 +1887,10 @@ maxEventSize = <positive integer>[KB|MB|GB]
 * Default: 5MB
 
 
+route = [has_key|absent_key:<key>:<queueName>;...]
+* See 'route' in the "[splunktcp]" stanza for
+  information on this setting.
+
 ############################################################################
 # HTTP Event Collector (HEC) - Local stanza for each token
 ############################################################################
@@ -1917,7 +1931,7 @@ s2s_indexes_validation = [ disabled | disabled_for_internal | enabled_for_all ]
 * A value of "enabled_for_all" means the platform validates all indexes
   according to the "indexes" setting.
 * The platform silently drops rejected events.
-* Default: disabled
+* Default: disabled_for_internal
 
 index = <string>
 * The default index to use for this token.
@@ -2226,21 +2240,21 @@ index = <string>
   monitor inputs for remote machines, use wmi.conf.
 
 start_from = <string>
-* How the input should chronologically read the Event Log channels.
-* If you set this setting to "oldest", the input reads Windows event logs
-  from oldest to newest.
-* If you set this setting to "newest" the input reads Windows event logs
-  in reverse, from newest to oldest. Once the input consumes the backlog of
-  events, it stops.
-* If you set this setting to "newest", and at the same time set the
-  "current_only" setting to 0, the combination can result in the input
-  indexing duplicate events.
-* Do not set this setting to "newest" and at the same time set the
-  "current_only" setting to 1. This results in the input not collecting
-  any events because you instructed it to read existing events from oldest
-  to newest and read only incoming events concurrently (A logically
-  impossible combination.)
-* Default: "oldest"
+* How the Event Log input is to chronologically read the Event Log channels.
+* A value of "oldest" means that the input reads Windows event logs
+  from the oldest to the most recent.
+* A value of "newest" means that the input reads Windows event logs
+  in reverse, from the most recent to the oldest. After the input consumes
+  the backlog of events, it stops.
+* If you set this setting to "newest", and at the same time give the
+  'current_only' setting a value of "false", the combination can result in the
+  input indexing duplicate events.
+* Do not set this setting to "newest" and at the same time give the
+  'current_only' setting a value of "true". This results in the input not 
+  collecting any events because you told it to read existing events
+  from newest to oldest and read only incoming events concurrently, which
+  is a logically impossible combination.
+* Default: oldest
 
 use_old_eventlog_api = <boolean>
 * Whether or not to read Event Log events with the Event Logging API.
@@ -2321,25 +2335,25 @@ suppress_opcode = <boolean>
 current_only = <boolean>
 * Whether or not to acquire only events that arrive while the instance is 
   running.
-* If you set this setting to 1, the input only acquires events that arrive
-  while the instance runs and the input is enabled. The input does not read
+* A value of "true" means the input only acquires events that arrive
+  while the instance runs and the input is on. The input does not read
   data which was stored in the Windows Event Log while the instance was not
   running. This means that there will be gaps in the data if you restart the
   instance or experiences downtime.
-* If you set the setting to 0, the input first gets all existing events
-  already stored in the log that have higher event IDs (have arrived more
+* A value of "false" means the input first gets all existing events
+  that are stored in the log which have higher event IDs (have arrived more
   recently) than the most recent events acquired. The input then monitors
   events that arrive in real time.
-* If you set this setting to 0, and at the same time set the
+* If you set this setting to "false", and at the same time set the
   'start_from' setting to "newest", the combination can result in the
   indexing of duplicate events.
-* Do not set this setting to 1 and at the same time set the
+* Do not set this setting to "true" and at the same time set the
   'start_from' setting to "newest". This results in the input not collecting
-  any events because you instructed it to read existing events from oldest
-  to newest and read only incoming events concurrently (A logically
-  impossible combination.)
-* Default: 0 (false, gathering stored events first before monitoring
-  live events)
+  any events because you told it to read existing events from oldest
+  to newest and read only incoming events concurrently, which is a 
+  logically impossible combination.
+* Default: false (Gather stored events with higher event IDs first before 
+  monitoring live events)
 
 batch_size = <integer>
 * How many Windows Event Log items to read per request.
@@ -2630,8 +2644,8 @@ blacklist9 = <comma-separated list> | key=regex [key=regex]
                 Event Log service.
   * $XmlRegex: Use this key for filtering when you render Windows Event
     log events in XML by setting the 'renderXml' setting to "true". Search
-    the online documentation for "Filter data in XML format with the
-    XmlRegex key" for details.
+    the Splunk platform Getting Data In Manual for "Filter data in XML format 
+    with the XmlRegex key" for details.
 * The 'EventType' key is only available on Windows Server 2003 /
   Windows XP and earlier.
 * The 'Type' key is only available on Windows Server 2008 /
@@ -2660,8 +2674,8 @@ renderXml = <boolean>
   and deny lists to filter events. For these kinds of lists to work, you
   must use the '$xmlRegex' special key and assign regular expression values
   to use those lists. 
-* Search the Splunk Documentation for "Filter data in XML format with the
-  XmlRegex Key" for details.
+* Search the Splunk platform Getting Data In Manual for "Filter data in XML format
+  with the XmlRegex Key" for details.
 * Default: false
 
 ############################################################################
@@ -3104,9 +3118,18 @@ script = <string>
 
 schedule = [<positive integer>|<cron schedule>]
 * How often to run the specified PowerShell command or script.
-* You can specify a number in seconds, or provide a valid cron
-  schedule.
-* Default: Runs the command or script once, at startup.
+* There are two options available for how to run the command
+  or script: 
+  * You can specify a number, which represents how often, in seconds,
+    to run the command or script after the instance starts.
+  * You can specify a "cron" style schedule, which lets you determine 
+    the days, hours, minutes, and seconds when the script or command
+    runs. An example cron schedule is "30 * * * *", which means
+    to run the script at 30 minutes past the hour, every hour of 
+    every day.
+  * Regardless of which option you choose, the command or script 
+    always runs once when the instance starts. 
+* Default: The command or script runs once, when the instance starts.
 
 # Global settings for the powershell2 modinput.
 
@@ -3174,7 +3197,7 @@ schedule = <string>
 * This section explains possible settings for configuring a remote queue.
 * Each remote_queue: stanza represents an individually configured remote
   queue monitoring input.
-* Note that only ONE remote queue stanza is supported as
+* Note that only 1 remote queue stanza is supported as
   an input queue.
 
 remote_queue.* = <string>
@@ -3191,12 +3214,21 @@ remote_queue.* = <string>
 * This setting is optional.
 * No default.
 
-remote_queue.type = [sqs|kinesis|sqs_smartbus]
+disabled = <boolean>
+* Whether the remote queue input is active.
+* A value of "true" means the remote queue input is inactive. 
+* A value of "false" means the remote queue input is active. 
+* Default: false
+
+remote_queue.type = [sqs|kinesis|sqs_smartbus|sqs_smartbus_cp|sqs_datalake]
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Required.
-* Specifies the remote queue type, either Amazon Web Services (AWS)
-  Simple Queue Service (SQS) or Amazon Kinesis or SQS Smartbus.
+* Specifies the remote queue type, which can be "Amazon Web Services (AWS) 
+  Simple Queue Service (SQS)", "Amazon Kinesis", "SQS Smartbus",
+  "SQS Smartbus CP" or "SQS Datalake".
+* If the type is "sqs_smartbus_cp", the [cloud_processor_smartbus_queue] 
+  stanza must be present.
 
 remote_queue.large_message_store.supports_versioning = <boolean>
 * Currently not supported. This setting is related to a feature that is
@@ -3610,8 +3642,13 @@ remote_queue.kinesis.large_message_store.path = <string>
 * No default.
 
 ############################################################################
-# SQS Smartbus specific settings
+# Simple Queue Service Smartbus (SQS Smartbus) or Simple Queue Service 
+  Smartbus CP (SQS Smartbus CP) specific settings
 ############################################################################
+
+# The settings for SQS Smartbus (sqs_smartbus) and SQS Smartbus CP 
+  (sqs_smartbus_cp) are identical in the remote queue input. 
+# The following section uses "sqs_smartbus" as an example. 
 
 remote_queue.sqs_smartbus.access_key = <string>
 * Currently not supported. This setting is related to a feature that is
@@ -3864,7 +3901,7 @@ remote_queue.sqs_smartbus.large_message_store.sslAltNameToCheck = <alternateName
 
 remote_queue.sqs_smartbus.large_message_store.sslRootCAPath = <path>
 * Full path to the Certificate Authority (CA) certificate PEM format file
-  containing one or more certificates concatenated together. S3 certificate
+  containing one or more certificates concatenated together. The S3 certificate
   will be validated against the CAs present in this file.
 * Default: [sslConfig/caCertFile] in server.conf
 
@@ -3937,12 +3974,218 @@ remote_queue.sqs_smartbus.large_message_store.key_refresh_interval = <string>
 * Default: 24h
 
 ############################################################################
+# Settings specific to Simple Queue Service Datalake (SQS Datalake)
+############################################################################
+* NOTE: Change the settings in this section only when instructed to do so by 
+  Splunk Support.
+
+remote_queue.sqs_datalake.message_type = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The expected type of message notified through AWS SQS.
+* Currently only the "asl" message type is supported.
+* This setting is required.
+* No default.
+
+remote_queue.sqs_datalake.file_format = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The expected format of file downloaded from datalake.
+* Currently only "parquet" type is supported.
+* This setting is mandatory.
+* No default.
+
+remote_queue.sqs_datalake.sourcetype = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The source type that the indexer applies to events it indexes from data lake
+  files
+* Default: "aws:asl"
+
+remote_queue.sqs_datalake.auth_region = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The authentication region to use when signing the requests when interacting
+  with the remote queue system supporting the SQS API.
+* If this setting is not specified and the indexer is running on EC2, the 
+  indexer automatically constructs the 'auth_region' based on the EC2 region of 
+  the Splunk platform instance where the indexer is running.
+* This setting is optional.
+* No default.
+
+remote_queue.sqs_datalake.endpoint = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The URL of the remote queue system that supports the SQS API. This endpoint 
+  can turn SSL connectivity on or off.
+  * If the URL scheme is 'http' the URL turns SSL connectivity off.
+  * If the URL scheme is 'https' the URL turns SSL connectivity on.
+* If this setting is not specified, Splunk software automatically constructs 
+  the endpoint with the 'auth_region' value using the following syntax: 
+  https://sqs.<auth_region>.amazonaws.com
+* If this setting is specified, the endpoint must match the effective 
+  'auth_region', which is either the specified for  
+  'remote_queue.sqs_datalake.auth_region', or a value constructed automatically 
+  based on the EC2 region of the running instance.
+  * Example: https://sqs.us-west-2.amazonaws.com/
+* This setting is optional.
+* No default.
+
+remote_queue.sqs_datalake.max_connections = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is still
+  under development.
+* The maximum number of HTTP connections that can be simultaneously in progress for
+  certain queue operations.
+* A value of 0 means unlimited.
+* Default: 8
+
+remote_queue.sqs_datalake.retry_policy = [max_count|none]
+* Currently not supported. This setting is related to a feature that is still
+  under development.
+* The retry policy to use for remote queue operations.
+* A retry policy specifies whether and how to retry file operations that fail
+  for those failures that might be intermittent.
+* Retry policies:
+  * "max_count": Imposes a maximum number of times a queue operation can be
+    retried upon intermittent failure. 
+      * Use 'remote_queue.sqs_datalake.max_count.max_retries_per_part' to set the 
+        maximum retry limit. 
+  * "none": Do not retry file operations upon failure.
+* This setting is optional.
+* Default: "max_count"
+
+remote_queue.sqs_datalake.max_count.max_retries_per_part = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is still
+  under development.
+* When 'remote_queue.sqs_datalake.retry_policy' is set to "max_count", this 
+  setting sets the maximum number of times that Splunk software can retry a 
+  queue operation upon intermittent failure.
+* This setting is optional.
+* Default: 3
+
+remote_queue.sqs_datalake.timeout.connect = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The connection timeout, in seconds, when interacting with
+  SQS for this queue.
+* This setting is optional.
+* Default: 5
+
+remote_queue.sqs_datalake.timeout.read = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The read timeout, in seconds, when interacting with SQS for
+  this queue.
+* This setting is optional.
+* Default: 60
+
+remote_queue.sqs_datalake.timeout.write = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The write timeout, in seconds, when interacting with SQS for
+  this queue.
+* This setting is optional.
+* Default: 60
+
+remote_queue.sqs_datalake.timeout.receive_message = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The receive message wait time, in seconds, when interacting with SQS for
+  this queue.
+  * When set to a value greater than 0, this setting facilitates "long 
+    polling." If there are no messages immediately available, the queue waits 
+    at most 'remote_queue.sqs_datalake.timeout.receive_message' seconds for a 
+    message to become available.
+  * Maximum value: 20
+  * When this setting is set to 0, long polling is not active.
+* This setting is optional.
+* Default: 20
+
+remote_queue.sqs_datalake.timeout.visibility = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The "visibility timeout," in seconds, to use when
+  explicitly changing the visibility of specific messages in the queue.
+* NOTE: Changing the value of 'remote_queue.sqs_datalake.timeout.visibility'
+  does not change the implicit visibility timeout configured for
+  the queue in the AWS SQS console.
+* This setting always overrides the AWS SQS console visibility timeout.
+* This setting is optional.
+* Default: 300
+
+remote_queue.sqs_datalake.buffer.visibility = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The time, in seconds, before
+  'remote_queue.sqs_datalake.timeout.visibility' at which visibility of
+  specific messages in the queue needs to be changed.
+* This setting is optional.
+* Default: 15
+
+remote_queue.sqs_datalake.executor_max_workers_count = <positive integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The maximum number of worker threads that can be used by
+  indexer per pipeline set to execute SQS tasks.
+* A value of 0 is equivalent to 1.
+* Default: 4
+
+remote_queue.sqs_datalake.min_pending_messages = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The "minimum number of pending messages" that the indexer uses before it 
+  can receive messages off of the remote queue. 
+  * The indexer receives messages only when the sum of the internal queue 
+    message count and the pending object GET count (from large messages 
+    storage) is below the value for this setting.
+* This setting is optional.
+* Default: 10
+
+remote_queue.sqs_datalake.large_message_store.encryption_scheme = [sse-s3|sse-kms|none]
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The encryption scheme used by remote storage.
+  * If you set this setting to "sse-c" you must also provide values for 
+    'remote_queue.sqs_datalake.large_message_store.kms_endpoint' and 
+    'remote_queue.sqs_datalake.large_message_store.key_id'. 
+* No default.
+
+remote_queue.sqs_datalake.large_message_store.kms_endpoint = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The endpoint to connect to for generating KMS keys.
+* This setting is required if 'large_message_store.encryption_scheme' is
+  set to "sse-c".
+* Examples: https://kms.us-east-2.amazonaws.com
+* No default.
+
+remote_queue.sqs_datalake.large_message_store.key_id = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The ID for the primary key that KMS uses to generate a data key pair. The
+  primary key is stored in AWS.
+* This setting is required if 'large_message_store.encryption_scheme' is
+  set to "sse-c".
+* Examples: alias/sqsssekeytrial, 23456789-abcd-1234-11aa-c50f99011223
+* No default.
+
+remote_queue.sqs_datalake.large_message_store.key_refresh_interval = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The time interval to refresh the primary key.
+* Default: 24h
+
+############################################################################
 # Modular Inputs
 ############################################################################
 
-python.version = [default|python|python2|python3]
+python.version = [default|python|python2|python3|python3.7|python3.9|latest]
 * For Python scripts only, selects which Python version to use.
 * Either "default" or "python" select the system-wide default Python version.
+* Set to "python3" or "python3.7" to use the Python 3.7 version.
+* Set to "python3.9" to use the Python 3.9 version.
+* In the context of configuring apps, the "latest" value is not currently
+  supported. It is related to a feature that is still under development.
 * Optional.
 * Default: Not set; uses the system-wide Python version.
 
@@ -4057,8 +4300,7 @@ journalctl-include-fields = <string>
   treats these fields specially.
 * An empty 'journalctl-include-fields' value means to output all fields.
 * If you want all fields except XYZ, leave 'journalctl-include-fields' empty,
-  and set journalctl-include-fields empty, and set 
-  journalctl-exclude-fields=XYZ
+  and set "journalctl-exclude-fields=XYZ".
 * The input always retrieves the MESSAGE, __REALTIME_TIMESTAMP, and __CURSOR
   fields, but uses the __REALTIME_TIMESTAMP and __CURSOR fields internally and
   does not send them to the Splunk platform.
@@ -4126,3 +4368,100 @@ journalctl-quiet = <boolean>
 journalctl-freetext = <string>
 * reserved for future use
 
+####
+# Cloud Processor Smartbus Queue Input
+####
+
+[cloud_processor_smartbus_queue:<type>:<name>]
+
+* This section explains possible settings for configuring a cloud processor smartbus queue.
+* Each cloud_processor_smartbus_queue stanza represents an individually configured cloud
+  processor smartbus queue input.
+* NOTE: Only 1 cloud processor smartbus queue stanza is supported as an
+  input queue.
+
+* This section explains possible settings for configuring a cloud processor 
+  smartbus queue.
+
+####
+# cloud processor smartbus Queue (CP Smartbus Queue) specific settings
+####
+
+encoding_format = s2s
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies the encoding format used to write data to the cloud processor 
+  smartbus queue.
+* Default: s2s
+
+retry_policy = max_count|none
+* Sets the retry policy to use for cloud processor smartbus queue operations.
+* Optional.
+* A retry policy specifies whether and how to retry file operations that fail
+  for those failures that might be intermittent.
+* Retry policies:
+  + "max_count": Imposes a maximum number of times a queue operation is
+    retried upon intermittent failure. Set "max_count" with the
+    'max_count.max_retries_per_part' setting.
+  + "none": Do not retry file operations upon failure.
+* Default: max_count
+
+max_count.max_retries_per_part = <unsigned integer>
+* When 'retry_policy' is set to "max_count", sets the maximum number of times
+  a queue operation will be retried upon intermittent failure.
+* Optional.
+* Default: 3
+
+large_message_store.sslVerifyServerCert = <boolean>
+* If set to "true", the Splunk platform verifies the certificate presented by 
+  the S3 server and checks that the common name and alternate name match 
+  the ones specified in 'large_message_store.sslCommonNameToCheck' and
+  'large_message_store.sslAltNameToCheck'.
+* Default: false
+
+large_message_store.sslVersions = <comma-separated list>
+* Comma-separated list of SSL versions to connect to the large message store.
+* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
+* The special version "*" selects all supported versions. The version "tls"
+  selects all versions tls1.0 or newer.
+* If a version is prefixed with "-", then it is removed from the list.
+* SSLv2 is always disabled; "-ssl2" is accepted in the version list,
+  but has no effect.
+* When configured in FIPS mode, ssl3 is always disabled regardless
+  of this configuration.
+* Default: tls1.2
+
+large_message_store.sslRootCAPath = <path>
+* Full path to the Certificate Authority (CA) certificate PEM format file
+  containing one or more certificates concatenated together. The S3 certificate
+  is validated against the CAs present in this file.
+* Default: The value of [sslConfig]/'caCertFile' in server.conf
+
+large_message_store.cipherSuite = <cipher suite string>
+* If set, uses the specified cipher string for the SSL connection.
+* If not set, uses the default cipher string.
+* You must specify 'dhFile' to enable any Diffie-Hellman ciphers.
+* Default: TLSv1+HIGH:TLSv1.2+HIGH:@STRENGTH
+
+large_message_store.ecdhCurves = <comma-separated list>
+* ECDH curves to use for ECDH key negotiation.
+* Specify the curves in the order of preference.
+* The client sends these curves as a part of Client Hello.
+* Splunk software only supports named curves specified by their short names.
+* The list of valid named curves by their short/long names can be obtained
+  by executing this command:
+  $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
+* e.g. ecdhCurves = prime256v1,secp384r1,secp521r1
+* Default: not set
+
+large_message_store.encryption_scheme = sse-s3 | none
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The encryption scheme used by remote storage.
+* Default: none.
+
+large_message_store.key_refresh_interval = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The time interval to refresh primary key.
+* Default: 24h

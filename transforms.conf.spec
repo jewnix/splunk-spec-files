@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.3.0
 #
 # This file contains settings and values that you can use to configure
 # data transformations.
@@ -187,7 +187,7 @@ CLONE_SOURCETYPE = <string>
   modified duplicate event for all events that the transform is applied to via
   normal props.conf rules.
 * Use this setting when you need to store both the original and a modified
-  form of the data in your system, or when you need to to send the original and
+  form of the data in your system, or when you need to send the original and
   a modified form to different outbound systems.
   * A typical example would be to retain sensitive information according to
     one policy and a version with the sensitive information removed
@@ -223,17 +223,25 @@ LOOKAHEAD = <integer>
     exceed 4096 characters (before linebreaking).
 
 WRITE_META = <boolean>
-* NOTE: This setting is only valid for index-time field extractions.
-* Automatically writes REGEX to metadata.
-* Required for all index-time field extractions except for those where
-  DEST_KEY = _meta (see the description of the DEST_KEY setting, below)
-* Use instead of DEST_KEY = _meta.
+* Whether or not the Splunk platform writes REGEX values to the _meta 'DEST_KEY'.
+* When the Splunk platform writes REGEX values to metadata, those REGEX values
+  become index-time field extractions.
+* This setting is required for all index-time field extractions except for
+  those where "DEST_KEY = _meta." See the description of the 'DEST_KEY' setting
+  for more information.
+* Where applicable, set "WRITE_META = true" instead of setting "DEST_KEY = 
+  _meta".
+* A value of "true" means that the Splunk platform writes REGEX values to 
+  the _meta DEST_KEY. In other words, the platform writes REGEX values to
+  metadata.  
+* A value of "false" means that the Splunk platform does not write 
+  REGEX values to metadata.
 * Default: false
 
 DEST_KEY = <KEY>
-* NOTE: This setting is only valid for index-time field extractions.
 * Specifies where Splunk software stores the expanded FORMAT results in
   accordance with the REGEX match.
+* NOTE: This setting is only valid for index-time field extractions.
 * Required for index-time field extractions where WRITE_META = false or is
   not set.
 * For index-time extractions, DEST_KEY can be set to a number of values
@@ -329,7 +337,7 @@ INGEST_EVAL = <comma-separated list of evaluator expressions>
 * When reading from an index-time field that occurs multiple times inside the
   _meta key, normally the first value is used. You can override this by
   prefixing the name with "mv:" which returns all of the values into a
-  "multival" object. For example, if _meta contains the keys "v::a v::b" then
+  multivalue object. For example, if _meta contains the keys "v::a v::b" then
   'mvjoin(v,",")' returns "a" while 'mvjoin($mv:v$,",")' returns "a,b".
 * Note that this "mv:" prefix does not change behavior when it writes to a
   _meta field. If the value returned by an expression is a multivalue, it
@@ -604,10 +612,14 @@ external_type = [python|executable|kvstore|geo|geo_hex]
 * 'geo_hex' is reserved for the geo_hex H3 lookup.
 * Default: python
 
-python.version = {default|python|python2|python3}
+python.version = {default|python|python2|python3|python3.7|python3.9|latest}
 * For Python scripts only, selects which Python version to use.
 * Set to either "default" or "python" to use the system-wide default Python
   version.
+* Set to "python3" or "python3.7" to use the Python 3.7 version.
+* Set to "python3.9" to use the Python 3.9 version.
+* In the context of configuring apps, the "latest" value is not currently
+  supported. It is related to a feature that is still under development.
 * Optional.
 * Default: Not set; uses the system-wide Python version.
 

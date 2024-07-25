@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.3.0
 #
 ############################################################################
 # OVERVIEW
@@ -103,5 +103,5 @@ display.page.search.timeline.format = [hidden|compact|full]
 display.page.search.timeline.scale = [linear|log]
 display.page.search.showFields = 0 | 1
 display.page.home.showGettingStarted = 0 | 1
-display.page.search.searchHistoryTimeFilter = [0|@d|-7d@d|-30d@d]
+display.page.search.searchHistoryTimeFilter = [@d|-7d@d|-30d@d|-60d@d|-90d@d]
 display.page.search.searchHistoryCount = [10|20|50]

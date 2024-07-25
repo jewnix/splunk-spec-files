@@ -1,4 +1,4 @@
-#   Version 9.2.2
+#   Version 9.3.0
 #
 ############################################################################
 # OVERVIEW
@@ -169,6 +169,11 @@ pass4SymmKey_minLength = <integer>
   change the pass4SymKey.
 * Default: 12
 
+unbiasLanguageForLogging = <boolean>
+* Specifies whether to replace the old language terms such as "master" and "slave"
+   with the new terms such as "manager" and "peer"
+* Default: false
+
 listenOnIPv6 = no|yes|only
 * By default, splunkd listens for incoming connections (both REST and
   TCP inputs) using IPv4 only.
@@ -272,7 +277,7 @@ useHTTPClientCompression = true|false|on-http|on-https
   "useClientSSLCompression=true", then setting "useHTTPClientCompression=true"
   results in double compression work without much compression gain. To
   mitigate this, set this value to "on-http" (or to "true", and
-  useClientSSLCompression to "false").
+  'useClientSSLCompression' to "false").
 * Default: true
 
 embedSecret = <string>
@@ -419,16 +424,18 @@ decommission_search_jobs_min_wait_ratio = <decimal>
   search processes on this indexer.
 * Default: 0.15
 
-python.version = python3|force_python3|unspecified
+python.version = python3|python3.7|python3.9|force_python3|unspecified
 * For Python scripts only, sets the default Python version to use.
 * Can be overridden by other 'python.version' values elsewhere, with the
   following exception:
-* If you set to "force_python3", the system always uses Python 3, and ignores
-  'python.version' values that you set elsewhere.
+* If you set to "python3" or "python3.7", the system uses Python 3.7.
+* If you set to "python3.9", the system uses Python 3.9.
+* If you set to "force_python3", the system always uses Python 3.9, and ignores
+  values for 'python.version' that you set elsewhere.
 * If you set to "unspecified”, the system calls the python interpreter 'python'
   to run scripts. Used on universal forwarders when calling an external instance
   of python. This setting value is not supported.
-* Default: python3
+* Default: force_python3
 
 roll_and_wait_for_uploads_at_shutdown_secs = <non-negative integer>
 * Currently not supported. This setting is related to a feature that is
@@ -514,6 +521,26 @@ encrypt_fields = <comma-separated list>
 * Default: a default list of fields containing passwords, secret keys, and identifiers:
   "server: :sslKeysfilePassword", "server: :sslPassword", "server: :pass4SymmKey",...
 
+
+conf_cache_memory_optimization = <boolean>
+* Turns on or off memory optimization for configuration file caches for all
+  Splunk configuration file types.
+* A value of "true" turns on memory optimization for configuration files.
+* A value of "false" turns off memory optimization for configuration files.
+* Turning on this setting can reduce the memory footprint of the splunkd process
+  due to caching of configurations.
+* NOTE: Do not change this setting without first consulting with Splunk
+  Support.
+* Default: false
+
+cgroup_location = <string>
+* Specifies the location of the cgroup hierarchy for the splunkd, search, and 
+  helper processes within cgroups version 1 or 2.
+* This setting requires a Linux system with SystemD.
+* A value of "auto" turns on automatic detection, which is based on the 
+  contents of /proc/<pid>/cgroup and /proc/<pid>/mountinfo.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: an empty string, which indicates the feature is off.
 
 ############################################################################
 # Configuration Change Tracker
@@ -627,139 +654,174 @@ pass4SymmKey_minLength = <integer>
 * Default: 12
 
 ############################################################################
-# SSL/TLS Configuration details
+# TLS/SSL Configuration details
 ############################################################################
 
 [sslConfig]
-* Set SSL for communications on Splunk back-end under this stanza name.
-  * NOTE: To set SSL (for example HTTPS) for Splunk Web and the browser,
-   use the web.conf file.
-* Follow this stanza name with any number of the following setting/value
+* Set TLS for communications on the Splunk platform back-end under this
+  stanza name.
+  * NOTE: To set TLS (for example HTTPS) for Splunk Web and the browser,
+    use the web.conf configuration file.
+* Follow this stanza with any number of the following setting/value
   pairs.
-* If you do not specify an entry for each setting, the default value
-  is used.
+* If you do not specify an entry for each setting, the Splunk platform 
+  uses the default values.
 
 enableSplunkdSSL = <boolean>
-* Enables/disables SSL on the splunkd management port (8089) and KV store
-  port (8191).
-* NOTE: Running splunkd without SSL is not recommended.
-* Distributed search often performs better with SSL enabled.
+* Whether or not the Splunk daemon uses TLS/SSL on the management port
+  (default 8089) and app key value store (KV Store, default 8191) 
+  network ports.
+* A value of "true" means that splunkd runs TLS on the management
+  and KV Store ports.
+* A value of "false" means that splunkd does not run TLS on any port.
+* NOTE: Where practical, do not run splunkd without using TLS.
+* Distributed search often performs better when you enable TLS.
 * Default: true
 
 useClientSSLCompression = <boolean>
-* Turns on HTTP client compression.
+* Whether or not HTTP client compression is turned on.
 * Server-side compression is turned on by default. Setting this on the
   client-side enables compression between server and client.
 * Enabling this potentially gives you much faster distributed searches
   across multiple Splunk instances.
-* CAUTION: There are known performance issues due to SSL compression.
-  Confirm that 'conf_deploy_precompress_bundles',
-  'precompress_cluster_bundle', 'precompress_artifacts',
-  'preCompressKnowledgeBundlesClassicMode',
-  'preCompressKnowledgeBundlesCascadeMode',
-  and 'useHTTPClientCompression' are set to "false" before setting
- 'useClientSSLCompression' to "true" to avoid double compression.
+* CAUTION: There are known performance issues when TLS compression is on.
+  Confirm that the following settings have "false" values before you
+  configure this setting to "true" to avoid double compression:
+  * 'conf_deploy_precompress_bundles'
+  * 'precompress_cluster_bundle'
+  * 'precompress_artifacts'
+  * 'preCompressKnowledgeBundlesClassicMode'
+  * 'preCompressKnowledgeBundlesCascadeMode'
+  * 'useHTTPClientCompression'
 * Default: false
 
 useSplunkdClientSSLCompression = <boolean>
-* Controls whether SSL compression is used when splunkd is acting as
-  an HTTP client, usually during certificate exchange, bundle replication,
-  remote calls, etc.
-* This setting is effective if, and only if, useClientSSLCompression
-  is set to "true".
+* Whether or not splunkd, as an HTTP client, uses TLS compression
+  during activities like certificate exchange, bundle replication,
+  remote calls, and so on.
+* This setting is effective if, and only if, 'useClientSSLCompression'
+  has a value of "true".
+* A value of "true" means that splunkd, as a client, uses TLS
+  compression when connecting to other services.
+* A value of "false" means that splunkd does not use TLS compression.
 * NOTE: splunkd is not involved in data transfer in distributed search, the
   search in a separate process is.
 * Default: true
 
 sslVersions = <comma-separated list>
-* Comma-separated list of SSL versions to support for incoming connections.
+* The list of TLS/SSL versions to support for incoming connections.
 * The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
 * The special version "*" selects all supported versions.
   The version "tls" selects all versions tls1.0 or newer.
-* If a version is prefixed with "-" it is removed from the list.
+* If you prefix a version with "-", it means to exclude that version
+  from the list.
 * SSLv2 is always disabled; "-ssl2" is accepted in the version
   list but does nothing.
-* When configured in FIPS mode, "ssl3" is always disabled regardless
-  of this configuration.
-* Default: The default can vary (see the 'sslVersions' setting in
+* If the Splunk platform instance runs in FIPS mode,
+  "ssl3" is always disabled regardless of this configuration.
+* The default can vary. See the 'sslVersions' setting in
   the $SPLUNK_HOME/etc/system/default/server.conf file for the
-  current default)
+  current default
 
 sslVersionsForClient = <comma-separated list>
-* A comma-separated list of SSL versions to support for outgoing HTTP connections
+* The list of TLS/SSL versions to support for outgoing HTTP connections
   from splunkd.  This includes distributed search, deployment client, etc.
-* This is usually less critical, since SSL/TLS always picks the highest
-  version both sides support.  However, you can use this setting to prohibit
+* Configuring this setting is usually less critical than configuring the
+  'sslVersions' setting, since TLS/SSL always picks the highest version
+  that both client and server support. However, you can use this setting to prohibit
   making connections to remote servers that only support older protocols.
 * The syntax is the same as the 'sslVersions' setting.
 * NOTE: For forwarder connections, there is a separate 'sslVersions'
   setting in the outputs.conf file. For connections to SAML servers, there
   is a separate 'sslVersions' setting in the authentication.conf file.
-* Default: The default can vary (see the 'sslVersionsForClient' setting in
+* The default can vary. See the 'sslVersionsForClient' setting in
   the $SPLUNK_HOME/etc/system/default/server.conf file for the
-  current default)
+  current default
 
 supportSSLV3Only = <boolean>
-* DEPRECATED.  SSLv2 is disabled.  The exact set of SSL versions
-  allowed is configurable using the 'sslVersions' setting.
+* DEPRECATED. Use 'sslVersions' or 'sslVersionsForClient' instead.
 
 sslVerifyServerCert = <boolean>
-* This setting is used by distributed search and distributed
-  deployment clients.
-  * For distributed search: Used when making a search request
-    to another server in the search cluster.
-  * For distributed deployment clients: Used when polling a
-    deployment server.
-* A value of "true" means make sure that the connected server is
-  authenticated. Both the common name and the alternate name
-  of the server are checked for a match if they are specified
-  in this configuration file. A certificate is considered
-  verified if either is matched.
+* Whether or not splunkd, as a client, validates the TLS certificate that a server presents
+  to it when it connects to a server.
+* This setting serves as an additional step for authenticating connections to other
+  Splunk platform services. Multiple services can use this setting, including but not
+  limited to distributed search and distributed deployment clients.
+  * For distributed search, the client uses this setting when it makes a 
+    search request to another search head cluster peer.
+  * For distributed deployment, the client uses this setting when it polls
+    a deployment server.
+* A value of "true" means that the client inspects and validates the certificate
+  that it receives from the server upon connecting to it.
+  * This ensures that the server you are connecting to has a valid
+    TLS/SSL certificate. 
+  * The client then checks both the X.509 Common Name and Subject Alternative Name 
+    of the server in the certificate for a match.
+  * If the server does not present a certificate, or the validation check does 
+    not pass, then the client terminates the handshake between it and the server 
+    immediately, which terminates the connection.
+  * NOTE: Certificates that contain the same Common Name as a certificate
+    authority (CA) certificate are not suitable for this validation check, even
+    if the same CA issued the certificate. 
+* A value of "false" means that the client does not check the TLS certificate that
+  it receives as part of the session negotiation. The client considers any valid
+  TLS certificate as acceptable.
 * Default: false
 
-sslCommonNameToCheck = <commonName1>, <commonName2>, ...
-* If set, and 'sslVerifyServerCert' is set to "true",
-  splunkd limits most outbound HTTPS connections to hosts which
-  use a certificate with one of the listed common names.
-* The most important scenario is distributed search.
-* Optional.
-* No default (no common name checking.)
+sslCommonNameToCheck = <comma-separated list>
+* One or more X.509 standard Common Names of the server certificate which splunkd,
+  as a client, checks against when it connects to a server using TLS.
+* The Common Name (CN) is an X.509 standard field in a certificate that identifies the
+  host name that is associated with the certificate.
+  * The CN can be a short host name or a fully qualified domain name. For example, 
+    the CN can be one of "example", "www.example.com", or "example.com".
+* If the client cannot match the CN in the certificate that the server presents,
+  then the client cannot authenticate the server, and terminates the session 
+  negotiation immediately.
+* For this setting to have any affect, the 'sslVerifyServerCert' setting must have
+  a value of "true".
+* This setting is optional.
+* No default (no common name checking).
 
 sslCommonNameList = <commonName1>, <commonName2>, ...
 * DEPRECATED. Use the 'sslCommonNameToCheck' setting instead.
 
-sslAltNameToCheck = <alternateName1>, <alternateName2>, ...
-* If this value is set, and 'sslVerifyServerCert' is set to true,
-  splunkd also verifies certificates which have a so-called
-  "Subject Alternate Name" that matches any of the alternate
-  names in this list.
-  * Subject Alternate Names are effectively extended descriptive
-    fields in SSL certificates beyond the commonName. A common
-    practice for HTTPS certificates is to use these values to
-    store additional valid hostnames or domains where the
-    certificate should be considered valid.
-* Accepts a comma-separated list of Subject Alternate Names to
-  consider as valid.
-* Items in this list are never validated against the SSL Common Name.
-* Optional.
-* No default (no alternate name checking.)
+sslAltNameToCheck = <comma-separated list>
+* One or more Subject Alternative Names of the server certificate which splunkd,
+  as a client, checks against when it connects to a server using TLS.
+* The Subject Alternative Name (SAN) is an extension to the X.509 standard that
+  lets you specify additional host names for a TLS certificate. The SAN can be a
+  short host name or a fully qualified domain name.
+* If the client cannot match the SAN in the certificate that the server presents,
+  then the client cannot authenticate the server, and terminates the session 
+  negotiation immediately.
+* The client does not validate any names in this list against the Common Name.
+* For this setting to have any affect, the 'sslVerifyServerCert' setting must have
+  a value of "true".
+* This setting is optional.
+* No default (no alternate name checking).
 
 requireClientCert = <boolean>
-* Requires that any HTTPS client that connects to a splunkd
-  internal HTTPS server has a certificate that was signed by a
-  CA (Certificate Authority) specified by the 'sslRootCAPath' setting.
-  * Used by distributed search: Splunk indexing instances must be
-    authenticated to connect to another splunk indexing instance.
-  * Used by distributed deployment: The deployment server requires that
-    deployment clients are authenticated before allowing them to poll
-    for new configurations/applications.
-* If set to "true", a client can connect ONLY if a certificate
-  created by our certificate authority was used on that client.
+* Whether or not an HTTPS client which connects to a splunkd
+  server must possess a certificate that a certificate authority
+  signed to complete the connection.
+* Multiple services can use this setting, including but not
+  limited to distributed search and distributed deployment clients.
+  * Splunk platform indexers must use this setting to connect to
+    other Splunk platform indexers.
+  * Deployment clients must present certificates to deployment
+    servers before they can poll the servers for new configurations
+    or applications.
+* A value of "true" means that a client can connect only if it
+  has a certificate that was signed by a certificate
+  authority that the splunkd server trusts.
+* A value of "false" means that there is no certificate requirement
+  to connect to services on another Splunk platform instance.
 * Default: false
 
 sslVerifyServerName = <boolean>
 * Whether or not splunkd, as a client, performs a TLS hostname validation check
-  on an SSL certificate that it receives upon an initial connection
+  on a TLS certificate that it receives upon an initial connection
   to a server.
 * A TLS hostname validation check ensures that a client
   communicates with the correct server, and has not been redirected to
@@ -775,9 +837,9 @@ sslVerifyServerName = <boolean>
   because certificate verification is not on.
 * A value of "true" for this setting means that splunkd performs a TLS hostname
   validation check, in effect, verifying the server's name in the certificate.
-  If that check fails, splunkd terminates the SSL handshake immediately. This
-  terminates the connection between the client and the server. Splunkd logs
-  this failure at the ERROR logging level.
+  * If that check fails, splunkd terminates the TLS handshake immediately. This
+    terminates the connection between the client and the server. Splunkd logs
+    this failure at the ERROR logging level.
 * A value of "false" means that splunkd does not perform the TLS hostname
   validation check. If the server presents an otherwise valid certificate, the
   client-to-server connection proceeds normally.
@@ -793,9 +855,8 @@ caTrustStore = <[splunk],[OS]>
 * A value of "OS" means the platform only uses the CA certificates in
   the trust store that the operating system on the instance defines.
 * Splunk provides support for OS trust store usage on the Linux
-  operating system.
-  There is currently no support for loading certificate trust stores on macOS
-  or Windows.
+  operating system. There is currently no support for loading certificate
+  trust stores on macOS or Windows.
 * Providing both values ("splunk,OS") means that the platform uses CA 
   certificates within both the Splunk platform and operating system
   trust stores.
@@ -818,104 +879,112 @@ caTrustStorePath = <string>
 * Following are example trust store locations for popular
   Linux distributions:
   Debian/Ubuntu/Gentoo: /etc/ssl/certs/ca-certificates.crt
-  Fedora/RHEL 6:        /etc/pki/tls/certs/ca-bundle.crt
+  Fedora/RHEL 6, 8, 9:        /etc/pki/tls/certs/ca-bundle.crt
   CentOS/RHEL 7:        /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
 * No default.
 
-cipherSuite = <cipher suite string>
+cipherSuite = <string>
+* A list of cipher suites for splunkd to use.
 * If set, Splunk uses the specified cipher string for the HTTP server.
-* If not set, Splunk uses the default cipher string provided by OpenSSL.
-  This is used to ensure that the server does not accept connections using
-  weak encryption protocols.
-* Must specify 'dhFile' to enable any Diffie-Hellman ciphers.
-* Default: The default can vary (See the 'cipherSuite' setting in
+* If not set, Splunk uses the default cipher string that the OpenSSL binary
+  provides.
+* If you want to use any Diffie-Hellman ciphers, you must use the
+  'dhFile' setting.
+* The default can vary. See the 'cipherSuite' setting in
   the $SPLUNK_HOME/etc/system/default/server.conf file for the
-  current default)
+  current default.
 
 ecdhCurveName = <string>
-* DEPRECATED.
-* Use the 'ecdhCurves' setting instead.
-* This setting specifies the Elliptic Curve Diffie-Hellman (ECDH) curve to
-  use for ECDH key negotiation.
-* Splunk only supports named curves that have been specified by their
-  SHORT name.
-* The list of valid named curves by their short and long names
-  can be obtained by running this CLI command:
-  $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
-* Default: empty string.
+* DEPRECATED. Use the 'ecdhCurves' setting instead.
+* Default: empty string
 
 ecdhCurves = <comma-separated list>
-* A list of ECDH curves to use for ECDH key negotiation.
-* The curves should be specified in the order of preference.
-* The client sends these curves as a part of an SSL Client Hello.
+* A list of elliptic curves to use for the Elliptic-curve Diffie-Hellman
+  (ECDH) key negotiation protocol.
+* The client sends elliptic curves as part of the Client Hello
+  during a TLS handshake.
+* Specify elliptic curves in the order that you prefer them.
 * The server supports only the curves specified in the list.
-* Splunk software only supports named curves that have been specified
-  by their SHORT names.
-* The list of valid named curves by their short and long names can be obtained
+* Splunk software only supports named curves that you specify
+  by their short names.
+* You can get the list of valid named curves by their short and long names
   by running this CLI command:
   $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
-* Example setting: "ecdhCurves = prime256v1,secp384r1,secp521r1"
-* Default: The default can vary (See the 'ecdhCurves' setting in
-  the $SPLUNK_HOME/etc/system/default/server.conf file for the
-  current default)
+* Example configuration: "ecdhCurves = prime256v1,secp384r1,secp521r1"
+* The default can vary. See the 'ecdhCurves' setting in
+  $SPLUNK_HOME/etc/system/default/server.conf for the current default.
 
 serverCert = <path>
-* The full path to the PEM (Privacy-Enhanced Mail) format server
-  certificate file.
-* Certificates are auto-generated by splunkd on starting Splunk Enterprise.
-* You can replace the default certificate with your own PEM
-  format file.
+* The full path to the server certificate.
+* The Splunk daemon auto-generates certificates when you start Splunk
+  Enterprise the first time.
+* Where applicable, replace the default certificate with a certificate
+  that you either create on your own or obtain from a third party.
+* For more information about certificates, and how to obtain, create,
+  and install them, search the Securing Splunk Enterprise Manual 
+  for "Introduction to Securing the Splunk Platform with TLS".
+* The certificate must be in privacy-enhanced mail (PEM) format.
 * Default: $SPLUNK_HOME/etc/auth/server.pem
 
-sslKeysfile = <filename>
+sslKeysfile = <string>
 * DEPRECATED. Use the 'serverCert' setting instead.
-* This file is in the directory specified by the 'caPath' setting
-  (see below).
+* The location of the server certificate file, as located in the
+  directory that the DEPRECATED 'caPath' setting references.
 * Default: server.pem
 
 sslPassword = <string>
-* Server certificate password.
+* The password for the server certificate, if you created one.
 * Default: password
 
 sslKeysfilePassword = <string>
 * DEPRECATED. Use the 'sslPassword' setting instead.
 
 sslRootCAPath = <path>
-* Full path to the root CA (Certificate Authority) certificate store
-  on the operating system.
-* The <path> must refer to a PEM (Privacy-Enhanced Mail) format
-  file containing one or more root CA certificates concatenated
-  together.
-* Required for Common Criteria.
-* This setting is valid on Windows machines only if you have not set
-  'sslRootCAPathHonoredOnWindows' to "false".
+* The path to the certificate authority (CA), or root 
+  certificate store.
+* The certificate store must be a file that contains one or more
+  CA certificates that have been concatenated together.
+  This setting expects a value that represents a file object, 
+  not a directory object.
+* The certificates in the certificate store file must be
+  in privacy-enhanced mail (PEM) format.
+* If you run Splunk Enterprise in Common Criteria mode, then 
+  you must give this setting a value.
+* This setting is valid on Windows machines only if the 
+  'sslRootCAPathHonoredOnWindows' has a value of "true".
 * No default.
 
 sslRootCAPathHonoredOnWindows = <boolean>
 * DEPRECATED.
 * Whether or not the Splunk instance respects the 'sslRootCAPath' setting on
   Windows machines.
-* If you set this setting to "false", then the instance does not respect the
-  'sslRootCAPath' setting on Windows machines.
 * This setting is valid only on Windows, and only if you have set
   'sslRootCAPath'.
+* A value of "true" means that the instance respects the 'sslRootCAPath'
+  setting on Windows machines.
+* A value of "false" means that the instance does not respect the
+  'sslRootCAPath' setting on Windows machines.
 * When the 'sslRootCAPath' setting is respected, the instance expects to find
   a valid PEM file with valid root certificates that are referenced by that
-  path. If a valid file is not present, SSL communication fails.
+  path. If a valid file is not present, TLS communication fails.
 * Default: true
 
-caCertFile = <filename>
+caCertFile = <string>
 * DEPRECATED. Use the 'sslRootCAPath' setting instead.
-* Used only if 'sslRootCAPath' is not set.
-* File name (relative to 'caPath') of the CA (Certificate Authority)
-  certificate PEM format file containing one or more certificates
+* The file name for the CA certificate file.
+* This file must be in PEM format and contain one or more certificates
   concatenated together.
+* If you have not given the 'sslRootCAPath' setting a value,
+  then Splunk Enterprise attempts to locate a CA certificate using
+  this setting.
 * Default: cacert.pem
 
 dhFile = <path>
-* PEM (Privacy-Enhanced Mail) format Diffie-Hellman(DH) parameter file name.
-* DH group size should be no less than 2048bits.
-* This file is required in order to enable any Diffie-Hellman ciphers.
+* The location of the Diffie-Hellman (DH) parameter file.
+* This file must be in PEM format.
+* The DH group size, which determines the strength of the key that the
+  DH key exchange process uses, must not be fewer than 2048 bits.
+* You must specify this file to enable any Diffie-Hellman ciphers.
 * No default.
 
 caPath = <path>
@@ -925,60 +994,76 @@ caPath = <path>
 * Default: $SPLUNK_HOME/etc/auth
 
 certCreateScript = <script name>
-* Creation script for generating certificates on startup of Splunk Enterprise.
+* The creation script for generating certificates when you start Splunk
+  Enterprise for the first time.
+* No default.
 
 sendStrictTransportSecurityHeader = <boolean>
-* If set to "true", the REST interface sends a "Strict-Transport-Security"
-  header with all responses to requests made over SSL.
-* This can help avoid a client being tricked later by a
-  Man-In-The-Middle attack to accept a non-SSL request.
-  However, this requires a commitment that no non-SSL web hosts
-  ever run on this hostname on any port. For
-  example, if Splunk Web is in default non-SSL mode this can break the
-  ability of a browser to connect to it.
-* NOTE: Enable with caution.
+* Whether or not the REST interface sends a "Strict-Transport-Security"
+  header with all responses to requests made over TLS.
+* A value of "true" means the REST interface sends a "Strict-Transport-
+  Security" header with its responses.
+  * This can help to avoid a client being tricked later by a
+    machine-in-the-middle attack to accept a non-TLS request.
+    However, this requires a commitment that no non-TLS web hosts
+    ever run on this hostname on any port. 
+  * For example, if Splunk Web is in its default non-TLS mode, this 
+    can prevent a web browser from connecting to it.
+* A value of "false" means the REST interface does not send a
+  "Strict-Transport-Security" header with its responses.
 * Default: false
 
 allowSslCompression = <boolean>
-* If set to "true", the server allows clients to negotiate
-  SSL-layer data compression.
-* KV Store also observes this setting.
-* If set to "false", KV Store disables TLS compression.
+* Whether or not the server lets clients negotiate compression at
+  the TLS layer.
+* A value of "true" means the server lets clients negotiate
+  TLS-layer data compression.
+* A value of "false" means the server does not let clients negotiate
+  TLS-layer data compression.
+* The app key value store (KV Store) service observes and uses this setting.
 * Default: true
 
 allowSslRenegotiation = <boolean>
-* In the SSL protocol, a client may request renegotiation of the
+* Whether or not the server lets clients request renegotiation of
+  TLS connection settings.
+* In the TLS protocol, a client can request renegotiation of the
   connection settings from time to time.
-* If set to "false", causes the server to reject all renegotiation
-  attempts, breaking the connection.  This limits the amount of CPU a
-  single TCP connection can use, but it can cause connectivity problems
-  especially for long-lived connections.
+* A value of "true" means that the server lets clients request the
+  renegotiation of TLS connection settings.
+* A value of "false" causes the server to reject all renegotiation
+  attempts, which breaks the connection.
+  * This limits the amount of CPU a single TCP connection can use, 
+    but it can cause connectivity problems, especially for long-lived
+    connections.
 * Default: true
 
 sslClientSessionPath = <path>
-* Path where all client sessions are stored for session re-use.
-* Used if 'useSslClientSessionCache' is set to "true".
+* The path to the location where the Splunk platform stores
+  client sessions for session re-use.
+* Used if 'useSslClientSessionCache' has a value of "true".
 * No default.
 
 useSslClientSessionCache = <boolean>
-* Specifies whether to re-use client session.
-* When set to "true", client sessions are stored in memory for
-  session re-use. This reduces handshake time, latency and
-  computation time to improve SSL performance.
-* When set to "false", each SSL connection performs a full
-  SSL handshake.
+* Whether or not the Splunk platform can re-use TLS client sessions.
+* A value of "true" means the Splunk platform stores client 
+  sessions in memory for session re-use. This reduces handshake
+  time, latency, and computation time to improve TLS performance.
+* A value of "false" means each TLS connection performs a full
+  TLS handshake.
 * Default: false
 
 sslServerSessionTimeout = <integer>
-* Timeout, in seconds, for newly created session.
-* If set to "0", disables Server side session cache.
-* The openssl default is 300 seconds.
+* The timeout, in seconds, for newly created TLS sessions.
+* A value of 0 means that the Splunk platform disables
+  server-side TLS session cache.
+* The default server-side session cache for OpenSSL is
+  300 seconds.
 * Default: 300 (5 minutes)
 
 sslServerHandshakeTimeout = <integer>
-* The timeout, in seconds, for an SSL handshake to complete between an
-  SSL client and the Splunk SSL server.
-* If the SSL server does not receive a "Client Hello" from the SSL client within
+* The timeout, in seconds, for a TLS handshake to complete between an
+  TLS client and the Splunk TLS server.
+* If the TLS server does not receive a "Client Hello" from the TLS client within
   'sslServerHandshakeTimeout' seconds, the server terminates
   the connection.
 * Default: 60
@@ -998,39 +1083,51 @@ certificateStatusValidationMethod = crl
     Authority (CA) before their scheduled expiration date and can no
     longer be trusted.
   * The default path for CRL files in a Splunk platform instance is
-    at $SPLUNK_HOME/auth/crl. Any CRL files must reside there, in
-    privacy-enhanced mail (PEM) format.
+    at $SPLUNK_HOME/auth/crl. Any CRL files must reside there, and must
+    be in privacy-enhanced mail (PEM) format.
 * For more information on using CRLs and configuring CRL files on a Splunk
   platform instance, see the '[kvstore]:sslCRLPath' setting.
 * Default: empty string (certificate status validation checks are off)
 
 cliVerifyServerName = <boolean>
-* Whether or not the Splunk CLI must validate the server name in the splunkd 
-  server certificate when you use the "--uri" argument to connect to a remote 
-  splunkd server.
-* Server certificates are validated to be issued to the same host name or IP address
-  which is specified in the command line argument.
-* A value of "true" means that the CLI validates server certificates. The
-  certificates must be issued to have the same host or IP address that you
-  specify in the command line argument to connect to the server.
-* When this setting is "true", you can temporarily disable enforcement for that
+* Whether or not the Splunk CLI must validate the host name in the splunkd 
+  server certificate that it receives when it connects to another splunkd server.
+* The CLI performs transport layer security server certificate validation by 
+  comparing the host name or IP address in the certificate it receives from the
+  splunkd server to which it connects.
+  * Validation happens whether you connect to a local instance of splunkd or
+    use the "--uri" argument to connect to a remote instance of splunkd.
+  * If the certificate doesn't contain the host name or IP address of the
+    splunkd server it is connecting to, the connection to that server fails, 
+    and the server does not process the CLI command.
+* When the CLI performs certificate host name validation, it uses the certificate 
+  authority certificate or certificate chain that you specify in the server.conf 
+  configuration file, at '[sslConfig]/sslRootCAPath', to verify 
+  incoming server certificates.
+* The CLI does not perform certificate host name validation in cases where it
+  hands off execution to a Python script.
+* A value of "true" means that the CLI validates host names in server
+  certificates, where applicable.
+* When this setting is "true", you can temporarily disable validation for a
   particular invocation of the Splunk CLI by providing the "--no-server-name-check" 
-  flag on the command line.
-* The CLI uses the certificate authority certificate or certificate chain that you specify in
-  the server.conf file, at '[sslConfig]/sslRootCAPath', to verify incoming server certificates.
-* A value of "false" means that the CLI does not validate server certificates.
+  argument.
+  * Use this argument to defeat host name certificate validation on local
+    instances of splunkd. This is an alternative to adding the localhost hostname
+    or IP address to the splunkd server certificate, which is insecure.
+* A value of "false" means that the CLI does not validate host names in
+  server certificates.
 * Default: false
 
 ############################################################################
-# Python SSL Client Configuration details
+# Python TLS Client Configuration details
 ############################################################################
 
 [pythonSslClientConfig]
-* SSL settings for Splunk Python client connections.
+* TLS settings for Splunk Python client connections.
 * Follow this stanza name with any number of the following setting/value
   pairs.
 * If you do not specify an entry for each setting, splunkd uses
-  the values from the settings in the [sslConfig] stanza.
+  the values from the settings under the [sslConfig] stanza.
 
 sslVerifyServerCert = <boolean>
 * See the description of 'sslVerifyServerCert' under the [sslConfig] stanza
@@ -1605,12 +1702,8 @@ sslVersions = <comma-separated list>
   current default)
 
 sslVerifyServerCert = <boolean>
-* If this is set to true, Splunk verifies that the remote server (
-  specified in 'url') being connected to is a valid one (authenticated).
-  Both the common name and the alternate name of the server are then
-  checked for a match if they are specified in 'sslCommonNameToCheck' and
-  'sslAltNameToCheck'. A certificate is considered verified if either
-  is matched.
+* See the description of 'sslVerifyServerCert' under the [sslConfig] stanza
+  for details on this setting.
 * Default: true
 
 sslVerifyServerName = <boolean>
@@ -1619,11 +1712,10 @@ sslVerifyServerName = <boolean>
 * Default: false
 
 caCertFile = <path>
-* The full path to a CA (Certificate Authority) certificate(s) PEM format file.
-* The <path> must refer to a PEM format file containing one or more root CA
-  certificates concatenated together.
-* Used only if 'sslRootCAPath' is not set.
-* Used for validating SSL certificate from https://apps.splunk.com/
+* DEPRECATED.
+* Used for validating TLS certificate from the Splunkbase website.
+* See the description of 'caCertFile' under the [sslConfig] stanza
+  for details on this setting.
 
 caTrustStore = <[splunk],[OS]>
 * See the description of 'caTrustStore' under the [sslConfig] stanza
@@ -1636,39 +1728,30 @@ caTrustStorePath = <string>
 * No default.
 
 sslCommonNameToCheck = <commonName1>, <commonName2>, ...
-* If this value is set, and 'sslVerifyServerCert' is set to true,
-  splunkd checks the common name(s) of the certificate presented by
-  the remote server (specified in 'url') against this list of common names.
+* See the description of 'sslCommonNameToCheck' under the [sslConfig] stanza
+  for details on this setting.
 * Default: splunkbase.splunk.com, apps.splunk.com, cdn.apps.splunk.com
 
 sslCommonNameList = <commonName1>, <commonName2>, ...
 * DEPRECATED. Use the 'sslCommonNameToCheck' setting instead.
 
 sslAltNameToCheck =  <alternateName1>, <alternateName2>, ...
-* If this value is set, and 'sslVerifyServerCert' is set to true,
-  splunkd checks the alternate name(s) of the certificate presented by
-  the remote server (specified in 'url') against this list of subject
-  alternate names.
+* See the description of 'sslAltNametoCheck' under the [sslConfig] stanza
+  for details on this setting.
 * Default: splunkbase.splunk.com, apps.splunk.com, cdn.apps.splunk.com
 
-cipherSuite = <cipher suite string>
-* Uses the specified cipher string for making outbound HTTPS connection.
+cipherSuite = <string>
+* See the description of 'cipherSuite' under the [sslConfig] stanza
+  for details on this setting.
 * The default can vary. See the 'cipherSuite' setting in
   the $SPLUNK_HOME/etc/system/default/server.conf file for the current default.
 
-ecdhCurves = <comma separated list of ec curves>
-* ECDH curves to use for ECDH key negotiation.
-* The curves should be specified in the order of preference.
-* The client sends these curves as a part of Client Hello.
-* Splunk software only supports named curves specified
-  by their SHORT names.
-* The list of valid named curves by their short/long names can be obtained
-  by executing this command:
-  $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
-* e.g. ecdhCurves = prime256v1,secp384r1,secp521r1
-* Default: The default can vary (See the 'ecdhCurves' setting in
+ecdhCurves = <comma separated list>
+* See the description of 'ecdhCurves' under the [sslConfig] stanza
+  for details on this setting.
+* The default can vary. See the 'ecdhCurves' setting in
   the $SPLUNK_HOME/etc/system/default/server.conf file for the
-  current default)
+  current default.
 
 
 ############################################################################
@@ -2045,10 +2128,16 @@ master_uri = [self|<uri>]
 * DEPRECATED. Use the 'manager_uri' setting instead.
 
 manager_uri = [self|<uri>]
-* The URI of the license manager that a license peer connects to.
-* If set to a URI, the instance attempts to connect to the license manager at
-  the URI you specify.
-* A URI consists of the following: <scheme>://<hostname>:<port>
+* The URI of the license manager to which a license peer connects.
+* A value of "self" means that the instance itself handles license
+  manager operations.
+* A URI value means that the instance attempts to connect to the license
+  manager at the URI you specify.
+* A URI consists of the following string: <scheme>://<hostname>:<port>, where
+  * <scheme> is the URI scheme to use to attempt to connect to the
+    license manager.
+  * <hostname> is the machine on which the license manager runs.
+  * <port> is the network port on which the license manager listens.
 * For example, if you set "manager_uri = https://example.com:8089", then the
   instance attempts a connection to the instance at "http://example.com:8089"
   to get licensing information.
@@ -2730,10 +2819,17 @@ searchable_rebalance = <boolean>
 * Default: false
 
 multisite = <boolean>
-* Only valid for 'mode=manager'.
-* Whether or not the manager uses multisite mode.
-* A value of "true" means that the manager turns on the multisite feature.
-* Confirm that you set site parameters on the peers when you set this to "true".
+* Applicable in 'mode=manager' and 'mode=searchhead'.
+* In 'mode=manager':
+  * Indicates if the cluster manager is operating in a multisite configuration.
+  * When set to "true", it enables multisite clustering features.
+  * It's crucial to ensure that site parameters on all peers are set accordingly.
+* In 'mode=searchhead':
+  * Determines whether the search head should operate in multisite mode.
+  * If "true", the search head is part of a multisite cluster and should have 
+    the 'site' attribute set in the [general] stanza.
+  * When part of a multisite cluster, the search head will utilize search 
+    affinity based on the 'site' parameter.
 * Default: false
 
 replication_factor = <positive integer>
@@ -3031,8 +3127,10 @@ max_replication_errors = <integer>
   replication occurs to this target from this source.
 * The special value of 0 turns off this safeguard; so the source
   always rolls hot buckets on streaming error to any target.
-* This setting is dynamically reloadable and does not require restart
-  of cluster peer.
+* For a standalone indexer, changes to this setting are dynamically reloadable
+  and do not require a restart.
+* For indexer clusters, changes to this setting trigger a rolling restart
+  of peer nodes.
 * Default: 3
 
 searchable_targets = <boolean>
@@ -3379,8 +3477,10 @@ remote_storage_upload_timeout = <non-zero positive integer>
   in seconds, after which target peers assume responsibility for
   uploading a bucket to the remote storage, if they do not hear from
   the source peer.
-* This setting is dynamically reloadable and does not require restart
-  of cluster peer.
+* For a standalone indexer, changes to this setting are dynamically reloadable
+  and do not require a restart.
+* For indexer clusters, changes to this setting trigger a rolling restart
+  of peer nodes.
 * Default: 60 (1 minute)
 
 report_remote_storage_bucket_upload_to_targets = <boolean>
@@ -3408,6 +3508,19 @@ remote_storage_retention_period = <non-zero positive integer>
 * This setting is dynamically reloadable and does not require restart
   of cluster manager.
 * Default: 900 (15 minutes)
+
+remote_storage_freeze_delay_period = <non-zero positive integer>
+* Only valid for 'mode=manager'.
+* The interval, in seconds, that the manager waits for any bucket
+  that has recently rolled to warm or cold before potentially triggering
+  freezing on the bucket. This ensures that buckets that have very recently
+  rolled to warm or cold do not immediately roll to freezing. For example,
+  if set to the default of 3600 seconds (one hour), a bucket that
+  rolls to warm or cold waits at least one hour before subsequently rolling to frozen.
+  (The bucket could typically continue in the warm or cold state for a much longer
+  period of time, according to when it reaches the limit set by
+  the data retention policy.)
+* Default: 3600 (60 minutes)
 
 recreate_bucket_attempts_from_remote_storage = <positive integer>
 * Only valid for 'mode=manager'.
@@ -3622,6 +3735,71 @@ notify_buckets_period = <non-zero positive integer>
 * CAUTION: Do not modify this setting without guidance from
   Splunk personnel.
 * Default: 10
+
+notify_buckets_usage_period = <interval>
+* Only valid for 'mode=peer'.
+* Controls the frequency that the indexer sends bucket usage
+  notifications to the cluster manager.
+* If set to '0s' (0 seconds), indexers will not attempt to
+  send bucket usage notifications to the cluster manager.
+* CAUTION: Do not modify this setting without guidance from
+  Splunk personnel.
+* Default: 1m (1 minute)
+
+notify_buckets_usage_batch_size = <positive integer>
+* Only valid for 'mode=peer'.
+* Controls the batch size of bucket usage notifications sent
+  by the indexer to the cluster manager.
+* This setting specifies the maximum number of bucket usage notifications
+  that can be batched together in a single message.
+* CAUTION: Do not modify this setting without guidance from Splunk personnel.
+* Default: 2048
+
+max_usage_rebalance_retries = <positive integer>
+* Only valid for 'mode=manager'.
+* The maximum number of retry attemtps before the cluster manager gives up
+  moving a bucket during bucket usage rebalancing.
+* CAUTION: Do not modify this setting without guidance from
+  Splunk personnel.
+* Default: 3
+
+max_usage_rebalance_operations_per_service = <non-zero positive integer>
+* Only valid for 'mode=manager'.
+* The maximum number of operations which bucket usage rebalance will initiate
+  per manager service period including bucket replications, bucket
+  searchability changes, transferring of bucket usage data and removals of
+  remaining excess buckets.
+* CAUTION: Do not modify this setting without guidance from Splunk personnel.
+* Default: 50
+
+bucket_usage_decay_half_life = <interval>
+* Only valid for 'mode=manager'.
+* The interval after which a bucket usage record will
+  exponentially decay by half.
+* The higher this parameter, the less weight is given to
+  older usage statistics compared to the more recent usage
+  statistics.
+* The interval can be specified as a string for seconds,
+  minutes, hours, days, etc.
+  For example: 60s, 1m, 1h, 1d, etc.
+* Must be greater than 0s (0 seconds).
+* Default: 7d (7 days)
+
+usage_rebalance_bucket_movement_factor = <decimal>
+* Only valid for 'mode=manager'.
+* A number between 0 and 1, non-inclusive.
+* The higher this parameter, the more buckets and peers will be deemed
+  insignificant to the usage rebalance and will be skipped when selecting
+  buckets to move.
+* For a bucket to be moved during usage rebalance, the usage value for the
+  bucket compared to the excess usage of the busy source peer must be at least
+  this ratio.
+* For a busy peer to be included in the usage rebalance, the busy peer must
+  have excess usage which when compared to the average excess usage of all busy
+  peers in the site, is at least this ratio.
+* CAUTION: Do not modify this setting without guidance from
+  Splunk personnel.
+* Default: 0.01
 
 summary_update_batch_size = <non-zero positive integer>
 * Only valid for 'mode=peer'.
@@ -3856,7 +4034,8 @@ serverCert = <string>
 * No default.
 
 sslPassword = <string>
-* Server certificate password, if any.
+* See the description of 'sslPassword' under the [sslConfig] stanza
+  for details on this setting.
 * No default.
 
 password = <string>
@@ -3864,59 +4043,44 @@ password = <string>
 
 rootCA = <string>
 * DEPRECATED; use '[sslConfig]/sslRootCAPath' instead.
-* Full path to the root CA (Certificate Authority) certificate store.
-* The <path> must refer to a PEM format file containing one or more root CA
-  certificates concatenated together.
 * No default.
 
 cipherSuite = <string>
-* If set, uses the specified cipher string for the SSL connection.
-* Must specify 'dhFile' to enable any Diffie-Hellman ciphers.
-* Default: The default can vary (See the cipherSuite setting in
-  the $SPLUNK_HOME/etc/system/default/server.conf file for the current default)
+* See the description of 'cipherSuite' under the [sslConfig] stanza
+  for details on this setting.
+* The default can vary. See the 'cipherSuite' setting in
+  the $SPLUNK_HOME/etc/system/default/server.conf file for the current default.
 
 sslVersions = <comma-separated list>
-* Comma-separated list of SSL versions to support.
-* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
-* The special version "*" selects all supported versions.  The version "tls"
-  selects all versions tls1.0 or newer.
-* If a version is prefixed with "-" it is removed from the list.
-* SSLv2 is always disabled; "-ssl2" is accepted in the version list but
-  does nothing.
-* When configured in FIPS mode, ssl3 is always disabled regardless
-  of this configuration.
-* Default: The default can vary (See the sslVersions setting in
-  the $SPLUNK_HOME/etc/system/default/server.conf file for the current default)
+* See the description of 'sslVersions' under the [sslConfig] stanza
+  for details on this setting.
+* The default can vary. See the 'sslVersions' setting in
+  the $SPLUNK_HOME/etc/system/default/server.conf file for the current default.
 
 ecdhCurves = <comma separated list>
-* ECDH curves to use for ECDH key negotiation.
-* The curves should be specified in the order of preference.
-* The client sends these curves as a part of Client Hello.
-* The server supports only the curves specified in the list.
-* Splunk software only supports named curves specified
-  by their SHORT names.
-* The list of valid named curves by their short/long names can be obtained
-  by executing this command:
-  $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
-* e.g. ecdhCurves = prime256v1,secp384r1,secp521r1
-* Default: The default can vary (See the 'ecdhCurves' setting in
-  the $SPLUNK_HOME/etc/system/default/server.conf file for the current default)
+* See the description of 'ecdhCurves' under the [sslConfig] stanza
+  for details on this setting.
+* The default can vary. See the 'ecdhCurves' setting in
+  the $SPLUNK_HOME/etc/system/default/server.conf file for the current default.
 
 dhFile = <string>
-* PEM format Diffie-Hellman parameter file name.
-* DH group size should be no less than 2048bits.
-* This file is required in order to enable any Diffie-Hellman ciphers.
+* See the description of 'dhFile' under the [sslConfig] stanza
+  for details on this setting.
 * No default.
 
 dhfile = <string>
-* DEPRECATED; use 'dhFile' (with a capital F) instead.
+* DEPRECATED. Use 'dhFile' (with a capital F) instead.
 
 supportSSLV3Only = <boolean>
-* DEPRECATED. SSLv2 is now always disabled. The exact set of SSL versions
-  allowed is now configurable by using the 'sslVersions' setting.
+* DEPRECATED. Use 'sslVersions' instead.
 
 useSSLCompression = <boolean>
-* If true, enables SSL compression.
+* Whether or not the client performs data compression at the
+  TLS layer upon connection to the server.
+* A value of "true" means that the client attempts to negotiate
+  and send compressed data to the server at the TLS layer.
+* A value of "false" means that the client does not try to compress
+  data at the TLS layer.
 * Default: true
 
 compressed = <boolean>
@@ -3924,34 +4088,23 @@ compressed = <boolean>
 * Used only if 'useSSLCompression' is not set.
 
 requireClientCert = <boolean>
-* Requires that any peer that connects to replication port has a certificate
-  that can be validated by certificate authority specified in rootCA.
+* See the description of 'requireClientCert' under the [sslConfig] stanza
+  for details on this setting.
 * Default: false
 
 allowSslRenegotiation = <boolean>
-* In the SSL protocol, a client may request renegotiation of the connection
-  settings from time to time.
-* Setting this to false causes the server to reject all renegotiation
-  attempts, breaking the connection.  This limits the amount of CPU a
-  single TCP connection can use, but it can cause connectivity problems
-  especially for long-lived connections.
+* See the description of 'allowSslRenegotiation' under the [sslConfig] stanza
+  for details on this setting.
 * Default: true
 
 sslCommonNameToCheck = <comma-separated list>
-* Optional.
-* Check the common name of the client's certificate against this list of names.
-* Separate multiple common names with commas.
-* 'requireClientCert' must be set to "true" for this setting to work.
+* See the description of 'sslCommonNameToCheck' under the [sslConfig] stanza
+  for details on this setting.
 * No default.
 
 sslAltNameToCheck = <comma-separated list>
-* Optional.
-* Check the alternate name of the client's certificate against this list
-  of names.
-* If there is no match, assume that Splunk is not authenticated against this
-  server.
-* Separate multiple alternate names with commas.
-* 'requireClientCert' must be set to "true" for this setting to work.
+* See the description of 'sslAltNameToCheck' under the [sslConfig] stanza
+  for details on this setting.
 * No default.
 
 ############################################################################
@@ -4247,8 +4400,8 @@ precompress_artifacts = <boolean>
   This helps reduce network bandwidth consumption during artifact replications.
 * Set this option to 'true' only when SSL compression is off on
   each search head cluster member. To turn off SSL compression, set
-  'allowSslCompression = false' in the [sslconfig] stanza in server.conf
-  of each member.
+  'allowSslCompression = false' under the [sslConfig] stanza in the 
+  server.conf file on each member.
 * Default: true
 
 captain_is_adhoc_searchhead = <boolean>
@@ -4873,7 +5026,7 @@ acceptFrom = <network_acl> ...
 * Default: "*" (accept from anywhere)
 
 [replication_port-ssl://<port>]
-* This configuration is the same as the replication_port stanza, but uses SSL.
+* This configuration is the same as the replication_port stanza, but uses TLS.
 
 disabled = <boolean>
 * Set to true to disable this replication port stanza.
@@ -4887,56 +5040,49 @@ acceptFrom = <network_acl> ...
 * This setting is the same as the setting in the [replication_port] stanza.
 
 serverCert = <path>
-* Full path to file containing private key and server certificate.
-* The <path> must refer to a PEM format file.
+* See the description of 'serverCert' under the [sslConfig] stanza
+  for details on this setting.
 * No default.
 
 sslPassword = <string>
-* Server certificate password, if any.
+* See the description of 'sslPassword' under the [sslConfig] stanza
+  for details on this setting.
 * No default.
 
 password = <string>
-* DEPRECATED; use 'sslPassword' instead.
+* DEPRECATED. Use 'sslPassword' instead.
 * Used only if 'sslPassword' is not set.
 
 rootCA = <string>
-* DEPRECATED; use '[sslConfig]/sslRootCAPath' instead.
-* Used only if '[sslConfig]/sslRootCAPath' is not set.
-* Full path to the root CA (Certificate Authority) certificate store.
-* The <path> must refer to a PEM format file containing one or more root CA
-  certificates concatenated together.
+* DEPRECATED. Use '[sslConfig]/sslRootCAPath' instead.
 * No default.
 
 cipherSuite = <string>
-* If set, uses the specified cipher string for the SSL connection.
-* If not set, uses the default cipher string.
-* provided by OpenSSL.  This is used to ensure that the server does not
-  accept connections using weak encryption protocols.
+* See the description of 'cipherSuite' under the [sslConfig] stanza
+  for details on this setting.
+* The default can vary. See the 'cipherSuite' setting in
+  the $SPLUNK_HOME/etc/system/default/server.conf file for the current default.
 
 supportSSLV3Only = <boolean>
-* DEPRECATED.  SSLv2 is now always disabled.  The exact set of SSL versions
-  allowed is now configurable via the "sslVersions" setting above.
+* DEPRECATED. Use 'sslVersions' instead.
 
 useSSLCompression = <boolean>
-* If true, enables SSL compression.
+* See the description of 'useSSLCompression' under the [sslConfig] stanza
+  for details on this setting.
 * Default: false
 
 compressed = <boolean>
-* DEPRECATED; use 'useSSLCompression' instead.
+* DEPRECATED. Use 'useSSLCompression' instead.
 * Used only if 'useSSLCompression' is not set.
 
 requireClientCert = <boolean>
-* Requires that any peer that connects to replication port has a certificate
-  that can be validated by certificate authority specified in rootCA.
+* See the description of 'requireClientCert' under the [sslConfig] stanza
+  for details on this setting.
 * Default: false
 
 allowSslRenegotiation = <boolean>
-* In the SSL protocol, a client may request renegotiation of the connection
-  settings from time to time.
-* Setting this to false causes the server to reject all renegotiation
-  attempts, breaking the connection.  This limits the amount of CPU a
-  single TCP connection can use, but it can cause connectivity problems
-  especially for long-lived connections.
+* See the description of 'allowSslRenegotiation' under the [sslConfig] stanza
+  for details on this setting.
 * Default: true
 
 ############################################################################
@@ -5048,45 +5194,24 @@ clientConnectionPoolSize = <positive integer>
 
 caCertFile = <string>
 * DEPRECATED; use '[sslConfig]/sslRootCAPath' instead.
-* Used only if 'sslRootCAPath' is not set.
-* Full path to a CA (Certificate Authority) certificate(s) PEM format file.
-* If specified, it is used in KV Store SSL connections and
-  authentication.
-* Only used when Common Criteria is enabled (SPLUNK_COMMON_CRITERIA=1)
-  or FIPS is enabled (i.e. SPLUNK_FIPS=1).
-* NOTE: Splunk plans to submit Splunk Enterprise for Common Criteria
-  evaluation. Splunk does not support using the product in Common
-  Criteria mode until it has been certified by NIAP. See the "Securing
-  Splunk Enterprise" manual for information on the status of Common
-  Criteria certification.
+* KV Store uses this setting for TLS connections and authentication.
+* See the description of 'caCertFile' under the [sslConfig] stanza
+  for details on this setting.
 * Default: $SPLUNK_HOME/etc/auth/cacert.pem
 
 caCertPath = <string>
 * DEPRECATED; use '[sslConfig]/sslRootCAPath' instead.
+* See the description of 'sslRootCAPath' under the [sslConfig] stanza
+  for details on this setting.
 
 serverCert = <string>
-* A certificate file signed by the signing authority specified above by
-  caCertPath.
-* In search head clustering or search head pooling, the certificates at
-  different members must share the same ‘subject'.
-* The Distinguished Name (DN) found in the certificate’s subject, must
-  specify a non-empty value for at least one of the following settings:
-  Organization (O), the Organizational Unit (OU) or the
-  Domain Component (DC).
-* Only used when Common Criteria is enabled (SPLUNK_COMMON_CRITERIA=1)
-  or FIPS is enabled (i.e. SPLUNK_FIPS=1).
-* NOTE: Splunk plans to submit Splunk Enterprise for Common Criteria
-  evaluation. Splunk does not support using the product in Common
-  Criteria mode until it has been certified by NIAP. See the "Securing
-  Splunk Enterprise" manual for information on the status of Common
-  Criteria certification.
+* See the description of 'serverCert' under the [sslConfig] stanza
+  for details on this setting.
+* No default.
 
 sslVerifyServerCert = <boolean>
-* A value of "true" means make sure that the connected server is
-  authenticated. Both the common name and the alternate name
-  of the server are checked for a match if they are specified
-  in this configuration file. A certificate is considered
-  verified if either is matched.
+* See the description of 'sslVerifyServerCert' under the [sslConfig] stanza
+  for details on this setting.
 * If you have enabled FIPS (by setting SPLUNK_FIPS=1), splunkd always verifies
   the server certificate, and ignores this setting.
 * Default (if you have not enabled FIPS): false
@@ -5098,19 +5223,12 @@ sslVerifyServerName = <boolean>
 
 sslKeysPath = <string>
 * DEPRECATED; use 'serverCert' instead.
-* Used only when 'serverCert' is empty.
+* The Splunk platform uses this setting if the 'serverCert' setting
+  does not have a value.
 
 sslPassword = <string>
-* Password of the private key in the file specified by 'serverCert' above.
-* Must be specified if FIPS is enabled (i.e. SPLUNK_FIPS=1), otherwise, KV
-  Store is not available.
-* Only used when Common Criteria is enabled (SPLUNK_COMMON_CRITERIA=1)
-  or FIPS is enabled (i.e. SPLUNK_FIPS=1).
-* NOTE: Splunk plans to submit Splunk Enterprise for Common Criteria
-  evaluation. Splunk does not support using the product in Common
-  Criteria mode until it has been certified by NIAP. See the "Securing
-  Splunk Enterprise" manual for information on the status of Common
-  Criteria certification.
+* See the description of 'sslPassword' under the [sslConfig] stanza
+  for details on this setting.
 * No default.
 
 sslKeysPassword = <string>
@@ -5120,7 +5238,7 @@ sslKeysPassword = <string>
 sslCRLPath = <string>
 * The path to the Certificate Revocation List (CRL) file.
 * A CRL is a list of digital certificates that have been revoked by
-  the issuing Certificate Authority (CA) before their scheduled expiratio date
+  the issuing Certificate Authority (CA) before their scheduled expiration date
   and can no longer be trusted.
 * Splunkd uses the CRL file only in the following cases:
   * When the Splunk platform instance is in Common Criteria mode 
@@ -5131,12 +5249,12 @@ sslCRLPath = <string>
     to learn how to configure certificate status validation.
 * The file that this setting value references must be in privacy-enhanced mail (PEM)
   format.
-* NOTE: Splunk does not support using the product in Common Criteria mode until
-  it has been certified by the National Information Assurance Partnership (NIAP).
-  See the "Securing Splunk Enterprise" and "Securing Splunk Enterprise with
-  Common Criteria" manuals for information on the status of Common
-  Criteria certification.
-* Optional.
+* NOTE: Splunk supports using the product in Common Criteria mode
+  only for specific software configurations that the National Information 
+  Assurance Partnership (NIAP) certifies. See the "Securing Splunk
+  Enterprise for Common Criteria" manual for specific information on the
+  status of Common Criteria certification.
+* This setting is optional.
 * Default: empty string (no revocation list)
 
 modificationsReadIntervalMillisec = <integer>
@@ -5184,6 +5302,8 @@ percRAMForCache = <positive integer>
 * If you are not using the WiredTiger storage engine, Splunk Enterprise ignores
   this setting.
 * Default: 15
+
+
 
 ############################################################################
 # Indexer Discovery configuration
@@ -5524,6 +5644,11 @@ cache_upload_backoff_sleep_secs = <unsigned_integer>
 * A value of 0 causes the cache manager to continue retrying the upload without
   performing a backoff.
 * Default: 60
+
+cache_upload_bucket_has_priority = <boolean>
+* This setting when enabled will prioritize bucket upload over DMA and RA uploads.
+  Otherwise, uploads will be done in the order they were scheduled.
+* Default: false
 
 max_known_remote_absent_summaries = <unsigned_integer>
 * This setting specifies the maximum number of frozen (absent) summaries that the
@@ -6226,8 +6351,8 @@ syncProxyBundleToClusterMembers = <boolean>
 
 [distributed_leases]
 sslVerifyServerCert = <boolean>
-* A value of "true" means the instance authenticates the remote server endpoint that
-  it is attempting to connect to.
+* See the description of 'sslVerifyServerCert' under the [sslConfig] stanza
+  for details on this setting.
 * Default: false
 
 sslVerifyServerName = <boolean>
@@ -6265,10 +6390,17 @@ sanitize_uri_param = <boolean>
   abused.
 * Default: true
 
+[teleport_supervisor]
+disabled = <boolean>
+* Determines whether or not splunkd launches the teleport supervisor process,
+  which handles authorization tokens for System for Cross-Domain Identity
+  Management (SCIM) operations.
+* A value of "true" means splunkd does not launch the teleport supervisor process.
+* A value of "false" means splunkd launches the teleport supervisor process.
+* Default: false
+
 [localProxy]
 max_concurrent_requests = <decimal>
-* Currently not supported. This setting relates to a feature that is
-  still under development.
 * The maximum number of concurrent requests to proxy by using the 'local-proxy'
   REST endpoint.
 * Maximum accepted value for this setting is "100".
@@ -6276,8 +6408,6 @@ max_concurrent_requests = <decimal>
 * Default: 10
 
 response_timeout_ms = <decimal>
-* Currently not supported. This setting relates to a feature that is
-  still under development.
 * The maximum time, in milliseconds, to wait for the proxy destination to complete a
   response.
 * Maximum accepted value for this setting is "3600000" milliseconds (1 hour).
@@ -6288,3 +6418,4 @@ response_timeout_ms = <decimal>
 * CAUTION: Setting this to a value close to the upper bound might delay
   cleaning up unresponsive sessions.
 * Default: 600000 (10 minutes)
+

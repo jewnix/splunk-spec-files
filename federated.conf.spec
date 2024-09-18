@@ -1,4 +1,4 @@
-#   Version 9.3.0
+#   Version 9.3.1
 #
 # This file contains possible setting and value pairs for federated provider entries
 # for use when the federated search functionality is enabled.

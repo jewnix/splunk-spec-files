@@ -1,4 +1,4 @@
-#   Version 9.3.0
+#   Version 9.3.1
 #
 ############################################################################
 # OVERVIEW
@@ -3903,6 +3903,14 @@ localization_update_batch_size = <non-zero positive integer>
 * CAUTION: Do not modify this setting without guidance from
   Splunk personnel.
 * Default: 1000
+
+corrupt_bucket_updates_batch_size = <non-zero positive integer>
+* Only valid for 'mode=peer'.
+* Controls the number of corrupt bucket updates the peer sends
+  per batch to the manager every notify_buckets_period.
+* CAUTION: Do not modify this setting without guidance from
+  Splunk personnel.
+* Default: 100
 
 enable_encrypt_bundle = <boolean>
 * Whether or not an indexer cluster manager encrypts sensitive fields from the

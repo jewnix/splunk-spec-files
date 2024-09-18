@@ -1,4 +1,4 @@
-#   Version 9.3.0
+#   Version 9.3.1
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -74,9 +74,8 @@ enableSplunkWebSSL = <boolean>
 
 privKeyPath = <path>
 * The path to the file containing the web server SSL certificate private key.
-* A relative path is interpreted relative to $SPLUNK_HOME and may not refer
-  outside of $SPLUNK_HOME (e.g., no ../somewhere).
 * You can also specify an absolute path to an external key.
+* Splunkd interprets a relative path as relative to the $SPLUNK_HOME directory.
 * See also 'enableSplunkWebSSL' and 'serverCert'.
 * Default: $SPLUNK_HOME/etc/auth/splunkweb/privkey.pem
 
@@ -88,6 +87,7 @@ serverCert = <path>
     [ One or more intermediate certificates, if required ]
     [ Root certificate, if required ]
 * See also 'enableSplunkWebSSL' and 'privKeyPath'.
+* Splunkd interprets a relative path as relative to the $SPLUNK_HOME directory.
 * Default: $SPLUNK_HOME/etc/auth/splunkweb/cert.pem
 
 sslPassword = <password>

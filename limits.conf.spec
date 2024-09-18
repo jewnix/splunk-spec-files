@@ -1,4 +1,4 @@
-#   Version 9.3.0
+#   Version 9.3.1
 #
 ############################################################################
 # OVERVIEW
@@ -66,13 +66,13 @@ maxArchiveNestLevel = <non-negative integer>
 * Default: 4
 
 max_mem_usage_mb = <non-negative integer>
-* Provides a limitation to the amount of RAM, in megabytes (MB), a batch of
-  events or results will use in the memory of a search process.
+* The maximum amount of RAM, in megabytes (MB), that a batch of
+  events or results can use in the memory of a search process.
 * Operates on an estimation of memory use which is not exact. The estimation can
   deviate by an order of magnitude or so to both the smaller and larger sides.
-* The limitation is applied in an unusual way; if the number of results or
-  events exceeds maxresultrows, AND the estimated memory exceeds this limit, the
-  data is spilled to disk.
+* The search processor applies the limitation in an unusual way. If the number
+  of results or events exceeds 'maxresultrows', AND the estimated memory 
+  exceeds this limit, the data is spilled to disk.
 * This means, as a general rule, lower limits will cause a search to use more
   disk I/O and less RAM, and be somewhat slower, but should cause the same
   results to typically come out of the search in the end.
@@ -80,7 +80,11 @@ max_mem_usage_mb = <non-negative integer>
   However, more will likely be added as it proves necessary.
 * The number is thus effectively a ceiling on batch size for many components of
   search for all searches run on this system.
-* When set to "0": Specifies that the size is unbounded. Searches might be
+* Some search processors might truncate results if they can't process the 
+  results within the 'max_mem_usage_mb' limit. The search head displays a warning
+  if this occurs.
+* A value of "0" means that there is no limit to the amount of memory that
+  a search process can use for events or results. Searches might be
   allowed to grow to arbitrary sizes.
 * NOTE:
   * The mvexpand command uses the ‘max_mem_usage_mb’ value in a different way.

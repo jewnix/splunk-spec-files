@@ -1,4 +1,4 @@
-#   Version 9.3.0
+#   Version 9.3.1
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.
@@ -1426,23 +1426,41 @@ namespace = <string>
   activated only when you set 'externalTwoFactorAuthVendor' to "Duo".
 * All the following settings, except 'appSecretKey', are provided by Duo.
 
+universalPrompt = <boolean>
+* Whether or not the Splunk platform uses the Duo Universal
+  Prompt experience for Duo multifactor authentication (MFA).
+* A value of "true" means the Splunk platform uses the Universal Prompt
+  experience when you configure multifactor authentication with Duo.
+* A value of "false" means the Splunk platform uses the existing
+  Traditional Prompt experience for Duo MFA.
+* NOTE: Duo has announced the deprecation of the Traditional
+  Prompt as a method of authenticating using Duo MFA. Continued
+  use of Traditional Prompt for MFA might result in authentication
+  failure in the future.
+* Default: true
+
 apiHostname = <string>
-* Duo's API endpoint which performs the actual multifactor authentication.
+* The name of the server that hosts the Duo API endpoint which performs
+  the multifactor authentication.
 * Example: apiHostname = api-xyz.duosecurity.com
-* Required.
+* For Duo MFA to work, you must specify a value for this setting.
 * No default.
 
 integrationKey = <string>
-* Duo's integration key for the Splunk platform.
+* The Duo integration key or client ID for the Splunk platform.
 * Must be of size = 20.
-* Integration key is obfuscated before being saved here for security.
+* For security reasons, the Splunk platform obfuscates the
+  integration key before saving it into the authentication.conf
+  configuration file.
 * Required.
 * No default.
 
 secretKey = <string>
-* Duo's secret key for the Splunk platform.
+* The Duo secret key or client secret for the Splunk platform.
 * Must be of size = 40.
-* Secret key is obfuscated before being saved here for security.
+* For security reasons, the Splunk platform obfuscates the
+  secret key before saving it into the authentication.conf
+  configuration file.
 * Required.
 * No default.
 
@@ -1451,7 +1469,8 @@ appSecretKey = <string>
 * Must be at least of size = 40 or longer.
 * This secret key is not shared with Duo.
 * Application secret key is obfuscated before being saved here for security.
-* Required.
+* For Duo MFA to work, you must specify a value for this setting
+  if the 'universalPrompt' setting has a value of "false".
 * No default.
 
 failOpen = <boolean>

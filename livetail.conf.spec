@@ -1,4 +1,4 @@
-# Version 9.3.1
+# Version 9.3.2
 #
 # ** FOR USE IN SPLUNK LIGHT ONLY
 #

@@ -1,4 +1,4 @@
-#   Version 9.3.1
+#   Version 9.3.2
 #
 # This file effects how the search assistant (typeahead) shows the syntax for
 # search commands.

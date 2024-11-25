@@ -1,4 +1,4 @@
-#   Version 9.3.1
+#   Version 9.3.2
 #
 ############################################################################
 # OVERVIEW
@@ -2196,7 +2196,7 @@ usePDHFmtNoCap100 = <boolean>
 * If set to "true", the counter values can exceed 100.
 * If set to "false", the input resets counter values to 100 if the
   processor load on multiprocessor computers exceeds 100.
-* Default: false
+* Default: true
 
 ############################################################################
 # Direct Access File Monitor

@@ -231,7 +231,8 @@ simple_error_page = <boolean>
 
 login_content = <string>
 * Lets you add custom content to the login page.
-* Supports any text including HTML.
+* Supports any text including HTML. The Splunk platform sanitizes HTML for 
+  security purposes by removing potentially dangerous tags and attributes.
 * No default.
 
 sslVersions = <comma-separated list>
@@ -324,7 +325,8 @@ embed_uri = <URI>
 
 embed_footer = <html_string>
 * A block of HTML code that defines the footer for an embedded report.
-* Any valid HTML code is acceptable.
+* Any valid HTML code is acceptable. The Splunk platform sanitizes HTML for
+  security purposes by removing potentially dangerous tags and attributes.
 * Default: "splunk>"
 
 tools.staticdir.generate_indexes = [1 | 0]
@@ -1382,7 +1384,8 @@ loginFooterOption = [default | custom | none]
 
 loginFooterText = <footer_text>
 * The text to display in the footer of the login page.
-* Supports any text, including HTML.
+* Supports any text, including HTML. The Splunk platform sanitizes HTML for
+  security purposes by removing potentially dangerous tags and attributes.
 * To display, the parameter 'loginFooterOption' must be set to "custom".
 
 loginDocumentTitleOption = [default | custom | none]

@@ -38,7 +38,7 @@ authTypePreferredForUserCollision = [Splunk|SAML]
   user roles when the SAML username matches a native authentication user.
 * A value of "SAML" means the Splunk platform assigns roles mapped from SAML
   groups and ignores roles from native authentication users.
-* Default: SAML
+* Default: Splunk
 
 authSettings = <authSettings-key>,<authSettings-key>,...
 * Key to look up the specific configurations of chosen authentication

@@ -1,8 +1,12 @@
-#   Version 9.3.2
+#   Version 9.4.0
 #
 ############################################################################
 # OVERVIEW
 ############################################################################
+# DEPRECATED. Web browser local storage now handles the persistence of user
+# interface preferences in Splunk Web. Do not modify this file. It might
+# be removed in a future release of Splunk software.
+#
 # This file contains descriptions of the settings that you can use to
 # configure the ui for a view.
 #

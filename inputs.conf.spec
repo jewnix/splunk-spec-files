@@ -1,4 +1,4 @@
-#   Version 9.3.2
+#   Version 9.4.0
 #
 ############################################################################
 # OVERVIEW
@@ -535,6 +535,20 @@ connection_host = [ip|dns|none]
 
 queueSize = <integer>[KB|MB|GB]
 * The maximum size of the in-memory input queue.
+* Configure this setting only if you have also configured 'persistentQueueSize'.
+  If you configure multiple tcp inputs, and either set 'queueSize' or use its
+  default value for each input, but do not also set 'persistentQueueSize', splunkd
+  creates only one in-memory queue, and sets the size of that queue to the value
+  it gets from a 'queueSize' setting in the first [tcp://] stanza it
+  encounters after it sorts all [tcp://] stanza names in ascending
+  alphanumeric order.
+* In the case where none of the [tcp://] stanzas has an explicit 'queueSize' set,
+  splunkd uses the default value.
+* This logic applies to all inputs that use in-memory input queues.
+* If you configure multiple [tcp://] stanzas, and do not want to set
+  'persistentQueueSize', then alternatively give 'maxSize' under
+  the '[queue=tcpin_queue]' stanza a value in the server.conf
+  configuration file.
 * Default: 500KB
 
 persistentQueueSize = <integer>[KB|MB|GB|TB]
@@ -713,7 +727,6 @@ logRetireOldS2S = <boolean>
   when the Splunk platform logs the use of old S2S protocol versions. 
 * Default: true
 
-
 logRetireOldS2SMaxCache = <unsigned integer>
 * The size of the cache for tracking forwarders that use old S2S protocols.
 * The cache keeps track of unique forwarders that use the old S2S protocol. When a 
@@ -778,8 +791,8 @@ connection_host = [ip|dns|none]
 compressed = <boolean>
 * Whether or not the receiver communicates with the forwarder in
   compressed format.
-* Applies to non-Secure Sockets Layer (SSL) receiving only. There is no
-  compression setting required for SSL.
+* Applies only to receiving data over standard network channels. 
+  There is no compression setting required for TLS.
 * A value of "true" means the receiver communicates with the forwarder in
   compressed format.
 * If set to "true", there is no longer a requirement to also set
@@ -806,6 +819,12 @@ s2sHeartbeatTimeout = <integer>
 
 queueSize = <integer>[KB|MB|GB]
 * The maximum size of the in-memory input queue.
+* See the description of 'queueSize' under the [tcp://] stanza
+  for details on this setting.
+* If there are multiple [splunktcp://] stanzas, and you do not want to set
+  'persistentQueueSize', then alternatively give 'maxSize' under
+  the '[queue=splunktcpin]' stanza a value in the server.conf
+  configuration file.
 * Default: 500KB
 
 negotiateProtocolLevel = <unsigned integer>
@@ -828,6 +847,7 @@ compressed = <boolean>
 enableS2SHeartbeat = <boolean>
 s2sHeartbeatTimeout = <integer>
 queueSize = <integer>[KB|MB|GB]
+persistentQueueSize = <integer>[KB|MB|GB|TB]
 negotiateProtocolLevel = <unsigned integer>
 negotiateNewProtocol = <boolean>
 concurrentChannelLimit = <unsigned integer>
@@ -851,18 +871,18 @@ token = <string>
 * Must be in the format NNNNNNNN-NNNN-NNNN-NNNN-NNNNNNNNNNNN. Failure to
   use this string format results in the token being ignored.
 
-# SSL settings for data distribution:
+# TLS settings for data distribution:
 
 [splunktcp-ssl:<port>]
-* Use this stanza type if you are receiving encrypted, parsed data from a
+* Use this stanza type if your receivers receive encrypted, parsed data from a
   forwarder.
 * Set <port> to the port on which the forwarder sends the encrypted data.
 * Forwarder settings are set in outputs.conf on the forwarder.
-* Compression for SSL is enabled by default. On the forwarder you can still
+* Compression for TLS is enabled by default. On the forwarder you can still
   specify compression with the 'useClientSSLCompression' setting in
   outputs.conf.
-* The 'compressed' setting is used for non-SSL connections. However, if you
-  still specify 'compressed' for SSL, ensure that the 'compressed' setting is
+* The 'compressed' setting is used for non-TLS connections. However, if you
+  still specify 'compressed' for TLS, ensure that the 'compressed' setting is
   the same as on the forwarder, as splunktcp protocol expects the same
   'compressed' setting from forwarders.
 
@@ -898,22 +918,22 @@ negotiateNewProtocol = <boolean>
 concurrentChannelLimit = <unsigned integer>
 * See the description for this setting in the [splunktcp] stanza.
 
-# To specify global ssl settings, that are applicable for all ports, add the
-# settings to the SSL stanza.
-# Specify any ssl setting that deviates from the global setting here.
-# For a detailed description of each ssl setting, refer to the [SSL] stanza.
+# To specify global TLS settings, that are applicable for all ports, add the
+# settings to the [SSL] stanza.
+# Specify any TLS setting that deviates from the global setting here.
+# For a detailed description of each TLS setting, refer to the [SSL] stanza.
 
 serverCert = <string>
 sslPassword = <string>
 requireClientCert = <boolean>
 sslVersions = <string>
-cipherSuite = <cipher suite string>
-ecdhCurves = <comma separated list of ec curves>
+cipherSuite = <string>
+ecdhCurves = <comma separated list>
 dhFile = <string>
 allowSslRenegotiation = <boolean>
 sslQuietShutdown = <boolean>
-sslCommonNameToCheck = <commonName1>, <commonName2>, ...
-sslAltNameToCheck = <alternateName1>, <alternateName2>, ...
+sslCommonNameToCheck = <comma-separated list>
+sslAltNameToCheck = <comma-separated list>
 useSSLCompression = <boolean>
 
 [tcp-ssl:<port>]
@@ -921,12 +941,13 @@ useSSLCompression = <boolean>
   forwarder or third-party system.
 * Set <port> to the port on which the forwarder/third-party system is sending
   unparsed, encrypted data.
-* To create multiple SSL inputs, you can add the following attributes to each
+* To create multiple TLS inputs, you can add the following attributes to each
   [tcp-ssl:<port>] input stanza. If you do not configure a certificate in the
   port, the certificate information is pulled from the default [SSL] stanza:
-  * serverCert = <path_to_cert>
-  * sslRootCAPath = <path_to_cert> Only add this setting if you
-    have not configured the 'sslRootCAPath' setting in server.conf.
+  * serverCert = <path>
+  * sslRootCAPath = <path> 
+    * Add this setting only if you have not configured the 'sslRootCAPath' 
+      setting in server.conf.
   * sslPassword = <string>
 
 listenOnIPv6 = [no|yes|only]
@@ -941,134 +962,170 @@ acceptFrom = <comma- or space-separated list>
   stanza.
 * Default: "*" (accept from anywhere)
 
-# To specify global SSL settings, that are applicable for all ports, add the
-# settings to the SSL stanza.
-# Specify any SSL setting that deviates from the global setting here.
-# For a detailed description of each ssl setting, refer to the [SSL] stanza.
+# To specify global TLS settings, that are applicable for all ports, add the
+# settings to the [SSL] stanza.
+# Specify any TLS setting that deviates from the global setting here.
+# For a detailed description of each TLS setting, refer to the [SSL] stanza.
 
 serverCert = <string>
 sslPassword = <string>
 requireClientCert = <boolean>
 sslVersions = <string>
-cipherSuite = <cipher suite string>
-ecdhCurves = <comma separated list of ec curves>
+cipherSuite = <string>
+ecdhCurves = <comma separated list>
 dhFile = <string>
 allowSslRenegotiation = <boolean>
 sslQuietShutdown = <boolean>
-sslCommonNameToCheck = <commonName1>, <commonName2>, ...
-sslAltNameToCheck = <alternateName1>, <alternateName2>, ...
+sslCommonNameToCheck = <comma-separated list>
+sslAltNameToCheck = <comma-separated list>
 useSSLCompression = <boolean>
 
 ############################################################################
 # SSL:
 ############################################################################
 [SSL]
-* Set the global specifications for receiving Secure Sockets Layer (SSL)
- communication underneath this stanza name.
+* Set the global specifications for receiving transport layer security (TLS)
+  and Secure Sockets Layer (SSL) communication underneath this stanza name.
 
 serverCert = <string>
-* The full path to the server certificate file.
-* This file must be a Privacy-Enhanced Mail (PEM) format file.
-* PEM is the most common text-based storage format for SSL certificate files.
+* The full path to the server certificate.
+* The Splunk daemon auto-generates certificates when you start Splunk
+  Enterprise the first time.
+* Where applicable, replace the default certificate with a certificate
+  that you either create on your own or obtain from a third party.
+* For more information about certificates, and how to obtain, create,
+  and install them, search the Securing Splunk Enterprise Manual 
+  for "Introduction to Securing the Splunk Platform with TLS".
+* The certificate must be in privacy-enhanced mail (PEM) format.
 * No default.
 
 sslPassword = <string>
-* The server certificate password, if it exists.
-* Set this to a plain-text password initially.
+* The password for the server certificate, if you created one.
+* Configure this setting to a plain-text value initially.
 * Upon first use, the input encrypts and rewrites the password to
   $SPLUNK_HOME/etc/system/local/inputs.conf.
+* No default.
 
 password = <string>
-* DEPRECATED.
-* Do not use this setting. Use the 'sslPassword' setting instead.
+* DEPRECATED. Use the 'sslPassword' setting instead.
 
 rootCA = <string>
-* DEPRECATED.
-* Do not use this setting. Use 'server.conf/[sslConfig]/sslRootCAPath' instead.
-* Used only if 'sslRootCAPath' is not set.
-* The path must refer to a PEM format file that contains one or more root CA
-  certificates that have been concatenated together.
+* DEPRECATED. Use 'server.conf:[sslConfig]/sslRootCAPath' instead.
 
 requireClientCert = <boolean>
-* Whether or not a client must present an SSL certificate to authenticate.
-* A value of "true" means that clients must present a certificate to authenticate.
+* Whether or not an HTTPS client which connects to a splunkd
+  server must possess a certificate that a certificate authority
+  signed to complete the connection.
+* Multiple services can use this setting, including but not
+  limited to distributed search and distributed deployment clients.
+  * Splunk platform indexers must use this setting to connect to
+    other Splunk platform indexers.
+  * Deployment clients must present certificates to deployment
+    servers before they can poll the servers for new configurations
+    or applications.
+* A value of "true" means that a client can connect only if it
+  has a certificate that was signed by a certificate
+  authority that the splunkd server trusts.
+* A value of "false" means that there is no certificate requirement
+  to connect to services on another Splunk platform instance.
 * Default (if using self-signed and third-party certificates): false
 * Default (if using the default certificates; overrides the existing
   "false" setting): true
 
 sslVersions = <comma-separated list>
-* A list of SSL versions to support.
-* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2"
-* The special version "*" selects all supported versions. The version "tls"
-  selects all versions that begin with "tls".
-* To remove a version from the list, prefix it with "-".
-* SSLv2 is always disabled. Specifying "-ssl2" in the version list has
-  no effect.
-* When configured in Federal Information Processing Standard (FIPS) mode, the
-  "ssl3" version is always disabled, regardless of this configuration.
+* The list of TLS/SSL versions to support for incoming connections.
+* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
+* The special version "*" selects all supported versions.
+  The version "tls" selects all versions tls1.0 or newer.
+* If you prefix a version with "-", it means to exclude that version
+  from the list.
+* SSLv2 is always disabled; "-ssl2" is accepted in the version
+  list but does nothing.
+* If the Splunk platform instance runs in FIPS mode,
+  "ssl3" is always disabled regardless of this configuration.
 * The default can vary. See the 'sslVersions' setting in
   $SPLUNK_HOME/etc/system/default/inputs.conf for the current default.
 
 supportSSLV3Only = <boolean>
-* DEPRECATED.
-* SSLv2 is now always disabled.
-* Use the 'sslVersions' setting to set the list of supported SSL versions.
+* DEPRECATED. Use 'sslVersions' instead.
 
 cipherSuite = <string>
-* If set, uses the specified cipher string for the input processors.
-* Must specify 'dhFile' to enable any Diffie-Hellman ciphers.
+* A list of cipher suites for splunkd to use.
+* If set, the input processor uses the specified cipher string.
+* If not set, the input process uses the default cipher string that
+  the OpenSSL binary provides.
+* If you want to use any Diffie-Hellman ciphers, you must use the
+  'dhFile' setting.
 * The default can vary. See the 'cipherSuite' setting in
-  $SPLUNK_HOME/etc/system/default/inputs.conf for the current default.
+  the $SPLUNK_HOME/etc/system/default/inputs.conf file for the
+  current default.
 
 ecdhCurveName = <string>
-* DEPRECATED.
-* Use the 'ecdhCurves' setting instead.
-* This setting specifies the Elliptic Curve Diffie-Hellman (ECDH) curve to
-  use for ECDH key negotiation.
-* Splunk software only supports named curves that have been specified
-  by their SHORT name.
-* The list of valid named curves by their short and long names
-  can be obtained by running this CLI command:
-  $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
+
+ecdhCurveName = <string>
+* DEPRECATED. Use the 'ecdhCurves' setting instead.
 * Default: empty string
 
 ecdhCurves = <comma-separated list>
-* A list of ECDH curves to use for ECDH key negotiation.
-* The curves should be specified in the order of preference.
-* The client sends these curves as a part of an SSL Client Hello.
+* A list of elliptic curves to use for the Elliptic-curve Diffie-Hellman
+  (ECDH) key negotiation protocol.
+* The client sends elliptic curves as part of the Client Hello
+  during a TLS handshake.
+* Specify elliptic curves in the order that you prefer them.
 * The server supports only the curves specified in the list.
-* Splunk software only supports named curves that have been specified
-  by their SHORT names.
-* The list of valid named curves by their short and long names can be obtained
+* Splunk software only supports named curves that you specify
+  by their short names.
+* You can get the list of valid named curves by their short and long names
   by running this CLI command:
   $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
-* Example setting: "ecdhCurves = prime256v1,secp384r1,secp521r1"
+* Example configuration: "ecdhCurves = prime256v1,secp384r1,secp521r1"
 * The default can vary. See the 'ecdhCurves' setting in
   $SPLUNK_HOME/etc/system/default/inputs.conf for the current default.
 
 dhFile = <string>
-* Full path to the Diffie-Hellman parameter file.
-* DH group size should be no less than 2048 bits.
-* This file is required in order to enable any Diffie-Hellman ciphers.
+* The location of the Diffie-Hellman (DH) parameter file.
+* This file must be in PEM format.
+* The DH group size, which determines the strength of the key that the
+  DH key exchange process uses, must not be fewer than 2048 bits.
+* You must specify this file to enable any Diffie-Hellman ciphers.
 * No default.
 
 dhfile = <string>
-* DEPRECATED.
-* Use the 'dhFile' setting instead.
+* DEPRECATED. Use the 'dhFile' setting (with a capital F) instead.
 * Yes, the setting name is case-sensitive.
 
 allowSslRenegotiation = <boolean>
-* Whether or not to let SSL clients renegotiate their connections.
-* In the SSL protocol, a client might request renegotiation of the connection
-  settings from time to time.
-* A value of "false" means the server rejects all renegotiation
+* Whether or not the server lets clients request renegotiation of
+  TLS connection settings.
+* In the TLS protocol, a client can request renegotiation of the
+  connection settings from time to time.
+* A value of "true" means that the server lets clients request the
+  renegotiation of TLS connection settings.
+* A value of "false" causes the server to reject all renegotiation
   attempts, which breaks the connection.
-* This limits the amount of CPU a single TCP connection can use, but it can
-  cause connectivity problems, especially for long-lived connections.
+  * This limits the amount of CPU a single TCP connection can use, 
+    but it can cause connectivity problems, especially for long-lived
+    connections.
 * Default: true
 
 sslQuietShutdown = <boolean>
-* Enables quiet shutdown mode in SSL.
+* Whether or not quiet SSL shutdown mode is turned on.
+* When a client is finished with a TLS connection, it can shut that
+  connection down normally or quietly.
+* A normal SSL shutdown between a local node, in this case the client, 
+  and a peer node, in this case the server, involves either
+  node sending a message to the other to terminate the TLS/SSL connection. 
+  This message is called the "close_notify" message.
+* When a local node sends this message, the peer node returns the same message
+  upon receipt, then stops sending further messages over TLS. The TLS connection
+  remains open until the peer also closes the connection on its side.
+* A "quiet" SSL shutdown means that neither node sends this message when it
+  terminates the TLS connection. Instead, the node sets the connection to the
+  "shutdown" state immediately.
+* A value of "true" means that the client uses quiet SSL shutdown mode to
+  terminate TLS connections.
+* A value of "false" means that the client shuts down TLS connections using the
+  normal shutdown process.
 * Default: false
 
 logCertificateData = <boolean>
@@ -1119,30 +1176,44 @@ certLogRepeatFrequency = <timespan>
 * Default: 1d
 
 sslCommonNameToCheck = <comma-separated list>
-* Checks the common name of the client certificate against this list of names.
-* If there is no match, assumes that the Splunk instance is not authenticated
-  against this server.
-* For this setting to work, you must also set 'requireClientCert' to "true".
+* One or more X.509 standard Common Names of the server certificate which splunkd,
+  as a client, checks against when it connects to a server using TLS.
+* The Common Name (CN) is an X.509 standard field in a certificate that identifies the
+  host name that is associated with the certificate.
+  * The CN can be a short host name or a fully qualified domain name. For example, 
+    the CN can be one of "example", "www.example.com", or "example.com".
+* If the client cannot match the CN in the certificate that the server presents,
+  then the client cannot authenticate the server, and terminates the session 
+  negotiation immediately.
+* For this setting to have any affect, the 'sslVerifyServerCert' setting must have
+  a value of "true".
 * This setting is optional.
-* Default: empty string (no common name checking)
+* No default (no common name checking)
 
 sslAltNameToCheck = <comma-separated list>
-* Checks the alternate name of the client certificate against this list of names.
-* If there is no match, assumes that the Splunk instance is not authenticated
-  against this server.
-* For this setting to work, you must also set 'requireClientCert' to "true".
+* One or more Subject Alternative Names of the server certificate which splunkd,
+  as a client, checks against when it connects to a server using TLS.
+* The Subject Alternative Name (SAN) is an extension to the X.509 standard that
+  lets you specify additional host names for a TLS certificate. The SAN can be a
+  short host name or a fully qualified domain name.
+* If the client cannot match the SAN in the certificate that the server presents,
+  then the client cannot authenticate the server, and terminates the session 
+  negotiation immediately.
+* The client does not validate any names in this list against the Common Name.
+* For this setting to have any affect, the 'sslVerifyServerCert' setting must have
+  a value of "true".
 * This setting is optional.
-* Default: empty string (no alternate name checking)
+* No default (no alternative name checking).
 
 useSSLCompression = <boolean>
-* Whether or not the server lets forwarders that connect to it negotiate SSL-
+* Whether or not the server lets forwarders that connect to it negotiate TLS-
   layer data compression.
 * A value of "true" means the server lets forwarders negotiate
-  SSL-layer data compression.
-* Default: The value of 'server.conf/[sslConfig]/allowSslCompression'
+  TLS-layer data compression.
+* Default: The value of 'server.conf:[sslConfig]/allowSslCompression'
 
 sslServerHandshakeTimeout = <integer>
-* The timeout, in seconds, for an SSL handshake to complete between
+* The timeout, in seconds, for a TLS handshake to complete between
   forwarder and the TCP input processor.
 * If the TCP input processor does not receive a "Client Hello" from the forwarder
   within 'sslServerHandshakeTimeout' seconds, the server terminates
@@ -1209,6 +1280,12 @@ no_appending_timestamp = <boolean>
 
 queueSize = <integer>[KB|MB|GB]
 * The maximum size of the in-memory input queue.
+* See the description of 'queueSize' under the [tcp://] stanza
+  for details on this setting.
+* If you configure multiple [udp://] stanzas, and do not want to set
+  'persistentQueueSize', then alternatively give 'maxSize' under
+  the '[queue=UDP_queue]' stanza a value in the server.conf
+  configuration file.
 * Default: 500KB
 
 persistentQueueSize = <integer>[KB|MB|GB|TB]
@@ -1257,7 +1334,11 @@ acceptFrom = <comma- or space-separated list>
 * This stanza configures the monitoring of a FIFO at the specified path.
 
 queueSize = <integer>[KB|MB|GB]
-* Maximum size of the in-memory input queue.
+* The maximum size of the in-memory input queue.
+* If you configure multiple [fifo://] stanzas, and do not want to set
+  'persistentQueueSize', then alternatively give 'maxSize' under
+  the '[queue=fifoInternalQ]' stanza a value in the server.conf
+  configuration file.
 * Default: 500KB
 
 persistentQueueSize = <integer>[KB|MB|GB|TB]
@@ -1335,7 +1416,13 @@ python.version = [default|python|python2|python3|python3.7|python3.9|latest]
 * Default: Not set; uses the system-wide Python version.
 
 queueSize = <integer>[KB|MB|GB]
-* Maximum size of the in-memory input queue.
+* The maximum size of the in-memory input queue.
+* See the description of 'queueSize' under the [tcp://] stanza
+  for details on this setting.
+* If you configure multiple [script://] stanzas, and do not want to set
+  'persistentQueueSize', then alternatively give 'maxSize' under
+  the '[queue=execProcessorInternalQ]' stanza a value in the server.conf
+  configuration file.
 * Default: 500KB
 
 persistentQueueSize = <integer>[KB|MB|GB|TB]
@@ -1576,10 +1663,10 @@ sourcetype = <string>
   for events it generates.
 
 enableSSL = <boolean>
-* Whether or not the HTTP Event Collector uses SSL.
-* HEC shares SSL settings with the Splunk management server and cannot have
-  SSL enabled when the Splunk management server has SSL disabled.
-* Default: 1 (enabled)
+* Whether or not the HTTP Event Collector uses TLS.
+* HEC shares TLS settings with the Splunk management server and cannot have
+  TLS turned on when the Splunk management server has TLS turned off.
+* Default: true
 
 dedicatedIoThreads = <non-negative integer>
 * The number of dedicated input/output threads in the event collector
@@ -1640,24 +1727,17 @@ busyKeepAliveIdleTimeout = <integer>
 * Default: 12
 
 serverCert = <string>
-* The full path to the server certificate PEM format file.
-* The same file may also contain a private key.
-* Splunk software automatically generates certificates when it first
-  starts.
-* You may replace the auto-generated certificate with your own certificate.
+* See the description of 'serverCert' under the [SSL] stanza
+  for details on this setting.
 * Default: $SPLUNK_HOME/etc/auth/server.pem
 
 sslKeysfile = <string>
-* DEPRECATED.
-* Use the 'serverCert' setting instead.
-* The file that contains the SSL keys. Splunk software looks for this file
-  in the directory specified by 'caPath'.
+* DEPRECATED. Use the 'serverCert' setting instead.
 * Default: server.pem
 
 sslPassword = <string>
-* The server certificate password.
-* Initially set to a plain-text password.
-* Upon first use, Splunk software encrypts and rewrites the password.
+* See the description of 'sslPassword' under the [SSL] stanza
+  for details on this setting.
 * Default: password
 
 sslKeysfilePassword = <string>
@@ -1665,31 +1745,29 @@ sslKeysfilePassword = <string>
 * Use the 'sslPassword' setting instead.
 
 caCertFile = <string>
-* DEPRECATED.
-* Use the 'server.conf:[sslConfig]/sslRootCAPath' setting instead.
-* Used only if you do not set the 'sslRootCAPath' setting.
-* Specifies the file name (relative to 'caPath') of the CA
-  (Certificate Authority) certificate PEM format file that contains one or
-  more certificates concatenated together.
+* DEPRECATED. Use the 'server.conf:[sslConfig]/sslRootCAPath' setting instead.
+* If you have not given the 'sslRootCAPath' setting a value,
+  then Splunk Enterprise attempts to locate a CA certificate using
+  this setting.
 * Default: cacert.pem
 
 caPath = <string>
-* DEPRECATED.
-* Use absolute paths for all certificate files.
-* If certificate files given by other settings in this stanza are not absolute
-  paths, then they are relative to this path.
+* DEPRECATED. Use absolute paths for all certificate files.
+* If you do not specify absolute paths for certificate files in other settings
+  in this stanza, then they are relative to path you specify in this setting.
 * Default: $SPLUNK_HOME/etc/auth
 
 sslVersions = <comma-separated list>
-* A comma-separated list of SSL versions to support.
-* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2"
-* The special version "*" selects all supported versions. The version "tls"
-  selects all versions "tls1.0" or newer.
-* To remove a version from the list, prefix it with "-".
-* SSLv2 is always disabled. Specifying "-ssl2" in the version list
-  has no effect.
-* When configured in Federal Information Processing Standard (FIPS) mode, the
-  "ssl3" version is always disabled, regardless of this configuration.
+* The list of TLS/SSL versions to support.
+* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
+* The special version "*" selects all supported versions.
+  The version "tls" selects all versions tls1.0 or newer.
+* If you prefix a version with "-", it means to exclude that version
+  from the list.
+* SSLv2 is always disabled; "-ssl2" is accepted in the version
+  list but does nothing.
+* If the Splunk platform instance runs in FIPS mode,
+  "ssl3" is always disabled regardless of this configuration.
 * Default: *,-ssl2  (anything newer than SSLv2)
 
 cipherSuite = <string>
@@ -1721,33 +1799,39 @@ acceptFrom = <comma- or space-separated list>
 * Default: "*" (accept from anywhere)
 
 requireClientCert = <boolean>
-* Requires that any client connecting to the HEC port has a certificate that
-  can be validated by the certificate authority specified in the
-  'caCertFile' setting.
+* Whether or not a client which connects to the HEC
+  network port must possess a certificate that a certificate authority
+  signed to complete the connection.
+* HEC uses the certificate that you specify in the
+  'server.conf:[sslConfig]/sslRootCAPath' setting to validate
+   incoming client certificates.
+  * If you do not specify a certificate with that setting, it uses
+    the certificate you specify with the DEPRECATED 'caCertFile'
+    setting.
+* A value of "true" means that a client can connect to HEC only if it
+  has a certificate that was signed by a certificate
+  authority that the splunkd server trusts.
+* A value of "false" means that there is no certificate requirement
+  to connect to HEC.
 * Default: false
 
 ecdhCurveName = <string>
-* DEPRECATED.
-* Use the 'ecdhCurves' setting instead.
-* This setting specifies the ECDH curve to use for ECDH key negotiation.
-* Splunk software only supports named curves that have been specified by their
-  SHORT names.
-* The list of valid named curves by their short or long names
-  can be obtained by executing this command:
-  $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
+* DEPRECATED. Use the 'ecdhCurves' setting instead.
 * Default: empty string
 
 ecdhCurves = <comma-separated list>
-* ECDH curves to use for ECDH key negotiation.
-* The curves should be specified in the order of preference.
-* The client sends these curves as a part of Client Hello.
+* A list of elliptic curves to use for the Elliptic-curve Diffie-Hellman
+  (ECDH) key negotiation protocol.
+* The client sends elliptic curves as part of the Client Hello
+  during a TLS handshake.
+* Specify elliptic curves in the order that you prefer them.
 * The server supports only the curves specified in the list.
-* Splunk software only supports named curves that have been specified by their
-  SHORT names.
-* The list of valid named curves by their short or long names can be obtained
-  by executing this command:
+* Splunk software only supports named curves that you specify
+  by their short names.
+* You can get the list of valid named curves by their short and long names
+  by running this CLI command:
   $SPLUNK_HOME/bin/splunk cmd openssl ecparam -list_curves
-* Example setting: ecdhCurves = prime256v1,secp384r1,secp521r1
+* Example configuration: "ecdhCurves = prime256v1,secp384r1,secp521r1"
 * Default: empty string
 
 crossOriginSharingPolicy = <origin_acl> ...
@@ -1799,60 +1883,80 @@ forceHttp10 = [auto|never|always]
 * Default: auto
 
 sslCommonNameToCheck = <comma-separated list>
-* A list of SSL Common Names to match against certificates that incoming
-  HTTPS connections present to this instance.
-* If you configure this setting and also set 'requireClientCert' to "true",
-  splunkd limits most inbound HTTPS connections to hosts that use
-  a cert with one of the listed common names.
+* One or more X.509 standard Common Names of the server certificate which splunkd,
+  as a client, checks against when it connects to a server using TLS.
+* The Common Name (CN) is an X.509 standard field in a certificate that identifies the
+  host name that is associated with the certificate.
+  * The CN can be a short host name or a fully qualified domain name. For example, 
+    the CN can be one of "example", "www.example.com", or "example.com".
+* If the client cannot match the CN in the certificate that the server presents,
+  then the client cannot authenticate the server, and terminates the session 
+  negotiation immediately.
+* For this setting to have any affect, the 'sslVerifyServerCert' setting must have
+  a value of "true".
 * The most important scenario to use this setting is distributed search.
 * This feature does not work with the deployment server and client
-  communication over SSL.
+  communication over TLS.
 * This setting is optional.
 * Default: empty string (no common name checking)
 
 sslAltNameToCheck = <comma-separated list>
-* If you set this setting and also set 'requireClientCert' to true,
-  splunkd can verify certificates that have a so-called
-  "Subject Alternate Name" that matches any of the alternate
-  names in this list.
-  * Subject Alternate Names are effectively extended descriptive
-    fields in SSL certs beyond the commonName. A common practice for
-    HTTPS certs is to use these values to store additional valid
+* One or more Subject Alternative Names of the server certificate which splunkd,
+  as a client, checks against when it connects to a server using TLS.
+* The Subject Alternative Name (SAN) is an extension to the X.509 standard that
+  lets you specify additional host names for a TLS certificate. The SAN can be a
+  short host name or a fully qualified domain name.
+  * Subject Alternative Names are effectively extended descriptive
+    fields in TLS certificates beyond the Common Name. A common practice for
+    HTTPS certificates is to use these values to store additional valid
     hostnames or domains where the cert should be considered valid.
-* Accepts a comma-separated list of Subject Alternate Names to consider
-  valid.
-* Items in this list are never validated against the SSL Common Name.
+* If the client cannot match the SAN in the certificate that the server presents,
+  then the client cannot authenticate the server, and terminates the session 
+  negotiation immediately.
+* The client does not validate any names in this list against the Common Name.
+* For this setting to have any affect, the 'sslVerifyServerCert' setting must have
+  a value of "true".
 * This feature does not work with the deployment server and client
-  communication over SSL.
-* This setting is optional.
+  communication over TLS.
+  * This setting is optional.
 * Default: empty string (no alternate name checking)
 
 sendStrictTransportSecurityHeader = <boolean>
-* Whether or not to force inbound connections to always use SSL with
-  the "Strict-Transport-Security" header..
-* If set to "true", the REST interface sends a "Strict-Transport-Security"
-  header with all responses to requests made over SSL.
-* This can help prevent a client being tricked later by a Man-In-The-Middle
-  attack to accept a non-SSL request. However, this requires a commitment that
-  no non-SSL web hosts will ever be run on this hostname on any port. For
-  example, if Splunk Web is in default non-SSL mode this can break the
-  ability of the browser to connect to it. Enable with caution.
+Whether or not the REST interface sends a "Strict-Transport-Security"
+  header with all responses to requests made over TLS.
+* A value of "true" means the REST interface sends a "Strict-Transport-
+  Security" header with its responses.
+  * This can help to avoid a client being tricked later by a
+    machine-in-the-middle attack to accept a non-TLS request.
+    However, this requires a commitment that no non-TLS web hosts
+    ever run on this hostname on any port. 
+  * For example, if Splunk Web is in its default non-TLS mode, this 
+    can prevent a web browser from connecting to it.
+* A value of "false" means the REST interface does not send a
+  "Strict-Transport-Security" header with its responses.
 * Default: false
 
 allowSslCompression = <boolean>
-* Whether or not to allow data compression over SSL.
-* If set to "true", the server allows clients to negotiate
-  SSL-layer data compression.
+* Whether or not the server lets clients negotiate compression at
+  the TLS layer.
+* A value of "true" means the server lets clients negotiate
+  TLS-layer data compression.
+* A value of "false" means the server does not let clients negotiate
+  TLS-layer data compression.
 * Default: true
 
 allowSslRenegotiation = <boolean>
-* Whether or not to let SSL clients renegotiate their connections.
-* In the SSL protocol, a client may request renegotiation of the connection
-  settings from time to time.
-* Setting this to false causes the server to reject all renegotiation
+* Whether or not the server lets clients request renegotiation of
+  TLS connection settings.
+* In the TLS protocol, a client can request renegotiation of the
+  connection settings from time to time.
+* A value of "true" means that the server lets clients request the
+  renegotiation of TLS connection settings.
+* A value of "false" causes the server to reject all renegotiation
   attempts, which breaks the connection.
-* This limits the amount of CPU a single TCP connection can use, but it can
-  cause connectivity problems, especially for long-lived connections.
+  * This limits the amount of CPU a single TCP connection can use, 
+    but it can cause connectivity problems, especially for long-lived
+    connections.
 * Default: true
 
 ackIdleCleanup = <boolean>
@@ -1948,6 +2052,21 @@ outputgroup = <string>
 
 queueSize = <integer>[KB|MB|GB]
 * The maximum size of the in-memory input queue.
+* See the description of 'queueSize' under the [tcp://] stanza
+  for details on this setting.
+* Unlike with other inputs that use in-memory queues, the logic for
+  determining the size of the HEC input queue differs.
+  * Splunkd still sorts all HEC input stanzas in alphanumeric order.
+  * The first HEC input stanza that defines the token contained within
+    the first HEC event that splunkd receives determines the size
+    of the HEC input queue.
+  * Splunkd uses the value defined for 'queueSize' in that stanza.
+    If you have not set 'queueSize', then splunkd uses the default
+    value.
+* If you configure multiple [http://] stanzas, and do not want to set
+  'persistentQueueSize', then alternatively give 'maxSize' under
+  the '[queue=httpInputQ]' stanza a value in the server.conf
+  configuration file.
 * Default: 500KB
 
 persistentQueueSize = <integer>[KB|MB|GB|TB]
@@ -2349,8 +2468,8 @@ current_only = <boolean>
   indexing of duplicate events.
 * Do not set this setting to "true" and at the same time set the
   'start_from' setting to "newest". This results in the input not collecting
-  any events because you told it to read existing events from oldest
-  to newest and read only incoming events concurrently, which is a 
+  any events because you told it to read existing events from newest
+  to oldest and read only incoming events concurrently, which is a 
   logically impossible combination.
 * Default: false (Gather stored events with higher event IDs first before 
   monitoring live events)
@@ -3220,13 +3339,13 @@ disabled = <boolean>
 * A value of "false" means the remote queue input is active. 
 * Default: false
 
-remote_queue.type = [sqs|kinesis|sqs_smartbus|sqs_smartbus_cp|sqs_datalake]
+remote_queue.type = [sqs|kinesis|sqs_smartbus|sqs_smartbus_cp|sqs_datalake|asq]
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Required.
 * Specifies the remote queue type, which can be "Amazon Web Services (AWS) 
   Simple Queue Service (SQS)", "Amazon Kinesis", "SQS Smartbus",
-  "SQS Smartbus CP" or "SQS Datalake".
+  "SQS Smartbus CP", "SQS Datalake" or "Azure Storage Queue (ASQ)".
 * If the type is "sqs_smartbus_cp", the [cloud_processor_smartbus_queue] 
   stanza must be present.
 
@@ -3444,11 +3563,11 @@ remote_queue.sqs.large_message_store.endpoint = <string>
 * The scheme, http or https, can be used to enable or disable SSL connectivity
   with the endpoint.
 * If not specified, the endpoint is constructed automatically based on the
-  auth_region as follows: https://s3-<auth_region>.amazonaws.com
+  auth_region as follows: https://s3.<auth_region>.amazonaws.com
 * If specified, the endpoint must match the effective auth_region, which is
   either a value specified via 'remote_queue.sqs.auth_region' or a value
   constructed automatically based on the EC2 region of the running instance.
-* Example: https://s3-us-west-2.amazonaws.com/
+* Example: https://s3.us-west-2.amazonaws.com/
 * This setting is optional.
 * No default.
 
@@ -3616,11 +3735,11 @@ remote_queue.kinesis.large_message_store.endpoint = <string>
 * The scheme, http or https, can be used to enable or disable SSL connectivity
   with the endpoint.
 * If not specified, the endpoint will be constructed automatically based on the
-  auth_region as follows: https://s3-<auth_region>.amazonaws.com
+  auth_region as follows: https://s3.<auth_region>.amazonaws.com
 * If specified, the endpoint must match the effective auth_region, which is
   either a value specified via 'remote_queue.kinesis.auth_region' or a value
   constructed automatically based on the EC2 region of the running instance.
-* Example: https://s3-us-west-2.amazonaws.com/
+* Example: https://s3.us-west-2.amazonaws.com/
 * This setting is optional.
 * No default.
 
@@ -3841,11 +3960,11 @@ remote_queue.sqs_smartbus.large_message_store.endpoint = <string>
 * The scheme, http or https, can be used to enable or disable SSL connectivity
   with the endpoint.
 * If not specified, the endpoint is constructed automatically based on the
-  auth_region as follows: https://s3-<auth_region>.amazonaws.com
+  auth_region as follows: https://s3.<auth_region>.amazonaws.com
 * If specified, the endpoint must match the effective auth_region, which is
   either a value specified via 'remote_queue.sqs_smartbus.auth_region' or a value
   constructed automatically based on the EC2 region of the running instance.
-* Example: https://s3-us-west-2.amazonaws.com/
+* Example: https://s3.us-west-2.amazonaws.com/
 * This setting is optional.
 * No default.
 
@@ -3974,6 +4093,281 @@ remote_queue.sqs_smartbus.large_message_store.key_refresh_interval = <string>
 * Default: 24h
 
 ############################################################################
+# Azure Storage Queue (ASQ) specific settings
+############################################################################
+
+remote_queue.asq.access_key = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The access key to use when authenticating with the remote queue
+  system supporting the ASQ API.
+* No default.
+
+remote_queue.asq.secret_key = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The secret key to use when authenticating with the remote queue
+  system supporting the ASQ API.
+* No default.
+
+remote_queue.asq.endpoint = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The URL of the remote queue system supporting the ASQ API.
+* Example: https://somestorage.queue.core.windows.net/
+* No default.
+
+remote_queue.asq.retry_policy = [max_count|none]
+* Currently not supported. This setting is related to a feature that is still
+  under development.
+* The retry policy to use for remote queue operations.
+* A retry policy specifies whether and how to retry file operations that fail
+  for those failures that might be intermittent.
+* Retry policies:
+  + "max_count": Imposes a maximum number of times a queue operation can be
+    retried upon intermittent failure. Set max_count with the
+    'max_count.max_retries_in_total' setting.
+  + "none": Do not retry file operations upon failure.
+* This setting is optional.
+* Default: "max_count"
+
+remote_queue.asq.max_count.max_retries_in_total = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is still
+  under development.
+* When 'remote_queue.asq.retry_policy' is set to "max_count", sets the
+  maximum number of times a queue operation can be retried upon
+  intermittent failure.
+* This setting is optional.
+* Default: 3
+
+remote_queue.asq.renew_retries = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The number of retries for a particular message on a given indexer after
+  being received from the remote queue, before it is proactively
+  moved to the DLQ folder.
+* Default: 50
+
+remote.asq.backoff.initial_delay = <unsigned integer><unit>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* If retries are enabled, a backoff interval is used to perform
+  the retries. This interval is doubled on each retry up to the limit set in
+  remote.asq.backoff.max_retry_delay.
+* This setting specifies the delay between each retry.
+* If "ms", "s", or "m" is not specified, the default unit is seconds.
+* Default: 4000ms (4s)
+
+remote.asq.backoff.max_retry_delay = <unsigned integer><unit>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* If retries are enabled, a backoff interval is used to perform
+  the retries.
+* This setting specifies the maximum delay before the next retry.
+* If "ms", "s", or "m" is not specified, the default unit is seconds. 
+* Default: 2*60*1000ms (120s)
+
+remote_queue.asq.message_receive_max_count = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The maximum number of messages, that are received from the
+  'remote_queue' endpoint, to store in the Azure in-memory message queue.
+* This setting is optional.
+* Default: 32
+
+remote_queue.asq.timeout.connect = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The connection timeout, in seconds, when interacting with
+  ASQ for this queue.
+* This setting is optional.
+* Default: 5
+
+remote_queue.asq.timeout.read = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The read timeout, in seconds, when interacting with ASQ for
+  this queue.
+* This setting is optional.
+* Default: 60
+
+remote_queue.asq.timeout.write = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The write timeout, in seconds, when interacting with ASQ for
+  this queue.
+* This setting is optional.
+* Default: 60
+
+remote_queue.asq.timeout.visibility = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The timeout, in seconds, to use when explicitly changing
+  the visibility of specific messages in the Azure in-memory queue.
+* This setting is optional.
+* Default: 60
+
+remote_queue.asq.executor_max_workers_count = <positive integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The maximum number of worker threads that can be used by
+  indexer per pipeline set to execute ASQ tasks.
+* A value of 0 is equivalent to 1.
+* Default: 4
+
+remote_queue.asq.large_message_store.endpoint = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The URL of the remote storage system supporting the Azure API.
+* Example: https://somestorage.blob.core.windows.net/
+* No default.
+
+remote_queue.asq.large_message_store.path = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The remote storage location where messages that are larger than the
+  underlying queue maximum message size will reside.
+* If not specified, messages exceeding the underlying queue's maximum message
+  size are dropped.
+* For Microsoft Azure Blob storage, this is specified
+  as "azure://<container-name>/path_to_blob" Note that "<container-name>"
+  is needed here only if 'remote_queue.asq.large_message_store.container_name'
+  is not set.
+* No default.
+
+remote_queue.asq.large_message_store.container_name = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies the Azure container to use complying with Microsoft Azure
+  Storage Container naming convention.
+* This setting is optional.
+* No default.
+
+remote_queue.asq.large_message_store.sslVerifyServerCert = <boolean>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* If set to true, the Splunk platform verifies the certificate
+  presented by the Azure server.
+* Default: false
+
+remote_queue.asq.large_message_store.sslVersions = <versions_list>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Comma-separated list of SSL versions to connect to
+  'remote.asq.large_message_store.endpoint'.
+* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
+* The special version "*" selects all supported versions.  The version "tls"
+  selects all versions tls1.0 or newer.
+* If a version is prefixed with "-" it is removed from the list.
+* SSLv2 is always disabled; "-ssl2" is accepted in the version list
+  but does nothing.
+* When configured in FIPS mode, ssl3 is always disabled regardless
+  of this configuration.
+* Default: tls1.2
+
+remote_queue.asq.large_message_store.sslRootCAPath = <path>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Full path to the Certificate Authority (CA) certificate PEM format file
+  containing one or more certificates concatenated together. The S3 certificate
+  will be validated against the CAs present in this file.
+* Default: [sslConfig/caCertFile] in server.conf
+
+remote_queue.asq.large_message_store.cipherSuite = <cipher suite string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* If set, uses the specified cipher string for the SSL connection.
+* If not set, uses the default cipher string.
+* Default: TLSv1+HIGH:TLSv1.2+HIGH:@STRENGTH
+
+remote_queue.asq.large_message_store.encryption_scheme = azure-sse-kv | azure-sse-ms | azure-sse-c
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The encryption scheme to use for containers that are currently being stored.
+* azure-sse-kv: Maps to the Azure customer-managed keys in a key vault.
+  See the Azure documentation for customer-managed keys for Azure Store
+  encryption for details.
+* azure-sse-ms: Maps to the Azure Microsoft-managed keys in Microsoft key store.
+  See the Azure documentation for Azure Storage encryption for data at rest for
+  details.
+* azure-sse-c: Maps to the Azure customer-provided encryption keys in a Key Vault.
+  See the Azure documentation for customer-provided keys for Azure Store
+  encryption for details.
+* Default: azure-sse-ms
+
+remote_queue.asq.large_message_store.azure-sse-kv.encryptionScope = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Required if remote_queue.asq.large_message_store.encryption_scheme = azure-sse-kv
+* Specifies the key used for encrypting blobs within the scope of this index.
+* No default.
+
+remote_queue.asq.large_message_store.azure-sse-c.key_type = azure_kv
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The mechanism that a Splunk platform indexer uses to generate the key for
+  sending data to Azure Storage.
+* Affects the 'azure-sse-c' encryption scheme only.
+* The only valid value is "azure_kv", which indicates the Azure Key Vault
+  Key Management Service (Azure KMS).
+* You must also specify the required KMS settings:
+  'remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_id',
+  'remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_vault_tenant_id',
+  'remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_vault_client_id',
+  and 'remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_vault_client_secret'.
+  If you do not specify those settings, the indexer cannot start while the
+  'remote_queue.asq.large_message_store.encryption_scheme' setting
+  has a value of "azure-sse-c".
+* Default: azure_kv
+
+remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_id = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The Azure Key Vault key identifier for key encryption and decryption.
+* The key identifier must include the key version.
+* Required if 'remote_queue.asq.large_message_store.encryption_scheme' has
+  a value of "azure-sse-c".
+* Example: "https://<key-vault-name>.vault.azure.net/keys/<key-name>/<key-version>"
+* No default.
+
+remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_vault_tenant_id = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The ID of the Azure Active Directory tenant for authenticating
+  with the the Key Vault.
+* For more details about the tenant ID, check your Azure Active Directory subscription.
+* Required only for client token-based authentication.
+* No default.
+
+remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_vault_client_id = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies the ID of the client, also called the application ID, which is the unique
+  identifier that the Azure Active Directory issues to an application registration
+  that identifies a specific application and the associated configurations.
+* You can obtain the client ID for an application from the Azure Portal in the
+  Overview section for the registered application.
+* Required only for client token-based authentication.
+* Optional for managed identity authentication.
+* No default.
+
+remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_vault_client_secret = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies the secret key to use when authenticating the Key Vault using the client_id.
+* You generate the secret key through the Azure Portal.
+* Required only for client token-based authentication.
+* No default.
+
+remote_queue.asq.fail_threshold_for_dlq = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* This number denotes the number of times a message has to fail
+  in processing after downloading / dequeueing, before the message
+  is backed up in the dead letter queue smart store path.
+* Default: 5
+
+############################################################################
 # Settings specific to Simple Queue Service Datalake (SQS Datalake)
 ############################################################################
 * NOTE: Change the settings in this section only when instructed to do so by 
@@ -4010,24 +4404,6 @@ remote_queue.sqs_datalake.auth_region = <string>
 * If this setting is not specified and the indexer is running on EC2, the 
   indexer automatically constructs the 'auth_region' based on the EC2 region of 
   the Splunk platform instance where the indexer is running.
-* This setting is optional.
-* No default.
-
-remote_queue.sqs_datalake.endpoint = <string>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* The URL of the remote queue system that supports the SQS API. This endpoint 
-  can turn SSL connectivity on or off.
-  * If the URL scheme is 'http' the URL turns SSL connectivity off.
-  * If the URL scheme is 'https' the URL turns SSL connectivity on.
-* If this setting is not specified, Splunk software automatically constructs 
-  the endpoint with the 'auth_region' value using the following syntax: 
-  https://sqs.<auth_region>.amazonaws.com
-* If this setting is specified, the endpoint must match the effective 
-  'auth_region', which is either the specified for  
-  'remote_queue.sqs_datalake.auth_region', or a value constructed automatically 
-  based on the EC2 region of the running instance.
-  * Example: https://sqs.us-west-2.amazonaws.com/
 * This setting is optional.
 * No default.
 
@@ -4122,14 +4498,6 @@ remote_queue.sqs_datalake.buffer.visibility = <unsigned integer>
 * This setting is optional.
 * Default: 15
 
-remote_queue.sqs_datalake.executor_max_workers_count = <positive integer>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* The maximum number of worker threads that can be used by
-  indexer per pipeline set to execute SQS tasks.
-* A value of 0 is equivalent to 1.
-* Default: 4
-
 remote_queue.sqs_datalake.min_pending_messages = <unsigned integer>
 * Currently not supported. This setting is related to a feature that is
   still under development.
@@ -4141,35 +4509,76 @@ remote_queue.sqs_datalake.min_pending_messages = <unsigned integer>
 * This setting is optional.
 * Default: 10
 
+remote_queue.sqs_datalake.max_parsed_size_mb = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The maximum number of parsed but unprocessed megabytes that the indexer can 
+  store. When this number of parsed but unprocessed megabytes is met or 
+  exceeded, the indexer pauses further downloading and parsing of files from 
+  remote storage.
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support.  
+* Default: 10
+
+remote_queue.sqs_datalake.max_events_per_batch = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The maximum number of events that the worker thread can construct from a file
+  that has been downloaded from the data lake, before the worker thread sends
+  them to the indexer for ingestion.
+* If processing is complete for the file, the indexer ingests the batch
+  containing the remaining set of events without having to meet this
+  threshold.
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support.  
+* Default: 128
+
 remote_queue.sqs_datalake.large_message_store.encryption_scheme = [sse-s3|sse-kms|none]
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * The encryption scheme used by remote storage.
-  * If you set this setting to "sse-c" you must also provide values for 
-    'remote_queue.sqs_datalake.large_message_store.kms_endpoint' and 
-    'remote_queue.sqs_datalake.large_message_store.key_id'. 
+  * If you set this setting to "sse-kms" you must also provide values for 
+    'remote_queue.sqs_datalake.large_message_store.kms.region' and 
+    'remote_queue.sqs_datalake.large_message_store.kms.key_id'. 
 * No default.
 
-remote_queue.sqs_datalake.large_message_store.kms_endpoint = <string>
+remote_queue.sqs_datalake.large_message_store.kms.auth_region = <string>
+* The authentication region to use for signing requests when interacting
+  with the Amazon Security Lake storage system that supports the Amazon S3 API.
+* Used with v4 signatures only.
+* The instance automatically constructs the Amazon S3 endpoint based on the
+  bucket name and region specified in the SQS message (for example,
+  https://<bucketname>.s3.us-west-1.amazonaws.com). When the SQS message does
+  not provide a 'kms.auth_region', the instance attempts to extract the value
+  from the Amazon s3 endpoint URL ("us-west-1" in the given example) for KMS
+  authentication.
+* If this setting is not set and the instance cannot determine an
+  authentication region, the instance signs the request with an empty region
+  value. This can lead to rejected requests when non-AWS S3-compatible storage
+  is used.
+* Optional.
+* No default.
+
+remote_queue.sqs_datalake.large_message_store.kms.key_id = <string>
 * Currently not supported. This setting is related to a feature that is
   still under development.
-* The endpoint to connect to for generating KMS keys.
-* This setting is required if 'large_message_store.encryption_scheme' is
-  set to "sse-c".
-* Examples: https://kms.us-east-2.amazonaws.com
+* Specifies the identifier for KMS. The identifier is one of the following two
+  things:
+* The unique key ID for the primary key that KMS uses to generate a data key
+  pair. The primary key is stored in AWS.
+* The Amazon Resource Name (ARN) of the KMS or the alias name or the ARN of
+  an alias that refers to the KMS.
+* This setting is required when 'large_message_store.encryption_scheme' is set
+  to "sse-kms".
+* Examples:
+  Unique key ID: 1234abcd-12ab-34cd-56ef-1234567890ab
+  AWS KMS ARN:
+  arn:aws:kms:us-east-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
+  Alias name: alias/ExampleAlias
+  Alias ARN: arn:aws:kms:us-east-2:111122223333:alias/ExampleAlias
 * No default.
 
-remote_queue.sqs_datalake.large_message_store.key_id = <string>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
-* The ID for the primary key that KMS uses to generate a data key pair. The
-  primary key is stored in AWS.
-* This setting is required if 'large_message_store.encryption_scheme' is
-  set to "sse-c".
-* Examples: alias/sqsssekeytrial, 23456789-abcd-1234-11aa-c50f99011223
-* No default.
-
-remote_queue.sqs_datalake.large_message_store.key_refresh_interval = <string>
+remote_queue.sqs_datalake.large_message_store.kms.key_refresh_interval = <string>
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * The time interval to refresh the primary key.

@@ -1,4 +1,4 @@
-#   Version 9.3.2
+#   Version 9.4.0
 #
 ############################################################################
 # OVERVIEW
@@ -9,7 +9,11 @@
 #
 # Each stanza controls a different web feature.
 #
-# For more information on configuration files, including precedence, search for
+# Make any changes to system defaults by overriding them in
+# $SPLUNK_HOME/etc/system/local
+# For more details about configuration precedence, see "Configuration file precedence" in the Admin Manual in the Splunk Docs.
+#
+# For more information on configuration files, search for
 # "Use Splunk Web to manage configuration files" in the Admin Manual in the Splunk Docs.
 
 [feature:search_v2_endpoint]
@@ -120,6 +124,11 @@ disable_highcharts_accessibility = <boolean>
 
 [feature:dashboard_studio]
 
+activate_downsampling = <boolean>
+* This setting turns on or off the downsampling feature in Dashboard Studio.
+* A value of "true" activates the downsampling of data in time series charts and charts with a strictly increasing numeric x-axis in Dashboard Studio.
+* Default: true
+
 enable_show_hide = <boolean>
 * Allows absolute "Show/Hide" panels in Dashboard Studio.
 * A value of "true" will allow "Show/Hide" panels in the editor of Dashboard Studio.
@@ -132,36 +141,16 @@ activate_dsl_webworkers_for_visualizations = <boolean>
 * Do not modify this value.
 * Default: false
 
-activate_save_report_to_dashboard_studio = <boolean>
-* Determines if users see an Add to Dashboard dropdown list in the Splunk Web Reports page and Save Search to Report dialogs.
-  The dropdown menu allows adding a report to a new or existing Dashboard Studio dashboard.
-* A value of "false" means Splunk Web does not display the dropdown menu, and users can only add reports to Classic Simple XML dashboards.
-* Do not modify this value.
-* Default: true
-
-activate_source_mode_validation = <boolean>
-* Determines whether the source mode validation in Dashboard Studio is activated.
-* A value of "true" means that source mode is validated in Dashboard Studio.
-* Do not modify this value.
-* Default: true
-
-allow_multiple_interactions = <boolean>
-* This setting turns on or off the UI to add multiple interactions on a visualization in Dashboard Studio during its initial rollout.
-* A value of "true" means that the option to add multiple interactions appears in the Dashboard Studio UI.
+lazy_load_data_frames_for_visualizations = <boolean>
+* This setting turns on or off the feature that delays rendering data frames in visualizations within Dashboard Studio until the content is required.
+* A value of "true" means data frames will be lazy loaded during the execution of Dynamic Options Syntax, which styles visualizations based on connected data.
 * The setting will be removed without notice in a future release.
 * Do not modify this value.
 * Default: true
 
-show_corner_radius_editor = <boolean>
-* This setting turns on or off the ability to specify a corner radius for visualizations in Dashboard Studio during its initial rollout.
-* A value of "true" means that the corner radius editor appears in the Dashboard Studio UI.
-* The setting will be removed without notice in a future release.
-* Do not modify this value.
-* Default: true
-
-activate_scheduled_export = <boolean>
-* This setting turns on or off scheduled email export in Dashboard Studio during its initial rollout.
-* A value of "true" means the Scheduled Export option is available in Dashboard Studio.
+bypass_clonedeep_options_scope_for_visualizations = <boolean>
+* This setting turns on or off the cloning of the original data source during Dynamic Options Syntax execution for visualizations in Dashboard Studio.
+* A value of "true" means the original data source will not be cloned during the execution of Dynamic Options Syntax, which styles visualizations based on connected data.
 * The setting will be removed without notice in a future release.
 * Do not modify this value.
 * Default: true
@@ -171,6 +160,35 @@ execute_chain_searches_with_tokens_in_search_process = <boolean>
 * A value of "true" means that Dashboard Studio runs chain searches that use tokens ahead of time in the search process.
 * A value of "false" means that Dashboard Studio runs chain searches that use tokens in the main splunkd process rather than ahead of time in the search process.
 * Default: false
+
+activate_dashboard_versioning = <boolean>
+* This setting turns on or off UI to save, view, and restore Dashboard Studio versions.
+* A value of "true" means that Dashboard Studio dashboards can be saved with a commit message, and previous versions can be viewed and restored from the UI.
+* The setting will be removed without notice in a future release.
+* Default: true
+
+activate_add_saved_searches_from_studio = <boolean>
+* This setting activates the UI that adds a new Saved Search datasource directly from Dashboard Studio.
+* A value of "true" means that the option to add a new Saved Search appears in the Dashboard Studio UI.
+* The setting will be removed without notice in a future release.
+* Default: true
+
+activate_o11y_dashboards = <boolean>
+* This setting turns on or off all observability functionality within Dashboard Studio.
+* A value of "true" activates observability functionality. The activation of future observability features might be controlled separately.
+* A setup to connect with an instance of observability will still be required.
+* A value of "false" deactivates all observability functionality.
+* The setting will be removed without notice in a future release.
+* Do not modify this value.
+* Default: true
+
+[feature:pdfgen]
+activate_chromium_legacy_export = <boolean>
+* Whether or not the Chromium web engine generates PDF exports for Simple XML dashboards, reports, and alerts.
+* A value of "true" means that Chromium generates PDF exports for these dashboards, reports, and alerts.
+* A value of "false" means that the Node.js runtime generates the PDF exports.
+* The value for this setting does not affect exports from Dashboard Studio.
+* Default: true
 
 
 
@@ -232,6 +250,64 @@ enable_password_management_page_vnext = <boolean>
   implemented with the React library instead of the Backbone library.
 * A value of "false" means that Splunk Web loads the page that uses the existing
   Backbone library.
+
+enable_authentication_providers_LDAP_vnext = <boolean>
+* Whether or not Splunk Web loads the updated "LDAP" configuration page
+  that uses the React JavaScript library.
+* A value of "true" means that Splunk Web loads the updated "LDAP" page
+  implemented with the React library instead of the XML implementation.
+* A value of "false" means that Splunk Web loads the page that uses the existing XML
+  implementation.
+* Default: true
+
+enable_admin_LDAP-groups_vnext = <boolean>
+* Whether or not Splunk Web loads the updated "LDAP-groups" page that uses the
+  React JavaScript library.
+* A value of "true" means that Splunk Web loads the "LDAP-groups" page
+  implemented with the React library instead of the XML implementation.
+* A value of "false" means that Splunk Web loads the page that uses the existing XML
+  implementation.
+* Default: true
+
+enable_authorization_tokens_vnext = <boolean>
+* Whether or not Splunk Web loads the updated "Tokens" page that uses the
+  React JavaScript library.
+* A value of "true" means that Splunk Web loads the "Tokens" page
+  implemented with the React library instead of the Backbone library.
+* A value of "false" means that Splunk Web loads the page that uses the existing
+  Backbone library.
+
+enable_duo_mfa_vnext = <boolean>
+* Determines whether Splunk Web loads the updated "Duo-MFA" configuration 
+  page that uses the React JavaScript library.
+* A value of "true" means that Splunk Web loads the "Duo-MFA" page
+  implemented with the React library instead of the XML implementation.
+* A value of "false" means that Splunk Web loads the page that uses the 
+  existing XML implementation.
+* Default: true
+
+enable_authorization_roles_vnext = <boolean>
+* Whether or not Splunk Web loads the updated "Authorization
+  roles" page.
+* A value of "true" means that Splunk Web loads the "Authorization roles"
+  page using separate pages for edits.
+* A value of "false" means that Splunk Web loads the existing "Roles" page
+  using modals for edits.
+* Default: true
+
+enable_authentication_users_vnext = <boolean>
+* Whether or not Splunk Web loads the updated "Users" page,
+  which uses separate pages for edits.
+* A value of "true" means that Splunk Web loads the updated "Users" page,
+  which uses separate pages for edits.
+* A value of "false" means that Splunk Web loads the previous "Users" page,
+  which uses modals for edits.
+* Default: true
+
+enable_reports_vnext = <boolean>
+* Determines whether or not Splunk Web loads the new reports page.
+* A value of "true" means that Splunk Web does load the new reports page.
+* Do not modify this value.
 * Default: true
 
 [feature:dashboard_inputs_localization]
@@ -332,6 +408,18 @@ enabled = <boolean>
   the SAML configuration dialog.
 * Default: true
 
+[feature:system_namespace_redirection]
+
+enable_system_namespace_redirection = <boolean>
+* Determines whether or not Splunk Web redirects pages with the system app namespace.
+* A value of "true" means that Splunk Web redirects pages with the system app 
+  namespace.
+* A value of "false" means that Splunk Web does not redirect pages with the 
+  system app namespace.
+* CAUTION: Do not change this setting.
+* Default: true
+
+
 
 [feature:appserver]
 
@@ -341,3 +429,15 @@ python.version = <string>
 * A value of "python3.7" means that the appserver uses Python 3.7.
 * A value of "latest" means that the appserver uses latest version of Python available in the release.
 * Default: latest
+
+[feature:federated_search]
+enable_ipv6_validations = <boolean>
+* Whether or not Splunk Web lets users enter IPv6 addresses and Classless
+  Inter-Domain Routing (CIDR) ranges into address input forms.
+* A value of "true" means that Splunk Web accepts IPv6 addresses and
+  CIDR ranges in address input forms.
+* A value of "false" means that Splunk Web accepts only IPv4 addresses
+  and CIDR ranges in address input forms, and rejects IPv6 addresses
+  and CIDR ranges.
+* Default: true
+

@@ -1,4 +1,4 @@
-# Version 9.3.2
+# Version 9.4.0
 #
 # This file contains possible attribute/value pairs for configuring tags. Set
 # any number of tags for indexed or extracted fields.

@@ -1,4 +1,4 @@
-#   Version 9.3.2
+#   Version 9.4.0
 #
 ############################################################################
 # OVERVIEW
@@ -102,9 +102,7 @@ bucketMerge.maxMergeCount = <unsigned integer>
 * Default: 24
 
 queryLanguageDefinition = <path to file>
-* DO NOT EDIT THIS SETTING. SERIOUSLY.
-* The path to the search language definition file.
-* Default: $SPLUNK_HOME/etc/searchLanguage.xml.
+* REMOVED.  This setting is no longer used.
 
 lastChanceIndex = <index name>
 * An index that receives events that are otherwise not associated
@@ -226,18 +224,21 @@ suppressBannerList = <comma-separated list of strings>
 * suppresses index missing warning banner messages for specified indexes
 * Default: empty string
 
-maxRunningProcessGroups = <positive integer>
-* splunkd runs helper child processes like "splunk-optimize",
-  "recover-metadata", etc. This setting limits how many child processes
-  can run at any given time.
+maxRunningProcessGroups = <positive integer>|auto
+* The number of child processes that splunkd can run at a given time.
+* Splunkd runs helper child processes like "splunk-optimize",
+  "recover-metadata", and so on.
 * This maximum applies to all of splunkd, not per index. If you have N
   indexes, there will be at most 'maxRunningProcessGroups' child processes,
   not N * 'maxRunningProcessGroups' processes.
-* Must maintain maxRunningProcessGroupsLowPriority < maxRunningProcessGroups
+* The value for this setting must be higher than the value for the
+  'maxRunningProcessGroupsLowPriority' setting.
 * This is an advanced setting; do NOT set unless instructed by Splunk
   Support.
+* A value of "auto" means splunkd chooses the number of processes
+  automatically based on system characteristics.
 * Highest legal value is 4294967295.
-* Default: 8
+* Default: auto
 
 maxRunningProcessGroupsLowPriority = <positive integer>
 * Of the 'maxRunningProcessGroups' helper child processes, at most
@@ -1235,6 +1236,17 @@ journalCompression = gzip|lz4|zstd
   no problem searching buckets that are compressed with different algorithms.
 * Default: zstd
 
+zstdCompressionStrategy = [1|2|3|4|5|6|7|8|9]
+* Specifies the zstd compression strategy that splunkd should use for the rawdata journal
+  file of new index buckets.
+* Changing this setting has no effect on already created buckets and
+  buckets created using a compression algorithm other than zstd.
+* Generally, higher values for this setting result in smaller journal files
+  but often at the expense of significantly reduced throughput.
+* This is an advanced setting. Do not change this setting unless
+  instructed by Splunk Support.
+* Default: 2
+
 enableTsidxReduction = <boolean>
 * When set to true, this setting enables tsidx file reduction for event indexes.
 * Under tsidx file reduction, the indexer reduces the tsidx files of buckets
@@ -2162,7 +2174,7 @@ remote.s3.auth_region = <string>
 * Used with v4 signatures only.
 * If unset and the endpoint (either automatically constructed or explicitly
   set with remote.s3.endpoint setting) uses an AWS URL (for example,
-  https://<bucketname>.s3-us-west-1.amazonaws.com), the instance attempts to extract
+  https://<bucketname>.s3.us-west-1.amazonaws.com), the instance attempts to extract
   the value from the endpoint URL (for example, "us-west-1").  See the
   description for the remote.s3.endpoint setting.
 * If unset and an authentication region cannot be determined, the request
@@ -2197,8 +2209,8 @@ remote.s3.endpoint = <URL>
   with the endpoint.
 * If not specified and the indexer is running on EC2, the endpoint will be
   constructed automatically based on the EC2 region of the instance where the
-  indexer is running, as follows: https://<bucketname>.s3-<region>.amazonaws.com
-* Example: https://<bucketname>.s3-us-west-2.amazonaws.com
+  indexer is running, as follows: https://<bucketname>.s3.<region>.amazonaws.com
+* Example: https://<bucketname>.s3.us-west-2.amazonaws.com
 * Optional.
 
 remote.s3.bucket_name = <string>
@@ -2212,6 +2224,9 @@ remote.s3.bucket_name = <string>
 * Optional.
 
 remote.s3.tsidx_compression = <boolean>
+* DEPRECATED; use 'remote.s3.compression' instead.
+  If both 'remote.s3.tsidx_compression' and 'remote.s3.compression' are specified,
+  'remote.s3.compression' takes precedence.
 * Whether or not the indexer compresses tsidx files before it uploads them to S3.
   A value of "true" means the indexer compresses tsidx files before it uploads
   them to S3.
@@ -2220,6 +2235,21 @@ remote.s3.tsidx_compression = <boolean>
 * This feature is not backward compatible. Once activated, you will not be able
   to downgrade Splunk to versions earlier than 9.0.0.
 * Default: false
+
+remote.s3.compression = <boolean>
+* Whether or not the indexer compresses files before it uploads them to S3.
+* A value of "true" means the indexer compresses files before it uploads
+  them to S3.
+* Ensure that all indexers run Splunk Enterprise version 9.4.0 or
+  higher before you enable this feature.
+* This feature is not backward compatible. After you activate it, you cannot
+  downgrade Splunk Enterprise to versions below 9.4.0.
+* Default: false
+
+remote.s3.compression_extension_list = <comma-separated list>
+* A list of extensions of the files to be compressed when 'remote.s3.compression'
+  has a value of "true".
+* Default: tsidx
 
 remote.s3.multipart_download.part_size = <unsigned integer>
 * Sets the download size of parts during a multipart download.
@@ -2263,6 +2293,7 @@ remote.s3.enable_signed_payloads  = <boolean>
 * If set to true, Splunk signs the payload during upload operation to S3.
 * Valid only for remote.s3.signature_version = v4
 * Default: true
+
 
 remote.s3.retry_policy = max_count
 * Sets the retry policy to use for remote file operations.
@@ -2554,8 +2585,16 @@ federated.dataset = <string>
         dataset with AWS Glue.
       * You use the 'sdselect' command to run federated searches against the 
         AWS Glue Data Catalog table.
-      * Provide "aws_glue_table" as  <prefix> only if the 'federated.provider' 
-        has non-empty 'database' and 'aws_glue_tables_allowlist' settings. 
+      * Provide "aws_glue_table" as  <prefix> only if the 'federated.provider'
+        has non-empty 'database' and 'aws_glue_tables_allowlist' settings.
+* If the 'federated.provider' is an "aws_lake" type provider:
+  * <prefix> can be "aws_glue_table" or "aws_glue_unified".
+    * If <prefix> is "aws_glue_table", refer to the section above.
+    * If <prefix> is "aws_glue_unified", <remote_name> is a comma-delimited list
+      of AWS Glue Data Catalog tables that are associated with the federated 
+      provider. Alternatively, <remote_name> can just use a wildcard character 
+      (*) to specify all AWS Glue Data Catalog tables that are associated with 
+      the federated provider.
 * If <prefix> is not defined, <prefix> defaults to 'index'.
 * No default
 
@@ -2902,19 +2941,69 @@ remote.azure.cipherSuite = <cipher suite string>
 * If not set, uses the default cipher string.
 * Default: value of [sslConfig]/cipherSuite in server.conf
 
-remote.azure.encryption = azure-sse-kv | azure-sse-ms
+remote.azure.encryption = azure-sse-kv | azure-sse-ms | azure-sse-c
 * The encryption scheme to use for containers that are currently being stored.
-* azure-sse-kv: Maps to Azure customer-managed keys in a key vault. See
+* azure-sse-kv: Maps to Azure customer-managed keys in a key vault.
   See the Azure documentation for customer-managed keys for Azure Store
   encryption for details.
 * azure-sse-ms: Maps to Azure Microsoft-managed keys in Microsoft key store.
   See the Azure documentation for Azure Storage encryption for data at rest for
   details.
+* azure-sse-c: Maps to Azure customer-provided encryption keys in a Key Vault.
+  See the Azure documentation for customer-provided keys for Azure Store
+  encryption for details.
 * Default: azure-sse-ms
 
 remote.azure.azure-sse-kv.encryptionScope = <string>
 * Required if remote.azure.encryption = azure-sse-kv
 * Specifies the key used for encrypting blobs within the scope of this index.
+* No default.
+
+remote.azure.encryption.azure-sse-c.key_type = azure_kv
+* Determines the mechanism that the Splunk indexer uses to generate the key for
+  sending data to Azure Storage.
+* Affects the azure-sse-c encryption scheme only.
+* The only valid value is "azure_kv", indicating Azure Key Vault Key Management Service (Azure KMS).
+* You must also specify the required KMS settings: 'remote.azure.azure_kv.key_id',
+  'remote.azure.azure_kv.key_vault_tenant_id', 'remote.azure.azure_kv.key_vault_client_id',
+  and 'remote.azure.azure_kv.key_vault_client_secret'. If you do not specify
+  those settings, the indexer cannot start while 'remote.azure.encryption'
+  has a value of "azure-sse-c".
+* Default: azure_kv
+
+remote.azure.azure_kv.key_id = <string>
+* Specifies the Azure Key Vault Key identifier for key encryption and decryption. It must include
+  the key version.
+* Required if 'remote.azure.encryption = azure-sse-c'.
+  Example: "https://<key-vault-name>.vault.azure.net/keys/<key-name>/<key-version>"
+* No default.
+
+remote.azure.azure_kv.key_vault_tenant_id = <string>
+* Specifies the ID of the Azure Active Directory tenant for authenticating
+  with the the Key Vault. Check your Azure Active Directory subscription for details.
+* Required only for client token-based authentication.
+* Can be the same as 'remote.azure.tenant_id' if the Active Directory is also provisioned for 
+  Key Vault Cryptography operations.
+* No default.
+
+remote.azure.azure_kv.key_vault_client_id = <string>
+* Specifies the ID of the client, also called application ID - the unique
+  identifier Azure Active Directory issues to an application registration that identifies a
+  specific application and the associated configurations.
+* You can obtain the client ID for an application from the Azure Portal in the
+  Overview section for the registered application.
+* Required only for client token-based authentication.
+* Optional for managed identity authentication.
+* Can be the same as 'remote.azure.client_id' if the Active Directory instance is provisitioned
+  for Key Vault Cryptography operation.
+* No default.
+
+remote.azure.azure_kv.key_vault_client_secret = <string>
+* Specifies the secret key to use when authenticating the Key Vault using the client_id.
+  You generate the secret key through the Azure Portal.
+* Required only for client token-based authentication.
+* Can be the same as 'remote.azure.client_secret' if the Active Directory instance is 
+  provisitioned for Key Vault Cryptography operation.
 * No default.
 
 remote.azure.supports_versioning = <boolean>
@@ -3014,11 +3103,29 @@ remote.azure.data_integrity_validation = disabled | sha256
 * Default: disabled
 
 remote.azure.tsidx_compression = <boolean>
+* DEPRECATED; use 'remote.azure.compression' instead.
+  If both 'remote.azure.tsidx_compression' and 'remote.azure.compression' are
+  specified, 'remote.azure.compression' takes precedence.
 * Whether the indexer compresses tsidx files before it uploads them to Azure.
 * A value of "true" means the indexer compresses tsidx files before it uploads
   them to Azure.
-* Confirm that every indexer runs Splunk Enterprise version 9.3.0 or higher 
+* Confirm that every indexer runs Splunk Enterprise version 9.3.0 or higher
   before you turn on tsidx file compression for Azure.
 * This setting is not backward compatible. When you activate it, you cannot
   downgrade your Splunk platform deployment to versions earlier than 9.3.0.
 * Default: false
+
+remote.azure.compression = <boolean>
+* Whether or not the indexer compresses files before it uploads them to Azure.
+* A value of "true" means the indexer compresses files before it uploads
+  them to Azure.
+* Ensure that all indexers run Splunk Enterprise version 9.4.0 or
+  higher before you enable this feature.
+* This feature is not backward compatible. After you activate it, you cannot
+  downgrade Splunk Enterprise to versions below 9.4.0.
+* Default: false
+
+remote.azure.compression_extension_list = <comma-separated list>
+* A list of extensions of the files to be compressed when 'remote.azure.compression'
+  has a value of "true".
+* Default: tsidx

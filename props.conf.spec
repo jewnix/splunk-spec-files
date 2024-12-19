@@ -1,4 +1,4 @@
-#   Version 9.3.2
+#   Version 9.4.0
 #
 # This file contains possible setting/value pairs for configuring Splunk
 # software's processing properties through props.conf.
@@ -416,6 +416,12 @@ MAX_EVENTS = <integer>
 * The maximum number of input lines to add to any event.
 * Splunk software breaks after it reads the specified number of lines.
 * Default: 256
+
+MAX_EXPECTED_EVENT_LINES = <integer>
+* The number of expected input lines per event, on average.
+* Splunk software optimizes memory allocation for this number of lines.
+* Do not change this setting without contacting Splunk Support.
+* Default: 7
 
 ROUTE_EVENTS_OLDER_THAN = <non-negative integer>[s|m|h|d]
 * If set, AggregatorProcessor routes events older than 'ROUTE_EVENTS_OLDER_THAN'
@@ -1498,6 +1504,19 @@ invalid_cause = <string>
   software, such as on a forwarder that has configured inputs acquiring the
   data.
 * Default: empty string
+
+SOURCETYPE_NAME_RESTRICTED_CHARACTERS = <comma-separated list>
+* The characters that cannot appear in a sourcetype name.
+* If this setting has either no value or a value that is only whitespace,
+  the Splunk platform uses the default value.
+* You can increase restrictions on sourcetype names by adding more characters,
+  for example "#,&,>,<,?,::,.,-,:".
+* Consequently, you can reduce restrictions by supplying fewer characters,
+  for example "#,&,>,<".
+* You must specify the value in double quotes, as shown in
+  the previous examples.
+* CAUTION: Consult Splunk Support before changing this setting.
+* Default: "#,&,>,<,?,::"
 
 is_valid = <boolean>
 * Automatically set by invalid_cause.

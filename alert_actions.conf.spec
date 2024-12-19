@@ -1,4 +1,4 @@
-#   Version 9.3.2
+#   Version 9.4.0
 #
 ############################################################################
 # OVERVIEW
@@ -214,8 +214,13 @@ useNSSubject = <boolean>
 * Default: 0
 
 escapeCSVNewline = <boolean>
-* Whether to escape newlines as "\r\n" or "\n" or not in emailed CSV files.
+* Whether to escape newline characters ("\r", "\n", or "\t") or not in emailed CSV files.
 * Default: true
+
+newLineValuesInCSV = <boolean>
+* When set to "true": Multivalue fields are separated by a new line character, instead of a space.
+  This setting applies only to CSV output in email alerts, as attachments or inline.
+* Default: false
 
 footer.text = <string>
 * Specify an alternate email footer.
@@ -584,5 +589,35 @@ dest = <string>
   "etc/apps/<app>/lookups/<file-name>"
 * The user executing this action MUST have write permissions to the app for
   this action to work properly.
+
+################################################################################
+# webhook: These settings are prefaced by the [webhook] stanza that appears
+# in the alert_webhook application. These settings also apply to global saved
+# search actions.
+################################################################################
+
+[webhook]
+param.user_agent = <string>
+* The value of the User-Agent HTTP header that the Splunk platform sends
+  to the webhook receiver.
+* No default.
+
+enable_allowlist = <boolean>
+* Whether or not the Splunk platform alert webhook uses the webhook allowlist
+  when it performs a webhook query.
+* See the alert-actions.conf.spec file in the alert_webhook app for more
+  information about this setting.
+* CAUTION: Be mindful when using this setting. If you give the setting
+  a value of "true", you *must* also configure at least one 'allowlist.<name>'
+  setting. Failure to do so is a security risk, as the webhook alert action
+  can then query against any endpoint, including external endpoints that are
+  not in your control and that could be malicious.
+* Default: false
+
+allowlist.<name> = <regular expression>
+* A list of endpoints upon which the Splunk platform webhook action can query.
+* See the alert-actions.conf.spec file in the alert_webhook app for more
+  information about this setting.
+* No default.
 
 [<custom_alert_action>]

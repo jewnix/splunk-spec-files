@@ -1,4 +1,4 @@
-#   Version 9.3.2
+#   Version 9.4.0
 #
 ############################################################################
 # OVERVIEW
@@ -199,6 +199,19 @@ interval = <integer>
   greatest common divisor for 30, 90 and 60(default) is 30. It's less
   expensive for metrics reporting thread to log every 30 sec.
 * Default : "interval" config value set under [metrics] stanza.
+
+[email]
+* This stanza controls email settings that are enforced in the sendemail alert
+  action.
+result_limit = <unsigned integer>
+* Limits the number of inline search results that Splunk software can send in 
+  a 'sendemail' alert email. 
+* Raising this setting to a higher value might result in increased splunkd 
+  memory usage.
+* This setting takes precdence over the 'maxinputs' setting in commands.conf.
+* NOTE: Change this setting only under the direction of Splunk Support.
+* Default: 10000
+
 
 [searchresults]
 * This stanza controls search results for a variety of Splunk search commands.
@@ -565,6 +578,17 @@ remote_search_requests_throttling_type = disabled | per_cpu | physical_ram
 * Does not apply to real-time searches.
 * Do not use this feature in conjunction with workload management.
 * Default: disabled
+
+throttle_peer_busy_wait = <integer>[s|m]
+* Controls how long the search head waits before it launches new searches after
+  receiving a peer busy response from a search peer notifying the search head 
+  that it has submitted too many search requests.
+* This setting has no effect if the 'remote_search_requests_throttling_type'
+  setting is disabled on all search peers because the search peers can't send 
+  peer busy (429) responses.
+* Specify the interval as a string with minutes or seconds.
+  For example: 60s, 1m, etc.
+* Default: 1m
 
 remote_search_requests_send_capabilities_list = <boolean>
 * When turned on, the search head sends the list of all capabilities of the
@@ -1043,6 +1067,13 @@ use_search_evaluator_v2 = <boolean>
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: true
 
+use_bucket_predictor_v2 = <boolean>
+* If set to "true", uses version 2 of the bucket predictor,
+  which improves sparse SmartStore search performance. If set to "false",
+  search uses the older version of the bucket predictor.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: false
+
 execute_postprocess_in_search = <boolean>
 * If true, try to run postprocess searches ahead of time in the search process
   instead of the main splunkd process.
@@ -1054,6 +1085,7 @@ max_fieldmeta_cnt_ui = <number>
   number of field metadata, decreasing this value will reduce the memory load on
   splunkd mothership, but show less field metadata in the web UI.
 * Default: 1000
+
 
 ############################################################################
 # Parsing
@@ -1156,6 +1188,26 @@ preview_freq = <timespan> or <decimal>
 * NOTE: Change this setting only when instructed to do so by Splunk Support.
 * Default: 0.05
 
+max_preview_generation_inputcount = <unsigned integer>
+* The maximum number of input result rows that the search head can use to
+  generate search result previews.
+* NOTE: This setting doesn't apply to Splunk-to-Splunk federated searches.
+  To change your federated search configuration, use the 
+  'max_preview_generation_inputcount' setting in the federated.conf file.
+* This limit doesn't stop searches from completing and returning final
+  result sets.
+* When a search reaches this limit, preview generation processes only the 
+  first number of rows specified by the 'max_preview_generation_inputcount' 
+  setting in order to generate the preview results.
+* Change the value of this setting to a number above zero if your
+  searches are being terminated because their preview generation duration exceeds
+  a timeout set by another component in your network, such as an elastic load
+  balancer (ELB).
+  * For example, if you have an ELB that times out at 60 seconds, you might set
+    the 'max_preview_generation_inputcount' to "500000".
+* A setting of "0" means that the preview generation input count of searches is
+  unlimited.
+* Default: 0
 
 ############################################################################
 # Quota or queued searches
@@ -1171,14 +1223,14 @@ default_allow_queue = <boolean>
 dispatch_quota_retry = <integer>
 * The maximum number of times to retry to dispatch a search when the quota has
   been reached.
-* Default: 4
+* Default: 1
 
 dispatch_quota_sleep_ms = <integer>
 * The time, in milliseconds, between retrying to dispatch a search when a
   quota is reached.
 * Retries the given number of times, with each successive wait 2x longer than
   the previous wait time.
-* Default: 100
+* Default: 10
 
 enable_cumulative_quota = <boolean>
 * Specifies whether to enforce cumulative role based quotas.
@@ -1920,6 +1972,12 @@ srtemp_dir_ttl = <integer>
   tree.
 * Default: 86400 (24 hours)
 
+search_transaction_establish_connection_max_retries = <integer>
+* Controls the number of retries a search head performs when it initially 
+  contacts search peers.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: 3
+
 ############################################################################
 # Unsupported settings
 ############################################################################
@@ -1993,7 +2051,7 @@ min_memory_per_search = <unsigned integer>[KB|MB|GB]
 * This setting is relevant only when used with 'remote_search_requests_throttling_type'.
 * Specify this value as an integer followed by KB, MB, or GB (for example,
   10MB is 10 megabytes)
-* Default: 64MB
+* Default: 450MB
 
 
 ############################################################################
@@ -3010,7 +3068,6 @@ use_bloomfilter = <boolean>
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: true
 
-
 [typeahead]
 
 cache_ttl_sec = <integer>
@@ -3496,6 +3553,61 @@ max_failed_status_unchanged_count = <integer>
 * Once this limit is reached, the member aborts the migration or upgrade.
 * Default: 30
 
+version_upgrade_max_start_retries = <unsigned integer>
+* This is an internal setting.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: 10
+
+version_upgrade_max_retries = <unsigned integer>
+* This is an internal setting.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: 4
+
+version_upgrade_max_command_time_ms = <unsigned integer>
+* This is an internal setting.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: 60000
+
+version_upgrade_time_duration_block_s = <unsigned integer>
+* This is an internal setting.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: 1
+
+version_upgrade_polling_max_wait_ms = <unsigned integer>
+* This is an internal setting.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: 26460000
+
+version_upgrade_polling_version_max_wait_ms = <unsigned integer> 
+* This is an internal setting.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: 4800000
+
+version_upgrade_polling_interval_ms = <unsigned integer>
+* This is an internal setting.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: 100
+
+version_upgrade_terminate_timeout_s = <unsigned integer>
+* This is an internal setting.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: 600
+
+version_upgrade_backup_disabled = <boolean>
+* This is an internal setting.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* This setting turns off the creation of a KV store backup before an upgrade.
+* If set to "true" and there's a failure, you can't roll back to a previous back up.
+* Default: false
+
+version_upgrade_keep_backups = <boolean>
+* This is an internal setting.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* After successfully upgrading the KV store, does not clean up the backup that 
+  was created on the local disk in $SPLUNK_DB/kvstore/mongo_backup.
+* Default: true
+
+
 [input_channels]
 
 max_inactive = <integer>
@@ -3527,6 +3639,20 @@ inactive_eligibility_age_seconds = <integer>
 * Time, in seconds, after which an inactive input channel will be removed from
   the cache to free up memory.
 * Default: 330
+
+disable_inactive_channels = <boolean>
+* Whether or not splunkd disables the inactive input channel cache.
+* A value of "true" means splunkd disables the inactive input channel cache and
+  maintains the active input channel cache.
+* Turning off the inactive input channel cache provides the best
+  ingestion performance.
+* A value of "false" means splunkd enables the inactive input channel cache.
+* Default: true
+
+active_eligibility_age = <integer>
+* The time, in seconds, after which splunkd removes an idle input
+  channel from the active channel cache to free up memory.
+* Default: 3600
 
 [ldap]
 
@@ -3854,6 +3980,17 @@ async_admission_eval_interval = <integer>
 * If async_saved_search_fetch is false, admission rule evaluation for saved
   searches is done on the scheduler thread.
 * Default: 600
+
+scheduler_user_timezone_cache_expiry = <integer>[s|m|h|d]
+* The amount of time that the scheduler caches the timezones
+  that are associated with the scheduled searches.
+* Use this setting to decrease scheduler cycle time by letting the scheduler
+  use cached timezones instead of fetching them from the
+  configuration cache.
+* A value of 0 turns off timezone caching.
+* Specify the interval as a string with minutes, seconds, hours, or days.
+  For example: 60s, 1m, 1h, 1d, etc.
+* Default: 150m
 
 auto_summary_perc = <integer>
 * The maximum number of concurrent searches to be allocated for auto
@@ -4823,6 +4960,7 @@ use_segmenter_v2 = <boolean>
 
 
 
+
 ############################################################################
 # Required Field Optimization
 ############################################################################
@@ -4887,6 +5025,14 @@ rfs.provider.max_workers = <non-negative integer>
   destinations.
 * Default: 4
 
+rfs.provider.max_concurrent_uploads = <unsigned integer>
+* The maximum number of uploads to a storage provider, such as AWS S3, that
+  can occur at the same time.
+  * Increasing this value might help with low outbound throughput,
+    especially for small batch uploads.
+* The lowest acceptable value is 1 and the highest acceptable value is 8.
+* Default: 4
+
 rfsS3DestinationOff = <boolean>
 * Specifies whether Ingest Actions S3 destination configuration is turned off.
 * If S3 destination configuration is turned off, users will not see "Destination"
@@ -4898,6 +5044,17 @@ rfsS3DestinationOff = <boolean>
 
 
 ############################################################################
+# DataLake
+############################################################################
+[datalake]
+sqs.ingest.max_threads = <non-negative integer>
+* The maximum number of threads per pipeline-set that can be used by Splunk
+  software to handle ingest from Amazon Security Lake instances that are
+  subscribed through SQS remote queue for Federated Analytics data lake
+  indexes.
+* Default: 4
+
+############################################################################
 # SPL2
 ############################################################################
 [spl2]
@@ -4905,6 +5062,11 @@ origin = [all|none|<search-origin>]
 * Limits where the SPL2 search can originate from.
 * Use a comma-separated list for the value. Currently, the only supported value is "ad-hoc".
 * Default: all
+
+run_as_owner_ttl = <nonnegative integer>[s|m|h|d]
+* The time-to-live (ttl), specified as a relative time, for searches that are designated to run as if the user is the owner of the search.
+* Valid time units are s (seconds), m (minutes), h (hours), and d (days).
+* Default: "1d" (1 day)
 
 
 [storage_passwords_masking]

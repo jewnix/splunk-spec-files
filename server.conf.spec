@@ -1,4 +1,4 @@
-#   Version 9.3.2
+#   Version 9.4.0
 #
 ############################################################################
 # OVERVIEW
@@ -311,16 +311,53 @@ parallelIngestionPipelines = <integer>
     4. maxHotSpanSecs (in the indexes.conf file)
 * Default: 1
 
-pipelineSetSelectionPolicy = round_robin|weighted_random
+pipelineSetAutoScale = <boolean>
+* Whether or not splunkd automatically scales up the number of
+  pipeline sets in certain cases when CPU resources are available.
+* A value of "true" means splunkd automatically scales up pipeline sets
+  using the "blocked_queue_count" pipeline set selection policy.
+* See the 'pipelineSetSelectionPolicy' setting for more
+  information on the "blocked_queue_count" policy.
+* A value of "true" also means that intermediate forwarders scale
+  the number of pipeline sets to half the number of available virtual CPUs.
+  * If a workload management pool exists, then:
+    * Splunk instance scales up the number of pipeline sets to the number of
+      virtual CPUs for the 'ingest' workload pool divided by 4.
+  * If a workload management pool does not exist, then:
+    * Splunk instance types scale up the number of pipeline sets to the
+      number of available virtual CPUs divided by 15.
+* A value of "false" means that splunkd uses the value for
+  'parallelIngestionPipelines' and does not scale the number of pipeline
+  sets to meet demand.
+* If 'parallelIngestionPipelines' has a higher value than the
+  previously-described automatic calculations, then splunkd
+  uses that value instead to scale up the number of pipeline sets.
+* Default: false
+
+pipelineSetSelectionPolicy = round_robin|weighted_random|blocked_queue_count
 * Specifies the pipeline set selection policy to use while selecting pipeline
   sets for new inputs.
-* If set to round_robin, the incoming inputs are assigned to pipeline sets in a
-  round robin fashion.
-* If set to weighted_random, the incoming inputs are assigned to pipeline sets
-  using a weighted random scheme designed to even out the CPU usage of each
-  pipeline set.
-* NOTE: This setting only takes effect when parallelIngestionPipelines is
-  greater than 1.
+* A value of "round_robin" means that splunkd assigns incoming inputs to
+  pipeline sets in around robin fashion.
+* A value of "weighted_random" means that splunkd assigns the incoming inputs
+  to pipeline sets using a weighted random scheme designed to even out the
+  CPU usage of each pipeline set.
+  * The "weighted_random" value is valid only when 'parallelIngestionPipelines'
+    has a value that is greater than 1.
+* A value of "blocked_queue_count" means that splunkd assigns the incoming
+  inputs to pipeline sets using a combination of a round-robin scheme for each
+  input type and a blocked queue count scheme that tracks the number of blocked
+  queues in each pipeline set.
+  * There are 5 input types in general: modular input, file input, network input,
+    replication, and others.
+  * If the pipeline set that splunkd selects has a blocked queue count, then
+    splunkd selects another pipeline set with the lowest blocked queue count and
+    assigns the input to that pipeline set. This ensures that a particular input
+    type is balanced across all available pipeline sets.
+  * Splunkd writes a "blocked queue count (blocked_count)" message to the
+    metrics.log log file regardless of the value of this setting.
+  * The "blocked_queue_count" value is valid only when
+    'parallelIngestionPipelines' has a value that is greater than 1.
 * Default: round_robin
 
 pipelineSetWeightsUpdatePeriod = <integer>
@@ -531,16 +568,29 @@ conf_cache_memory_optimization = <boolean>
   due to caching of configurations.
 * NOTE: Do not change this setting without first consulting with Splunk
   Support.
+* Default: true
+
+conf_cache_rebuild_stanzas_optimization = <boolean>
+* Turns on or off per stanza configuration cache rebuild for all
+  Splunk configuration file types.
+* A value of "true" turns on per stanza configuration cache rebuild.
+  Only the changed stanzas of the configuration cache are rebuilt.
+* A value of "false" turns off per stanza configuration cache rebuild.
+  All contents of the configuration file cache are rebuilt. 
+* Turning on this setting can reduce the read latency of a changed
+  configuration file cache.
+* NOTE: Do not change this setting without first consulting with Splunk
+  Support.
 * Default: false
 
 cgroup_location = <string>
 * Specifies the location of the cgroup hierarchy for the splunkd, search, and 
   helper processes within cgroups version 1 or 2.
-* This setting requires a Linux system with SystemD.
+* This setting requires a Linux system with systemd.
 * A value of "auto" turns on automatic detection, which is based on the 
   contents of /proc/<pid>/cgroup and /proc/<pid>/mountinfo.
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
-* Default: an empty string, which indicates the feature is off.
+* Default: auto
 
 ############################################################################
 # Configuration Change Tracker
@@ -609,13 +659,17 @@ log_throttling_threshold_ms = <positive integer>
 * Default: 10000
 
 exclude_fields = <comma-separated list>
-* If set, splunkd excludes the stanza key that you specify when it writes to the 
+* One or more stanza keys that splunkd is to exclude when it writes
+  information about stanza configuration changes to the
   configuration_change.log file.
 * The format for each entry is '<conf-file>:<stanza>:<key>'. Separate multiple 
   entries with commas.
 * To exclude all keys under a stanza, use the '<conf-file>:<stanza>:*' format.
-* This setting has no effect when mode is set to "track-only".
-* Example setting: 
+* <stanza> can end with a '*' (asterisk). Splunkd treats this as a wildcard.
+* If <stanza> contains a colon, enclose it in quotes. For example:
+  'inputs.conf:"tcp-ssl:*":*'
+* This setting has no effect if 'mode' has a value of "track-only".
+* Example:
   'server.conf:general:pass4SymmKey, authentication.conf:authentication:*'
 * No default.
 
@@ -799,7 +853,7 @@ sslAltNameToCheck = <comma-separated list>
 * For this setting to have any affect, the 'sslVerifyServerCert' setting must have
   a value of "true".
 * This setting is optional.
-* No default (no alternate name checking).
+* No default (no alternative name checking).
 
 requireClientCert = <boolean>
 * Whether or not an HTTPS client which connects to a splunkd
@@ -829,7 +883,7 @@ sslVerifyServerName = <boolean>
   themselves between the client and the target server, and impersonates
   that server during the session.
 * Specifically, the validation check forces splunkd to verify that either
-  the Common Name or the Subject Alternate Name in the certificate that the
+  the Common Name or the Subject Alternative Name in the certificate that the
   server presents to the client matches the host name portion of the URL that
   the client used to connect to the server.
 * For this setting to have any effect, the 'sslVerifyServerCert' setting must
@@ -855,8 +909,8 @@ caTrustStore = <[splunk],[OS]>
 * A value of "OS" means the platform only uses the CA certificates in
   the trust store that the operating system on the instance defines.
 * Splunk provides support for OS trust store usage on the Linux
-  operating system. There is currently no support for loading certificate
-  trust stores on macOS or Windows.
+  and Windows operating systems. There is currently no support for
+  loading certificate trust stores on macOS.
 * Providing both values ("splunk,OS") means that the platform uses CA 
   certificates within both the Splunk platform and operating system
   trust stores.
@@ -1161,28 +1215,31 @@ https_proxy = <string>
 * No default.
 
 proxy_rules = <string>
-* One or more host names or IP addresses for which splunkd should route
+* One or more host names or IP addresses for which splunkd is to route
   HTTPS requests only through the proxy server.
 * If set, splunkd uses the proxy server only for endpoints that match the
-  hosts or IP addresses in this value.
+  host names or IP addresses in this value.
 * Splunkd does not route requests to either the localhost or loopback addresses
   through the proxy server.
 * Separate multiple entries with commas.
 * This setting accepts the following values:
-  * '*' (asterisk): Proxy all requests. This is the only wildcard, and it can
-    be used only by itself.
+  * '*' (asterisk): Route all requests through the proxy server. This is the only
+    wildcard value, and it can be used only by itself.
   * <IPv4 or IPv6 address>: Route the request through the proxy if the
      request is intended for that address.
   * <hostname>/<domain name>: Route the request through the proxy if
      the request is intended for that host name or domain name.
   * Examples:
-    * proxy_rules = "wimpy": This matches the host name "wimpy".
+    * proxy_rules = "wimpy": This matches the host name "wimpy". If the request
+      is for the machine "wimpy", route that request through the proxy server.
     * proxy_rules = "splunk.com": Matches all host names in the splunk.com
-       domain (such as apps.splunk.com, www.splunk.com, etc.)
+      domain (such as apps.splunk.com, www.splunk.com, etc.) Route requests to
+      any machine with a host name that ends in "splunk.com" through the proxy
+      server.
 * Default: *
 
 no_proxy = <string>
-* One or more host names or IP addresses for which splunkd should
+* One or more host names or IP addresses for which splunkd is to
   explicitly bypass the proxy server for HTTPS requests.
 * If set, splunkd does not route requests to matching host names and
   IP addresses through the proxy server.
@@ -1191,20 +1248,41 @@ no_proxy = <string>
   host name or IP address through the proxy server.
 * Splunkd does not route requests to either the localhost or loopback addresses
   through the proxy server.
-  addresses.
 * Separate multiple entries with commas.
 * This setting accepts the following values:
-  * '*' (asterisk): Proxy all requests. This is the only wildcard, and it can
-    be used only by itself.
-  * <IPv4 or IPv6 address>: Route the request through the proxy if the
+  * '*' (asterisk): Do not route any request through the proxy server. This
+    is the only wildcard value, and it can be used only by itself.
+  * <IPv4 or IPv6 address>: Do not route the request through the proxy if the
      request is intended for that address.
-  * <hostname>/<domain name>: Route the request through the proxy if
+  * <hostname>/<domain name>: Do not route the request through the proxy if
      the request is intended for that host name or domain name.
   * Examples:
-    * no_proxy = "wimpy": This matches the host name "wimpy".
+    * no_proxy = "wimpy": This matches the host name "wimpy". Bypass the
+      proxy server for requests for the machine "wimpy".
     * no_proxy = "splunk.com": Matches all host names in the splunk.com
-       domain (such as apps.splunk.com, www.splunk.com, etc.)
+      domain (such as apps.splunk.com, www.splunk.com, etc.) Bypass the
+      proxy server for requests for any machine whose hostname ends in 
+      "splunk.com".
 * Default: localhost, 127.0.0.1, ::1
+
+enable_tls_proxy = <boolean>
+* Whether or not the Splunk daemon (splunkd) launches a helper process to proxy
+  outbound network connections over transport layer security (TLS) from the Splunk
+  platform instance to external Splunk nodes or services.
+* The helper process, called splunk-tlsd, improves the overall availability of splunkd by
+  proxying requests to certain external nodes or services over TLS. This reduces the
+  need to restart splunkd after TLS-related configuration changes.
+* Currently, splunk-tlsd handles connections over TLS to Splunk Telemetry
+  and SplunkBase only.
+* When splunk-tlsd is active, splunkd routes network traffic for certain external
+  nodes to the helper process. The splunk-tlsd process then sends that traffic
+  over TLS to the external node.
+* A value of "true" means that splunkd launches splunk-tlsd to handle network connections'
+  over TLS to external nodes.
+* A value of "false" means that splunkd handles the connections to external services.
+* You must restart the Splunk platform instance for this change to take effect.
+* Default: false
+
 
 ############################################################################
 # Splunkd HTTP server configuration
@@ -1861,7 +1939,23 @@ sampling_interval = [<integer>[s|m]]
   seconds and minutes, respectively.
 * Default: 1s
 
+autoAdjustQueue = <boolean>
+* Whether or not splunkd adjusts the value of the 'maxSize' setting
+  automatically for all pipeline queues.
+* A value of "true" means splunkd adjusts the value of `maxSize`
+  automatically for all pipeline queues.
+* A value of "false" means splunkd does not adjust the 'maxSize'
+  value automatically and you must configure it manually.
+* Default: false
+
 [queue=<queueName>]
+
+autoAdjustQueue = <boolean>
+* Whether or not splunkd adjusts the value of the 'maxSize' setting
+  automatically for the named pipeline queue.
+* See the description for 'autoAdjustQueue' earlier in this file for
+  specifics on how to configure this setting for individual queues.
+* Default: The value of `autoAdjustQueue` in the "[queue]" stanza.
 
 maxSize = [<integer>|<integer>[KB|MB|GB]]
 * Specifies the capacity of a queue. It overrides the default capacity
@@ -4047,10 +4141,10 @@ sslPassword = <string>
 * No default.
 
 password = <string>
-* DEPRECATED; use 'sslPassword' instead.
+* DEPRECATED. Use 'sslPassword' instead.
 
 rootCA = <string>
-* DEPRECATED; use '[sslConfig]/sslRootCAPath' instead.
+* DEPRECATED. Use '[sslConfig]/sslRootCAPath' instead.
 * No default.
 
 cipherSuite = <string>
@@ -4472,7 +4566,7 @@ async_replicate_on_proxy = <boolean>
 * Default: true
 
 master_dump_service_periods = <integer>
-* DEPRECATED; use captain_dump_service_periods instead.
+* DEPRECATED. Use 'captain_dump_service_periods' instead.
 
 captain_dump_service_periods = <integer>
 * If SHPMaster info is switched on in log.cfg, then captain statistics
@@ -4822,13 +4916,13 @@ conf_replication_include.<conf_file_name> = <boolean>
 * Default: false
 
 conf_replication_summary.whitelist.<name> = <whitelist_pattern>
-* DEPRECATED; use conf_replication_summary.includelist.<name> instead.
+* DEPRECATED. Use 'conf_replication_summary.includelist.<name>' instead.
 
 conf_replication_summary.includelist.<name> = <includelist_pattern>
 * Files to be included in configuration replication summaries.
 
 conf_replication_summary.blacklist.<name> = <blacklist_pattern>
-* DEPRECATED; use conf_replication_summary.excludelist.<name> instead.
+* DEPRECATED. Use 'conf_replication_summary.excludelist.<name>' instead.
 
 conf_replication_summary.excludelist.<name> = <excludelist_pattern>
 * Files to be excluded from configuration replication summaries.
@@ -4867,6 +4961,19 @@ conf_replication_find_baseline.use_bloomfilter_only = <boolean>
   cluster captain interacts with members to determine the baseline, before
   falling back to using bloom filters.
 * Default: false
+
+conf_replication_quarantine_large_lookups = <boolean>
+* Determines whether or not a search head cluster quarantines and excludes from
+  replication any lookup file change that creates a lookup file larger than the
+  allowed limit, which is 5GB or the value of the `max_content_length` setting,
+  whichever is greater.
+* A value of "true" means that the cluster quarantines and does not replicate 
+  CSV files whose size exceeds 5GB.
+* Conf replication quarantine can prevent cluster out of sync issues caused by
+  the cluster's inability to replicate CSV file sizes greater than 5GB.
+* Lookup replication resumes when a change occurs to the lookup file that 
+  reduces its size to less than or equal to the allowed limit.
+* Default: true
 
 conf_deploy_repository = <path>
 * Full path to directory containing configurations to deploy to cluster
@@ -4990,6 +5097,32 @@ remote_job_retry_attempts = <positive integer>
 * The upper limit of the number of job re-run attempts is constrained by
   the total number of nodes in the Search Head Cluster. 
 * Default: 2
+
+member_add_use_artifact_status_cache = <boolean>
+* Whether or not search head cluster members use cached artifact status
+  when messaging the captain during the cluster member addition process.
+* This option improves the performance of the search head cluster member
+  addition process.
+* A value of "true" means cluster members use cached artifact status during
+  the cluster member addition process.
+* A value of "false" means cluster members do not use cached artifact status
+  during the cluster member addition process.
+* NOTE: Do not change this setting without first consulting with Splunk
+  Support.
+* Default: true
+
+member_add_decouple_artifact_reporting = <boolean>
+* Turns on or off an optimization for search head cluster member addition
+  that decouples artifact reporting from the cluster member addition process.
+* This option can improve the performance of the search head cluster member
+  addition process.
+* A value of "true" means artifact reporting is decoupled from the cluster
+  member addition process.
+* A value of "false" means artifact reporting is not decoupled from the
+  cluster member addition process.
+* NOTE: Do not change this setting without first consulting with Splunk
+  Support.
+* Default: false
 
 
 allow_concurrent_dispatch_savedsearch = <boolean>
@@ -5176,6 +5309,12 @@ oplogSize = <integer>
 * Do not change this setting without first consulting with Splunk Support.
 * Default: 1000 (1GB)
 
+minSnapshotHistoryWindow = <integer>
+* The minimum time window, in seconds, that the storage engine keeps the 
+  snapshot history.
+* Do not change this setting without first consulting with Splunk Support. 
+* Default: 5
+
 replicationWriteTimeout = <integer>
 * The time to wait, in seconds, for replication to complete while saving KV
   store operations. When the value is 0, the process never times out.
@@ -5193,6 +5332,13 @@ clientSocketTimeout = <positive integer>
   socket before the attempt times out.
 * Default: 300 (5 minutes)
 
+dbCursorOperationTimeout = <positive integer>
+* Specifies a cumulative time limit in seconds for processing operations 
+  on the database cursor. The database interrupts the operation if it exceeds
+  the defined timeout. Typically this value is equal to or smaller than 
+  the value for the 'clientSocketTimeout' setting.
+* Default: 300 (5 minutes)
+
 clientConnectionPoolSize = <positive integer>
 * The maximum number of active client connections to the KV Store.
 * When the number of active connections exceeds this value, KV Store will
@@ -5201,14 +5347,14 @@ clientConnectionPoolSize = <positive integer>
 * Default: 500
 
 caCertFile = <string>
-* DEPRECATED; use '[sslConfig]/sslRootCAPath' instead.
+* DEPRECATED. Use '[sslConfig]/sslRootCAPath' instead.
 * KV Store uses this setting for TLS connections and authentication.
 * See the description of 'caCertFile' under the [sslConfig] stanza
   for details on this setting.
 * Default: $SPLUNK_HOME/etc/auth/cacert.pem
 
 caCertPath = <string>
-* DEPRECATED; use '[sslConfig]/sslRootCAPath' instead.
+* DEPRECATED. Use '[sslConfig]/sslRootCAPath' instead.
 * See the description of 'sslRootCAPath' under the [sslConfig] stanza
   for details on this setting.
 
@@ -5230,7 +5376,7 @@ sslVerifyServerName = <boolean>
 * Default: false
 
 sslKeysPath = <string>
-* DEPRECATED; use 'serverCert' instead.
+* DEPRECATED. Use 'serverCert' instead.
 * The Splunk platform uses this setting if the 'serverCert' setting
   does not have a value.
 
@@ -5240,7 +5386,7 @@ sslPassword = <string>
 * No default.
 
 sslKeysPassword = <string>
-* DEPRECATED; use 'sslPassword' instead.
+* DEPRECATED. Use 'sslPassword' instead.
 * Used only when 'sslPassword' is empty.
 
 sslCRLPath = <string>
@@ -5285,6 +5431,11 @@ initialSyncMaxFetcherRestarts = <positive integer>
   a Splunk Support engineer. It might increase KV Store cluster failover time.
 * Default: 0
 
+defaultKVStoreType = local | cohosted
+* When set to "local", Splunk Enterprise uses a local KV store instance.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support. 
+* Default: local
+
 
 
 delayShutdownOnBackupRestoreInProgress = <boolean>
@@ -5312,6 +5463,24 @@ percRAMForCache = <positive integer>
 * Default: 15
 
 
+
+kvstoreUpgradeCheckInterval = <integer>
+* How often, in seconds, to check the status of the KV store version upgrade.
+* Default: 5 seconds
+
+kvstoreUpgradeOnStartupEnabled = <boolean>
+* Controls whether the KV store version upgrade should be initiated 
+  when Splunk software starts up.
+* Default: true
+
+kvstoreUpgradeOnStartupRetries = <positive int>
+* The number of times to retry the KV store version upgrade.
+* Default: 2 
+
+kvstoreUpgradeOnStartupDelay = <positive int>
+* How long, in seconds, to delay the startup of the KV store version upgrade 
+  after Splunk software boots up.
+* Default: 60 seconds
 
 ############################################################################
 # Indexer Discovery configuration
@@ -5685,6 +5854,7 @@ replicate_search_peers = <boolean>
   of a search head cluster, when this value to set to true.
 * Requires a healthy search head cluster with a captain.
 
+
 [watchdog]
 disabled = <boolean>
 * Disables thread monitoring functionality.
@@ -5981,7 +6151,7 @@ remote.s3.auth_region = <String>
 * Used with v4 signatures only.
 * If unset and the endpoint (either automatically constructed or explicitly
   set with remote.s3.endpoint setting) uses an AWS URL
-  (for example, https://s3-us-west-1.amazonaws.com), the instance attempts
+  (for example, https://s3.us-west-1.amazonaws.com), the instance attempts
   to extract the value from the endpoint URL (for example, "us-west-1").  See
   the description for the remote.s3.endpoint setting.
 * If unset and an authentication region cannot be determined, the request
@@ -6016,9 +6186,9 @@ remote.s3.endpoint = <URL>
   with the endpoint.
 * If not specified and the indexer is running on EC2, the endpoint is
   constructed automatically based on the EC2 region of the instance where the
-  indexer is running, as follows: https://s3-<region>.amazonaws.com
+  indexer is running, as follows: https://s3.<region>.amazonaws.com
 * Optional.
-* Example: https://s3-us-west-2.amazonaws.com
+* Example: https://s3.us-west-2.amazonaws.com
 
 remote.s3.multipart_download.part_size = <unsigned integer>
 * Sets the download size of parts during a multipart download.
@@ -6090,7 +6260,7 @@ remote.s3.timeout.write = <unsigned integer>
 
 remote.s3.sslVerifyServerCert = <boolean>
 * If this is set to true, Splunk verifies certificate presented by S3
-  server and checks that the common name/alternate name matches the
+  server and checks that the common name/alternative name matches the
   ones specified in 'remote.s3.sslCommonNameToCheck'
   and 'remote.s3.sslAltNameToCheck'.
 * Optional.
@@ -6118,9 +6288,9 @@ remote.s3.sslCommonNameToCheck = <commonName1>, <commonName2>, ..
 
 remote.s3.sslAltNameToCheck = <alternateName1>, <alternateName2>, ..
 * If this value is set, and 'remote.s3.sslVerifyServerCert' is set to true,
-  splunkd checks the alternate name(s) of the certificate presented by
+  splunkd checks the alternative name(s) of the certificate presented by
   the remote server (specified in 'remote.s3.endpoint') against this list
-  of subject alternate names.
+  of subject alternative names.
 * No default.
 
 remote.s3.sslRootCAPath = <path>
@@ -6372,6 +6542,19 @@ disabled = <boolean>
 * Determines whether or not the distributed lease manager is enabled.
 * Default: true
 
+provider = [AWS|KVstore]
+* The type of provider that the Distributed Leases feature for modular
+  inputs uses to achieve consensus among search head cluster members 
+  for modular inputs.
+* The feature can use either the Amazon Web Services (AWS) or app key
+  value store (KVStore) providers.
+* A value of "AWS" means Distributed Leases uses a DynamoDB table to achieve consensus 
+  among search head cluster members for modular inputs.
+* A value of "KVstore" means Distributed Leases uses a KV Store collection
+  called DistributedLeases for this purpose.
+* Do not change this setting value without consulting Splunk Support.
+* Default: AWS
+
 
 [search_state]
 alert_store = local
@@ -6408,12 +6591,12 @@ disabled = <boolean>
 * Default: false
 
 [localProxy]
-max_concurrent_requests = <decimal>
-* The maximum number of concurrent requests to proxy by using the 'local-proxy'
-  REST endpoint.
-* Maximum accepted value for this setting is "100".
-* Minimum accepted value for this setting is "1".
-* Default: 10
+allocated_max_threads_percentage = <integer>
+* Specifies the percentage of maxThreads that can be allocated to 
+  service "local-proxy" REST endpoint requests.
+* The maximum accepted value for this setting is "90".
+* The minimum accepted value for this setting is "1".
+* Default: 20
 
 response_timeout_ms = <decimal>
 * The maximum time, in milliseconds, to wait for the proxy destination to complete a
@@ -6427,3 +6610,36 @@ response_timeout_ms = <decimal>
   cleaning up unresponsive sessions.
 * Default: 600000 (10 minutes)
 
+[spl2]
+run_as_owner_enabled = <boolean>
+* Specifies whether or not a user can run searches as if the user was the owner of the searches when permitted.
+* A value of "true" means run-as-owner searches are allowed.
+* A value of "false" means run-as-owner searches are not allowed.
+* Default: false
+
+
+############################################################################
+# Version Control configuration
+############################################################################
+[version_control]
+disabled = <boolean>
+* Whether or not the Version Control feature is turned on or off.
+* The Version Control feature lets you track and manage
+  changes made to dashboards in the current version of Splunk Cloud Platform.
+* A value of "true" means that the Version Control feature is turned off.
+* A value of "false" means that the Version Control feature is turned on.
+* The Splunk platform ignores this setting if the 'shclustering' setting
+  has a value of "true". This means that the Version Control feature is
+  disabled on search head clusters.
+* The Splunk platform also ignores this setting if the 'SPLUNK_FIPS' setting
+  has a value of "1". This means that the Version Control feature is
+  disabled when the Splunk Enterprise instance runs in FIPS mode.
+* This setting is currently the only configuration setting of the
+  Version Control feature that can be set to a true value and reloaded at
+  runtime.
+* Default: false
+
+repoDir = <path>
+* The full path to the directory where the Version Control metadata is stored.
+* NOTE: Before you modify this setting, consult the Splunk support team.
+* Default: $SPLUNK_HOME/var/vcs

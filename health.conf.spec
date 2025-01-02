@@ -1,4 +1,4 @@
-#   Version 9.3.2
+#   Version 9.4.0
 #
 # This file sets the default thresholds for Splunk Enterprise's built
 # in Health Report.
@@ -37,8 +37,14 @@ full_health_log_interval = <number>
 suppress_status_update_ms = <number>
 * The minimum amount of time, in milliseconds, that must elapse between an
   indicator's health status changes.
-* Changes that occur earlier will be suppressed.
+* Changes that occur earlier are suppressed.
 * Default: 300.
+
+suppress_status_reason_update_s = <number>
+* The minimum amount of time, in seconds, that must elapse between a
+  change to the reason for the indicator.
+* Changes that occur earlier are suppressed.
+* Default: 10.
 
 latency_tracker_log_interval = <number>
 * The amount of time, in seconds, that elapses between each latency tracker log entry.
@@ -125,8 +131,14 @@ disabled = <boolean>
 suppress_status_update_ms = <number>
 * The minimum amount of time, in milliseconds, that must elapse between an indicator's
   health status changes.
-* Changes that occur earlier will be suppressed.
+* Changes that occur earlier are suppressed.
 * Default: 300.
+
+suppress_status_reason_update_s = <number>
+* The minimum amount of time, in seconds, that must elapse between a
+  change to the reason for the indicator.
+* Changes that occur earlier are suppressed.
+* Default: 3.
 
 display_name = <string>
 * A human readable name for the feature.

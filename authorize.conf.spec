@@ -1,4 +1,4 @@
-#   Version 9.3.2
+#   Version 9.4.0
 #
 ############################################################################
 # OVERVIEW
@@ -496,6 +496,16 @@ ephemeralExpiration = <relative-time-modifier>
 * Lets a user use the 'delete' command.
 * NOTE: The 'delete' command does not actually delete the raw data on disk.
   Instead, it masks the data (via the index) from showing up in search results.
+
+[capability::edit_dispatch_as]
+* Lets a user change the value of the 'dispatchAs' setting for a
+  saved search to "user".
+* Without this capability, users can only create saved searches that
+  run in the context of the saved search owner.
+* NOTE: Assign this capability to roles for high-privileged users only. When
+  'dispatchAs' has a value of "user", searches run in the context of
+  the user who runs the search. A low-privileged user that
+  holds a role with this capability can potentially be a security risk.
 
 [capability::edit_messages]
 * Lets a user create and delete system messages that appear in the Splunk Web navigation bar.
@@ -1041,10 +1051,6 @@ ephemeralExpiration = <relative-time-modifier>
 
 [capability::merge_buckets]
 * Lets a user merge buckets using cluster-merge-buckets CLI for clustered environments
-
-[capability::read_internal_libraries_settings]
-* Lets a user read the 'quarantined/status' REST endpoint and also view
-  the Internal Libraries Settings page in Splunk Web.
 
 [capability::edit_web_features]
 * Lets a user write to the '/web-features' REST endpoint.

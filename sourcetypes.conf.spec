@@ -1,4 +1,4 @@
-#  Version 9.3.2
+#  Version 9.4.0
 #
 # NOTE: sourcetypes.conf is a machine-generated file that stores the document
 # models used by the file classifier for creating source types.

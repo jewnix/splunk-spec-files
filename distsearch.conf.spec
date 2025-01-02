@@ -1,4 +1,4 @@
-#   Version 9.3.2
+#   Version 9.4.0
 #
 # This file contains possible attributes and values you can use to configure
 # distributed search.
@@ -541,8 +541,8 @@ remote.s3.endpoint = <URL>
   connectivity with the endpoint.
 * If not specified and the indexer is running on EC2, the endpoint is
   constructed automatically based on the EC2 region of the instance where
-  the indexer is running, as follows: https://s3-<region>.amazonaws.com
-* Example: https://s3-us-west-2.amazonaws.com
+  the indexer is running, as follows: https://s3.<region>.amazonaws.com
+* Example: https://s3.us-west-2.amazonaws.com
 
 remote.s3.bucket_name = <string>
 * Specifies the S3 bucket to use when endpoint isn't set.
@@ -755,4 +755,3 @@ default = <boolean>
   * You set 'default=true' for a distributed search group, but you do not 
     define a 'servers' list for that distributed search group.  
 * Default: false
-

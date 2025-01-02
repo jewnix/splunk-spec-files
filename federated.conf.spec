@@ -1,4 +1,4 @@
-#   Version 9.3.2
+#   Version 9.4.0
 #
 # This file contains possible setting and value pairs for federated provider entries
 # for use when the federated search functionality is enabled.
@@ -224,7 +224,7 @@ verbose_mode = <boolean>
 max_preview_generation_duration = <unsigned integer>
 * The maximum amount of time, in seconds, that the search head can spend to 
   generate search result previews.
-* NOTE: This setting applies only to federated searches.
+* NOTE: This setting applies only to Splunk-to-Splunk federated searches.
 * This limit does not stop federated searches from completing and returning 
   final result sets. 
 * When this limit is reached by a federated search, preview generation is 
@@ -235,11 +235,32 @@ max_preview_generation_duration = <unsigned integer>
   duration exceeds a timeout set by another component in your network, such as 
   an elastic load balancer (ELB). 
   * For example, if you have an ELB that times out at 60 seconds, you might set 
-    the 'max_preview_generation_duration' to '55'. 
-* A setting of '0' means that the preview generation duration of federated 
+    the 'max_preview_generation_duration' to "55". Additionally, set
+    'max_preview_generation_inputcount' to "500000".
+* A setting of "0" means that the preview generation duration of federated 
   searches is unlimited. 
 * Default: 0
 
+max_preview_generation_inputcount = <unsigned integer>
+* The maximum number of input result rows that the search head can use to
+  generate search result previews.
+* NOTE: This setting applies only to Splunk-to-Splunk federated searches.
+* This limit does not stop federated searches from completing and returning 
+  final result sets. 
+* When a federated search reaches this limit, preview generation 
+  processes only the first number of rows specified by the
+  'max_preview_generation_inputcount' setting in order to generate the 
+  preview results.
+* Change the value of this setting to a number above zero if your 
+  federated searches are being terminated because their preview generation 
+  duration exceeds a timeout set by another component in your network, such as 
+  an elastic load balancer (ELB). 
+  * For example, if you have an ELB that times out at 60 seconds, you might set 
+    the 'max_preview_generation_duration' to "55". Additionally, set
+    'max_preview_generation_inputcount' to "500000".
+* A setting of "0" means that the preview generation input count of federated 
+  searches is unlimited. 
+* Default: 0
 
 ############################################################################
 # Configs for blocking unsupported commands in Federated Search

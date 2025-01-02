@@ -3054,7 +3054,53 @@ More information in the online documentation for the corresponding REST endpoint
             <type>edit</type>
             <post_only/>
         </cmd>
+        <cmd name="start-standalone-upgrade">
+            <uri><![CDATA[/kvstore/version/upgrade]]></uri>
+            <default>
+                <arg name="version" value="7.0" />
+            </default>
+            <help>
+                <title><![CDATA[Start KV store upgrade on Standalone]]></title>
+                <optional>
+                    <arg name="-version"><![CDATA[version to upgrade to ('7.0') default is 7.0.]]></arg>
+                    <arg name="-dryRun"><![CDATA[do preflight checks and exit without upgrading]]></arg>
+                </optional>
+                <examples>
+                    <ex><![CDATA['./splunk start-standalone-upgrade kvstore']]></ex>
+                    <ex><![CDATA['./splunk start-standalone-upgrade kvstore -dryRun true']]></ex>
+                </examples>
+            </help>
+            <type>edit</type>
+            <post_only/>
+        </cmd>
+        <cmd name="stop-standalone-upgrade">
+            <uri><![CDATA[/kvstore/version/stop_upgrade]]></uri>
+            <help>
+                <title><![CDATA[Stop KV store upgrade on Standalone]]></title>
+                <examples>
+                    <ex><![CDATA['./splunk stop-standalone-upgrade kvstore']]></ex>
+                    <ex><![CDATA['./splunk stop-standalone-upgrade kvstore']]></ex>
+                </examples>
+            </help>
+            <type>edit</type>
+            <post_only/>
+        </cmd>
+    </item>
 
+    <!-- show standalone-kvupgrade-status -->
+    <item obj="standalone-kvupgrade-status">
+         <cmd name="show">
+            <uri><![CDATA[/kvstore/version]]></uri>
+            <help>
+                <title><![CDATA[View status of the KV Standalone upgrade.]]></title>
+                <syntax><![CDATA[show standalone-kvupgrade-status]]></syntax>
+                <required/>
+                <examples>
+                    <ex><![CDATA['./splunk show standalone-kvupgrade-status']]></ex>
+                </examples>
+            </help>
+            <type>list</type>
+        </cmd>
     </item>
 
     <!-- enable|disable kvstore-maintenance-mode -->

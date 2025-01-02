@@ -1,4 +1,4 @@
-#   Version 9.3.2
+#   Version 9.4.0
 #
 # This file contains possible setting/value pairs for saved search entries in
 # the savedsearches.conf file.  You can configure saved searches by creating
@@ -1192,15 +1192,35 @@ skip_scheduled_realtime_idxc = <boolean>
 * Default: false (does not skip)
 
 precalculate_required_fields_for_alerts = <boolean>
-* Specifies whether to precalculate the required fields from the alert 
-  condition search and use the result in the main search. Giving the required 
-  fields to the main search may decrease performance in some cases where the 
-  system is bottlenecked on the search scheduler. 
-* If "false", the required fields are not precalculated, which may free up the 
-  search scheduler and improve performance, but at the cost of potentially more 
-  work in the main search. 
-* Note: Do not change unless instructed to do so by Splunk Support.
+* Whether or not the search scheduler pre-calculates the required fields
+  from the alert condition search and uses the results in the main search.
+* Pre-calculation of the required fields occurs within the main splunkd process
+  and can decrease search scheduler performance.
+* A value of "true" means that the search scheduler pre-calculates the
+  required fields from the alert condition search.
+* A value of "false" means that the search scheduler does not pre-calculate
+  the required fields. This might free up the search scheduler and
+  improve performance, but can potentially increase the amount of work
+  performed in the main search.
+* NOTE: Do not change unless instructed to do so by Splunk Support.
 * Default: true
+
+calculate_alert_required_fields_in_search = <boolean>
+* Whether or not alert search processes calculate the required
+  fields of alert condition and alert action searches.
+* Alert search processes calculate the set of fields required by
+  alert condition and alert actions and use the calculations to limit
+  the set of fields that the main search generates, which improves search
+  performance.
+* A value of "true" means that alert searches perform calculations
+  of alert condition search and alert action required fields within
+  search processes.
+* A value of "false" means that the search scheduler pre-calculates the
+  required fields from the alert condition search, as described in the
+  `precalculate_required_fields_for_alerts` setting.
+* If this setting has a value of "true", it takes precedence over
+  the 'precalculate_required_fields_for_alerts' setting.
+* Default: false
 
 #*******
 # Deprecated settings

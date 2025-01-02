@@ -1,4 +1,4 @@
-#   Version 9.3.2
+#   Version 9.4.0
 #
 # Forwarders require outputs.conf. Splunk instances that do not forward
 # do not use it. Outputs.conf determines how the forwarder sends data to
@@ -154,6 +154,30 @@ token = <string>
   specified here, the receiver rejects all data sent to it.
 * This setting is optional.
 * No default.
+
+queueSize = <integer>[KB|MB|GB]
+* See the description of 'queueSize' in the inputs.conf specification file
+  for details on this setting.
+* If you do not set a value for 'persistentQueueSize', splunkd
+  ignores the value for 'queueSize'.
+* Default: 0 (no in-memory part of persistent queue)
+
+persistentQueueSize = <integer>[KB|MB|GB|TB]
+* See the description of 'persistentQueueSize' in the inputs.conf specification file
+  for details on this setting.
+* Splunkd applies this limit for each target group for each ingestion pipeline.
+* If both the 'queueSize' and 'maxQueueSize' settings have values of 0, the tcpout
+  persistent queue becomes a disk-only queue.
+* The naming convention of the persistent queue file on disk is
+  "pq_<group-name>_<pipeline number>".
+  * For example, if you set "parallelIngestionPipelines=2" in server.conf,
+  * with two target groups 'splunk-group1' and 'splunk-group2', the
+    persistent queue files appear as follows:
+    * $SPLUNK_HOME/var/run/splunk/tcpout/pq_splunk-group1_0
+    * $SPLUNK_HOME/var/run/splunk/tcpout/pq_splunk-group1_1
+    * $SPLUNK_HOME/var/run/splunk/tcpout/pq_splunk-group2_0
+    * $SPLUNK_HOME/var/run/splunk/tcpout/pq_splunk-group2_1
+* Default: 0 (no on-disk persistent queue)
 
 #----Single server configuration-----
 
@@ -1303,11 +1327,12 @@ remote_queue.* = <string>
 * This setting is optional.
 * No default.
 
-remote_queue.type = sqs|kinesis|sqs_smartbus|sqs_smartbus_cp
+remote_queue.type = sqs|kinesis|sqs_smartbus|sqs_smartbus_cp|asq
 * Currently not supported. This setting is related to a feature that is
   still under development.
 * Required.
-* Specifies the remote queue type, which can be "SQS", "Kinesis", "SQS Smartbus", or "SQS Smartbus CP".
+* Specifies the remote queue type, which can be "SQS", "Kinesis", "SQS Smartbus",
+  "SQS Smartbus CP" or "ASQ".
 * If the type is "sqs_smartbus_cp", the [cloud_processing_queue] stanza must be present.
 
 compressed = <boolean>
@@ -1453,11 +1478,11 @@ remote_queue.sqs.large_message_store.endpoint = <string>
 * Use the scheme, either http or https, to enable or disable SSL connectivity
   with the endpoint.
 * If not specified, the endpoint is constructed automatically based on the
-  auth_region as follows: https://s3-<auth_region>.amazonaws.com
+  auth_region as follows: https://s3.<auth_region>.amazonaws.com
 * If specified, the endpoint must match the effective auth_region, which is
   either a value specified via 'remote_queue.sqs.auth_region' or a value
   constructed automatically based on the EC2 region of the running instance.
-* Example: https://s3-us-west-2.amazonaws.com/
+* Example: https://s3.us-west-2.amazonaws.com/
 * Optional.
 * Default: not set
 
@@ -1625,11 +1650,11 @@ remote_queue.kinesis.large_message_store.endpoint = <string>
 * Use the scheme, either http or https, to enable or disable SSL connectivity
   with the endpoint.
 * If not specified, the endpoint is constructed automatically based on the
-  auth_region as follows: https://s3-<auth_region>.amazonaws.com
+  auth_region as follows: https://s3.<auth_region>.amazonaws.com
 * If specified, the endpoint must match the effective auth_region, which is
   either a value specified via 'remote_queue.kinesis.auth_region' or a value
   constructed automatically based on the EC2 region of the running instance.
-* Example: https://s3-us-west-2.amazonaws.com/
+* Example: https://s3.us-west-2.amazonaws.com/
 * Optional.
 * Default: not set
 
@@ -1818,11 +1843,11 @@ remote_queue.sqs_smartbus.large_message_store.endpoint = <string>
 * Use the scheme, either http or https, to enable or disable SSL connectivity
   with the endpoint.
 * If not specified, the endpoint is constructed automatically based on the
-  auth_region as follows: https://s3-<auth_region>.amazonaws.com
+  auth_region as follows: https://s3.<auth_region>.amazonaws.com
 * If specified, the endpoint must match the effective auth_region, which is
   either a value specified via 'remote_queue.sqs_smartbus.auth_region' or a value
   constructed automatically based on the EC2 region of the running instance.
-* Example: https://s3-us-west-2.amazonaws.com/
+* Example: https://s3.us-west-2.amazonaws.com/
 * Optional.
 * Default: not set
 
@@ -2064,6 +2089,297 @@ remote_queue.sqs_smartbus.enable_shared_receipts = <boolean>
 * Default: false
 
 ####
+# Azure Storage Queue (ASQ) specific settings
+####
+
+remote_queue.asq.encoding_format = protobuf|s2s
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies the encoding format used to write data to the
+  remote queue.
+* Default: s2s
+
+remote_queue.asq.enable_inline_data = <boolean>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies whether to use ASQ directly to send events.
+* A value of "true" means that if the data packet is small enough to fit in
+  ASQ (64KB max), the Splunk Cloud Platform will use ASQ to send event data.
+* This setting only applies when remote_queue.asq.encoding_format = protobuf
+* Default: false
+
+remote_queue.asq.access_key = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The access key to use when authenticating with the remote queue
+  system that supports the ASQ API.
+* Default: not set
+
+remote_queue.asq.secret_key = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies the secret key to use when authenticating with the remote queue
+  system supporting the ASQ API.
+* Default: not set
+
+remote_queue.asq.endpoint = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The URL of the remote queue system supporting the ASQ API.
+* Example: https://somestorage.queue.core.windows.net/
+* Default: not set
+
+remote_queue.asq.retry_policy = [max_count|none]
+* Currently not supported. This setting is related to a feature that is still
+  under development.
+* The retry policy to use for remote queue operations.
+* A retry policy specifies whether and how to retry file operations that fail
+  for those failures that might be intermittent.
+* Retry policies:
+  + "max_count": Imposes a maximum number of times a queue operation can be
+    retried upon intermittent failure. Set max_count with the
+    'max_count.max_retries_in_total' setting.
+  + "none": Do not retry file operations upon failure.
+* This setting is optional.
+* Default: "max_count"
+
+remote_queue.asq.max_count.max_retries_in_total = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is still
+  under development.
+* When 'remote_queue.asq.retry_policy' is set to "max_count", sets the
+  maximum number of times a queue operation can be retried upon
+  intermittent failure.
+* This setting is optional.
+* Default: 3
+
+remote_queue.asq.timeout.connect = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The connection timeout, in seconds, when interacting with
+  ASQ for this queue.
+* This setting is optional.
+* Default: 5
+
+remote_queue.asq.timeout.read = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The read timeout, in seconds, when interacting with ASQ for
+  this queue.
+* This setting is optional.
+* Default: 60
+
+remote_queue.asq.timeout.write = <unsigned integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The write timeout, in seconds, when interacting with ASQ for
+  this queue.
+* This setting is optional.
+* Default: 60
+
+remote_queue.asq.large_message_store.endpoint = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The URL of the remote storage system supporting the Azure API.
+* Example: https://somestorage.blob.core.windows.net/
+* Default: not set
+
+remote_queue.asq.large_message_store.path = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The remote storage location where messages that are larger than the
+  underlying queue maximum message size will reside.
+* If not specified, messages exceeding the underlying queue's maximum message
+  size are dropped.
+* For Microsoft Azure Blob storage, this is specified
+  as "azure://<container-name>/path_to_blob" Note that "<container-name>"
+  is needed here only if 'remote_queue.asq.large_message_store.container_name'
+  is not set.
+* No default.
+
+remote_queue.asq.large_message_store.container_name = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies the Azure container to use complying with Microsoft Azure
+  Storage Container naming convention.
+* This setting is optional.
+* No default.
+
+remote_queue.asq.large_message_store.sslVerifyServerCert = <boolean>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* If set to true, the Splunk platform verifies the certificate
+  presented by the Azure server.
+* Default: false
+
+remote_queue.asq.large_message_store.sslVersions = <versions_list>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Comma-separated list of SSL versions to connect to
+  'remote.asq.large_message_store.endpoint'.
+* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
+* The special version "*" selects all supported versions.  The version "tls"
+  selects all versions tls1.0 or newer.
+* If a version is prefixed with "-" it is removed from the list.
+* SSLv2 is always disabled; "-ssl2" is accepted in the version list
+  but does nothing.
+* When configured in FIPS mode, ssl3 is always disabled regardless
+  of this configuration.
+* Default: tls1.2
+
+remote_queue.asq.large_message_store.sslRootCAPath = <path>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Full path to the Certificate Authority (CA) certificate PEM format file
+  containing one or more certificates concatenated together. The S3 certificate
+  will be validated against the CAs present in this file.
+* Default: [sslConfig/caCertFile] in server.conf
+
+remote_queue.asq.large_message_store.cipherSuite = <cipher suite string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* If set, uses the specified cipher string for the SSL connection.
+* If not set, uses the default cipher string.
+* Default: TLSv1+HIGH:TLSv1.2+HIGH:@STRENGTH
+
+remote_queue.asq.send_interval = <number><unit>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Optional.
+* The interval that the remote queue output processor waits for data to
+  arrive before sending a partial batch to the remote queue.
+* Examples: 100ms, 5s
+* Default: 4s
+
+remote_queue.asq.max_queue_message_size = <integer>[KB|MB|GB]
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The maximum message size for batched events for upload to the remote queue.
+* Queue messages contain a series of one or more events. When an event causes
+  the message size to exceed this setting, the message is sent to the remote queue.
+* Specify this value as an integer followed by KB, MB, or GB (for example,
+  10MB is 10 megabytes)
+* Default: 10MB
+
+remote_queue.asq.drop_data = <boolean>
+* Currently not supported. This setting is related to a feature that is still
+  under development.
+* Determines whether Splunk software drops the data from all Splunk managed internal
+  indexes and indexes listed in 'remote_queue.asq.drop_data_index_list'
+* A value of "true" means that Splunk software drops the data.
+* Default: false
+
+remote_queue.asq.drop_data_index_list = <comma-separated list>
+* Currently not supported. This setting is related to a feature that is still
+  under development.
+* A comma-separated list of indexes for which you want to drop the data.
+  For example: index_1, index_2, index_3.
+* If 'remote_queue.asq.drop_data' is set to "true" then Splunk software
+  drops the data from 'drop_data_index_list'.
+* Default: not set
+
+remote_queue.asq.executor_max_workers_count = <positive integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The maximum number of worker threads available per pipeline set to execute
+  ASQ output worker tasks.
+* A value of 0 is equivalent to 1.
+* The maximum value for this setting is 20.
+* Default: 10
+
+remote_queue.asq.executor_max_jobs_count = <positive integer>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The maximum number of jobs that each worker thread per pipeline set can queue.
+* A value of 0 is equivalent to 1.
+* The maximum value for this setting is 100.
+* Default: 50
+
+remote_queue.asq.large_message_store.encryption_scheme = azure-sse-kv | azure-sse-ms | azure-sse-c
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The encryption scheme to use for containers that are currently being stored.
+* azure-sse-kv: Maps to the Azure customer-managed keys in a key vault.
+  See the Azure documentation for customer-managed keys for Azure Store
+  encryption for details.
+* azure-sse-ms: Maps to the Azure Microsoft-managed keys in Microsoft key store.
+  See the Azure documentation for Azure Storage encryption for data at rest for
+  details.
+* azure-sse-c: Maps to the Azure customer-provided encryption keys in a Key Vault.
+  See the Azure documentation for customer-provided keys for Azure Store
+  encryption for details.
+* Default: azure-sse-ms
+
+remote_queue.asq.azure-sse-kv.encryptionScope = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Required if remote_queue.asq.large_message_store.encryption_scheme = azure-sse-kv
+* Specifies the key used for encrypting blobs within the scope of this index.
+* No default.
+
+remote_queue.asq.large_message_store.azure-sse-c.key_type = azure_kv
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The mechanism that a Splunk platform indexer uses to generate the key for
+  sending data to Azure Storage.
+* Affects the 'azure-sse-c' encryption scheme only.
+* The only valid value is "azure_kv", which indicates the Azure Key Vault
+  Key Management Service (Azure KMS).
+* You must also specify the required KMS settings:
+  'remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_id',
+  'remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_vault_tenant_id',
+  'remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_vault_client_id',
+  and 'remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_vault_client_secret'.
+  If you do not specify those settings, the indexer cannot start while the
+  'remote_queue.asq.large_message_store.encryption_scheme' setting
+  has a value of "azure-sse-c".
+* Default: azure_kv
+
+remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_id = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The Azure Key Vault key identifier for key encryption and decryption.
+* The key identifier must include the key version.
+* Required if 'remote_queue.asq.large_message_store.encryption_scheme' has
+  a value of "azure-sse-c".
+* Example: "https://<key-vault-name>.vault.azure.net/keys/<key-name>/<key-version>"
+* No default.
+
+remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_vault_tenant_id = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The ID of the Azure Active Directory tenant for authenticating
+  with the the Key Vault.
+* For more details about the tenant ID, check your Azure Active Directory subscription.
+* Required only for client token-based authentication.
+* No default.
+
+remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_vault_client_id = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies the ID of the client, also called the application ID, which is the unique
+  identifier that the Azure Active Directory issues to an application registration
+  that identifies a specific application and the associated configurations.
+* You can obtain the client ID for an application from the Azure Portal in the
+  Overview section for the registered application.
+* Required only for client token-based authentication.
+* Optional for managed identity authentication.
+* No default.
+
+remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_vault_client_secret = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Specifies the secret key to use when authenticating the Key Vault using the client_id.
+* You generate the secret key through the Azure Portal.
+* Required only for client token-based authentication.
+* No default.
+
+remote_queue.asq.large_message_store.enable_shared_receipts = <boolean>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* If "true", receipts will be shared among ingest blobs.
+* Default: false
+
+####
 # Remote File System (RFS) Output
 ####
 [rfs]
@@ -2291,8 +2607,8 @@ remote.s3.endpoint = <URL>
   with the endpoint.
 * If not specified and the indexer is running on EC2, the endpoint will be
   constructed automatically based on the EC2 region of the instance where the
-  indexer is running, as follows: https://<bucketname>.s3-<region>.amazonaws.com
-* Example: https://<bucketname>.s3-us-west-2.amazonaws.com
+  indexer is running, as follows: https://<bucketname>.s3.<region>.amazonaws.com
+* Example: https://<bucketname>.s3.us-west-2.amazonaws.com
 * Optional.
 
 remote.s3.encryption = sse-s3 | sse-kms | none
@@ -2311,7 +2627,7 @@ remote.s3.auth_region = <string>
 * Used with v4 signatures only.
 * If unset and the endpoint (either automatically constructed or explicitly
   set with remote.s3.endpoint setting) uses an AWS URL (for example,
-  https://<bucketname>.s3-us-west-1.amazonaws.com), the instance attempts to extract
+  https://<bucketname>.s3.us-west-1.amazonaws.com), the instance attempts to extract
   the value from the endpoint URL (for example, "us-west-1").  See the
   description for the remote.s3.endpoint setting.
 * If unset and an authentication region cannot be determined, the request
@@ -2682,3 +2998,51 @@ cloud_processing_queue.cp_queue.large_message_store.key_refresh_interval = <stri
   still under development.
 * The time interval to refresh primary key.
 * Default: 24h
+
+####
+# Cloud Processing API (CP Client) specific settings
+####
+
+cloud_processing_queue.cp_client.retry_policy = max_count|none
+* The retry policy to use for cloud processing API operations.
+* A retry policy determines whether and how to retry API operations that fail
+  for those failures that might be intermittent.
+* The following retry policies are available:
+  + "max_count": Imposes a maximum number of times an operation is
+    retried upon intermittent failure. Set "max_count" with the
+    'cloud_processing_queue.max_count.max_retries_per_part' setting.
+  + "none": Do not retry file operations upon failure.
+* This setting is optional.
+* Default: max_count
+
+cloud_processing_queue.cp_client.max_count.max_retries_per_part = <unsigned integer>
+* The maximum number of times that the cloud processing API will retry an
+  operation after an intermittent failure.
+* This setting is valid only when the 'cloud_processing_queue.cp_client.retry_policy'
+  setting has a value of "max_count".
+* This setting is optional.
+* Default: 9
+
+cloud_processing_queue.cp_client.backoff_strategy = constant | exponential
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The backoff strategy that the cloud processing API is to use when
+  it retries requests after an intermittent failure.
+* A value of "constant" means that the backoff strategy makes a retry attempt
+  every 'cloud_processing_queue.cp_client.backoff_strategy.constant.delay'.
+* A value of "exponential" means that the backoff strategy doubles each retry
+  attempt, starting with 1 second, but caps at a maximum of 5 minutes between
+  attempts.
+* Optional
+* Default: exponential
+
+cloud_processing_queue.cp_client.backoff_strategy.constant.delay = <interval><unit>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* How long that the cloud processing API must wait between
+  successive retries after it encounters an intermittent failure
+  in an API operation.
+* This setting is valid only when
+  'cloud_processing_queue.cp_client.backoff_strategy' has a value of "constant".
+* This setting is optional.
+* Default: 300ms

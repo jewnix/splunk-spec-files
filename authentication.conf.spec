@@ -809,7 +809,7 @@ maxAttributeQueryQueueSize = <integer>
   size.
 * Changes to this setting require a restart to take effect.
 * This setting is optional.
-* Default: 50
+* Default: 10000
 
 attributeQueryTTL = <integer>
 * Determines the time for which the Splunk platform caches the user and role
@@ -1075,7 +1075,7 @@ enableAutoMappedRoles = <boolean>
 * A value of "false" means the Splunk platform uses predefined 
   SAML group mappings only, and ignores the 'defaultRoleIfMissing' setting.
 * This setting is optional.
-* Default: false
+* Default: true
 
 excludedAutoMappedRoles = <comma separated list>
 * A list of Splunk roles for which the Splunk platform is not to

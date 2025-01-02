@@ -174,12 +174,6 @@ handler=<SCRIPT>.<CLASSNAME>
   class called 'splunk.rest.BaseRestHandler'). The attribute/value pair for it is:
   "handler=TestHandler.MyHandler".
 
-xsl = <string>
-* The path to an XSL transform file.
-* Perform an XSL transform on data returned from the handler.
-* (OPTIONAL) Only use this setting if the data is in XML format.
-* Does not apply if the 'scripttype' setting is set to "persist".
-
 script = <string>
 * The path to a script executable.
 * (Optional). Use this setting only if the 'scripttype' setting is set to "python".

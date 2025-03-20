@@ -1,4 +1,4 @@
-#   Version 9.4.0
+#   Version 9.4.1
 #
 # This file contains possible settings and values for configuring various
 # "bookmark" entries to be stored within a Splunk instance.

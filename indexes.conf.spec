@@ -1,4 +1,4 @@
-#   Version 9.4.0
+#   Version 9.4.1
 #
 ############################################################################
 # OVERVIEW
@@ -2963,28 +2963,37 @@ remote.azure.encryption.azure-sse-c.key_type = azure_kv
 * Determines the mechanism that the Splunk indexer uses to generate the key for
   sending data to Azure Storage.
 * Affects the azure-sse-c encryption scheme only.
-* The only valid value is "azure_kv", indicating Azure Key Vault Key Management Service (Azure KMS).
-* You must also specify the required KMS settings: 'remote.azure.azure_kv.key_id',
+* The only valid value is "azure_kv", indicating Azure Key Vault Key
+  Management Service (Azure KMS).
+* You must also specify the required KMS settings: 'remote.azure.azure_kv.key_name',
   'remote.azure.azure_kv.key_vault_tenant_id', 'remote.azure.azure_kv.key_vault_client_id',
   and 'remote.azure.azure_kv.key_vault_client_secret'. If you do not specify
   those settings, the indexer cannot start while 'remote.azure.encryption'
   has a value of "azure-sse-c".
 * Default: azure_kv
 
-remote.azure.azure_kv.key_id = <string>
-* Specifies the Azure Key Vault Key identifier for key encryption and decryption. It must include
-  the key version.
+remote.azure.azure_kv.endpoint = <string>
+* The URL of the Microsoft Azure Key Vault endpoint.
+* The value of this setting must reference an Azure Key Vault location where the keys are stored.
 * Required if 'remote.azure.encryption = azure-sse-c'.
-  Example: "https://<key-vault-name>.vault.azure.net/keys/<key-name>/<key-version>"
+* Example: https://<key-vault-name>.vault.azure.net/
+* No default.
+
+remote.azure.azure_kv.key_name = <string>
+* Specifies the Azure Key Vault Key name for key encryption and decryption.
+* Required if 'remote.azure.encryption' has a value of "azure-sse-c".
 * No default.
 
 remote.azure.azure_kv.key_vault_tenant_id = <string>
 * Specifies the ID of the Azure Active Directory tenant for authenticating
   with the the Key Vault. Check your Azure Active Directory subscription for details.
 * Required only for client token-based authentication.
-* Can be the same as 'remote.azure.tenant_id' if the Active Directory is also provisioned for 
-  Key Vault Cryptography operations.
-* No default.
+* You do not need to configure this setting if both of the following
+  are true:
+  * You have configured the 'remote.azure.tenant_id' setting to the
+    same value.
+  * The Active Directory is provisioned for Key Vault Cryptography operations.
+* Default: the value of the 'remote.azure.tenant_id' setting.
 
 remote.azure.azure_kv.key_vault_client_id = <string>
 * Specifies the ID of the client, also called application ID - the unique
@@ -2994,17 +3003,23 @@ remote.azure.azure_kv.key_vault_client_id = <string>
   Overview section for the registered application.
 * Required only for client token-based authentication.
 * Optional for managed identity authentication.
-* Can be the same as 'remote.azure.client_id' if the Active Directory instance is provisitioned
-  for Key Vault Cryptography operation.
-* No default.
+* You do not need to configure this setting if both of the following
+  are true:
+  * You have configured the 'remote.azure.client_id' to the
+    same value.
+  * The Active Directory is provisioned for Key Vault Cryptography operations.
+* Default: the value of the 'remote.azure.client_id' setting.
 
 remote.azure.azure_kv.key_vault_client_secret = <string>
 * Specifies the secret key to use when authenticating the Key Vault using the client_id.
   You generate the secret key through the Azure Portal.
 * Required only for client token-based authentication.
-* Can be the same as 'remote.azure.client_secret' if the Active Directory instance is 
-  provisitioned for Key Vault Cryptography operation.
-* No default.
+* You do not need to configure this setting if both of the following
+  are true:
+  * You have configured the 'remote.azure.client_secret' setting to the
+      same value.
+  * The Active Directory is provisioned for Key Vault Cryptography operations.
+* Default: the value of the 'remote.azure.client_secret' setting.
 
 remote.azure.supports_versioning = <boolean>
 * Specifies whether the remote storage supports versioning.

@@ -1,4 +1,4 @@
-#   Version 9.4.0
+#   Version 9.4.1
 #
 # Forwarders require outputs.conf. Splunk instances that do not forward
 # do not use it. Outputs.conf determines how the forwarder sends data to
@@ -2325,7 +2325,8 @@ remote_queue.asq.large_message_store.azure-sse-c.key_type = azure_kv
 * The only valid value is "azure_kv", which indicates the Azure Key Vault
   Key Management Service (Azure KMS).
 * You must also specify the required KMS settings:
-  'remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_id',
+  'remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_name',
+  'remote_queue.asq.large_message_store.azure-sse-c.azure_kv.endpoint',
   'remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_vault_tenant_id',
   'remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_vault_client_id',
   and 'remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_vault_client_secret'.
@@ -2334,14 +2335,21 @@ remote_queue.asq.large_message_store.azure-sse-c.key_type = azure_kv
   has a value of "azure-sse-c".
 * Default: azure_kv
 
-remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_id = <string>
+remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_name = <string>
 * Currently not supported. This setting is related to a feature that is
   still under development.
-* The Azure Key Vault key identifier for key encryption and decryption.
-* The key identifier must include the key version.
+* The Azure Key Vault key name for key encryption and decryption.
 * Required if 'remote_queue.asq.large_message_store.encryption_scheme' has
   a value of "azure-sse-c".
-* Example: "https://<key-vault-name>.vault.azure.net/keys/<key-name>/<key-version>"
+* No default.
+
+remote_queue.asq.large_message_store.azure-sse-c.azure_kv.endpoint = <string>
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* The Azure Key Vault endpoint.
+* Required if 'remote_queue.asq.large_message_store.encryption_scheme' has
+  a value of "azure-sse-c".
+* Example: "https://<key-vault-name>.vault.azure.net/"
 * No default.
 
 remote_queue.asq.large_message_store.azure-sse-c.azure_kv.key_vault_tenant_id = <string>

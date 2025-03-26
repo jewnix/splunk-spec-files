@@ -1,4 +1,4 @@
-#   Version 9.4.0
+#   Version 9.4.1
 #
 # This file contains the available product tours for Splunk onboarding.
 #

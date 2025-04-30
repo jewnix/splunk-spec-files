@@ -3020,6 +3020,17 @@ More information in the online documentation for the corresponding REST endpoint
             <type>edit</type>
             <post_only/>
         </cmd>
+        <cmd name="stop-shcluster-upgrade">
+            <uri><![CDATA[/shcluster/captain/kvstore-upgrade/stop]]></uri>
+            <help>
+                <title><![CDATA[Stop KV store upgrade]]></title>
+                <examples>
+                    <ex><![CDATA['./splunk stop-shcluster-upgrade']]></ex>
+                </examples>
+            </help>
+            <type>edit</type>
+            <post_only/>
+        </cmd>
         <cmd name="start-shcluster-migration">
             <uri><![CDATA[/shcluster/captain/kvmigrate/start]]></uri>
             <help>
@@ -3112,8 +3123,12 @@ More information in the online documentation for the corresponding REST endpoint
             </default>
             <help>
                 <title><![CDATA[Sets the maintenance mode on kvstore.]]></title>
+                <optional>
+                    <arg name="-readOnly"><![CDATA[Only allow kvstore read operations]]></arg>
+                </optional>
                 <examples>
                     <ex><![CDATA['./splunk enable kvstore-maintenance-mode']]></ex>
+                    <ex><![CDATA['./splunk enable kvstore-maintenance-mode -readOnly true']]></ex>
                 </examples>
             </help>
             <type>edit</type>

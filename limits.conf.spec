@@ -3651,7 +3651,7 @@ disable_inactive_channels = <boolean>
 active_eligibility_age = <integer>
 * The time, in seconds, after which splunkd removes an idle input
   channel from the active channel cache to free up memory.
-* Default: 3600
+* Default: 330
 
 [ldap]
 

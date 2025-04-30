@@ -1,4 +1,4 @@
-#   Version 9.4.1
+#   Version 9.4.2
 #
 # This file contains all possible options for configuring settings for the
 # file classifier in source-classifier.conf.

@@ -1,4 +1,4 @@
-# Version 9.4.1
+# Version 9.4.2
 #
 # This file contains possible attribute/value pairs for creating new
 # Representational State Transfer (REST) endpoints.

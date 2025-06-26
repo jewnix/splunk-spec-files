@@ -1,4 +1,4 @@
-#   Version 9.4.2
+#   Version 9.4.3
 #
 # This file contains possible setting and value pairs for federated provider entries
 # for use when the federated search functionality is enabled.
@@ -183,6 +183,28 @@ controlCommandsFeatureEnabled = <boolean>
   such as a search pause or search cancellation, to federated providers.
 * Change this setting only when directed to do so by Splunk Support.
 * Default: true
+
+previewOnRshEnabled = <boolean>
+* Specifies whether search preview is activated on remote search heads when 
+  they process federated searches.
+* A setting of 'false' means different things depending on whether a search 
+  head is acting as a local federated search head (FSH) or a remote search head 
+  (RSH). A search head can simultaneously be an FSH and an RSH.
+  * On an FSH, when 'previewOnRshEnabled=false', the FSH sends federated 
+    searches to federated search heads with 'preview=false', meaning that 
+    search preview is deactivated for the search on the remote search heads.
+  * On an RSH, when 'previewOnRshEnabled=false', if the RSH detects that an 
+    incoming federated search has 'preview=auto', it deactivates preview on the 
+    RSH.
+  * Note: This setting does not affect federated search previews on the 
+    federated search head that initiates the search. 
+* For federated searches, previews on the remote search head serve no purpose, 
+  as results are viewed through the UI of the federated search head on your 
+  local Splunk platform deployment. 
+* Deactivating search preview on the remote search head can improve the overall 
+  efficiency of long-running high cardinality federated searches.
+* Change this setting only when directed to do so by Splunk Support.
+* Default: false
 
 proxyBundlesTTL = <int>
 * Specifies the time to live in seconds of a proxy bundle on the remote search 

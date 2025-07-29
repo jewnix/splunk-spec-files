@@ -61,6 +61,9 @@ display.prefs.enableMetaData = 0 | 1
 display.prefs.showDataSummary = 0 | 1
 display.prefs.customSampleRatio = <int>
 display.prefs.showSPL = 0 | 1
+
+* Support for this setting has been removed. The setting no longer has
+  any effect.
 display.prefs.livetail = 0 | 1
 
 # Count per page for listing pages

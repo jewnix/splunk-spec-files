@@ -138,8 +138,12 @@ expressions (PCRE) with the translation of "...", "*", and "." Thus, "."
 matches a period, "*" matches non-directory separators, and "..." matches
 any number of any characters.
 
-For more information search the Splunk documentation for "specify input
-paths with wildcards".
+Certain regular expression metacharacters, such as (, ), [, ], and |, 
+are treated as regular expressions in the stanza name only if they 
+occur within or after a segment that contains a wildcard (*). For 
+example, [source::WindowsEventLog:(s|S)ecurity*]. For more information on 
+this behavior and on how Splunk defines segments, search the Splunk 
+documentation for "specify input paths with wildcards".
 
 **[<spec>] stanza pattern collisions:**
 

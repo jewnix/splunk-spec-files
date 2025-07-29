@@ -1,4 +1,4 @@
-#   Version 9.4.3
+#   Version 10.0.0
 #
 ############################################################################
 # OVERVIEW
@@ -82,14 +82,13 @@ install_source_checksum = <string>
   configurations was installed.
 * Analogous to <install_source_checksum> in the app.conf file.
 
-search_syntax_highlighting = [default-system-theme|light|dark|black-white]
+search_syntax_highlighting = [default-system-theme|light|dark]
 * Highlights different parts of a search string with different colors.
 * Dashboards ignore this setting.
 * default-system-theme = Inherits the default system theme if the current app
   supports theming.
 * light = White background with dark colored text.
 * dark = Black background with light colored text.
-* black-white = White background with black text.
 * Default: default-system-theme
 
 search_use_advanced_editor = <boolean>

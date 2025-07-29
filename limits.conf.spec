@@ -1,4 +1,4 @@
-#   Version 9.4.3
+#   Version 10.0.0
 #
 ############################################################################
 # OVERVIEW
@@ -281,8 +281,10 @@ show_warn_on_filtered_indexes = <boolean>
 
 maxout = <integer>
 * Maximum number of results to return from a subsearch.
-* This value cannot be greater than or equal to 10500.
-* Default: 10000
+* If the value of 'maxout' is greater than the 'maxresultrows' setting in the 
+  [searchresults] stanza, the subsearch ignores the 'maxout' setting and uses 
+  'maxresultrows' instead.
+* Default: 100
 
 maxtime = <integer>
 * Maximum number of seconds to run a subsearch before finalizing
@@ -515,7 +517,7 @@ fetch_remote_search_log = [enabled|disabledSavedSearches|disabled]
   '|noop remote_log_fetch=[*|<indexer1;indexer2...>]' to the search string, 
   where <indexer1;indexer2...> is a list of indexers that contain the remote 
   search logs that you want to collect. 
-* Default: disabledSavedSearches
+* Default: disabled
 
 max_chunk_queue_size = <integer>
 * The maximum size of the chunk queue.
@@ -547,14 +549,29 @@ results_queue_min_size = <integer>
   and the number of peers providing results, which ever is greater.
 * Default: 10
 
-result_queue_max_size = <integer>
-* The maximum size, in bytes, that will be kept from peers for processing on
-  the search head before throttling the rate that data is accepted.
-* The "results_queue_min_size" value takes precedence. The number of search
-  results chunks specified by "results_queue_min_size" will always be
-  retained in the queue even if the combined size in MB exceeds the
-  "result_queue_max_size" value.
-* Default: 100
+result_queue_max_size = <unsigned integer>[KB|MB|GB]
+* The maximum amount of metadata and search results that the search head 
+  processes from peers before the search head throttles the rate for 
+  accepting additional data in the queue from peers.
+* The value of 'results_queue_min_size' takes precedence over this setting. 
+  This means that the number of search result chunks specified by 
+  'results_queue_min_size' are retained in the results queue even if the total 
+  size of the chunks in MB exceeds the value of 'result_queue_max_size'.
+* Specify this value as an integer followed by KB, MB, or GB (for example,
+  for 10 megabytes, use 10MB). 
+* If a unit is not specified, the setting uses "bytes" by default.
+* Default: 100MB
+
+high_accuracy_results_queue_size = <boolean>
+* If set to "true", this setting uses metadata and search results to calculate 
+  with a high level of accuracy the memory consumption of data transmitted 
+  between Splunk hosts in order to fine tune parsing of the results queue. 
+* This setting helps prevent out-of-memory issues and protect the search head
+  when searches transmit high volumes of metadata.
+* Works in conjunction with 'result_queue_max_size'.
+* If set to "true", the 'result_queue_max_size' value must be at least 200MB.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: false
 
 results_queue_read_timeout_sec = <integer>
 * The amount of time, in seconds, to wait when the search executing on the
@@ -1119,6 +1136,27 @@ use_directives = <boolean>
   improve search performance.
 * Default: true
 
+auto_exclude_segmented_terms = [yes|no]
+* Whether or not LISPY expressions generated from search predicates
+  of form "field=a.b" can be optimized by excluding segmentation of the search
+  term that is used as input when the LISPY expression is generated.
+* This optimization setting generates a more selective LISPY expression,
+  which potentially improves search performance.
+* Candidates for this optimization are search predicate expressions where the 
+  right side of the expression is a segmented search term.
+* For this example, assume the setting 'always_include_indexedfield_lispy'
+  is set to "true", which is the default setting. 
+  * A value of "true" means that the Splunk platform generates 
+    the following optimized LISPY:
+      [ OR a.b field::a.b field=a.b ]
+  * A value of "false" means that the predicate "field=a.b" results
+    in the following LISPY:
+      [ OR field::a.b [ AND a b ] ]
+* If enabled, this optimization is applied only if the optimized LISPY
+  would generate the same search result as the non-optimized LISPY expression.
+* Default: no
+
+
 ############################################################################
 # Phased execution settings
 ############################################################################
@@ -1419,7 +1457,7 @@ field_filters = <boolean>
   Splunk platform indexes.
 * When set to "true": field filters are turned on.
 * When set to "false": field filters are turned off.
-* Default: true
+* Default: false
 
 truncate_report = [1|0]
 * Specifies whether or not to apply the 'max_count' setting to report output.
@@ -1683,6 +1721,14 @@ search_process_set_oom_score_adj = <integer>
   Thus, by adding the default value, in most cases the system is likely to kill
   search processes before it kills the main splunkd process.
 * Default: 700.
+
+toggle_server_conf_reload = <boolean>
+* A value of "true" means Splunk platform reloads the server.conf file before
+  creating a search process.
+* A value of "false" means Splunk platform does not reload the server.conf
+  file before creating a search process.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: true
 
 ############################################################################
 # search_messages.log
@@ -3268,6 +3314,7 @@ enable_install_apps = <boolean>
 * Default: false
 
 
+
 [http_input]
 
 max_number_of_tokens = <unsigned integer>
@@ -3533,6 +3580,12 @@ max_threads_per_outputlookup = <unsigned integer>
 * The maximum number of threads to use during outputlookup commands on KVStore
 * If the value is 0 the thread count will be determined by CPU count
 * Default: 1
+
+indexedcsv_failure_cleanup = <boolean>
+* Determines whether Splunk software resolves inconsistencies in states when
+  CSV lookup files fail to be indexed.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: false
 
 
 [kvstore_migration]
@@ -4082,6 +4135,58 @@ max_searches_perc.<n>.when = <cron string>
 * If either these settings aren't provided at all or no "when" matches the
   current time, the value falls back to the non-<n> value of 'max_searches_perc'.
 
+dynamic_max_searches_perc = <boolean>
+* Whether or not the search scheduler can dynamically adjust the maximum 
+  percentage of searches that it can run, based on ad-hoc and
+  scheduled search workload.
+* When this feature is turned on, the percentage of search concurrency
+  allotted to the scheduler, 'max_searches_perc', will gradually increase
+  when the number of concurrent ad-hoc searches is low.
+* When ad-hoc searches are at risk of queueing due to lack of search concurrency,
+  'max_searches_perc' will dynamically scale down to reserve search concurrency
+  for ad-hoc searches.
+* A value of "true" means that the search scheduler dynamically adjusts
+  the maximum percentage of scheduled searches that it can run.
+* A value of "false" means that the schedule does not dynamically adjust
+  the maximum percentage of scheduled searches that it can run.
+* Default: false
+
+dynamic_max_searches_perc_upper_limit = <integer>
+* The maximum possible percentage of total search concurrency that
+  can be allocated to scheduled searches.
+* When 'dynamic_max_searches_perc' has a value of "true",
+  this is the upper bound that 'max_searches_perc' can reach.
+* This setting only applies when 'dynamic_max_searches_perc'
+  has a value of "true".
+* If the value for this setting is less than 'max_searches_perc',
+  then 'max_searches_perc' becomes the upper limit.
+* Default: 0
+
+dynamic_max_searches_perc_increase_period = <integer>
+* The amount of time, in seconds, that the search scheduler must observe a steady
+  state before it may dynamically increase 'max_searches_perc'.
+* A "steady state" is a continuous period of time where the following
+  conditions are true:
+  * There is an absence of ad-hoc searches in the search queue due
+    to the instance-wide search concurrency limit.
+  * The percentage of ad-hoc search concurrency does not exceed
+    100 minus the current value for 'max_searches_perc'. For example,
+    if 'max_searches_perc' is currently 50, the percentage of
+    ad-hoc search concurrency cannot be more than 50 for this condition
+    to remain true.
+* The "steady state" begins when all of these conditions are true,
+  and ends the moment any of the conditions is not true.
+* This setting only applies when 'dynamic_max_searches_perc'
+  has a value of "true".
+* Default: 300
+
+dynamic_max_searches_perc_increase_increment = <integer>
+* The amount by which the scheduler can increase 'max_searches_perc' during
+  a dynamic adjustment of maximum search percentage.
+* This setting only applies when 'dynamic_max_searches_perc'
+  has a value of "true".
+* Default: 5
+
 persistence_period = <integer>
 * The period, in seconds, between scheduler state persistence to disk. The
   scheduler currently persists the suppression and fired-unexpired alerts to
@@ -4432,6 +4537,13 @@ tscollect_queue_size = <unsigned integer>
 * CAUTION: Do not change this setting without consulting Splunk Support.
   Changing it may slow down the accelerated data model summary creation search.
 * Default: 0
+
+results_deduplication = <boolean>
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* This is an internal setting used by the summarize processor to deduplicate 
+  intermediate results.
+* If set to "true", memory usage might increase on the search head.
+* Default: false
 
 [system_checks]
 
@@ -4956,7 +5068,7 @@ use_segmenter_v2 = <boolean>
   performance.
 * This setting affects only those CPUs that support SSE4.2.
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
-* Default: true
+* Default: false
 
 
 
@@ -5043,6 +5155,20 @@ rfsS3DestinationOff = <boolean>
 * Default: false
 
 
+##########################################################################
+# Reloading
+##########################################################################
+
+[reloads]
+custom_configuration_files_ignore_reload = <boolean>
+* If set to "true", all calls to /configs/conf-<config file name>/_reload for    
+  custom configuration files will return an HTTP 200 status code, but won't 
+  perform any actions on the receiving system. In this state, applications will 
+  break if they improperly manipulate configuration files directly on the 
+  filesystem instead of using the REST API.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support. 
+* Default: false
+
 ############################################################################
 # DataLake
 ############################################################################
@@ -5052,7 +5178,7 @@ sqs.ingest.max_threads = <non-negative integer>
   software to handle ingest from Amazon Security Lake instances that are
   subscribed through SQS remote queue for Federated Analytics data lake
   indexes.
-* Default: 4
+* Default: 2
 
 ############################################################################
 # SPL2

@@ -1,4 +1,4 @@
-#   Version 9.4.3
+#   Version 10.0.0
 
 # splunk-launch.conf contains values used at startup time, by the Splunk
 # command and by Windows services.
@@ -110,7 +110,11 @@ SPLUNK_OS_USER = <string> | <nonnegative integer>
 SPLUNK_FIPS = [0|1]
 * Whether or not the Splunk platform instance operates in Federal Information
   Processing Standards (FIPS) mode, and uses the algorithms and restrictions
-  that apply to the FIPS Publication 140-2 standard.
+  that apply to the FIPS standard.
+* Use this setting along with the 'SPLUNK_FIPS_VERSION' setting to configure
+  the FIPS module to use. 
+  * If you do not specify 'SPLUNK_FIPS_VERSION', the instance uses the default
+    version for that setting. 
 * If the machine on which the Splunk platform instance operates runs a kernel
   that operates in FIPS mode, this setting is "true" by default.
 * Configure this setting to ensure that your Splunk platform instance operates
@@ -125,6 +129,14 @@ SPLUNK_FIPS = [0|1]
 * Running the Splunk platform in FIPS mode can result in the platform operating
   more slowly than if you ran it in normal mode.
 * Default: 0
+
+SPLUNK_FIPS_VERSION = [140-2|140-3]
+* The FIPS mode in which this Splunk platform instance is to operate.
+* The instance can operate in either FIPS 140-2 mode or 140-3 mode. 
+  * FIPS 140-2 is the current publication standard that the National
+    Institute of Standards and Technology (NIST) plans to retire by September of 2026.
+  * FIPS 140-3 is the standard that replaces FIPS 140-2.
+* Default: 140-2
 
 PYTHONHTTPSVERIFY = [0|1]
 * Whether or not the Splunk platform instance sets up TLS validation for the httplib

@@ -6308,42 +6308,42 @@ and don't reconfigure any of your Splunk settings.
 
         app          appname specify an app context to run the search
 
-        batch        true    indicates how to handle updates in preview mode.
+        batch        true    Indicates how to handle updates in preview mode.
                              Defaults to false.
 
-        detach       true    triggers an asynchronous search and displays
+        detach       true    Triggers an asynchronous search and displays
                              the job id and ttl for the search.
 
-        header       false   indicates whether to display a header in the table
+        header       false   Indicates whether to display a header in the table
                              output mode.
 
-        max_time     number  the length of time in seconds that a search job
+        max_time     number  The length of time in seconds that a search job
                              runs before it is finalized. Defaults to 0, which
                              means no time limit.
 
-        maxout       number  the maximum number of events to return or send to
+        maxout       number  The maximum number of events to return or send to
                              stdout (when exporting events). Setting this to 0
                              means it will output an unlimited number of events.
                              The max allowable value is 50k. Defaults to 100.
 
-        output       value   indicates how to display the job. Choices are:
-                             rawdata, table, csv, raw, and auto. If not specified,
-                             defaults to rawdata for non-transforming searches
-                             and table for transforming searches.
+        output       value   Indicates how to display the job. Choices are:
+                             rawdata, table, csv, raw, json, and auto. If not 
+                             specified, defaults to rawdata for non-transforming 
+                             searches and table for transforming searches.
 
-        preview      false   indicates that reporting searches should be
+        preview      false   Indicates that reporting searches should be
                              previewed. Defaults to true.
 
-        timeout      number  the length of time in seconds that a search job
+        timeout      number  The length of time in seconds that a search job
                              is allowed to live after running. Defaults to 0,
                              which means the job is cancelled immediately after
                              it is run.
 
-        wrap         false   indicates whether to line wrap for individual lines
+        wrap         false   Indicates whether to line wrap for individual lines
                              that are longer than the terminal width. Defaults
                              to true.
 
-       workload_pool value   the name of the workload-pool for the search to run in.
+       workload_pool value   The name of the workload-pool for the search to run in.
 
 
     See what search language is available for use in the CLI by using these

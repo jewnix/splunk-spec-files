@@ -1,4 +1,4 @@
-#   Version 9.4.3
+#   Version 10.0.0
 #
 ############################################################################
 # OVERVIEW
@@ -173,17 +173,34 @@ cc      = <string>
 bcc     = <string>
 * Any blind courtesy copy (bcc) email addresses receiving the alert.
 
-allowedDomainList = <comma-separated list>
-* A list of domains to which users can send email with the 'sendemail'
-  search command or email alert action.
-* If you configure this setting for an alert, and a user adds an email
-  address with a domain that is not in this list, Splunk software removes
-  the address from the recipient list.
-* The Splunk platform does not honor the 'action.email.allowedDomainList'
-  setting in the savedsearches.conf configuration file.
-* CAUTION: Security Risk: If you do not configure this setting, then users can send 
-  email alerts with search results to any domain, which is a security risk.
-* This setting is optional.
+allowedDomainList = allow_all|deny_all|<comma-separated list>
+* A list of domains to which users can send email with the 'sendemail' command
+  or email alert action.
+* A value of "allow_all" means the following:
+  * Allow all domains, which means email can be sent to all domains. 
+  * Choosing this setting means that you accept the risk that search results 
+    might be emailed to any domain.
+* A value of "deny_all" means the following:
+  * Deny all domains, which means that email can't be sent to any domain.
+  * Choose this setting on the Splunk nodes from which you don't want
+    search results to be emailed.
+* A value of "<comma-separated list>" means the following:
+  * Allow email to be sent to only the specified domains.
+  * This setting is recommended for Splunk nodes, such as search heads,
+    that need to email search results.
+  * If a user adds an email address for a domain that is not in this list,
+    Splunk software automatically removes the address from the recipient list.
+  * If "allow_all" is included in the list, then only the specified domains
+    are allowed. For example, if 'allowedDomainList=allow_all, splunk.com', then
+    splunk.com is the only allowed domain.
+  * If "deny_all" is included in this list, then no domains are allowed.
+  * If both "allow_all" and "deny_all" are included in this list, then no domains
+    are allowed.
+* When this setting is specified, the 'action.email.allowedDomainList' setting 
+  in the savedsearches.conf file has no effect.
+*  CAUTION: Security Risk. If you don't configure this setting, then users 
+   can send email alerts with search results to any domain, which is a 
+   security risk.
 * No default.
 
 message.report = <string>
@@ -299,6 +316,24 @@ auth_username   = <string>
 * The username to use when authenticating with the SMTP server. If this is
   not defined or is set to an empty string, no authentication is attempted.
   NOTE: your SMTP server might reject unauthenticated emails.
+* Default: an empty string
+
+oauth_client_id = <string>
+* The ID that, when posted to the Oauth endpoint in conjunction with the 
+  'oauth_client_secret', returns an Oauth token for email authorization.
+* Default: an empty string
+
+oauth_client_secret = <string>
+* The secret that, when posted to the Oauth endpoint in conjunction with the 
+  'oauth_client_id', returns an Oauth token for email authorization.
+* Default: an empty string
+
+oauth_url = <string>
+* The URL that the Oauth token for email authorization is retrieved from.
+* Default: an empty string
+
+oauth_scope = <string>
+* The scope argument to the Oauth url
 * Default: an empty string
 
 auth_password   = <password>
@@ -425,15 +460,14 @@ pdf.html_image_rendering = <boolean>
   change this setting to "false". The old HTML rendering is used.
 * Default: true
 
-sslVersions = <string>
-* Comma-separated list of SSL versions to support.
-* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
+sslVersions = <comma-separated list>
+* The list of TLS versions to support.
+* The versions available are "tls1.0", "tls1.1", and "tls1.2".
 * The special version "*" selects all supported versions.  The version "tls"
   selects all versions tls1.0 or newer.
 * If a version is prefixed with "-" it is removed from the list.
-* SSLv2 is always disabled; "-ssl2" is accepted in the version list but does nothing.
-* When configured in FIPS mode, ssl3 is always disabled regardless
-  of this configuration.
+* SSL versions 2 and 3 are always disabled. "-ssl2" and "-ssl3" are accepted
+  as values in the version list, but have no effect.
 * Used exclusively for the email alert action and the sendemail search command.
 * The default can vary. See the 'sslVersions' setting in the
   $SPLUNK_HOME/etc/system/default/alert_actions.conf file for the current default.
@@ -532,11 +566,13 @@ filename = <string>
 ################################################################################
 [lookup]
 filename = <string>
-* The filename, with no path, of the CSV lookup file. Filename must end with
-  ".csv".
+* Specifies the file name or KV store lookup name.
 * If this file does not yet exist, Splunk software creates the file on
   the next scheduled run of the search. If the file currently exists, the
   file is overwritten on each run of the search unless "append=1".
+* If using a KV store lookup, the lookup definition and collection must already
+  be configured. This alert action does not automatically create KV store
+  collections.
 * The file is placed in the same path as other CSV lookup files:
   $SPLUNK_HOME/etc/apps/search/lookups.
 * Default: an empty string

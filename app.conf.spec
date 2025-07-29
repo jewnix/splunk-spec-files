@@ -1,4 +1,4 @@
-#   Version 9.4.3
+#   Version 10.0.0
 #
 ############################################################################
 # OVERVIEW
@@ -422,3 +422,11 @@ default_gather_lookups = <filename> [, <filename> ...]
   local/app.conf
 * Additional lists can be created with default_gather_lookups-classname = ...
 * Default: not set
+
+[data_management]
+* This stanza applies to Data Management navigation plugins
+
+plugin_enabled = <boolean>
+* Set this variable to true to declare that the app contains a Data Management plugin
+  that will appear in the Data Management UI as a navigation item.
+* Default: false

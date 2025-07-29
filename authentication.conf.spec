@@ -1,4 +1,4 @@
-#   Version 9.4.3
+#   Version 10.0.0
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.
@@ -30,15 +30,6 @@
 authType = [Splunk|LDAP|Scripted|SAML|ProxySSO]
 * Specify which authentication system to use.
 * Supported values: Splunk, LDAP, Scripted, SAML, ProxySSO.
-* Default: Splunk
-
-authTypePreferredForUserCollision = [Splunk|SAML]
-* The authentication scheme to use when the Splunk platform detects
-  username collision between native authentication and SAML users.
-* A value of "Splunk" means the Splunk platform assumes native authentication
-  user roles when the SAML username matches a native authentication user.
-* A value of "SAML" means the Splunk platform assigns roles mapped from SAML
-  groups and ignores roles from native authentication users.
 * Default: Splunk
 
 authSettings = <authSettings-key>,<authSettings-key>,...
@@ -324,9 +315,9 @@ timelimit = <integer>
 network_timeout = <integer>
 * The amount of time, in seconds, that a network socket polls a connection
   that has no activity.
-* This is useful for determining if your Splunk platform instance cannot 
+* This is useful for determining if your Splunk platform instance cannot
   reach your LDAP server.
-* NOTE: As a connection could potentially be waiting for search results, 
+* NOTE: As a connection could potentially be waiting for search results,
   this value must be higher than 'timelimit'. If you set it lower, you could
   terminate the connection to your server before an LDAP search completes.
 * Like 'timelimit', if you have a fast connection to your LDAP server,
@@ -679,7 +670,7 @@ idpCertExpirationCheckInterval = <interval><unit>
 * How long a Splunk platform instance must wait, after generating a certificate
   expiration warning log after a login, to generate another one.
 * The Splunk platform caches the certificate fingerprint when a SAML user logs in.
-  If the client sends the same certificate on another login, the Splunk platform reviews the 
+  If the client sends the same certificate on another login, the Splunk platform reviews the
   cache. If at least 'idpCertExpirationCheckInterval' has not passed since the last time
   it generated a log for a certificate that is in the cache, it won't generate another log.
 * Default: 1d
@@ -800,25 +791,26 @@ skipAttributeQueryRequestForUsers = <comma-separated list of users>
 
 maxAttributeQueryThreads = <integer>
 * Number of threads to use to make attribute query requests.
-* Changes to this setting require a restart to take effect.
+* Changes to this setting require a reload to take effect.
 * This setting is optional.
 * Maximum value: 10
 * Default: 2
 
 maxAttributeQueryQueueSize = <integer>
-* The number of attribute query requests to queue, set to 0 for infinite
+* The number of attribute query requests to queue.
+* A value of "0" means to queue an infinite number of requests.
   size.
-* Changes to this setting require a restart to take effect.
+* Changes to this setting require a reload to take effect.
 * This setting is optional.
 * Default: 10000
 
-attributeQueryTTL = <integer>
-* Determines the time for which the Splunk platform caches the user and role
+attributeQueryTTL = <timespan>
+* The amount of time for which the Splunk platform caches the user and role
   information (time to live).
 * After the ttl expires, the Splunk platform makes an attribute query request to
   retrieve the role information.
 * This setting is optional.
-* Default: 21600
+* Default: 21600s
 
 saml_negative_cache_timeout = <nonnegative decimal>
 * The amount of time, in seconds, that the Splunk platform remembers that a non-existent
@@ -870,7 +862,7 @@ getUsersPrecacheLimit = <integer>
   the 'getUsers' function returns.
 * Default: 1000
 
-getUserInfoTtl = <string>
+getUserInfoTtl = <timespan>
 * When you configure the auth system to use SAML as an authentication method,
   it runs the 'getUserInfo' script function to retrieve information from the
   SAML identity provider when users perform ad-hoc operations such as working
@@ -899,17 +891,17 @@ scriptSecureArguments = <key:value>;[<key:value>;]...
 * No default.
 
 useAuthExtForTokenAuthOnly = <boolean>
-* Whether authentication extension scripts run for all types of authentication, 
+* Whether authentication extension scripts run for all types of authentication,
   or only for token based authentication.
 * If set to "true", the 'getUserInfo' script only runs when making token based authentication calls.
-* Other calls that rely on fetching SAML user information, 
-  such as saved searches and displaying SAML users,
-  will use the persistent cache that is defined in the [userToRoleMap_<saml-authSettings-key>] stanza.
+* Other calls that rely on fetching SAML user information, such as saved
+  searches and the displaying of SAML users, use the persistent cache that
+  is defined in the [userToRoleMap_<saml-authSettings-key>] stanza.
 * This setting is optional.
 * Default: true
 
 cacheSAMLUserInfotoDisk = <boolean>
-* Whether the Splunk auth system only keeps SAML user mapping 
+* Whether the Splunk auth system only keeps SAML user mapping
   information in server memory or additionally caches the information
   locally in the authentication.conf configuration file.
 * Using this setting helps keep SAML users consistent in distributed
@@ -921,7 +913,7 @@ cacheSAMLUserInfotoDisk = <boolean>
     configure both authentication extensions and the 'useAuthExtForTokenAuthOnly'
     setting with a value of "false".
 * A value of "true" means that the auth system writes SAML user map
-  information to the authentication.conf file, under the '[userToRoleMap_SAML]' stanza. 
+  information to the authentication.conf file, under the '[userToRoleMap_SAML]' stanza.
   For example: jdoe = admin,power::John Doe::jdoe@company.com
 * A value of "false" means that the auth system keeps SAML user map
   information in server memory only, and does not write information to
@@ -931,7 +923,7 @@ cacheSAMLUserInfotoDisk = <boolean>
   the auth system automatically caches SAML user info to disk, as if you
   had configured this setting with a value of "true".
 * This setting is optional.
-* Default: false 
+* Default: false
 
 assertionTimeSkew = <integer>
 * The amount of clock skew, in seconds, that can occur between the Splunk platform and
@@ -959,10 +951,10 @@ cipherSuite = <cipher suite string>
 * This setting is optional.
 * Default: The value or 'cipherSuite' in the server.conf file
 
-sslVersions = <versions_list>
-* Comma-separated list of SSL versions to support.
-* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2"
-* Default: The value of 'sslVersions' in the server.conf file
+sslVersions = <comma-separated list>
+* The list of TLS versions to support.
+* The versions available are "tls1.0", "tls1.1", and "tls1.2".
+* Default: The value of 'sslVersions' in the server.conf configuration file
 
 sslCommonNameToCheck = <commonName>
 * If set, and 'sslVerifyServerCert' is set to true,
@@ -1068,12 +1060,12 @@ blacklistedAutoMappedRoles = <comma separated list>
 
 enableAutoMappedRoles = <boolean>
 * Whether or not the Splunk platform maps SAML groups on an identity provider
-  to Splunk local roles with the same name automatically.  
-* A value of "true" means the Splunk platform tries to map IdP groups to 
+  to Splunk local roles with the same name automatically.
+* A value of "true" means the Splunk platform tries to map IdP groups to
   local roles with matching names.
-* If the IdP groups are empty, the Splunk platform tries to 
+* If the IdP groups are empty, the Splunk platform tries to
   map 'defaultRoleIfMissing' if it has a value.
-* A value of "false" means the Splunk platform uses predefined 
+* A value of "false" means the Splunk platform uses predefined
   SAML group mappings only, and ignores the 'defaultRoleIfMissing' setting.
 * This setting is optional.
 * Default: true
@@ -1210,15 +1202,15 @@ allowPartialSignatures = <boolean>
 * Defaults to 'true'
 
 allowEntities = <boolean>
-* Whether or not the Splunk authentication system considers 
+* Whether or not the Splunk authentication system considers
   SAML assertions with XML entity references as valid.
-* A value of "true" means the Splunk authentication system 
+* A value of "true" means the Splunk authentication system
   considers SAML assertions with XML entity references as
   valid assertions.
 * A value of "false" means the Splunk authentication system
   considers SAML assertions with XML entity references as invalid
   assertions.
-* CAUTION: Changing this setting from its default value could 
+* CAUTION: Changing this setting from its default value could
   potentially pose a security risk. Do not change the value without
   explicit permission from Splunk Support.
 * Default: false
@@ -1485,10 +1477,10 @@ timeout = <integer>
 * Default: The default Splunk HTTPS connection timeout
 
 sslVersions = <versions_list>
-* Comma-separated list of SSL versions to support for incoming connections.
-* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
+* The list of TLS versions to support for incoming connections.
+* The versions available are "tls1.0", "tls1.1", and "tls1.2".
 * This setting is optional.
-* Default: The value of 'sslVersions in the server.conf file
+* Default: The value of 'sslVersions in the server.conf configuration file
 
 cipherSuite = <cipher suite string>
 * The cipher string for the HTTP server.
@@ -1566,10 +1558,10 @@ useClientSSLCompression = <boolean>
 * Default: false
 
 enableMfaAuthRest = <boolean>
-* Determines whether splunkd requires Duo multifactor authentication against REST endpoints.
+* Whether or not splunkd requires Duo multifactor authentication against REST endpoints.
 * When Duo multifactor authentication is enabled for REST endpoints, you must log in to
-  the Splunk platform instance with a valid Duo multifactor authentication factor to get a 
-  valid session key, or requests to those endpoints must include a valid session key 
+  the Splunk platform instance with a valid Duo multifactor authentication factor to get a
+  valid session key, or requests to those endpoints must include a valid session key
   in the following format:
   'curl -k -H "Authorization:Splunk sessionKey" -X GET <resource>'
 * A value of "true" means splunkd requires Duo multifactor authentication against REST endpoints.
@@ -1623,12 +1615,14 @@ messageOnError = <string>
 * This setting is optional.
 * No default.
 
-sslVersions = <versions_list>
-* Comma-separated list of SSL versions to support for incoming connections.
-* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
+sslVersions = <comma-separated list>
+* The list of TLS versions to support for incoming connections.
+* The versions available are "tls1.0", "tls1.1", and "tls1.2".
 * If not set, the Splunk platform uses the value of 'sslVersions' in server.conf.
 * This setting is optional.
-* Default: tls1.2
+* The default can vary. See the 'sslVersions' setting in
+  the $SPLUNK_HOME/etc/system/default/server.conf file for the
+  current default
 
 cipherSuite = <cipher suite string>
 * If set, the Splunk platform uses the specified cipher string for the HTTP server.

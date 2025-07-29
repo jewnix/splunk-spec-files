@@ -1,4 +1,4 @@
-#   Version 9.4.3
+#   Version 10.0.0
 ############################################################################
 # OVERVIEW
 ############################################################################
@@ -56,10 +56,13 @@ type = <string>
 
 python.version = {default|python|python2|python3|python3.7|python3.9|latest}
 * For Python scripts only, specifies which Python version to use.
-* Set to either "default" or "python" to use the system-wide default Python
-  version.
-* Set to "python3" or "python3.7" to use the Python 3.7 version.
-* Set to "python3.9" to use the Python 3.9 version.
+* A value of either "default" or "python" means to use the system-wide 
+  default Python version.
+* Set to "python3" or "python3.9" to use the Python 3.9 version.
+* A value of "python3.7" could result in splunkd logging a warning, 
+  depending on how you configured log levels or the 'python.version'
+  setting in the server.conf configuration file. Regardless, the
+  system uses Python 3.9.
 * In the context of configuring apps, the "latest" value is not currently
   supported. It is related to a feature that is still under development.
 * Optional.

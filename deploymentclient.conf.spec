@@ -1,4 +1,4 @@
-#   Version 9.4.3
+#   Version 10.0.0
 #
 ############################################################################
 # OVERVIEW
@@ -141,16 +141,14 @@ reloadDSOnAppInstall = <boolean>
 * Default: false
 
 sslVersions = <versions_list>
-* Comma-separated list of SSL versions to connect to the specified
+* The list of TLS versions to connect to the specified
   Deployment Server
-* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
+* The versions available are "tls1.0", "tls1.1", and "tls1.2".
 * The special version "*" selects all supported versions.  The version "tls"
   selects all versions tls1.0 or newer.
 * If a version is prefixed with "-" it is removed from the list.
-* SSLv2 is always disabled; "-ssl2" is accepted in the version list but
-  does nothing.
-* When configured in FIPS mode, ssl3 is always disabled regardless
-  of this configuration.
+* SSL versions 2 and 3 are always disabled. "-ssl2" and "-ssl3" are accepted 
+  as values in the version list, but have no effect.
 * Default: The 'sslVersions' value in the server.conf file [sslConfig] stanza
 
 sslVerifyServerCert = <boolean>

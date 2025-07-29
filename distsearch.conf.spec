@@ -1,4 +1,4 @@
-#   Version 9.4.3
+#   Version 10.0.0
 #
 # This file contains possible attributes and values you can use to configure
 # distributed search.
@@ -129,6 +129,20 @@ trySSLFirst = <boolean>
 
 peerResolutionThreads = <integer>
 * This setting is no longer supported, and will be ignored.
+
+useIPAddrAsHost = <boolean>
+* Whether or not the Splunk daemon stores DNS resolution results
+  from some types of server communications with search peers in
+  an effort to speed up network connections.
+* Splunkd updates DNS resolution results upon each successful
+  distributed search authentication request, typically once a minute.
+* This functionality only works on search heads.
+* This setting has no effect if any of the following is true:
+  * The instance has been configured to use a proxy server through
+    the [proxyConfig] stanza in the server.conf configuration file.
+  * The 'sslVerifyServerName' setting in the [sslConfig] stanza
+    in the server.conf file has a value of "true".
+* Default: true
 
 defaultUriScheme = [http|https]
 * The default URI scheme to use if you add a new peer without specifying

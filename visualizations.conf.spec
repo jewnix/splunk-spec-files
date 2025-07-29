@@ -1,4 +1,4 @@
-#   Version 9.4.3
+#   Version 10.0.0
 #
 # This file contains definitions for visualizations an app makes available
 # to the system. If you want your app to share visualizations with the system, 

@@ -1,4 +1,4 @@
-#   Version 10.0.0
+#   Version 9.4.4
 #
 ############################################################################
 # OVERVIEW
@@ -30,7 +30,7 @@ fallback_to_deployment_server_ui = <boolean>
 log_level = <string> 
 * How verbose the logs are.
 * log level = DEBUG | INFO | WARN | ERROR | FATAL
-* Default: INFO
+* Default: ERROR.
 
 request_timeout = <string>
 * A global request timeout setting that defines how long the Agent Manager processes a request before it times out.
@@ -90,37 +90,3 @@ polling_interval = <string>
 * Valid values are numbers followed by a time unit.
 * Valid time units are "ms", "s", "m", "h".
 * Default: 5m.
-
-[effective_configuration]
-* Settings dedicated to the Effective Configuration feature.
-
-max_size = <positive integer>
-* The maximum size, in megabytes, of the effective configuration 
-  that the universal forwarder sends to the Agent Manager, and that
-  the deployment server saves.
-* The effective configuration of the forwarder is comprised of 
-  the rules of operation and data processing for the forwarder,
-  specifically, the configuration as shown by various 'splunk
-  btool' commands.
-* If the size of the effective configuration for a forwarder
-  exceeds this value, then the Agent Manager rejects the payload
-  as too large, and the deployment server does not save
-  the configuration.
-* Must be a positive number.
-* Default: 16
-
-cleanup_threshold = <positive integer>
-* The limit of the total size of all effective configurations
-  data on the disk (in MB). When this limit is exceeded,
-  the scheduled cron cleanup job will perform the cleanup.
-* There is no maximum value for this setting, a very large value
-  (over 10000) can cause the cleanup to never run.
-* Must be a positive number.
-* Default: 6144
-
-cleanup_schedule = <string>
-* The cron schedule for cleaning up the effective configuration data.
-* The default schedule is set to 3:00 AM every day in the local time zone.
-* To turn off the effective configuration cleanup, set the value to "disabled".
-* Must be in the cron format.
-* Default: 0 3 * * *

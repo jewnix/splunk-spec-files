@@ -1,4 +1,4 @@
-# Version 10.0.0
+# Version 9.4.4
 #
 # This file contains possible attribute/value pairs for creating new
 # Representational State Transfer (REST) endpoints.
@@ -141,17 +141,6 @@ includeInAccessLog = <boolean>
 * If set to "false", requests do not appear in splunkd_access.log.
 * Default: true
 
-maxConcurrent = <positive integer>|unlimited
-* If the number of concurrent requests that a handler receives from 
-  users exceeds this limit, the handler returns HTTP 429 errors 
-  until the total request count drops below the limit again.
-* When 'maxConcurrent' is set, the response to the handler includes an HTTP 
-  Retry-After header that clients must honor before they call the handler again.
-* A single user can't exceed the number of requests set by 'maxConcurrent'.
-* A value of "unlimited" means that there are no restrictions on the number of 
-  client requests for this handler.
-* Default: unlimited
-
 [script:<uniqueName>]
 * Per-endpoint stanza.
 * Use this stanza to specify a handler and other handler-specific settings.
@@ -277,6 +266,14 @@ stream = <boolean>
   request to the driver as a field of the original request.
 * Only has effect if the 'scripttype' setting is set to "persist".
 * Default: false
+
+
+maxConcurrent = <integer>
+* Specifies the maximum number of concurrent requests that this handler accepts.
+* A value of "-1" means the handler accepts an unlimited number of concurrent requests.
+* If the handler receives more than the maximum number of concurrent requests, it returns HTTP 429 errors until the total request count returns below the limit.
+* Only has effect if the 'scripttype' setting is set to "python".
+* Default: -1
 
 [admin:<uniqueName>]
 * 'admin'

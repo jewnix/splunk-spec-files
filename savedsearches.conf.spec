@@ -1,4 +1,4 @@
-#   Version 10.0.0
+#   Version 9.4.4
 #
 # This file contains possible setting/value pairs for saved search entries in
 # the savedsearches.conf file.  You can configure saved searches by creating
@@ -53,19 +53,18 @@ search = <string>
 * No default.
 
 dispatchAs = [user|owner]
-* Determines which user a saved search is dispatched as, when a search is 
-  dispatched using the "saved/searches/{name}/dispatch" endpoint.
-* This setting only applies to shared saved searches.
+* When the saved search is dispatched using the "saved/searches/{name}/dispatch"
+  endpoint, this setting controls what user that search is dispatched as.
+* This setting is only meaningful for shared saved searches.
 * When dispatched as "user", the search is run as if the requesting user owned
   the search.
 * When dispatched as "owner", the search is run as if the owner of the search
   dispatched the search, no matter which user requested it.
-* If the 'force_saved_search_dispatch_as_user' setting in limits.conf 
-  is set to "true", then the 'dispatchAs' setting is reset to "user" while
+* If the 'force_saved_search_dispatch_as_user' setting, in the limits.conf
+  file, is set to "true", then the 'dispatchAs' setting is reset to "user" while
   the saved search is dispatching.
-* CAUTION: Be cautious when setting a report to run as "User", as the search 
-  will run using the privileges of the user that initiates the search.
 * Default: owner
+
 
 #*******
 # Scheduling options
@@ -423,10 +422,10 @@ action.lookup = <boolean>
 * Specifies whether the lookup action is enabled for this search.
 * Default: false
 
-action.lookup.filename = <lookup name>
-* Specifies either the name of a CSV lookup file or a KV store collection 
-  to write search results to.
-* For CSV lookup files, enter the file name only. Do not enter the file path.
+action.lookup.filename = <lookup filename>
+* Provide the name of the CSV lookup file to write search results to.
+  Do not provide a file path.
+* Lookup actions can only be applied to CSV lookups.
 
 action.lookup.append = <boolean>
 * Specifies whether to append results to the lookup file defined for the

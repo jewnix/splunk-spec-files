@@ -1,4 +1,4 @@
-#   Version 10.0.0
+#   Version 9.4.4
 #
 ############################################################################
 # OVERVIEW
@@ -57,8 +57,8 @@ hostnameOption = [ fullyqualifiedname | clustername | shortname ]
   value for a Windows
   Splunk platform instance when you specify an input stanza with
   'host = $decideOnStartup'.
-* This setting applies only to machines that run Windows, and only for
-  input stanzas that use the "host = $decideOnStartup" setting and value.
+* Applies only to Windows hosts, and only for input stanzas that use the
+  "host = $decideOnStartup" setting and value.
 * Valid values are "fullyqualifiedname", "clustername", and "shortname".
 * The value returned for the 'host' field depends on Windows DNS, NETBIOS,
   and what the name of the host is.
@@ -461,27 +461,18 @@ decommission_search_jobs_min_wait_ratio = <decimal>
   search processes on this indexer.
 * Default: 0.15
 
-python.version = python3|python3.9|force_python3|unspecified
+python.version = python3|python3.7|python3.9|force_python3|unspecified
 * For Python scripts only, sets the default Python version to use.
-* A value of either "python3" or "python3.9" means the system uses 
-  Python 3.9.
 * Can be overridden by other 'python.version' values elsewhere, with the
   following exception:
-* A value of "force_python3" means the system always uses Python 3.9,
-  and ignores values for 'python.version' that you set elsewhere.
-* A value of "unspecified” means the system calls the Python
-  interpreter 'python'.
+* If you set to "python3" or "python3.7", the system uses Python 3.7.
+* If you set to "python3.9", the system uses Python 3.9.
+* If you set to "force_python3", the system always uses Python 3.9, and ignores
+  values for 'python.version' that you set elsewhere.
+* If you set to "unspecified”, the system calls the python interpreter 'python'
   to run scripts. Used on universal forwarders when calling an external instance
   of python. This setting value is not supported.
 * Default: force_python3
-
-python.not_compatible = <comma-separated-string>
-* Specifies a comma-separated list of features that are not compatible with the
-  default Python version.
-* The only current valid <string> value is openssl3.0.
-* When openssl3.0 is specified and the default Python version is 3.9, Splunk
-  software switches to the Python 3.9 interpreter linked to OpenSSL1.
-* Default: <empty>
 
 roll_and_wait_for_uploads_at_shutdown_secs = <non-negative integer>
 * Currently not supported. This setting is related to a feature that is
@@ -590,7 +581,7 @@ conf_cache_rebuild_stanzas_optimization = <boolean>
   configuration file cache.
 * NOTE: Do not change this setting without first consulting with Splunk
   Support.
-* Default: true
+* Default: false
 
 cgroup_location = <string>
 * Specifies the location of the cgroup hierarchy for the splunkd, search, and 
@@ -598,7 +589,6 @@ cgroup_location = <string>
 * This setting requires a Linux system with systemd.
 * A value of "auto" turns on automatic detection, which is based on the 
   contents of /proc/<pid>/cgroup and /proc/<pid>/mountinfo.
-* An empty string indicates the setting is off.
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: auto
 
@@ -773,14 +763,16 @@ useSplunkdClientSSLCompression = <boolean>
 * Default: true
 
 sslVersions = <comma-separated list>
-* The list of TLS versions to support for incoming connections.
-* The versions available are "tls1.0", "tls1.1", and "tls1.2".
+* The list of TLS/SSL versions to support for incoming connections.
+* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
 * The special version "*" selects all supported versions.
   The version "tls" selects all versions tls1.0 or newer.
 * If you prefix a version with "-", it means to exclude that version
   from the list.
-* SSL versions 2 and 3 are always disabled. "-ssl2" and "-ssl3" are accepted 
-  as values in the version list, but have no effect.
+* SSLv2 is always disabled; "-ssl2" is accepted in the version
+  list but does nothing.
+* If the Splunk platform instance runs in FIPS mode,
+  "ssl3" is always disabled regardless of this configuration.
 * The default can vary. See the 'sslVersions' setting in
   the $SPLUNK_HOME/etc/system/default/server.conf file for the
   current default
@@ -1179,32 +1171,6 @@ cliVerifyServerName = <boolean>
 * A value of "false" means that the CLI does not validate host names in
   server certificates.
 * Default: false
-
-[dataplaneSslConfig]
-serverCertDataplane = <string>
-* The full path to the server data plane certificate.
-* The server data plane certificate is used by the HTTP servers within
-  helper processes to secure communications between those processes. It is
-  separate from the standard server certificate.
-* Splunk helper processes run alongside the Splunk daemon and implement
-  certain functionalities that do not exist inside the Splunk daemon.
-* The Splunk daemon auto-generates all certificates when you start Splunk
-  Enterprise the first time.
-* Where applicable, replace the default certificate with a certificate
-  that you either create on your own or obtain from a third party. Both this
-  server data plane certificate and the server certificate referenced 
-  by the 'serverCert' setting must use the same certificate authority
-  (CA) store file during their creation.
-* For more information about certificates, and how to obtain, create,
-  and install them, search the Securing Splunk Enterprise Manual 
-  for "Introduction to Securing the Splunk Platform with TLS".
-* The server data plane certificate must be in privacy-enhanced mail (PEM) format.
-* Default: $SPLUNK_HOME/etc/auth/server_dp.pem
-
-certDPCreateScript = <string>
-* The creation script for generating the server data plane certificate when
-  you start Splunk Enterprise for the first time.
-* Default: $SPLUNK_HOME/bin/splunk, createssl, server-cert-dp
 
 ############################################################################
 # Python TLS Client Configuration details
@@ -1799,15 +1765,17 @@ updateTimeout = <time range string>
 * Default: 24h
 
 sslVersions = <comma-separated list>
-* The list of TLS versions to use to connect to 'url'.
+* Comma-separated list of SSL versions to connect to 'url'
   (https://apps.splunk.com).
-* The versions available are "tls1.0", "tls1.1", and "tls1.2".
+* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
 * The special version "*" selects all supported versions.  The version "tls"
   selects all versions tls1.0 or newer.
 * If a version is prefixed with "-" it is removed from the list.
-* SSL versions 2 and 3 are always disabled. "-ssl2" and "-ssl3" are accepted 
-  as values in the version list, but have no effect.
-* The default can vary. See the 'sslVersions' setting in
+* SSLv2 is always disabled; "-ssl2" is accepted in the version list
+  but does nothing.
+* When configured in FIPS mode, ssl3 is always disabled regardless
+  of this configuration.
+* Default: The default can vary (See the 'sslVersions' setting in
   the $SPLUNK_HOME/etc/system/default/server.conf file for the
   current default)
 
@@ -5154,7 +5122,7 @@ member_add_decouple_artifact_reporting = <boolean>
   cluster member addition process.
 * NOTE: Do not change this setting without first consulting with Splunk
   Support.
-* Default: true
+* Default: false
 
 
 allow_concurrent_dispatch_savedsearch = <boolean>
@@ -5273,7 +5241,6 @@ disabled = <boolean>
 port = <integer>
 * Port to connect to the KV Store server.
 * Default: 8191
-
 
 replicaset = <string>
 * Replica set name.
@@ -5416,11 +5383,6 @@ sslKeysPath = <string>
 sslPassword = <string>
 * See the description of 'sslPassword' under the [sslConfig] stanza
   for details on this setting.
-* Splunk Enterprise uses this setting only if you have turned on FIPS
-  mode for the instance.
-* If you have turned on FIPS mode in Splunk Enterprise, then
-  you must configure this setting with a value. If you do not, then 
-  App Key Value Store is not available.
 * No default.
 
 sslKeysPassword = <string>
@@ -5435,6 +5397,7 @@ sslCRLPath = <string>
 * Splunkd uses the CRL file only in the following cases:
   * When the Splunk platform instance is in Common Criteria mode 
     (SPLUNK_COMMON_CRITERIA=1).
+  * When the instance is in FIPS mode (SPLUNK_FIPS=1).
   * When you have enabled certificate status validation checks by configuring the
     '[sslConfig]:certificateStatusValidationMethod' setting. See this setting
     to learn how to configure certificate status validation.
@@ -5467,17 +5430,6 @@ initialSyncMaxFetcherRestarts = <positive integer>
 * NOTE: This setting should be changed only if you have been asked to set it by
   a Splunk Support engineer. It might increase KV Store cluster failover time.
 * Default: 0
-
-max_backup_restore_threads = <positive integer>
-* Specifies the number of parallel threads to run when backing up and 
-  restoring KV store data.
-* Default: 4
-
-max_backup_restore_jobs = <positive integer>
-* Specifies the number of jobs that can be queued at a given time on a thread 
-  that backs up and restores KV store data. Each job backs up and restores a 
-  single collection.
-* Default: 10
 
 defaultKVStoreType = local | cohosted
 * When set to "local", Splunk Enterprise uses a local KV store instance.
@@ -5530,13 +5482,6 @@ kvstoreUpgradeOnStartupDelay = <positive int>
   after Splunk software boots up.
 * Default: 60 seconds
 
-defaultCidrPrefixLength = <positive int>[0-32]|disabled
-* The default prefix length added to IPs without such prefix in CIDR match type
-  mode. 
-* When this setting is enabled it must have the inclusive range 0-32. 
-* Set this setting to "disabled" to explicitly turn it off.
-* Default: disabled
-
 ocspValidation = <boolean>
 * OCSP (Online Certificate Status Protocol) checks for certificate revocation.
 * A value of "true" means OSCP valication is turned on, which eliminates the 
@@ -5544,7 +5489,6 @@ ocspValidation = <boolean>
   restart the KV store.
 * A value of "false" means OSCP validation is turned off. You must periodically
   download a CRL and restart KV store.
-* Default: true
 
 
 ############################################################################
@@ -6332,13 +6276,15 @@ remote.s3.sslVerifyServerCert = <boolean>
 * Default: false
 
 remote.s3.sslVersions = <comma-separated list>
-* The list of TLS versions to use to connect to 'remote.s3.endpoint'.
-* The versions available are "tls1.0", "tls1.1", and "tls1.2".
+* Comma-separated list of SSL versions to connect to 'remote.s3.endpoint'.
+* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
 * The special version "*" selects all supported versions.  The version "tls"
   selects all versions tls1.0 or newer.
 * If a version is prefixed with "-" it is removed from the list.
-* SSL versions 2 and 3 are always disabled. "-ssl2" and "-ssl3" are accepted 
-  as values in the version list, but have no effect.
+* SSLv2 is always disabled; "-ssl2" is accepted in the version list
+  but does nothing.
+* When configured in FIPS mode, ssl3 is always disabled regardless
+  of this configuration.
 * Optional.
 * Default: tls1.2
 
@@ -6462,27 +6408,6 @@ remote.s3.kms.<ssl_settings> = <...>
   sslAltNameToCheck, sslCommonNameToCheck, cipherSuite, ecdhCurves and dhFile.
 * All of these are optional and fall back to same defaults as
   the 'remote.s3.<ssl_settings>'.
-
-############################################################################
-# S3 Client Thread Pools
-############################################################################
-[s3_client_threads]
-pool_size = <positive integer> | per_client
-* Thread pool size for asynchronous S3 client transactions.
-* If a positive integer value is specified, a single thread pool is shared
-  among internal components that use the S3 client.
-* If the "per_client" value is specified, the thread pool size for each
-  component is set in the [s3_client_threads:<component>] stanza.
-* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
-* Default: 1
-
-[s3_client_threads:<component>]
-pool_size = <positive integer>
-* Thread pool size for asynchronous S3 client transactions
-  for a particular internal Splunk component.
-* This setting takes effect only if the 'pool_size' setting in the
-  [s3_client_threads] stanza is set to "per_client".
-* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 
 
 [hot_bucket_streaming]
@@ -6674,27 +6599,10 @@ disabled = <boolean>
 * A value of "false" means splunkd launches the teleport supervisor process.
 * Default: false
 
-enable_splunk_spotlight = <boolean>
-* Whether or not to start the Splunk spotlight Open Telemetry (OTel) collector
-  to collect metrics from packages.
-* A value of "true" means the Splunk spotlight OTel collector is turned
-  on and collects metrics from packages.
-* A value of "false" means the Splunk spotlight OTel collector is turned off
-  and packages metrics are not collected.
-* Default: true
-
-enable_supervisor_admin_api = <boolean>
-* Whether or not the supervisor enables the admin API endpoints,
-  which provide information about supervised packages.
-* You must restart Splunk software after you make changes to this setting.
-* A value of "true" means the admin API endpoints are enabled by the supervisor.
-* A value of "false" means the admin API endpoints are disabled by the supervisor.
-* Default: true
-
 [localProxy]
 allocated_max_threads_percentage = <integer>
 * Specifies the percentage of maxThreads that can be allocated to 
-  service "local-proxy" and "ws-local-proxy" REST endpoint requests.
+  service "local-proxy" REST endpoint requests.
 * The maximum accepted value for this setting is "90".
 * The minimum accepted value for this setting is "1".
 * Default: 20
@@ -6710,16 +6618,6 @@ response_timeout_ms = <decimal>
 * CAUTION: Setting this to a value close to the upper bound might delay
   cleaning up unresponsive sessions.
 * Default: 600000 (10 minutes)
-
-[localWebSocketProxy]
-disabled = <boolean>
-* Determines whether splunkd is able to proxy WebSocket requests to a
-  local WebSocket server.
-* A value of "false" means splunkd is able to proxy WebSocket requests
-  to a local WebSocket server.
-* A value of "true" means splunkd is not able to proxy WebSocket requests
-  to a local WebSocket server.
-* Default: false
 
 [spl2]
 run_as_owner_enabled = <boolean>
@@ -6742,6 +6640,9 @@ disabled = <boolean>
 * The Splunk platform ignores this setting if the 'shclustering' setting
   has a value of "true". This means that the Version Control feature is
   disabled on search head clusters.
+* The Splunk platform also ignores this setting if the 'SPLUNK_FIPS' setting
+  has a value of "1". This means that the Version Control feature is
+  disabled when the Splunk Enterprise instance runs in FIPS mode.
 * This setting is currently the only configuration setting of the
   Version Control feature that can be set to a true value and reloaded at
   runtime.
@@ -6751,119 +6652,3 @@ repoDir = <path>
 * The full path to the directory where the Version Control metadata is stored.
 * NOTE: Before you modify this setting, consult the Splunk support team.
 * Default: $SPLUNK_HOME/var/vcs
-
-############################################################################
-# PostgreSQL configuration
-############################################################################
-[postgres]
-disabled = <boolean>
-* Determines whether or not PostgresSQL is disabled.
-* Default: false
-
-enable_clustered_mode = <boolean>
-* This setting turns a clustered PostgreSQL deployment on or off for search head clusters (SHC).
-* Default: false
-
-############################################################################
-# Inter-process Communication (IPC) Broker configuration
-############################################################################
-[ipc_broker]
-port = <integer>
-* The TCP/IP network port that the IPC broker process uses to serve incoming requests.
-* Required. If you do not configure this setting, the IPC broker can't
-  provide its service and IPC functionality will not work.
-* The lowest valid value is 1025 and the highest is 65535.
-* Default: 8194
-
-<splunkd_helper_process_name>:<service_name>:address = <value>
-* Splunkd helper process settings that define IPC address for a specific service within
-* the splunkd helper process. The helper process will use this address to receive and handle
-* incoming requests.
-* The name for this setting varies depending on the name of the helper
-  process and the service name for which you want to configure an IPC address.
-* Use the key portion of this key-value pair to specify settings for a specific
-  service within a helper process for splunkd.
-  * The name of the helper process goes before the first colon and the service name
-    within that process goes after the first colon.
-* Use the value portion to specify the IPC address that the splunkd
-  helper process uses to serve incoming requests.
-  * The IPC address can be either a TCP/IP network port or a Unix Domain
-    Sockets (UDS) socket path.
-  * If you specify a TCP/IP network port in the value portion, the lowest valid value
-    is 1024 and the highest is 65535.
-* No default.
-
-
-############################################################################
-# Data Management configuration
-############################################################################
-[data_management]
-edge_processor_enabled = <boolean>
-* Specifies whether or not the Edge Processor solution is enabled or disabled. The Edge Processor solution is disabled by default.
-* Default: false
-
-otel_collector_management_enabled = <boolean>
-* Specifies whether or not the management of 
-  Open Telemetry Collectors is enabled.
-* If you modify this setting, you must restart Splunk software.
-* Default: false
-
-############################################################################
-# Open Agent Management Protocol (OpAMP) configuration
-############################################################################
-* This configuration is served by the OpAMP server and is used to determine
-  which packages need to be downloaded and installed onto the remote host
-  during edge processor installation.
-
-[opamp_binary_edge]
-* NOTE: Do not change settings in this stanza unless instructed to do so by Splunk Support.
-
-name = <string>
-* The name of the opamp_binary_edge file to be installed onto a remote host.
-* This file is the edge processor binary.
-* Default: not set
-
-url = <string>
-* The URL of the opamp_binary_edge file to be installed onto a remote host.
-* Do not include the host or protocol in the URL.
-* Example: url = servicesNS/-/splunk_pipeline_builders/dmx/packages/edge/1.5.2-74148061-25194506/linux-amd64/edge.tar.gz
-* Default: not set
-
-signature = <string>
-* The base64-encoded PGP signature of the opamp_binary_edge file
-  to be installed onto a remote host.
-* Encode the signature as a single line, base64-encoded string.
-  The signature will not work if it is not in this format.
-* Default: not set
-
-version = <positive integer>.<positive integer>.<positive integer>
-* The version of the opamp_binary_edge file to be installed onto a remote host.
-* The version should be in the format <major>.<minor>.<patch>
-* Default: not set
-
-[opamp_binary_splunk_edge]
-* NOTE: Do not change settings in this stanza unless instructed to do so by Splunk Support.
-
-name = <string>
-* The name of the opamp_binary_splunk_edge to be installed onto a remote host.
-* This file is a splunk supervisor which communicates with OpAMP server,
-  downloads and installs the edge processor binary.
-* Default: not set
-
-url = <string>
-* The URL of the opamp_binary_splunk_edge file to be installed onto a remote host.
-* Do not include the host or protocol in the URL.
-* Example: url = servicesNS/-/splunk_pipeline_builders/dmx/packages/splunksup/v0.1.301-fb5e0c5e-20250404t180911/linux-amd64/splunksup.tar.gz
-* Default: not set
-
-signature = <string>
-* The base64-encoded PGP signature of the opamp_binary_splunk_edge file
-  to be installed onto a remote host.
-* Encode the signature as a single line, base64-encoded string.
-  The signature will not work if it is not in this format.
-* Default: not set
-
-version = <positive integer>.<positive integer>.<positive integer>
-* The version of the opamp_binary_splunk_edge file to be installed onto a remote host.
-* The version should be in the format <major>.<minor>.<patch>
-* Default: not set

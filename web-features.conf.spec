@@ -1,4 +1,4 @@
-#   Version 10.0.0
+#   Version 9.4.4
 #
 ############################################################################
 # OVERVIEW
@@ -129,6 +129,12 @@ activate_downsampling = <boolean>
 * A value of "true" activates the downsampling of data in time series charts and charts with a strictly increasing numeric x-axis in Dashboard Studio.
 * Default: true
 
+enable_show_hide = <boolean>
+* Allows absolute "Show/Hide" panels in Dashboard Studio.
+* A value of "true" will allow "Show/Hide" panels in the editor of Dashboard Studio.
+* Do not modify this value.
+* Default: true
+
 activate_dsl_webworkers_for_visualizations = <boolean>
 * Uses WebWorkers for Dynamic Options Syntax execution to isolate from overall dashboard loading and performance.
 * A value of "true" means the WebWorkers are being used in Dashboard Studio.
@@ -176,40 +182,6 @@ activate_o11y_dashboards = <boolean>
 * Do not modify this value.
 * Default: true
 
-activate_o11y_service_graph = <boolean>
-* This setting turns on or off observability service graph visualization and data source functionality within Dashboard Studio.
-* A value of "true" means that Dashboard Studio can use service graph visualization and data source functionality.
-* A setup to connect with an instance of observability will still be required.
-* A value of "false" disables service graph visualization and data source functionality.
-* The setting will be removed without notice in a future release.
-* Do not modify this value.
-* Default: true
-
-activate_dashboard_publishing_and_view_without_login = <boolean>
-* This setting turns on or off the ability to publish dashboards that can be viewed without logging in.
-* A value of "true" means that Dashboard Studio dashboards can be published and then viewed with a unique URL without logging in.
-* The setting will be removed without notice in a future release.
-* Do not modify this value.
-* Default: true
-
-activate_link_to_dashboard_tab = <boolean>
-* This setting turns on or off the ability to link to a specific tab within a
-  Dashboard Studio dashboard by using the Link to dashboard interaction on a 
-  visualization or shape.
-* A value of "true" means that users can link to specific tabs within existing
-  Dashboard Studio dashboards by using the Link to dashboard interaction.
-* The setting will be removed without notice in a future release.
-* Default: true
-
-activate_save_to_dashboard_tab = <boolean>
-* This setting turns on or off the ability to save searches and reports to a
-  specific tab within a Dashboard Studio dashboard.
-* A value of "true" means that users can save searches and reports to specific
-  tabs within existing Dashboard Studio dashboards by using the Save to 
-  Existing Dashboard dialog box.
-* The setting will be removed without notice in a future release.
-* Default: true
-
 [feature:pdfgen]
 activate_chromium_legacy_export = <boolean>
 * Whether or not the Chromium web engine generates PDF exports for Simple XML dashboards, reports, and alerts.
@@ -254,20 +226,21 @@ enable_datasets_vnext = <boolean>
 * CAUTION: Do not change this setting.
 * Default: true
 
-enable_job_manager_vnext = <boolean>
-* Determines whether or not Splunk Web loads the new job manager page.
-* DEPRECATED.
-* A value of "true" means that Splunk Web does load the new job manager page.
-* Do not modify this value.
-* Default: true
-
 enable_authoverview_vnext = <boolean>
 * Whether or not Splunk Web loads the updated authentication methods page that
   uses the React JavaScript library.
-* A value of "true" means that Splunk Web loads the updated authentication methods
+* A value of "true" means that Splunk Web loads the updated authentication methods 
   page that uses the React JavaScript library.
 * A value of "false" means that Splunk Web loads the existing authentication methods
   page.
+* Default: true
+
+enable_react_users_page = <boolean>
+* Whether or not Splunk Web loads the "Users" page that uses the React JavaScript library.
+* A value of "true" means that Splunk Web loads the "Users" page
+  implemented with the React library instead of the Backbone library.
+* A value of "false" means that Splunk Web loads the page that uses the existing Backbone
+  library.
 * Default: true
 
 enable_password_management_page_vnext = <boolean>
@@ -305,11 +278,11 @@ enable_authorization_tokens_vnext = <boolean>
   Backbone library.
 
 enable_duo_mfa_vnext = <boolean>
-* Determines whether Splunk Web loads the updated "Duo-MFA" configuration
+* Determines whether Splunk Web loads the updated "Duo-MFA" configuration 
   page that uses the React JavaScript library.
 * A value of "true" means that Splunk Web loads the "Duo-MFA" page
   implemented with the React library instead of the XML implementation.
-* A value of "false" means that Splunk Web loads the page that uses the
+* A value of "false" means that Splunk Web loads the page that uses the 
   existing XML implementation.
 * Default: true
 
@@ -333,31 +306,9 @@ enable_authentication_users_vnext = <boolean>
 
 enable_reports_vnext = <boolean>
 * Determines whether or not Splunk Web loads the new reports page.
-* DEPRECATED.
 * A value of "true" means that Splunk Web does load the new reports page.
 * Do not modify this value.
 * Default: true
-
-enable_alerts_vnext = <boolean>
-* DEPRECATED. This setting has been deprecated and has no effect.
-
-enable_admin_alert_actions_vnext = <boolean>
-* Determines whether or not Splunk Web loads the "Email Settings" page that uses
-  the React JavaScript library.
-* A value of "true" means that Splunk Web loads the modernized "Email Settings" page
-  implemented with the React library instead of with Python and XML.
-* A value of "false" means that Splunk Web loads the page that uses the existing
-  Python and XML solution.
-
-enable_saml_vnext = <boolean>
-* Whether or not Splunk Web loads the updated "SAML" page that uses the
-  React JavaScript library.
-* A value of "true" means that Splunk Web loads the "SAML" page
-  implemented with the React library instead of the Backbone library.
-* A value of "false" means that Splunk Web loads the page that uses the existing
-  Backbone library.
-* Default: true
-
 
 [feature:dashboard_inputs_localization]
 
@@ -416,13 +367,10 @@ bypass_app_bar_performance_optimizations_apps = <comma separated list>
 * A value of "splunk_monitoring_console,search" means that Splunk Web will not optimize performance when generating the app bar for the splunk_monitoring_console and search apps.
 * Default: ""
 
-enable_search_bar_performance_optimizations = <boolean>
-* DEPRECATED.
-* Determines whether Splunk Web optimizes search bar load time when it loads
-  the search page.
-* A value of "false" means that Splunk Web does not optimize search bar load
-  time when it loads the search page.
-* CAUTION: Do not change this setting.
+enable_app_bar_caching = <boolean>
+# Splunk Web will cache the app bar to optimize performance when generating the app bar.
+# CAUTION: Do not change this setting.
+* A value of "false" means that Splunk Web will not cache the app bar and not optimize performance when generating the app bar.
 * Default: true
 
 enable_saved_search_pageload_optimization = <boolean>
@@ -475,9 +423,9 @@ enabled = <boolean>
 
 enable_system_namespace_redirection = <boolean>
 * Determines whether or not Splunk Web redirects pages with the system app namespace.
-* A value of "true" means that Splunk Web redirects pages with the system app
+* A value of "true" means that Splunk Web redirects pages with the system app 
   namespace.
-* A value of "false" means that Splunk Web does not redirect pages with the
+* A value of "false" means that Splunk Web does not redirect pages with the 
   system app namespace.
 * CAUTION: Do not change this setting.
 * Default: true
@@ -486,11 +434,11 @@ enable_system_namespace_redirection = <boolean>
 
 [feature:appserver]
 
-python.version = latest|python3.9
-* DEPRECATED.
-* A value of "latest" means that the app server uses the latest
-  version of Python that is available in the release.
-* CAUTION: Do not change this setting.
+python.version = <string>
+* Determines whether the appserver uses Python 3.9 or Python 3.7.
+* A value of "python3.9" means that the appserver uses Python 3.9.
+* A value of "python3.7" means that the appserver uses Python 3.7.
+* A value of "latest" means that the appserver uses latest version of Python available in the release.
 * Default: latest
 
 [feature:federated_search]
@@ -502,20 +450,5 @@ enable_ipv6_validations = <boolean>
 * A value of "false" means that Splunk Web accepts only IPv4 addresses
   and CIDR ranges in address input forms, and rejects IPv6 addresses
   and CIDR ranges.
-* Default: true
-
-
-
-[feature:knowledge_object_favorites]
-enable_dashboards_favorites = <boolean>
-* Determines whether users can favorite dashboards.
-* A value of "true" means users can favorite or unfavorite dashboards.
-* A value of "false" means users cannot favorite or unfavorite dashboards.
-* Default: true
-
-enable_reports_favorites = <boolean>
-* Determines whether users can favorite reports.
-* A value of "true" means users can favorite or unfavorite reports.
-* A value of "false" means users cannot favorite or unfavorite reports.
 * Default: true
 

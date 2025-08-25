@@ -1,4 +1,4 @@
-#   Version 10.0.0
+#   Version 9.4.4
 #
 # This file sets the default thresholds for Splunk Enterprise's built
 # in Health Report.
@@ -119,17 +119,6 @@ disabled = <boolean>
 * Whether or not the clustering feature health check is disabled.
 * A value of 1 disables the clustering feature health check.
 * Default: 0 (enabled)
-
-[data_management_health_reporter]
-disabled = <boolean>
-* Whether or not the health check for data management is disabled.
-* A value of 1 disables the health check for data management.
-* Default: 0 (enabled)
-
-health_report_period = <number>
-* The time interval, in seconds, between each execution
-  of the data management health report.
-* Default: 30
 
 [tree_view:health_subset]
 * Defines a tree view for health features.

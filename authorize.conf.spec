@@ -1,4 +1,4 @@
-#   Version 10.0.0
+#   Version 9.4.4
 #
 ############################################################################
 # OVERVIEW
@@ -51,7 +51,6 @@ srchFilterSelecting = <boolean>
     (sourcetype!=ex3 AND index=main)) AND ((sourcetype=ex2))
 * Default: true
 
-
 [capability::<capability>]
 * DO NOT edit, remove, or add capability stanzas. The existing capabilities
   are the full set of Splunk system capabilities.
@@ -64,7 +63,6 @@ srchFilterSelecting = <boolean>
   * edit_visualizations
   * view_license1
 * Descriptions of specific capabilities are listed below.
-
 
 [role_<roleName>]
 <capability> = <enabled>
@@ -281,32 +279,6 @@ srchMaxTime = <integer><unit>
 * Examples: 1h, 10m, 2hours, 2h, 2hrs, 100s
 * Default: 100days
 
-srchFederatedProvidersAllowed = <semicolon-separated list>
-* A list of transparent mode federated providers that this role has permission
-  to search.
-* This list can use wildcards ("*") to match multiple federated providers.
-* If a user does not have a role with a 'srchFederatedProvidersAllowed' value,
-  that user's searches go to all available transparent mode federated
-  providers.
-* No default.
-
-srchFederatedProvidersDefault = <semicolon-separated list>
-* The list of transparent mode federated providers that a search by this role
-  runs over.
-* This list can use wildcards ("*") to match multiple federated providers.
-* 'srchFederatedProvidersAllowed' overrides this setting. As a result, if for
-  this role you list a federated provider for 'srchFederatedProvidersDefault'
-  that is not also listed for 'srchFederatedProvidersAllowed', searches by this
-  user that do not list providers will not be sent to that federated provider.
-  * Therefore, as a best practice, ensure that all values of
-    'srchFederatedProvidersDefault' for a role are also present in
-    'srchFederatedProvidersAllowed' for that same role.
-* If a user has no 'srchFederatedProvidersDefault' values among their various
-  roles, and the user submits a search that does not specify a transparent-mode
-  federated provider, Splunk software sends the search to all available
-  transparent-mode federated providers.
-* No default.
-
 srchIndexesDefault = <semicolon-separated list>
 * A list of indexes to search when no index is specified.
 * These indexes can be wild-carded ("*"), with the exception that "*" does not
@@ -499,7 +471,6 @@ ephemeralExpiration = <relative-time-modifier>
 * For full access to listing users, roles, and capabilities, the user must also
   have or assign the 'list_all_users' capability.
 
-
 [capability::edit_tokens_settings]
 * Lets a user access all token auth settings in the system, such as turning the
   the feature on/off and system-wide expiration.
@@ -526,6 +497,16 @@ ephemeralExpiration = <relative-time-modifier>
 * NOTE: The 'delete' command does not actually delete the raw data on disk.
   Instead, it masks the data (via the index) from showing up in search results.
 
+[capability::edit_dispatch_as]
+* Lets a user change the value of the 'dispatchAs' setting for a
+  saved search to "user".
+* Without this capability, users can only create saved searches that
+  run in the context of the saved search owner.
+* NOTE: Assign this capability to roles for high-privileged users only. When
+  'dispatchAs' has a value of "user", searches run in the context of
+  the user who runs the search. A low-privileged user that
+  holds a role with this capability can potentially be a security risk.
+
 [capability::edit_messages]
 * Lets a user create and delete system messages that appear in the Splunk Web navigation bar.
 
@@ -542,17 +523,6 @@ ephemeralExpiration = <relative-time-modifier>
 
 [capability::edit_bookmarks_mc]
 * Lets a user add bookmark URLs within the Monitoring Console.
-
-[capability::edit_certificates]
-* Lets a user add, update, and remove certificate authority (CA) 
-  certificates from the Splunk platform configuration using the REST API.
-* Specifically, lets a user modify the value of the 'sslRootCAPath' setting
-  in specific stanzas within the server.conf, inputs.conf, outputs.conf,
-  and web.conf configuration files.
-
-[capability::list_certificates]
-* Lets a user display server and CA certificates for various parts of the Splunk
-  platform configuration, as well as the operating system certificate trust store.
 
 [capability::edit_deployment_client]
 * Lets a user edit the deployment client.
@@ -664,26 +634,6 @@ ephemeralExpiration = <relative-time-modifier>
 
         This configuration lets a user create roles using the subset of
         capabilities that the user has in their 'grantable_roles' setting.
-
-[capability::edit_saved_search]
-* Lets a user change the search string, description, earliest time, and latest time of a 
-  saved search without having explicit write permissions for the saved search.
-* To change these fields for any saved search regardless of the access control
-  list (ACL) on that search, the user must hold a role with the 'list_saved_searches' capability.
-* NOTE: Assign this capability in lieu of the 'admin_all_objects' capability
-  when you want to grant permission to edit the properties of a saved search.
-  Assign only to privileged roles.
-
-[capability::edit_saved_search_owner]
-* Lets a user change the owner of a saved search that is visible to the user.
-* To change the owner of any saved search regardless of the access control
-  list (ACL) on that search, the user must hold a role with the 'list_saved_searches' capability.
-* To let users change saved search owners in Splunk Web, combine this
-  capability with the 'list_all_users' capability.
-* NOTE: Assign this capability in lieu of the 'admin_all_objects' capability
-  when you want to grant permission to edit the owner of a saved search.
-  Assign only to privileged roles.
-
 
 [capability::edit_scripted]
 * Lets a user create and edit scripted inputs.
@@ -888,14 +838,6 @@ ephemeralExpiration = <relative-time-modifier>
 
 [capability::list_search_scheduler]
 * Lets a user list search scheduler settings.
-
-[capability::list_saved_searches]
-* Lets a user discover all of the saved searches on the instance.
-* Consequently, lets a user see any active user that owns and any app
-  that contains a saved search, regardless of the ACL permissions on
-  that search.
-* Assign this capability only to roles that you intend to assign to
-  high-privileged users.
 
 [capability::list_settings]
 * Lets a user list general server and introspection settings such as the server
@@ -1114,38 +1056,6 @@ ephemeralExpiration = <relative-time-modifier>
 * Lets a user write to the '/web-features' REST endpoint.
 
 [capability::edit_spl2_permissions]
-* Lets a user create and edit permissions to Search Processing Language version 2 (SPL2) items through the REST API.
-
-[capability::edit_published_dashboards]
-* Lets a user publish a dashboard, creating a unique URL that makes the dashboard viewable without
-  logging in.
-
-[capability::list_spl2_modules]
-* Lets a user read and list SPL2 modules.
-
-[capability::edit_spl2_modules]
-* Lets a user create, update and delete SPL2 modules.
-
-[capability::edit_spl2_datasets]
-* Lets a user create, update and delete datasets.
-
-[capability::run_spl2_search]
-* Lets a user run and stop searches that use SPL2.
-
-[capability::edit_data_management_edgeprocessor]
-* Lets a user manage edge processors.
-
-[capability::provision_data_management_agent]
-* Lets a user register data management agents.
-
-[capability::edit_data_management_agent]
-* Lets a user manage data management agents.
-
-[capability::list_data_management_otelcollector]
-* Lets a user view a list of managed Open Telemetry collectors and their
-  details, such as status and parameters.
-
-[capability::edit_data_management_otelcollector]
-* Lets a user edit a list of managed Open Telemetry collectors.
+* Lets a user create and edit permissions to SPL2 items through the REST API.
 
 

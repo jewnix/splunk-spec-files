@@ -1,4 +1,4 @@
-#   Version 10.0.0
+#   Version 9.4.4
 #
 ############################################################################
 # OVERVIEW
@@ -2347,14 +2347,16 @@ remote.s3.sslVerifyServerCert = <boolean>
 * Optional
 * Default: false
 
-remote.s3.sslVersions = <comma-separated list>
-* The list of TLS versions to use to connect to 'remote.s3.endpoint'.
-* The versions available are "tls1.0", "tls1.1", and "tls1.2".
+remote.s3.sslVersions = <versions_list>
+* Comma-separated list of SSL versions to connect to 'remote.s3.endpoint'.
+* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2".
 * The special version "*" selects all supported versions.  The version "tls"
   selects all versions tls1.0 or newer.
 * If a version is prefixed with "-" it is removed from the list.
-* SSL versions 2 and 3 are always disabled. "-ssl2" and "-ssl3" are accepted 
-  as values in the version list, but have no effect.
+* SSLv2 is always disabled; "-ssl2" is accepted in the version list
+  but does nothing.
+* When configured in FIPS mode, ssl3 is always disabled regardless
+  of this configuration.
 * Optional.
 * Default: tls1.2
 
@@ -2568,12 +2570,11 @@ federated.dataset = <string>
 * Identifies the dataset located on the federated providers.
 * The dataset takes a format of <prefix>:<remote_name>.
 * If the 'federated.provider' is a "splunk" type provider:
-  * <prefix> can be "index", "metricindex", "datamodel", "lastjob", or 
-    "savedsearch".
-  * <remote_name> is the name of an index, metric index, data model, load job 
-    or saved search, depending on the <prefix> value. The dataset must be 
-    defined on the remote search head. A saved search name can be provided as 
-    the <remote_name> for both the savedsearch and lastjob <prefix> options.
+  * <prefix> can be "index", "datamodel", "lastjob", or "savedsearch".
+  * <remote_name> is the name of an index, data model, or saved search,
+    depending on the <prefix> value. The dataset must be defined on the remote
+    search head. A saved search name can be provided as the <remote_name> for
+    both the savedsearch and lastjob <prefix> options.
 * If the 'federated.provider' is an "aws_s3" type provider:
   * <prefix> must be "aws_glue_table".
     * <remote_name> is the name of an AWS Glue Data Catalog table that is used
@@ -2736,7 +2737,7 @@ remote.gs.connectUsingIpVersion = auto|4-only|6-only
     * Otherwise, this defaults to "4-only"
 * Default: auto
 
-remote.gs.sslVersionsForClient = tls1.0|tls1.1|tls1.2
+remote.gs.sslVersionsForClient = ssl3|tls1.0|tls1.1|tls1.2
 * Defines the minimum ssl/tls version to use for outgoing connections.
 * Default: tls1.2
 
@@ -2853,7 +2854,7 @@ remote.azure.use_delimiter = <boolean>
   does not need to report similar objects.
 * Default: true
 
-remote.azure.sslVersions = tls1.0|tls1.1|tls1.2
+remote.azure.sslVersions = ssl3|tls1.0|tls1.1|tls1.2
 * Specifies the minimum SSL/TLS version to use for outgoing connections.
 * Default: tls1.2
 

@@ -1,4 +1,4 @@
-#   Version 10.0.0
+#   Version 9.4.4
 #
 # This file contains possible setting and value pairs for federated provider entries
 # for use when the federated search functionality is enabled.
@@ -184,25 +184,6 @@ controlCommandsFeatureEnabled = <boolean>
 * Change this setting only when directed to do so by Splunk Support.
 * Default: true
 
-allowLookupsToExistOnlyOnRshForStandardMode = <boolean>
-* Specifies where lookups can exist for standard mode federated searches.
-* When set to 'false', each lookup must be locally defined on the federated
-  search head and remotely defined on the remote search head.
-* When set to 'true', each lookup must be remotely defined on the remote search
-  head.
-* Change this setting only when directed to do so by Splunk Support.
-* Default: true
-
-allowedAndDefaultFederatedProvidersEnabled = <boolean>
-* Specifies whether the RBAC for transparent mode federated providers that is 
-  defined by 'srchFederatedProvidersAllowed' and 
-  'srchFederatedProvidersDefault' in authorize.conf is applied to federated 
-  searches run by users on this Splunk platform deployment.
-* When set to 'true', those settings are applied to all federated searches for 
-  all roles.
-* Change this setting only when directed to do so by Splunk Support.
-* Default: true
-
 previewOnRshEnabled = <boolean>
 * Specifies whether search preview is activated on remote search heads when 
   they process federated searches.
@@ -302,16 +283,6 @@ max_preview_generation_inputcount = <unsigned integer>
 * A setting of "0" means that the preview generation input count of federated 
   searches is unlimited. 
 * Default: 0
-
-s2s_standard_mode_local_only_commands = <comma-separated list>
-* Specifies search processing language (SPL) commands that, in standard mode
-  federated searches, must be processed only on the local search head, and not
-  on the remote search head.
-  * When a command on this list is used in a standard mode federated search,
-    the command and all the commands that follow it in the search string are
-    processed only on the local search head.
-* Change this setting only when instructed to do so by Splunk Support.
-* Default: mcollect, outputlookup, sendalert, sendemail
 
 ############################################################################
 # Configs for blocking unsupported commands in Federated Search
@@ -620,23 +591,3 @@ rsh_min_version_onprem = <string>
   federated provider with a version lower than this setting, when the 'tstats' 
   search includes a 'FROM' clause.
 * Default: 9.1.0
-
-
-[s2s_unsupported_command:show_source]
-* This stanza controls whether Splunk software blocks the Show Source feature
-  on federated providers for Federated Search for Splunk.
-
-rsh_min_version_cloud = <string>
-* Specifies the minimal Splunk Cloud Platform version with full support for
-  Show Source in federated searches.
-* This setting blocks sending Show Source requests for any Splunk Cloud Platform
-  federated provider with a version lower than this setting.
-* Default: 10.0.2503.100
-
-
-rsh_min_version_onprem = <string>
-* Specifies the minimal Splunk Enterprise version with full support for
-  Show Source in federated searches.
-* This setting blocks sending Show Source requests for any Splunk Enterprise
-  federated provider with a version lower than this setting.
-* Default: 10.0.0

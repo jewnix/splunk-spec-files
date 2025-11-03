@@ -1800,11 +1800,13 @@ The package might be referenced either via a url or a local path.]]>
                 <title><![CDATA[Validates the cluster bundle, and optionally checks whether applying the bundle will initiate a peer restart. To check the status of the bundle validation, run 'show cluster-bundle-status' on the cluster manager.]]></title>
                 <optional>
                     <arg name="--check-restart"><![CDATA[Pass this optional argument to check whether applying the bundle will initiate a peer restart.]]></arg>
+                    <arg name="--validate-force-timeout"><![CDATA[Pass this optional argument to set the bundle validation timeout (in seconds). Once the timeout is reached, the cluster manager node will stop waiting for validation results from peers.]]></arg>
                 </optional>
                 <examples>
                         <ex><![CDATA['./splunk validate cluster-bundle']]></ex>
                         <ex><![CDATA['./splunk validate cluster-bundle -auth admin:changeme']]></ex>
                         <ex><![CDATA['./splunk validate cluster-bundle --check-restart -auth admin:changeme']]></ex>
+                        <ex><![CDATA['./splunk validate cluster-bundle --check-restart --validate-force-timeout 600 -auth admin:changeme']]></ex>
                 </examples>
             </help>
             <type>edit</type>

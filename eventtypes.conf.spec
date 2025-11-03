@@ -1,4 +1,4 @@
-#   Version 10.0.0
+#   Version 10.0.1
 #
 # This file contains descriptions of the settings that you can use to
 # configure event types and their properties.

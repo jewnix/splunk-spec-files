@@ -1,4 +1,4 @@
-#   Version 10.0.0
+#   Version 10.0.1
 
 # splunk-launch.conf contains values used at startup time, by the Splunk
 # command and by Windows services.

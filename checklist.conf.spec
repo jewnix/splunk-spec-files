@@ -1,4 +1,4 @@
-#   Version 10.0.0
+#   Version 10.0.1
 #
 # This file contains the set of attributes and values you can use to
 # configure checklist.conf to run health checks in Monitoring Console.

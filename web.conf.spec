@@ -1,4 +1,4 @@
-#   Version 10.0.0
+#   Version 10.0.1
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -75,8 +75,53 @@ splunkdConnectionTimeout = <integer>
 * Default: 30
 
 enableSplunkWebClientNetloc = <boolean>
-* Control if the Splunk Web client can override the client network location.
+* DEPRECATED. Use 'allowedSplunkWebClientNetlocList' and
+  'allowedSplunkWebClientSchemeList' instead.
+* Whether or not Splunk Web, as a client, can override the client
+  network location and connect to external Splunk daemons.
+* See the 'allowedSplunkWebClientNetlocList' setting for an
+  explanation of what a network location is.
 * Default: false
+
+allowedSplunkWebClientNetlocList = <comma-separated list>
+* A list of host names or IP network addresses and network ports that
+  Splunk Web, as a client, can use to connect to a Splunk daemon.
+* This set of names or addresses and ports are part of what is called
+  a network location, or netloc. Splunk Web uses these netlocs to
+  access Splunk daemons apart from the splunkd on the local instance. 
+* When you configure this setting along with the
+  'allowedSplunkWebClientSchemeList' setting, Splunk Web builds the 
+  list of netlocs that it can use to access external Splunk daemons.
+* For each netloc, specify the host name or IP address and
+  network port only. Do not include the scheme (the part before
+  the host name/IP address and port). 
+* Separate the name or IP address and port with a colon.
+  Then, separate each netloc with commas.
+* For example, the following configuration lets Splunk Web access
+  the Splunk daemons at https://198.51.100.0:8089 and
+  http://127.0.0.1:8888:
+  allowedSplunkWebClientNetlocList = 198.51.100.0:8089,127.0.0.1:8888
+  allowedSplunkWebClientSchemeList = http,https
+* CAUTION: Splunk Web expects to connect to a Splunk daemon when you
+  configure these settings. Undesirable results could occur if the
+  netloc is either down or not a Splunk daemon.
+* No default.
+
+allowedSplunkWebClientSchemeList = <comma-separated list>
+* A list of Uniform Resource Locator (URL) schemes that Splunk Web,
+  as a client, can use to build a netloc to which it can connect 
+  to the management port of an external Splunk daemon.
+* When you configure this setting along with the
+  'allowedSplunkWebClientNetlocList' setting, Splunk Web builds the 
+  list of netlocs that it can use to access Splunk daemons apart from
+  the local splunkd.
+* For this value, specify the acceptable netloc schemes only (the
+  part before the host name or IP address and network port.) Do not
+  include the host name or IP address and port.
+* See the 'allowedSplunkWebClientNetlocList' setting for examples on how to
+  use both settings to create netlocs.  
+* The only acceptable values for this setting are any of: file, http, https
+* No default.
 
 enableSplunkWebSSL = <boolean>
 * Toggle between http or https.

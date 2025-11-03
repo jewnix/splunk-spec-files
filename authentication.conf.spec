@@ -1,4 +1,4 @@
-#   Version 10.0.0
+#   Version 10.0.1
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.

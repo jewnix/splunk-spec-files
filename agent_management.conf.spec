@@ -1,4 +1,4 @@
-#   Version 10.0.0
+#   Version 10.0.1
 #
 ############################################################################
 # OVERVIEW
@@ -76,10 +76,13 @@ request_timeout = <string>
 * Default: 60s.
 
 connection_keep_alive = <string>
-* The maximum amount of time an idle connection made by the Agent Manager to splunkd remains idle before closing.
+* The maximum amount of time an idle connection made by the
+  Agent Manager to splunkd remains idle before closing.
+* This value must be set lower than the 'busyKeepAliveIdleTimeout'
+  setting in server.conf, '[httpServer]' stanza.
 * Valid values are numbers followed by a time unit.
-* Valid time units are "ms", "s", "m", "h".
-* Default: 5m.
+* Valid time units are "ms", "s", "m", and "h".
+* Default: 11s
 
 [settings_sync]
 * The Agent Management helper process settings for the settings synchronization subsystem.

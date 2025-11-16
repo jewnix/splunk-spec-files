@@ -1,4 +1,4 @@
-#   Version 10.0.1
+#   Version 10.0.2
 #
 # This file contains possible setting and value pairs for federated provider entries
 # for use when the federated search functionality is enabled.
@@ -203,6 +203,90 @@ allowedAndDefaultFederatedProvidersEnabled = <boolean>
 * Change this setting only when directed to do so by Splunk Support.
 * Default: true
 
+allowAstProjectionElim = <boolean>
+* Controls whether Splunk software enables projection elimination
+  optimization on the federated search head.
+* A value of "true" means that Splunk software enables projection
+  elimination optimization.
+* A value of "false" means that Splunk software does not enable
+  projection elimination optimization.
+* For more information, search for 'search_optimization::projection_elimination'
+  in the limits.conf.spec file.
+* CAUTION: Change this setting only when Splunk Support directs you to do so.
+* Default: false
+
+allowAstPredicateMerge = <boolean>
+* Controls whether Splunk software enables predicate merge optimization
+  on the federated search head.
+* A value of "true" means that Splunk software enables predicate merge
+  optimization.
+* A value of "false" means that Splunk software does not enable predicate
+  merge optimization.
+* For more information, search for 'search_optimization::predicate_merge'
+  in the limits.conf.spec file.
+* CAUTION: Change this setting only when Splunk Support directs you to do so.
+* Default: false
+
+allowAstInsertRedistributeCommand = <boolean>
+* Controls whether Splunk software enables a search language optimization
+  that inserts a 'redistribute' command on the federated search head.
+* A value of "true" means that Splunk software enables this optimization.
+* A value of "false" means that Splunk software does not enable this
+  optimization.
+* For more information, search for 
+  'search_optimization::insert_redistribute_command' in the limits.conf.spec 
+  file.
+* CAUTION: Change this setting only when Splunk Support directs you to do so.
+* Default: false
+
+allowAstReplaceChartCmdsWithTstats = <boolean>
+* Controls whether Splunk software enables chart replacement with 'tstats'
+  optimization on the federated search head.
+* A value of "true" means that Splunk software enables this optimization.
+* A value of "false" means that Splunk software does not enable this
+  optimization.
+* For more information, search for 
+  'search_optimization::replace_chart_cmds_with_tstats' in the 
+  limits.conf.spec file.
+* CAUTION: Change this setting only when Splunk Support directs you to do so.
+* Default: false
+
+allowAstReplaceDatamodelStatsCmdsWithTstats = <boolean>
+* Controls whether Splunk software enables a search language optimization
+  that replaces 'stats' commands with 'tstats' commands in '| datamodel ..
+  | stats' and '| from datamodel .. | stats' Search Processing Language
+  (SPL) strings.
+* A value of "true" means that Splunk software enables this optimization.
+* A value of "false" means that Splunk software does not enable this
+  optimization.
+* For more information, search for 
+  'search_optimization::replace_datamodel_stats_cmds_with_tstats' in the 
+  limits.conf.spec file.
+* CAUTION: Change this setting only when Splunk Support directs you to do so.
+* Default: false
+
+allowAstReplaceTableWithFields = <boolean>
+* Controls whether Splunk software enables a search language optimization
+  that replaces the 'table' command with the 'fields' command on the federated 
+  search head.
+* A value of "true" means that Splunk software enables this optimization.
+* A value of "false" means that Splunk software does not enable this
+  optimization.
+* For more information, search for 
+  'search_optimization::replace_table_with_fields' in the 'limits.conf.spec' 
+  file.
+* CAUTION: Change this setting only when Splunk Support directs you to do so.
+* Default: false
+
+allowAstReplaceSdselectWithSdsql = <boolean>
+* Controls whether Splunk software enables the substitution of the
+  'sdselect' command with 'sdsql' on the federated search head.
+* A value of "true" means that Splunk software enables this substitution.
+* A value of "false" means that Splunk software does not enable this
+  substitution.
+* CAUTION: Change this setting only when Splunk Support directs you to do so.
+* Default: false
+
 previewOnRshEnabled = <boolean>
 * Specifies whether search preview is activated on remote search heads when 
   they process federated searches.
@@ -262,6 +346,19 @@ verbose_mode = <boolean>
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: true
 
+enable_streaming_optimization = <boolean>
+* Controls whether federated searches use pure streaming optimization.
+* A value of "false" means that federated searches do not use pure streaming
+  optimization. A federated search gets all matching events from the remote
+  search head and builds the timeline from these events.
+* A value of "true" means that if a search is a pure streaming search, Splunk
+  software optimizes the search to send just enough data to display events
+  and the timeline in the user interface.
+* This setting needs to be enabled only on federated search heads. Remote
+  search heads follow instructions from federated search heads.
+* NOTE: Do not change this setting unless Splunk Support instructs you to do so.
+* Default: false
+
 max_preview_generation_duration = <unsigned integer>
 * The maximum amount of time, in seconds, that the search head can spend to 
   generate search result previews.
@@ -302,6 +399,11 @@ max_preview_generation_inputcount = <unsigned integer>
 * A setting of "0" means that the preview generation input count of federated 
   searches is unlimited. 
 * Default: 0
+
+federated_search_remote_ttl = <unsigned integer>
+* The amount of time, in seconds, that Splunk software stores artifacts from
+  federated searches on the remote search head after those searches complete.
+* Default: 600 (10 minutes)
 
 s2s_standard_mode_local_only_commands = <comma-separated list>
 * Specifies search processing language (SPL) commands that, in standard mode

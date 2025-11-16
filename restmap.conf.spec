@@ -1,4 +1,4 @@
-# Version 10.0.1
+# Version 10.0.2
 #
 # This file contains possible attribute/value pairs for creating new
 # Representational State Transfer (REST) endpoints.
@@ -151,6 +151,50 @@ maxConcurrent = <positive integer>|unlimited
 * A value of "unlimited" means that there are no restrictions on the number of 
   client requests for this handler.
 * Default: unlimited
+
+max_content_length = <non-negative integer><unit>
+* The maximum size of the request body for a given REST
+  handler.
+* You can specify this limit in base-10 (for example, 1 KB
+  = 1000 bytes) or base-2 (1 KiB = 1024 bytes) format by
+  using the appropriate term as the <unit>. 
+* The limit affects all REST handlers that are specified for
+  a given endpoint. If you want to add a custom setting for
+  one or more handlers separately, you can add this setting
+  under a custom handler stanza. For example, if you have
+  the following existing stanza:
+
+    [admin:endpoint_group]
+     match = /mypath
+     capability = mycapability
+     members = subpath1, subpath2, subpath3
+     max_content_length = 100 KiB
+
+  and you want to set a different 'max_content_length' for a
+  specific member, you must add a separate, new stanza, with a
+  unique name, for the member whose 'max_content_length' you
+  want to change. You then add that member to the new stanza
+  and confirm that the member no longer exists in the old stanza.
+  You must also copy all other settings and values from the old
+  stanza to the new one:
+
+    [admin:endpoint_group]
+     match = /mypath
+     capability = mycapability
+     members = subpath2, subpath3
+     max_content_length = 100 KiB
+
+    [admin:endpoint_my_new_group]
+     match = /mypath
+     members = subpath1
+     capability = mycapability
+     max_content_length = 1 GB
+
+  In this example, the subpath1 member has its 'max_content_length'
+  increased to 1 gigabyte while the subpath2 and subpath3 members
+  retain a 'max_content_length' of 100 kibibytes.
+* This setting is optional.
+* Default: The value of 'server.conf:[httpServer]/max_content_length'
 
 [script:<uniqueName>]
 * Per-endpoint stanza.

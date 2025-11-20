@@ -1,4 +1,4 @@
-#   Version 10.0.1
+#   Version 10.0.2
 #
 ############################################################################
 # OVERVIEW
@@ -2467,6 +2467,11 @@ enforce_auto_lookup_order = <boolean>
 * true: LOOKUP-<name>s in props.conf are looked up in ASCII order by <name>.
 * false: LOOKUP-<name>s in props.conf are looked up in random order.
 * Default : false
+
+indexed_csv_include_underscore_key_field = <boolean>
+* Determines whether Splunk software indexes the _key field during CSV lookup indexing.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: true
 
 
 [metadata]

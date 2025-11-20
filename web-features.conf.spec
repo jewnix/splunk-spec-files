@@ -1,4 +1,4 @@
-#   Version 10.0.1
+#   Version 10.0.2
 #
 ############################################################################
 # OVERVIEW
@@ -434,6 +434,17 @@ enable_saved_search_pageload_optimization = <boolean>
 * A value of "false" means that Splunk Web does not optimize the
   fetching of details for saved searches.
 * CAUTION: Do not change this setting.
+* Default: true
+
+enable_messages_list_performance_optimizations = <boolean>
+* DEPRECATED.
+* Determines whether Splunk Web optimizes rendering the messages list when it
+  loads some Splunk Web pages.
+* A value of "true" means that Splunk Web optimizes rendering the messages
+  list when it loads some Splunk Web pages.
+* A value of "false" means that Splunk Web does not optimize rendering the
+  messages list when it loads some Splunk Web pages.
+* Do not change this setting.
 * Default: true
 
 [feature:spotlight_search]

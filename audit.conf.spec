@@ -27,13 +27,3 @@ queueing = <boolean>
   audit log for the events reach your index.
 * Default: true
 
-logging_format = legacy | buttercup | both
-* Defines which audit log formats will be available.
-* If set to "legacy", audit events are sent in the legacy format with
-  unchanged 'Audit:[...]' and fields.
-* If set to "buttercup", audit events are sent in a new JSONL format with
-  enriched metadata.
-* If set to "both", both audit events are produced. Use this setting when
-  transitioning from "legacy" to "buttercup".
-* Default: legacy
-

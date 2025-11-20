@@ -728,6 +728,18 @@ signedAssertion = <boolean>
 * This setting is optional.
 * Default: true
 
+signatureRawPubKey = <boolean>
+* Whether or not the signatures in the SAML response that the Splunk platform
+  sends to a SAML identity provider (IdP) contain a KeyValue element that
+  contains the raw public key.
+* The Splunk platform populates this field during SAML configuration,
+  and can send it as part of any assertion to the SAML IdP.
+* For security reasons, if the IdP supports it, the Splunk platform should not
+  supply this value. However, if the IdP does require the value to complete the
+  authentication request, give this setting a value of "true".
+* This setting is optional.
+* Default: false
+
 attributeQuerySoapPassword = <password>
 * The password to be used when making an attribute query request.
 * Attribute query requests are made using SOAP using basic authentication

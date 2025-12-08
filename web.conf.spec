@@ -1,4 +1,4 @@
-#   Version 10.0.2
+#   Version 9.4.7
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -39,18 +39,7 @@ mgmtHostPort = <string>
 * Don't include "http[s]://" when specifying this setting. Only
   include the IP address and port.
 * Default (on universal forwarders): localhost:8089
-* Default (on all other Splunk platform instance types): 0.0.0.0:8089
-
-proxyHostPort = <string>
-* The URL through which agents can contact the Splunk daemon
-  when using Data Management. 
-* These agents use the value for this setting to connect to
-  splunkd to receive package and pipeline updates as part of
-  Edge Processor.
-* When you specify this setting, include the scheme, host name,
-  and network port.
-* Example: https://198.51.100.0:8089
-* No default.
+* Default (on all other Splunk platform instance types): 0.0.0.0:8089 
 
 appServerPorts = <positive integer>[, <positive integer>, <positive integer> ...]
 * Port number(s) for the python-based application server to listen on.
@@ -152,7 +141,7 @@ sslPassword = <password>
   on splunkd server. In [sslConfig] stanza of server.conf,
   'requireClientCert' must be 'false'.
 * Optional.
-* Default: password
+* Default: The unencrypted private key.
 
 caCertPath = <path>
 * DEPRECATED.
@@ -293,13 +282,14 @@ login_content = <string>
 * No default.
 
 sslVersions = <comma-separated list>
-* The list of TLS versions to support.
-* The versions available are "tls1.0", "tls1.1", and "tls1.2"
+* A comma-separated list of SSL versions to support.
+* The versions available are "ssl3", "tls1.0", "tls1.1", and "tls1.2"
 * The special version "*" selects all supported versions. The version "tls"
   selects all versions tls1.0 or newer
 * If you prefix a version with "-", it is removed from the list.
-* SSL versions 2 and 3 are always disabled. "-ssl2" and "-ssl3" are accepted 
-  as values in the version list, but have no effect.
+* SSLv2 is always disabled; "-ssl2" is accepted in the version list, but does nothing.
+* When configured in FIPS mode, "ssl3" is always disabled regardless
+  of this configuration.
 * For the default, see $SPLUNK_HOME/etc/system/default/web.conf.
 
 supportSSLV3Only = <boolean>
@@ -1530,21 +1520,6 @@ allowExternalRemote = <boolean>
 * Determines whether or not Splunk Web displays the "Automatic UI updates" menu item.
 * Default: false
 
-
-[admin_config_ui]
-* Set the options to control the display of additional dashboard 
-  configuration pages.
-* If you do not specify an entry for each setting, Splunk Web uses the
-  default value.
-
-dashboards_trusted_domains_list = <boolean>
-* Whether or not Splunk Web displays the Dashboards Trusted Domains 
-  List page.
-* A value of "true" means that Splunk Web displays the Dashboards Trusted 
-  Domains List page.
-* A value of "false" means that Splunk Web doesn't display the Dashboards 
-  Trusted Domains List page.
-* Default: true
 
 
 # Monitoring Console config

@@ -1,4 +1,4 @@
-# Version 10.0.2
+# Version 9.4.7
 #
 # This file contains possible attribute/value pairs for creating new
 # Representational State Transfer (REST) endpoints.
@@ -141,61 +141,6 @@ includeInAccessLog = <boolean>
 * If set to "false", requests do not appear in splunkd_access.log.
 * Default: true
 
-maxConcurrent = <positive integer>|unlimited
-* If the number of concurrent requests that a handler receives from 
-  users exceeds this limit, the handler returns HTTP 429 errors 
-  until the total request count drops below the limit again.
-* When 'maxConcurrent' is set, the response to the handler includes an HTTP 
-  Retry-After header that clients must honor before they call the handler again.
-* A single user can't exceed the number of requests set by 'maxConcurrent'.
-* A value of "unlimited" means that there are no restrictions on the number of 
-  client requests for this handler.
-* Default: unlimited
-
-max_content_length = <non-negative integer><unit>
-* The maximum size of the request body for a given REST
-  handler.
-* You can specify this limit in base-10 (for example, 1 KB
-  = 1000 bytes) or base-2 (1 KiB = 1024 bytes) format by
-  using the appropriate term as the <unit>. 
-* The limit affects all REST handlers that are specified for
-  a given endpoint. If you want to add a custom setting for
-  one or more handlers separately, you can add this setting
-  under a custom handler stanza. For example, if you have
-  the following existing stanza:
-
-    [admin:endpoint_group]
-     match = /mypath
-     capability = mycapability
-     members = subpath1, subpath2, subpath3
-     max_content_length = 100 KiB
-
-  and you want to set a different 'max_content_length' for a
-  specific member, you must add a separate, new stanza, with a
-  unique name, for the member whose 'max_content_length' you
-  want to change. You then add that member to the new stanza
-  and confirm that the member no longer exists in the old stanza.
-  You must also copy all other settings and values from the old
-  stanza to the new one:
-
-    [admin:endpoint_group]
-     match = /mypath
-     capability = mycapability
-     members = subpath2, subpath3
-     max_content_length = 100 KiB
-
-    [admin:endpoint_my_new_group]
-     match = /mypath
-     members = subpath1
-     capability = mycapability
-     max_content_length = 1 GB
-
-  In this example, the subpath1 member has its 'max_content_length'
-  increased to 1 gigabyte while the subpath2 and subpath3 members
-  retain a 'max_content_length' of 100 kibibytes.
-* This setting is optional.
-* Default: The value of 'server.conf:[httpServer]/max_content_length'
-
 [script:<uniqueName>]
 * Per-endpoint stanza.
 * Use this stanza to specify a handler and other handler-specific settings.
@@ -321,6 +266,14 @@ stream = <boolean>
   request to the driver as a field of the original request.
 * Only has effect if the 'scripttype' setting is set to "persist".
 * Default: false
+
+
+maxConcurrent = <integer>
+* Specifies the maximum number of concurrent requests that this handler accepts.
+* A value of "-1" means the handler accepts an unlimited number of concurrent requests.
+* If the handler receives more than the maximum number of concurrent requests, it returns HTTP 429 errors until the total request count returns below the limit.
+* Only has effect if the 'scripttype' setting is set to "python".
+* Default: -1
 
 [admin:<uniqueName>]
 * 'admin'

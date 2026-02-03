@@ -1,4 +1,4 @@
-#   Version 10.0.2
+#   Version 10.2.0
 #
 ############################################################################
 # OVERVIEW
@@ -1403,6 +1403,8 @@ passAuth = <string>
 * No default.
 
 python.version = [default|python|python2|python3|python3.7|python3.9|latest]
+* DEPRECATED. Use 'python.required' instead to specify which Python versions the
+  script supports.
 * For Python scripts only, selects which Python version to use.
 * Set to either "default" or "python" to use the system-wide default Python
   version.
@@ -1412,6 +1414,23 @@ python.version = [default|python|python2|python3|python3.7|python3.9|latest]
   supported. It is related to a feature that is still under development.
 * Optional.
 * Default: Not set; uses the system-wide Python version.
+
+python.required = <comma-separated list>
+* For Python scripts only, the versions of Python that the script supports.
+* This setting takes precedence over the 'python.version' setting if both
+  have values.
+* The Splunk platform selects the highest version of Python that is
+  available from the list that you provide.
+* The following values are supported:
+  * "3.9": The script supports Python version 3.9.
+  * "3.13": The script supports Python version 3.13.
+  * "latest": The script uses the latest Python interpreter available.
+    * Where possible, use a specific version string rather than "latest".
+    * NOTE: The "latest" value is an internal value that is related to
+      a feature that is still under development.
+* NOTE: Use this setting instead of the deprecated 'python.version' setting.
+* This setting is optional.
+* Default: Not set; uses 'python.version' if that setting has a value.
 
 queueSize = <integer>[KB|MB|GB]
 * The maximum size of the in-memory input queue.
@@ -1688,6 +1707,29 @@ backpressureState = [disabled|warn_at_80]
 * When you configure this setting, do not put its value within quotation marks.
 * CAUTION: Do not configure this setting without first contacting Splunk Support.
 * Default: disabled
+
+headerEnforcementMode = [off|warn|block]
+* How an HTTP Event Collector (HEC) input enforces load balancer cookie markers
+  for HEC indexer acknowledgment (ACK) enabled token requests.
+* The 'ackRequiredAnyCookie' setting defines the cookie markers
+  that the input looks for as part of enforcement.
+* A value of "off" means the input performs no enforcement.
+* A value of "warn" means that if the expected cookie markers are missing,
+  the input logs a warning, but still allows the request.
+* A value of "block" means that if the expected cookie markers are missing,
+  the input responds with an HTTP 400 (bad request) status code.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: off
+
+ackRequiredAnyCookie = <comma-separated list>
+* The cookie markers to search for in the "Cookie" request
+  header when validating acknowledgment (ACK)-enabled tokens.
+* Values for this setting are not case-sensitive.
+* If this setting has no value, the Splunk platform performs no enforcement,
+  which is equivalent to the behavior when 'headerEnforcementMode' has a
+  value of "off".
+* Example: AWSELB,AWSALB,AWSALBCORS,AWSELBCORS
+* Default: AWSELB,AWSALB,AWSALBCORS,AWSELBCORS
 
 dedicatedIoThreads = <non-negative integer>
 * The number of dedicated input/output threads in the event collector
@@ -2010,6 +2052,15 @@ maxEventSize = <positive integer>[KB|MB|GB]
 * HEC disregards and triggers a parsing error for events whose size is
   greater than 'maxEventSize'.
 * Default: 5MB
+
+maxMemoryUsagePct = <positive integer>
+* The maximum percentage of memory that the Splunk platform instance
+  can use to process HTTP inputs.
+* When the host-wide memory usage surpasses this threshold, the
+  instance rejects HTTP inputs with an HTTP error 503 Service Unavailable
+  code.
+* The maximum legal value is 100.
+* Default: 100
 
 
 route = [has_key|absent_key:<key>:<queueName>;...]
@@ -2842,6 +2893,22 @@ targetDc = <string>
 * Default: The DC that the local host used to connect to AD. The
   input binds to its root Distinguished Name (DN).
 
+adsUseSSL = <boolean>
+* Whether or not the Splunk platform instance uses TLS to
+  connect and bind to an Active Directory object for
+  authentication.
+* A value of "true" means that the instance uses the
+  ADS_USE_SSL flag when it attempts to bind to AD
+  objects.
+  * NOTE: For encrypted connections to work, you must have
+    the appropriate certificates in place. See the chapter
+    "Introduction to securing The Splunk Platform with TLS"
+    in the Securing Splunk Enterprise Manual in the Splunk
+    documentation for more information.
+* A value of "false" means that the instance does not attempt
+  to encrypt connections to bind to AD objects over TLS.
+* Default: false
+
 startingNode = <string>
 * Where in the Active Directory directory tree to start monitoring.
 * The user that you configure Splunk software to run as at
@@ -3358,11 +3425,12 @@ disabled = <boolean>
 * A value of "false" means the remote queue input is active. 
 * Default: false
 
-remote_queue.type = [sqs_smartbus|asq]
+remote_queue.type = [sqs_smartbus|asq|gcs_smartbus]
 * The remote queue type.
 * This type can be one of the following:
   * "sqs_smartbus" (Amazon Web Services (AWS) Simple Queue Service Smartbus)
   * "asq" (Azure Storage Queue (ASQ))
+  * "gcs_smartbus" (Google Publisher/Subscriber)
 * If you specify this setting, you must configure it with a valid
   value. If you do not, the remote queue that is associated with
   the 'remote.queue.<name>' stanza in which this setting is
@@ -3905,12 +3973,209 @@ remote_queue.asq.fail_threshold_for_dlq = <unsigned integer>
   is backed up in the dead letter queue smart store path.
 * Default: 5
 
+############################################################################
+# Google publisher/subscriber (Pub/Sub) smartbus specific settings
+############################################################################
+
+remote_queue.gcs_smartbus.project_id = <string>
+* The Google Cloud project ID where the Pub/Sub topic resides and
+  large message storage buckets are located.
+* This is required to authenticate and interact with the Pub/Sub API.
+* Default: not set
+
+remote_queue.gcs_smartbus.large_message_store.path = <string>
+* The path to the large message store.
+* Default: not set
+
+remote_queue.gcs_smartbus.credential_file = <string>
+* Specifies the credential file that is used for Pub/Sub and large
+  message storage authentication.
+* This file contains the service account credentials in JSON format.
+* The service account must have the following roles:
+  * Pub/Sub Publisher
+  * Pub/Sub Subscriber
+  * Storage Object Admin
+* This file must be located in $SPLUNK_HOME/etc/auth/
+* Example: credentials.json
+* No default
+
+remote_queue.gcs_smartbus.large_message_store.connectUsingIpVersion = auto|4-only|6-only
+* Controls whether Splunk software makes outbound connections to the
+  storage service using IPv4 or IPv6.
+* Connections to literal IPv4 or IPv6 addresses are unaffected by this
+  setting.
+* A value of "4-only" means that splunkd only attempts to connect to the
+  IPv4 address.
+* A value of "6-only" means that splunkd only attempts to connect to the
+  IPv6 address.
+* A value of "auto" means:
+  * If '[general]/listenOnIPv6' in server.conf has a value of "only",
+    this setting defaults to "6-only".
+  * Otherwise, this setting defaults to "4-only".
+* Default: auto
+
+remote_queue.gcs_smartbus.large_message_store.sslVersionsForClient = tls1.0|tls1.1|tls1.2
+remote_queue.gcs_smartbus.large_message_store.sslVersionsForClient = tls1.0|tls1.1|tls1.2
+* Defines the minimum SSL/TLS version to use for outgoing connections.
+* Default: tls1.2
+
+remote_queue.gcs_smartbus.large_message_store.sslVerifyServerCert = <boolean>
+* A value of "true" means that splunkd authenticates the certificate of
+  the services it connects to by using the configured Certificate
+  Authority (CA).
+* Default: false
+
+remote_queue.gcs_smartbus.large_message_store.sslVerifyServerName = <boolean>
+* Controls whether splunkd, as a client, performs a TLS hostname validation
+  check on an SSL certificate that it receives upon an initial connection
+  to a server.
+* A TLS hostname validation check ensures that a client communicates with
+  the correct server. This check prevents redirection to another server by a
+  machine-in-the-middle attack, where a malicious party inserts themselves
+  between the client and the target server and impersonates that server.
+  * Specifically, the validation check forces splunkd to verify that the
+    certificate that the server presents to the client has a Common Name
+    or Subject Alternate Name that matches the host name portion of the
+    URL that the client used to connect to the server.
+* For this setting to have any effect, the 'sslVerifyServerCert' setting
+  must have a value of "true". If 'sslVerifyServerCert' is set to "false",
+  TLS hostname validation is not possible because certificate verification
+  is not turned on.
+* A value of "true" for this setting means that splunkd performs a TLS
+  hostname validation check, verifying the server's name in the certificate.
+  If that check fails, Splunk software terminates the SSL handshake
+  immediately, which terminates the connection. Splunkd logs this failure
+  at the ERROR logging level.
+* A value of "false" for this setting means that splunkd does not perform
+  the TLS hostname validation check. If the server presents an otherwise valid
+  certificate, the client-to-server connection proceeds normally.
+* Default: false
+
+remote_queue.gcs_smartbus.large_message_store.sslRootCAPath = <path>
+* Full path to the Certificate Authority (CA) certificate PEM format file
+  that contains one or more certificates concatenated together. The server
+  certificate will be validated against the CAs present in this file.
+* Default: [sslConfig/caCertFile] in server.conf
+
+remote_queue.gcs_smartbus.large_message_store.cipherSuite = <cipher suite string>
+* Uses the specified cipher string for the SSL connection.
+* If this setting is not configured, splunkd uses the default cipher
+  string.
+* Default: TLSv1+HIGH:TLSv1.2+HIGH:@STRENGTH
+
+remote_queue.gcs_smartbus.large_message_store.encryption = gcp-sse-c|gcp-sse-kms|gcp-sse-gcp
+* The encryption scheme to use for index buckets while stored on Google
+  Cloud Storage (data-at-rest).
+* A value of "gcp-sse-c" maps to Google Cloud Platform (GCP)
+  customer-supplied encryption keys.
+* A value of "gcp-sse-kms" maps to GCP customer-managed encryption keys.
+* A value of "gcp-sse-gcp" maps to GCP Google-managed encryption keys.
+* Google Cloud always encrypts the incoming data on the server side.
+* For the "gcp-sse-kms" scheme, you must grant your Cloud Storage service
+  account permission to use your Cloud KMS key. For more details, search
+  for "Assigning a Cloud KMS key to a service account" on the Google Cloud
+  documentation site. To find your Cloud Storage service account, search
+  for "Getting the Cloud Storage service account".
+* Default: gcp-sse-gcp
+
+remote_queue.gcs_smartbus.large_message_store.gcp_kms.locations = <string>
+* Required if 'remote_queue.gcs_smartbus.large_message_store.encryption'
+  has a value of "gcp-sse-c" or "gcp-sse-kms".
+* Specifies the geographical regions where Key Management Service (KMS)
+  key rings and keys are stored for access.
+* Google Cloud offers three types of locations: regional locations such
+  as "us-central1", dual-regional locations such as "nam4", and
+  multi-regional locations such as "global" and "us". Search for "Cloud
+  KMS locations" on the Google Cloud documentation site for a complete
+  list.
+* For best performance, choose a key ring and a key in the same location
+  as the cloud stack.
+* No default.
+
+remote_queue.gcs_smartbus.large_message_store.gcp_kms.key_ring = <string>
+* Required if 'remote_queue.gcs_smartbus.large_message_store.encryption'
+  has a value of "gcp-sse-c" or "gcp-sse-kms".
+* Specifies the name of the key ring used for encryption when uploading
+  data to Google Cloud Storage.
+* In Google Cloud, a key ring is a grouping of keys for organizational
+  purposes. A key ring belongs to a Google Cloud Project and resides in a
+  specific location. Search for "key ring" on the Google Cloud
+  documentation site for more details.
+* No default.
+
+remote_queue.gcs_smartbus.large_message_store.gcp_kms.key = <string>
+* Required if 'remote_queue.gcs_smartbus.large_message_store.encryption'
+  has a value of "gcp-sse-c" or "gcp-sse-kms".
+* Specifies the name of the encryption key used for uploading data to
+  Google Cloud Storage.
+* No default.
+
+remote_queue.gcs_smartbus.large_message_store.encryption.gcp-sse-c.key_type = gcp_kms
+* Affects only the "gcp-sse-c" encryption scheme.
+* Identifies the mechanism the indexer uses to generate the key for
+  sending data to Google Cloud Storage.
+* The only valid value is "gcp_kms", which indicates Google Cloud Key
+  Management Service (GCP KMS).
+* You must also specify the following required Key Management Service (KMS)
+  settings:
+  * 'remote_queue.gcs_smartbus.large_message_store.gcp_kms.locations'
+  * 'remote_queue.gcs_smartbus.large_message_store.gcp_kms.key_ring'
+  * 'remote_queue.gcs_smartbus.large_message_store.gcp_kms.key'
+* If you do not specify these settings, the indexer cannot start while
+  it uses "gcp-sse-c" encryption.
+* Default: gcp_kms
+
+remote_queue.gcs_smartbus.large_message_store.encryption.gcp-sse-c.key_refresh_interval = <unsigned integer>
+* Specifies the interval, in seconds, for generating a new key that is
+  used for encrypting data uploaded to Google Cloud Storage.
+* Default: 86400
+
+remote_queue.gcs_smartbus.max_hold_time_option = <number><unit>
+* The maximum time that the publisher holds a message before it flushes
+  the message as part of Pub/Sub operations.
+* If you do not provide a <unit> for this setting value, the Splunk
+  platform assumes that the value is in seconds.
+* Example: 1m (1 minute), 30s (30 seconds), 50ms (50 milliseconds), 10 (10 seconds)
+* Default: 10ms
+
+remote_queue.gcs_smartbus.max_deadline_time_option = <number><unit>
+* The maximum amount of time that the subscriber can take to acknowledge a message.
+* If the subscriber does not acknowledge the message before this time, the message
+  becomes eligible for redelivery.
+* If you do not provide a <unit> for this setting value, the Splunk
+  platform assumes that the value is in seconds.
+* Example: 1m (1 minute), 30s (30 seconds), 50ms (50 milliseconds), 10 (10 seconds)
+* Default: 600
+
+remote_queue.gcs_smartbus.max_outstanding_messages_option = <integer>
+* The maximum number of outstanding messages for the subscriber.
+* Default: 0 (unlimited)
+
+remote_queue.gcs_smartbus.max_concurrency_option = <integer>
+* The maximum number of gcs_smartbus Pub/Sub operations that can
+  occur at the same time.
+* Default: 4
+
+remote_queue.gcs_smartbus.dead_letter_queue.name = <string>
+* The name of the subscription to the dead letter queue.
+* Google Cloud Services Pub/Sub delivers messages that subscribers can't acknowledge
+  after multiple attempts to the dead-letter queue.
+
+remote_queue.gcs_smartbus.dead_letter_queue.process_interval = <number><unit>
+* The interval between processing of messages that have landed in the dead letter queue.
+* If you do not provide a <unit> for this setting value, the Splunk
+  platform assumes that the value is in seconds.
+* Examples: 30s, 6h
+* Default: 1d
+
 
 ############################################################################
 # Modular Inputs
 ############################################################################
 
 python.version = [default|python|python2|python3|python3.7|python3.9|latest]
+* DEPRECATED. Use 'python.required' instead to specify which Python versions the
+  script supports.
 * For Python scripts only, selects which Python version to use.
 * Either "default" or "python" select the system-wide default Python version.
 * Set to "python3" or "python3.7" to use the Python 3.7 version.
@@ -3919,6 +4184,63 @@ python.version = [default|python|python2|python3|python3.7|python3.9|latest]
   supported. It is related to a feature that is still under development.
 * Optional.
 * Default: Not set; uses the system-wide Python version.
+
+python.required = <comma-separated list>
+* For Python scripts only, the versions of Python that the script supports.
+* This setting takes precedence over the 'python.version' setting if both
+  have values.
+* The Splunk platform selects the highest version of Python that is
+  available from the list that you provide.
+* The following values are supported:
+  * "3.9": The script supports Python version 3.9.
+  * "3.13": The script supports Python version 3.13.
+  * "latest": The script uses the latest Python interpreter available.
+    * NOTE: The "latest" value is an internal value that is related to
+      a feature that is still under development. Where possible, use
+      a specific version string rather than "latest".
+* Splunk software runs modular input scripts in two phases: introspection
+  and runtime. It uses the following algorithm to select which interpreter
+  to use.
+  * During the introspection phase:
+    * If the stanza that defines the scheme of the input also defines
+      'python.required', Splunk software uses that version of the 
+      interpreter for introspection.
+    * Otherwise, it evaluates configuration stanzas for the input that
+      have been turned on.
+      * It ignores any configuration stanzas that have been turned off
+        with 'disabled = true'.
+      * For stanzas that are turned on, the software chooses the highest
+        version of the interpreter that any of the stanzas define with
+        'python.required'.
+      * Turning stanzas on and off can potentially change which interpreter
+        Splunk software uses if they define 'python.required'.
+    * If neither stanza class defines 'python.required', then Splunk software
+      uses 'python.version' if those stanza classes define it, or the default for
+      'python.version' if they do not.
+  * During the runtime phase:
+    * If the modular input runs as one script instance per stanza, Splunk
+      software uses the following logic to determine the interpreter to use.
+      * If the configuration stanza defines 'python.required', Splunk software
+        uses the interpreter version specified by the configuration stanza.
+      * If the configuration stanza does not define 'python.required' but its
+        scheme stanza does, Splunk software uses the interpreter version
+        specified by the scheme stanza.
+      * If neither the configuration stanza nor the scheme stanza defines
+        'python.required', Splunk software uses the 'python.version' value.
+    * If the modular input runs as a single script instance for all stanzas,
+      Splunk software selects the interpreter version from the scheme stanza only.
+      As there is only one process, there is no support for per-stanza overrides.
+      * If the scheme stanza defines 'python.required', Splunk software uses the
+        interpreter version specified by the scheme stanza.
+      * If the scheme stanza does not define 'python.required', Splunk software
+        uses the 'python.version' value.
+  * Best practice: Configure a single 'python.required' value for a
+    modular input scheme. If different stanzas for the input specify
+    different Python requirements, the interpreter Splunk software uses
+    for the introspection and runtime phases might be inconsistent.
+* NOTE: Use this setting instead of the deprecated 'python.version' setting.
+* This setting is optional.
+* Default: Not set.
 
 run_introspection = <boolean>
 * Whether or not Splunk software runs introspection on a modular input
@@ -3941,6 +4263,7 @@ run_introspection = <boolean>
   [myScheme]
   run_introspection = false
 * Default: true
+
 
 ###############################
 # LOGD (logd input for macOS)
@@ -4098,4 +4421,5 @@ journalctl-quiet = <boolean>
 
 journalctl-freetext = <string>
 * reserved for future use
+
 

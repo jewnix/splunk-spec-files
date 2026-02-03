@@ -1,4 +1,4 @@
-#   Version 10.0.2
+#   Version 10.2.0
 #
 ############################################################################
 # OVERVIEW
@@ -40,30 +40,34 @@
 #   * If an attribute is defined at both the global level and in a specific
 #     stanza, the value in the specific stanza takes precedence.
 
-[<field name>|sourcetype::<sourcetype>::<wildcard expression>]
-* The name of the field that you are configuring. This can be a simple field name,
-  or it can be a wildcard expression that is scoped to a source type.
+[<field name>|<metadata>::<metadata_name>::<wildcard expression>]
+* The name of the field that you are configuring. This can be a simple
+  field name, or it can be a wildcard expression that is scoped to 
+  a metadata type.
 * Field names can contain only "a-z", "A-Z", "0-9", "." , ":", and "_". They
   cannot begin with a number or "_".
   Field names cannot begin with a number "0-9" or an underscore "_".
+* Metadata can be "sourcetype", "source", or "host", and must match the
+  metadata type specified in the corresponding stanza name in props.conf.
 * Wildcard expressions have the same limitations as field names, but they can
-  also contain and/or start with a *.
+  also contain "*" to indicate wildcard fields.
 * Do not create indexed fields with names that collide with names of fields
   that are extracted at search time.
-* A source-type-scoped wildcard expression causes all indexed fields that match
-  the wildcard expression to be scoped with the specified source type.
-  * Apply source-type-scoped wildcard expressions to all fields associated with
-    structured data source types, such as JSON-formatted data. Do not apply it
-    to mixed datatypes that contain both structured and unstructured data.
-  * When you apply this method to structured data fields, searches against
+* A metadata-scoped wildcard expression causes all indexed fields that match
+  the wildcard expression to be scoped with the specified metadata (e.g., 
+  sourcetype).
+  * Apply the metadata-scoped wildcard expression to all fields associated
+    with the medadata type, such as JSON. Do not apply it to mixed datatypes
+    that contain both structured and unstructured data.
+  * When you apply this method to metadata-specific fields, searches against
     those fields should complete faster.
   * Example: '[sourcetype::splunk_resource_usage::data*]' defines all fields
-    starting with "data" as indexed fields for
+    starting with "data" as indexed fields for the specified metadata type
     'sourcetype=splunk_resource_usage'.
-  * The Splunk software processes source-type-scoped wildcard expressions
-    before it processes source type aliases.
-  * Source-type-scoped wildcard expressions require
-  'indexed_fields_expansion = t' in limits.conf.
+  * Splunk software processes sourcetype-scoped wildcard expressions
+    before sourcetype aliases and expansions.
+  * Sourcetype-scoped wildcard expressions require
+    'indexed_fields_expansion = t' in limits.conf.
 * Follow the stanza name with any number of the following attribute/value
   pairs.
 
@@ -115,5 +119,5 @@ INDEXED_VALUE = [true|false|<sed-cmd>|<simple-substitution-string>]
   turns 'myfield=myvalue'
   into applying the LISPY expression '[OR myvalue source::*myvalue]'
   (meaning it matches either 'myvalue' or 'source::*myvalue' terms).
-* NOTE: You only need to set 'indexed_value' if "indexed = false".
+* NOTE: You only need to set 'INDEXED_VALUE' if 'INDEXED = false'.
 * Default: true

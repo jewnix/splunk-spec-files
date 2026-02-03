@@ -1,4 +1,4 @@
-#   Version 10.0.2
+#   Version 10.2.0
 #
 # This file contains possible setting and value pairs for federated provider entries
 # for use when the federated search functionality is enabled.
@@ -32,6 +32,7 @@ type = [splunk]
 * A setting of 'splunk' means that the federated provider is a Splunk
   deployment.
 * Default: splunk
+
 
 hostPort = <Host_Name_or_IP_Address>:<service_port>
 * Specifies the protocols required to connect to a federated provider.
@@ -201,6 +202,20 @@ allowedAndDefaultFederatedProvidersEnabled = <boolean>
 * When set to 'true', those settings are applied to all federated searches for 
   all roles.
 * Change this setting only when directed to do so by Splunk Support.
+* Default: true
+
+allowCaseInsensitivityForFederatedProvider = <boolean>
+* Specifies whether Splunk software enables case insensitivity for
+  federated provider names.
+* A value of "true" means that federated providers are case-insensitive
+  when they are accessed via REST calls. 
+  * Splunk software uses only one provider instance if multiple entries with 
+    different case variations exist in the federated configuration file. 
+    If you have providers with names that differ only by case, the best 
+    practice is to rename them to ensure uniqueness.
+* A value of "false" means that federated providers are case-sensitive
+  when they are accessed via REST calls.
+* CAUTION: Change this setting only when Splunk Support directs you to do so.
 * Default: true
 
 allowAstProjectionElim = <boolean>
@@ -415,13 +430,30 @@ s2s_standard_mode_local_only_commands = <comma-separated list>
 * Change this setting only when instructed to do so by Splunk Support.
 * Default: mcollect, outputlookup, sendalert, sendemail
 
+sal_api_base_url = <URL>
+* The base URL for the Cisco Security Analytics and Logging (SAL) API.
+* Default: https://ci.manage.security.cisco.com/
+
+rsh_delta_write_timeout = <unsigned integer>
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support. 
+* The delta timeout, in seconds, which is set on the federated search head and 
+  is used to set the write timeout limit on the remote search head.  
+* If set, the delta timeout is added to the 'results_queue_read_timeout_sec' 
+  setting in the limits.conf file. This new timeout limit is sent to the remote 
+  search head as an argument of the jobs/federated endpoint. The 
+  remote search head uses this write timeout value to configure the write 
+  timeout of the HTTP server transaction, which ensures that the remote search  
+  head doesn't time out before the federated search head. 
+* A value of 0 means the remote search head applies its own default timeout.
+* Default: 0
+
 ############################################################################
 # Configs for blocking unsupported commands in Federated Search
 ############################################################################
 
 # Change this setting only when instructed to do so by Splunk Support.
 [s2s_standard_mode_unsupported_command:metadata]
-* This stanza controls whether the metadata command is blocked for 
+* This stanza controls whether the 'metadata' command is blocked for 
   Federated Search for Splunk on standard mode federated providers.
 
 active = <boolean>
@@ -437,7 +469,7 @@ active = <boolean>
 
 # Change this setting only when instructed to do so by Splunk Support.
 [s2s_standard_mode_unsupported_command:metasearch]
-* This stanza controls whether the metasearch command is blocked for 
+* This stanza controls whether the 'metasearch' command is blocked for 
   Federated Search for Splunk on standard mode federated providers.
 
 active = <boolean>
@@ -496,7 +528,7 @@ allow_target = <boolean>
 
 # Change this setting only when instructed to do so by Splunk Support.
 [s2s_transparent_mode_unsupported_command:delete]
-* This stanza controls whether the delete command is blocked for 
+* This stanza controls whether the 'delete' command is blocked for 
   Federated Search for Splunk on transparent mode federated providers.
 
 active = <boolean>
@@ -512,7 +544,7 @@ active = <boolean>
 
 # Change this setting only when instructed to do so by Splunk Support.
 [s2s_transparent_mode_unsupported_command:dump]
-* This stanza controls whether the dump command is blocked for 
+* This stanza controls whether the 'dump' command is blocked for 
   Federated Search for Splunk on transparent mode federated providers.
 
 active = <boolean>
@@ -526,9 +558,24 @@ active = <boolean>
   Support. 
 * Default: false
 
+[s2s_transparent_mode_unsupported_command:loadjob]
+* This stanza controls whether the 'loadjob' command is blocked for 
+  Federated Search for Splunk on transparent mode federated providers.
+
+active = <boolean>
+* Whether Splunk software blocks the 'loadjob' command for transparent mode 
+  federated search.
+  * A value of "true" means that the 'loadjob' command is not blocked for 
+    transparent mode federated search.
+  * A value of "false" means that the 'loadjob' command is blocked for 
+    transparent mode federated search. 
+* NOTE: Do not change this setting unless instructed to do so by Splunk 
+  Support. 
+* Default: false
+
 # Change this setting only when instructed to do so by Splunk Support.
 [s2s_transparent_mode_unsupported_command:map]
-* This stanza controls whether the map command is blocked for 
+* This stanza controls whether the 'map' command is blocked for 
   Federated Search for Splunk on transparent mode federated providers.
 
 active = <boolean>
@@ -544,7 +591,7 @@ active = <boolean>
 
 # Change this setting only when instructed to do so by Splunk Support.
 [s2s_transparent_mode_unsupported_command:run]
-* This stanza controls whether the run command is blocked for 
+* This stanza controls whether the 'run' command is blocked for 
   Federated Search for Splunk on transparent mode federated providers.
 
 active = <boolean>
@@ -560,7 +607,7 @@ active = <boolean>
 
 # Change this setting only when instructed to do so by Splunk Support.
 [s2s_transparent_mode_unsupported_command:runshellscript]
-* This stanza controls whether the runshellscript command is blocked for 
+* This stanza controls whether the 'runshellscript' command is blocked for 
   Federated Search for Splunk on transparent mode federated providers.
 
 active = <boolean>
@@ -576,7 +623,7 @@ active = <boolean>
 
 # Change this setting only when instructed to do so by Splunk Support.
 [s2s_transparent_mode_unsupported_command:script]
-* This stanza controls whether the script command is blocked for 
+* This stanza controls whether the 'script' command is blocked for 
   Federated Search for Splunk on transparent mode federated providers.
 
 active = <boolean>
@@ -592,7 +639,7 @@ active = <boolean>
 
 # Change this setting only when instructed to do so by Splunk Support.
 [s2s_transparent_mode_unsupported_command:sendalert]
-* This stanza controls whether the sendalert command is blocked for 
+* This stanza controls whether the 'sendalert' command is blocked for 
   Federated Search for Splunk on transparent mode federated providers.
 
 active = <boolean>
@@ -608,7 +655,7 @@ active = <boolean>
 
 # Change this setting only when instructed to do so by Splunk Support.
 [s2s_transparent_mode_unsupported_command:sendemail]
-* This stanza controls whether the sendemail command is blocked for 
+* This stanza controls whether the 'sendemail' command is blocked for 
   Federated Search for Splunk on transparent mode federated providers.
 
 active = <boolean>
@@ -624,7 +671,7 @@ active = <boolean>
 
 # Change this setting only when instructed to do so by Splunk Support.
 [s2s_transparent_mode_unsupported_command:rest]
-* This stanza controls whether the rest command is blocked for 
+* This stanza controls whether the 'rest' command is blocked for 
   Federated Search for Splunk on transparent mode federated providers.
 
 active = <boolean>

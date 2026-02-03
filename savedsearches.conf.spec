@@ -1,4 +1,4 @@
-#   Version 10.0.2
+#   Version 10.2.0
 #
 # This file contains possible setting/value pairs for saved search entries in
 # the savedsearches.conf file.  You can configure saved searches by creating
@@ -67,6 +67,18 @@ dispatchAs = [user|owner]
   will run using the privileges of the user that initiates the search.
 * Default: owner
 
+federated_providers = <string>
+* Specifies a comma-separated list of federated provider names that this saved 
+  search is run against. 
+  * Supports exact provider names as well as the use of wildcards (*) to 
+    capture groups of providers.
+  * Examples: "rsh1,rsh2" or "rsh*,provider_test" or "*_prod"
+* Provider names must match those configured in 'federated.conf' for this 
+  Splunk platform deployment.
+  * NOTE: Searches are not run against deactivated or deleted federated 
+    providers.
+* No default
+
 #*******
 # Scheduling options
 #*******
@@ -129,6 +141,28 @@ allow_skew = <percentage>|<duration-specifier>
     1h = 1 hour maximum
 * A value of 0 does not allow a skew to occur.
 * Default: 0
+
+allow_data_time_skew = <boolean>
+* Whether or not a search can dynamically adjust its time range based on
+  the amount of allowed time skew, as configured by the 'allow_skew'
+  setting.
+* A value of "true" means that a search can dynamically adjust its 
+  time range for the amount of allowed time skew. It offsets its
+  earliest and latest time modifiers by the amount of time that
+  'allow_skew' calculates.
+* A value of "false" or no value means that the search does not adjust
+  its time range for the allowed time skew.
+* Use this setting to prioritize low search latencies over
+  specifying an explicit search time range.
+* For example, if this setting has a value of "true", a search with a
+  scheduled time of 1:30am and with 'earliest=-5m' and 'latest=now'
+  as search parameters, and a calculated skew of 3 minutes results in a
+  search that runs in the time range of 1:28am to 1:33am.
+* A value of "false" means that the search would search in the time 
+  range of 1:25am to 1:30am, but would only be eligible for dispatch
+  at 1:33am, which causes lag in receiving search results.    
+* For durable searches, give this setting a value of "false".
+* Default: false
 
 max_concurrent = <unsigned integer>
 * The maximum number of concurrent instances of this search that the scheduler

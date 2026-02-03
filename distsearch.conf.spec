@@ -1,4 +1,4 @@
-#   Version 10.0.2
+#   Version 10.2.0
 #
 # This file contains possible attributes and values you can use to configure
 # distributed search.
@@ -390,6 +390,13 @@ allowDeltaUpload = <boolean>
   replicating the changed portion of the bundle to its search peers.
 * Default: true
 
+useChecksumforDeltaCalculation = <boolean>
+* Whether to enable checksum basum based delta calculation. Using checksum
+* ensures accurate estimation of what files have actually changed. We add only those 
+* files to the delta bundle whose checksum has changed since the previous bundle version. 
+* Do not modify this value unless instructed by Splunk support.
+* Default: false
+
 preCompressKnowledgeBundlesClassicMode = <boolean>
 * Whether or not this search head cluster member compresses the
   knowledge bundles before replicating them to search peers.
@@ -580,19 +587,30 @@ remote.s3.encryption = [sse-s3|none]
 * Default: none
 
 remote.s3.supports_versioning = <boolean>
+* Whether or not the remote storage supports versioning.
+* Versioning provides a mechanism for storing multiple variants of an object
+  in the same bucket on the remote storage. While RFS bundle replication does
+  not use versioning, customers managing their own remote storage can use this
+  setting to implement versioning.
+* This setting controls how splunkd removes data from remote storage. A value
+  of "true" means that splunkd deletes all versions of objects at time of 
+  data removal.
+* A value of "false" means that splunkd uses a simple DELETE at time of
+  data removal.
+  See https://docs.aws.amazon.com/AmazonS3/latest/dev/DeletingObjectVersions.html.
+* Optional.
+* CAUTION: Do not modify this setting in Splunk managed Cloud environments. 
+* Default: false
+
+rfsMaxDeltaCountBetweenFull = <unsigned integer>
 * Currently not supported. This setting is related to a feature that is
   still under development.
-* Specifies whether the remote storage supports versioning.
-* Versioning is a means of keeping multiple variants of an object
-  in the same bucket on the remote storage. While versioning is not used by
-  RFS bundle replication, this much match the configuration of the S3 bucket
-  for bundle reaping to work correctly.
-* This setting determines how splunkd removes data from remote storage.
-  If set to true, splunkd will delete all versions of objects at
-  time of data removal. Otherwise, if set to false, splunkd will use a simple DELETE
-  (See https://docs.aws.amazon.com/AmazonS3/latest/dev/DeletingObjectVersions.html).
-* Optional.
-* Default: true
+* The maximum number of delta knowledge object bundles that the search head
+  can upload to the Remote File System (RFS) in between full bundle uploads.
+* Search peers can download these delta bundles and apply them against a 
+  previous bundle from the search head to get the latest bundle of 
+  knowledge objects without performing more costly full replications. 
+* Default: 5
 
 #******************************************************************************
 # SEARCH HEAD BUNDLE MOUNTING OPTIONS
@@ -632,6 +650,16 @@ replicate.<conf_file_name> = <boolean>
 * In a sense, these settings constitute another level of filtering that applies
   specifically to *.conf files and stanzas with *.meta files.
 * Default: false
+
+[replicationSettings:fileSpecific]
+
+<file_path> = allow|deny
+* Whether the Splunk platform replicates a specific file identified by the
+  file path under $SPLUNK_HOME/etc/.
+* This setting supersedes any regex matches found under 'replicationDenyList'
+  or 'replicationAllowlist'.
+* Optional.
+* No default.
 
 #******************************************************************************
 # REPLICATION ALLOW LIST OPTIONS
@@ -692,6 +720,11 @@ replicate.<conf_file_name> = <boolean>
 * These lists are applied globally across all configuration data. Especially
   for deny listing, be sure to constrain your deny list to match only data
   that your application does not need.
+* The system/default directory, and some others, must replicate to ensure
+  Splunk platform operates correctly. Splunk platform will deny attempts to
+  prevent these directories from replicating, then log a message in the
+  splunkd.log file.
+
 
 #******************************************************************************
 # BUNDLE ENFORCER ALLOW LIST OPTIONS

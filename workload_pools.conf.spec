@@ -1,4 +1,4 @@
-#   Version 10.0.2
+#   Version 10.2.0
 #
 ############################################################################
 # OVERVIEW
@@ -83,14 +83,19 @@ mem_weight = <number>
   which the pool belongs.
 * This is a mandatory parameter for the creation of a workload pool and only
   allows positive integral values.
+* This setting has no effect if "threaded=true".
 * Default: not set
 
 category = <string>
 * Specifies the category to which this workload pool belongs.
 * Required to create a workload pool.
-* Valid categories are "search","misc" and "ingest".
-* The "ingest" and "misc" categories each contain one pool only, which is the
-  default_pool for the respective category.
+* Valid categories are "search", "misc" and "ingest".
+* The "misc" category must contain only one pool, which is "default_pool".
+* When the "ingest" category is specified:
+  * If "threaded=false", then the "ingest" category must contain only one pool:
+    "default_pool".
+  * If "threaded=true", then the "ingest" category must contain at least 2 pools:
+    the "default_pool", and the threaded pool defined in this stanza.
 * Default: not set
 
 default_category_pool = <boolean>
@@ -100,6 +105,20 @@ default_category_pool = <boolean>
 * The first pool that is added to a category has this value set to 1.
 * All other pools have this value set to 0.
 * Required if workload management is enabled.
+* Default: 0
+
+threaded = <boolean>
+* Specifies whether this workload pool will manage threads.
+* This setting applies only if "category=ingest" is set on the workload pool.
+* Threaded workload pools are supported only with cgroups v2.
+* If set to "true":
+  * The 'mem_weight' setting has no effect.
+  * The workload pool can't be the default pool for the category.
+  * The workload pool name must match the prefix of the name of the threads
+    that belong to this pool.
+    * For example, the pool for SmartStore download threads would be 
+      "name=cachemanagerDownloadExecutorWorker".
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: false
 
 [workload_category:<category>]

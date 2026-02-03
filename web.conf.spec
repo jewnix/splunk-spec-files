@@ -1,4 +1,4 @@
-#   Version 10.0.2
+#   Version 10.2.0
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -694,8 +694,8 @@ pdfgen_is_available = [0 | 1]
 * Specifies whether Integrated PDF Generation is available on this search
   head.
 * This is used to bypass an extra call to splunkd.
-* Default (on platforms where node is supported): 1
-* Default (on platforms where node is not supported): 0
+* Default (on platforms where pdfgen is supported): 1
+* Default (on platforms where pdfgen is not supported): 0
 
 version_label_format = <printf_string>
 * Internal configuration.

@@ -2565,7 +2565,7 @@ More information in the online documentation for the corresponding REST endpoint
                     <arg name="rolling_restart"><![CDATA[Sets the mode that search head cluster rolling restart runs in. Possible values are restart/searchable/searchable_force]]></arg>
                     <arg name="decommission_search_jobs_wait_secs"><![CDATA[Sets timeout of searchable rolling restart]]></arg>
                     <arg name="target_uri"><![CDATA[Specify the uri of search head to put in manual detention]]></arg>
-                    <arg name="dispatching_mode"><![CDATA[Sets the dispatching mode in search head cluster]]></arg>
+                    <arg name="dispatch_mode"><![CDATA[Sets the dispatching mode in search head cluster]]></arg>
                 </optional>
                 <examples>
                     <ex><![CDATA[./splunk edit shcluster-config -replication_port 4535]]></ex>
@@ -3010,13 +3010,12 @@ More information in the online documentation for the corresponding REST endpoint
             <help>
                 <title><![CDATA[Start KV store upgrade]]></title>
                 <optional>
-                    <arg name="-version"><![CDATA[version to upgrade to ('4.0' or '4.2')]]></arg>
                     <arg name="-maxRetries"><![CDATA[number of retries for upgrade per search head cluster member upon failure]]></arg>
                     <arg name="-isDryRun"><![CDATA[do preflight checks and exit without upgrading]]></arg>
                 </optional>
                 <examples>
-                    <ex><![CDATA['./splunk start-shcluster-upgrade kvstore -version 4.2']]></ex>
-                    <ex><![CDATA['./splunk start-shcluster-upgrade kvstore -version 4.2 -maxRetries 2 -isDryRun true']]></ex>
+                    <ex><![CDATA['./splunk start-shcluster-upgrade kvstore']]></ex>
+                    <ex><![CDATA['./splunk start-shcluster-upgrade kvstore -maxRetries 2 -isDryRun true']]></ex>
                 </examples>
             </help>
             <type>edit</type>
@@ -3069,13 +3068,9 @@ More information in the online documentation for the corresponding REST endpoint
         </cmd>
         <cmd name="start-standalone-upgrade">
             <uri><![CDATA[/kvstore/version/upgrade]]></uri>
-            <default>
-                <arg name="version" value="7.0" />
-            </default>
             <help>
                 <title><![CDATA[Start KV store upgrade on Standalone]]></title>
                 <optional>
-                    <arg name="-version"><![CDATA[version to upgrade to ('7.0') default is 7.0.]]></arg>
                     <arg name="-dryRun"><![CDATA[do preflight checks and exit without upgrading]]></arg>
                 </optional>
                 <examples>
@@ -3128,9 +3123,13 @@ More information in the online documentation for the corresponding REST endpoint
                 <optional>
                     <arg name="-readOnly"><![CDATA[Only allow kvstore read operations]]></arg>
                 </optional>
+                <optional>
+                    <arg name="-persist"><![CDATA[Read only status to persist across restarts]]></arg>
+                </optional>
                 <examples>
                     <ex><![CDATA['./splunk enable kvstore-maintenance-mode']]></ex>
                     <ex><![CDATA['./splunk enable kvstore-maintenance-mode -readOnly true']]></ex>
+                    <ex><![CDATA['./splunk enable kvstore-maintenance-mode -readOnly true -persist true']]></ex>
                 </examples>
             </help>
             <type>edit</type>
@@ -5546,7 +5545,7 @@ Supported commands and objects:
 
         apply               cluster-bundle
 
-        clean               [all|eventdata|globaldata|inputdata|userdata|kvstore|raft]
+        clean               [all|eventdata|globaldata|inputdata|userdata|kvstore|raft|shcluster-state-server|postgres-data]
 
         cmd                 [btool|exporttool|importtool|locktest|locktool|parsetest|pcregextest|signtool|walklex]
 
@@ -5576,7 +5575,7 @@ Supported commands and objects:
 
         help                NONE
 
-        import              userdata
+        import              [userdata|shcluster-state-server-flavor]
 
         install             app
 

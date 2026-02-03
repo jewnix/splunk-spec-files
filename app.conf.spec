@@ -1,4 +1,4 @@
-#   Version 10.0.2
+#   Version 10.2.0
 #
 ############################################################################
 # OVERVIEW
@@ -167,6 +167,8 @@ install_source_local_checksum = <string>
 * Do not set this value explicitly within your app!
 
 python.version = {default|python|python2|python3|python3.7|python3.9|latest}
+* DEPRECATED. Use 'python.required' instead to specify which Python versions the
+  script supports.
 * When 'installit.py' exists, selects which Python version to use.
 * Set to either "default" or "python" to use the system-wide default Python
   version.
@@ -176,6 +178,23 @@ python.version = {default|python|python2|python3|python3.7|python3.9|latest}
   supported. It is related to a feature that is still under development.
 * Optional.
 * Default: Not set; uses the system-wide Python version.
+
+python.required = <comma-separated list>
+* When 'installit.py' exists, the versions of Python that the script supports.
+* This setting takes precedence over the 'python.version' setting if both
+  have values.
+* The Splunk platform selects the highest version of Python that is
+  available from the list that you provide.
+* The following values are supported:
+  * "3.9": The script supports Python version 3.9.
+  * "3.13": The script supports Python version 3.13.
+  * "latest": The script uses the latest Python interpreter available.
+    * Where possible, use a specific version string rather than "latest".
+    * NOTE: The "latest" value is an internal value that is related to
+      a feature that is still under development.
+* NOTE: Use this setting instead of the deprecated 'python.version' setting.
+* This setting is optional.
+* Default: Not set; uses 'python.version' if that setting has a value.
 
 [triggers]
 * This stanza controls reloading of custom configuration files included in
@@ -350,6 +369,8 @@ verify_script = <string>
     will expand to C:\Program Files\Splunk
 
 python.version = {default|python|python2|python3|python3.7|python3.9|latest}
+* DEPRECATED. Use 'python.required' instead to specify which Python versions the
+  script supports.
 * For Python scripts only, selects which Python version to use.
 * This setting is used only when the 'verify_script' setting has a value that
   starts with the canonical path to the Python interpreter, in other words,
@@ -363,6 +384,27 @@ python.version = {default|python|python2|python3|python3.7|python3.9|latest}
   supported. It is related to a feature that is still under development.
 * Optional.
 * Default: Not set; uses the system-wide Python version.
+
+python.required = <comma-separated list>
+* For Python scripts only, the versions of Python that the script supports.
+* The Splunk platform uses this setting only when the 'verify_script'
+  setting has a value that starts with the canonical path to the Python
+  interpreter, for example, "$SPLUNK_HOME/bin/python". If you use any other
+  path, the Splunk platform ignores this setting.
+* This setting takes precedence over the 'python.version' setting if both
+  have values.
+* The Splunk platform selects the highest version of Python that is
+  available from the list that you provide.
+* The following values are supported:
+  * "3.9": The script supports Python version 3.9.
+  * "3.13": The script supports Python version 3.13.
+  * "latest": The script uses the latest Python interpreter available.
+    * Where possible, use a specific version string rather than "latest".
+    * NOTE: The "latest" value is an internal value that is related to
+      a feature that is still under development.
+* NOTE: Use this setting instead of the deprecated 'python.version' setting.
+* This setting is optional.
+* Default: Not set; uses 'python.version' if that setting has a value.
 
 [credential:<realm>:<username>]
 password = <string>

@@ -1,4 +1,4 @@
-#   Version 10.0.2
+#   Version 10.2.0
 #
 # This file contains settings and values that you can use to configure
 # data transformations.
@@ -549,6 +549,19 @@ default_match = <string>
   min_matches threshold is reached.
 * Default: empty string.
 
+max_duplicates = <integer>
+* The maximum number of duplicates that a lookup can have across all fields. 
+  This value is used to retrieve all possible duplicate values in memory before 
+  filtering and applying the 'max_matches' and 'min_matches' values.
+* This setting determines the memory, in bytes, that can be used for each processing batch for this lookup.
+* This setting should have value greater than the 'max_matches' setting.
+* Only applicable for file-based lookups that are greater than the 'max_memtable_bytes' setting,
+  or when lookups are replicated across indexers and the lookup size is greater than   
+  the 'max_memtable_bytes' setting.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Value 0 means this setting has no effect. There is no maximum.
+* Default: 0
+
 case_sensitive_match = <boolean>
 * If set to true, Splunk software performs case sensitive matching for all
   fields in a lookup table.
@@ -613,6 +626,8 @@ external_type = [python|executable|kvstore|geo|geo_hex]
 * Default: python
 
 python.version = {default|python|python2|python3|python3.7|python3.9|latest}
+* DEPRECATED. Use 'python.required' instead to specify which Python versions the
+  script supports.
 * For Python scripts only, selects which Python version to use.
 * Set to either "default" or "python" to use the system-wide default Python
   version.
@@ -622,6 +637,23 @@ python.version = {default|python|python2|python3|python3.7|python3.9|latest}
   supported. It is related to a feature that is still under development.
 * Optional.
 * Default: Not set; uses the system-wide Python version.
+
+python.required = <comma-separated list>
+* For Python scripts only, the versions of Python that the script supports.
+* This setting takes precedence over the 'python.version' setting if both
+  have values.
+* The Splunk platform selects the highest version of Python that is
+  available from the list that you provide.
+* The following values are supported:
+  * "3.9": The script supports Python version 3.9.
+  * "3.13": The script supports Python version 3.13.
+  * "latest": The script uses the latest Python interpreter available.
+    * Where possible, use a specific version string rather than "latest".
+    * NOTE: The "latest" value is an internal value that is related to
+      a feature that is still under development.
+* NOTE: Use this setting instead of the deprecated 'python.version' setting.
+* This setting is optional.
+* Default: Not set; uses 'python.version' if that setting has a value.
 
 time_field = <string>
 * Used for temporal (time-bound) lookups. Specifies the name of the field

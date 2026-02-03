@@ -1,4 +1,4 @@
-#   Version 10.0.2
+#   Version 10.2.0
 #
 ############################################################################
 # OVERVIEW
@@ -231,8 +231,12 @@ srchDiskQuota = <integer>
   not constantly check the quota.
 * Exceeding this quota causes the search to be auto-finalized immediately,
   even if there are results that have not yet been returned.
-* When set to 0, this setting does not limit the amount of disk space that
+* A value of 0 means there is no limit to the amount of disk space that
   search jobs for a user with the role can use.
+* To make the space that temporary files from a search
+  job use count toward a user's total disk usage, give the
+  'include_temp_dirs_in_disk_usage' setting in the limits.conf
+  configuration file a value of "true".
 * Default: 100
 
 srchJobsQuota = <integer>
@@ -270,6 +274,15 @@ rtSrchJobsQuota = <integer>
   * If 'enable_cumulative_quota' has a value of "false", those same 4 users can
     run a total of 400 real-time searches concurrently.
 * Default: 6
+
+queuedSearchQuota = <integer>
+* The maximum number of searches that a user who holds this role
+  can queue concurrently.
+* A value of 0 means that there is no limit to the number of
+  searches that a user who holds this role can queue concurrently.
+* If a user tries to run a search which would queue when they have
+  already reached their queuedSearchQuota, the search will be rejected.
+* Default: 0
 
 srchMaxTime = <integer><unit>
 * The maximum amount of time that search jobs from specific users with this role are
@@ -777,6 +790,9 @@ ephemeralExpiration = <relative-time-modifier>
   'grantableRoles' setting in authorize.conf.
     * Example: grantableRoles = role1;role2;role3
 
+[capability::delete_saml_user]
+* Lets a user delete user accounts that were created through SAML authentication.
+
 [capability::edit_view_html]
 * Lets a user create, edit, or otherwise modify HTML-based views.
 
@@ -1009,7 +1025,8 @@ ephemeralExpiration = <relative-time-modifier>
 * Lets a user create and update the new metric alerts.
 
 [capability::search]
-* Lets a user run a search.
+* Lets a user run a search using Search Processing Language (SPL)
+  or SPL version 2 (SPL2).
 
 [capability::search_process_config_refresh]
 * Lets a user manually flush idle search processes through the
@@ -1113,7 +1130,7 @@ ephemeralExpiration = <relative-time-modifier>
 [capability::edit_web_features]
 * Lets a user write to the '/web-features' REST endpoint.
 
-[capability::edit_spl2_permissions]
+[capability::edit_spl2_module_permissions]
 * Lets a user create and edit permissions to Search Processing Language version 2 (SPL2) items through the REST API.
 
 [capability::edit_published_dashboards]
@@ -1129,8 +1146,8 @@ ephemeralExpiration = <relative-time-modifier>
 [capability::edit_spl2_datasets]
 * Lets a user create, update and delete datasets.
 
-[capability::run_spl2_search]
-* Lets a user run and stop searches that use SPL2.
+[capability::edit_data_management_pipeline_job]
+* Lets a user deploy, update, and cancel the SPL2-based pipeline.
 
 [capability::edit_data_management_edgeprocessor]
 * Lets a user manage edge processors.
@@ -1148,4 +1165,37 @@ ephemeralExpiration = <relative-time-modifier>
 [capability::edit_data_management_otelcollector]
 * Lets a user edit a list of managed Open Telemetry collectors.
 
+[capability::delete_oauth_config_clients]
+* Lets a user delete Open Authorization (OAuth) app clients for an OAuth configuration.
+
+[capability::list_oauth_config_clients]
+* Lets a user list OAuth app clients for an OAuth configuration.
+
+[capability::list_oauth_configs]
+* Lets a user list the OAuth configurations for external identity providers.
+
+[capability::edit_oauth_configs]
+* Lets a user edit and delete the OAuth configurations for external identity providers.
+
+[capability::list_oauth_config_role_mappings]
+* Lets a user list the role mappings for an OAuth configuration.
+
+[capability::edit_oauth_config_role_mappings]
+* Lets a user edit and delete the role mappings for an OAuth configuration.
+
+[capability::edit_internal_oauth_clients]
+* Lets a user edit OAuth internal clients.
+
+[capability::list_internal_oauth_clients]
+* Lets a user list existing OAuth internal clients.
+
+[capability::edit_storage_passwords_masking]
+* Lets a user edit the /storage/passwords cleartext password masking settings.
+
+[capability::create_bulk_data_move]
+* Allows a user to perform bulk data move operations on non-SmartStore
+  clustered indexes.
+
+[capability::edit_heap_profiler]
+* Lets a user edit the heap profiler configuration without restarting splunkd.
 

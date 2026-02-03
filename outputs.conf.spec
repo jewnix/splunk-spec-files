@@ -1,4 +1,4 @@
-#   Version 10.0.2
+#   Version 10.2.0
 #
 # Forwarders require outputs.conf. Splunk instances that do not forward
 # do not use it. Outputs.conf determines how the forwarder sends data to
@@ -1321,11 +1321,12 @@ remote_queue.* = <string>
 * This setting is optional.
 * No default.
 
-remote_queue.type = [sqs_smartbus|asq]
+remote_queue.type = [sqs_smartbus|asq|gcs_smartbus]
 * The remote queue type.
 * This type can be one of the following:
   * "sqs_smartbus" (Amazon Web Services (AWS) Simple Queue Service Smartbus)
   * "asq" (Azure Storage Queue (ASQ))
+  * "gcs_smartbus" (Google Publisher/Subscriber)
 * If you specify this setting, you must configure it with a valid
   value. If you do not, the remote queue that is associated with
   the 'remote.queue.<name>' stanza in which this setting is
@@ -1906,6 +1907,239 @@ remote_queue.asq.large_message_store.enable_shared_receipts = <boolean>
 * Default: false
 
 ####
+# Google publisher/subscriber (Pub/Sub) smartbus specific settings
+####
+
+remote_queue.gcs_smartbus.project_id = <string>
+* The Google Cloud project ID where the Pub/Sub topic resides and
+  large message storage buckets are located.
+* This is required to authenticate and interact with the Pub/Sub API.
+* Default: not set
+
+remote_queue.gcs_smartbus.large_message_store.path = <string>
+* The path to the large message store.
+* Default: not set
+
+remote_queue.gcs_smartbus.encoding_format = protobuf|s2s
+* The encoding format that Google Cloud Services uses to write data to the
+  remote queue.
+* Default: s2s
+
+remote_queue.gcs_smartbus.enable_inline_data = <boolean>
+* Whether or not to use gcs_smartbus directly to send events.
+* A value of "true" means that if the data packet is small enough
+  to fit into gcs_smartbus, Splunk Cloud Platform uses gcs_smartbus
+  to send event data, otherwise, it sends the packet to remote
+  storage, as well as sending its URI to the gcs_smartbus
+  remote queue.
+* A value of "false" means that Splunk Cloud Platform always sends the
+  data packet to remote storage, as well as sending the data packet
+  URI to the gcs_smartbus remote queue.
+* This setting only applies when 'remote_queue.gcs_smartbus.encoding_format'
+  has a value of "protobuf".
+* Default: false
+
+remote_queue.gcs_smartbus.send_interval = <number><unit>
+* The interval that the remote queue output processor waits for data to
+  arrive before sending a partial batch to the remote queue.
+* If you do not provide a <unit> for this setting value, the Splunk
+  platform assumes that the value is in seconds.
+* Examples: 100ms, 5s
+* This setting is optional.
+* Default: 4
+
+remote_queue.gcs_smartbus.credential_file = <string>
+* Specifies the credential file that is used for Pub/Sub and large
+  message storage authentication.
+* This file contains the service account credentials in JSON format.
+* The service account must have the following roles:
+  * Pub/Sub Publisher
+  * Pub/Sub Subscriber
+  * Storage Object Admin
+* This file must be located in $SPLUNK_HOME/etc/auth/
+* Example: credentials.json
+* No default
+
+remote_queue.gcs_smartbus.large_message_store.connectUsingIpVersion = auto|4-only|6-only
+* Controls whether Splunk software makes outbound connections to the
+  storage service using IPv4 or IPv6.
+* Connections to literal IPv4 or IPv6 addresses are unaffected by this
+  setting.
+* A value of "4-only" means that splunkd only attempts to connect to the
+  IPv4 address.
+* A value of "6-only" means that splunkd only attempts to connect to the
+  IPv6 address.
+* A value of "auto" means:
+  * If '[general]/listenOnIPv6' in server.conf has a value of "only",
+    this setting defaults to "6-only".
+  * Otherwise, this setting defaults to "4-only".
+* Default: auto
+
+remote_queue.gcs_smartbus.large_message_store.sslVersionsForClient = tls1.0|tls1.1|tls1.2
+* Defines the minimum SSL/TLS version to use for outgoing connections.
+* Default: tls1.2
+
+remote_queue.gcs_smartbus.large_message_store.sslVerifyServerCert = <boolean>
+* A value of "true" means that splunkd authenticates the certificate of
+  the services it connects to by using the configured Certificate
+  Authority (CA).
+* Default: false
+
+remote_queue.gcs_smartbus.large_message_store.sslVerifyServerName = <boolean>
+* Controls whether splunkd, as a client, performs a TLS hostname validation
+  check on an SSL certificate that it receives upon an initial connection
+  to a server.
+* A TLS hostname validation check ensures that a client communicates with
+  the correct server. This check prevents redirection to another server by a
+  machine-in-the-middle attack, where a malicious party inserts themselves
+  between the client and the target server and impersonates that server.
+  * Specifically, the validation check forces splunkd to verify that the
+    certificate that the server presents to the client has a Common Name
+    or Subject Alternate Name that matches the host name portion of the
+    URL that the client used to connect to the server.
+* For this setting to have any effect, the 'sslVerifyServerCert' setting
+  must have a value of "true". If 'sslVerifyServerCert' is set to "false",
+  TLS hostname validation is not possible because certificate verification
+  is not turned on.
+* A value of "true" for this setting means that splunkd performs a TLS
+  hostname validation check, verifying the server's name in the certificate.
+  If that check fails, Splunk software terminates the SSL handshake
+  immediately, which terminates the connection. Splunkd logs this failure
+  at the ERROR logging level.
+* A value of "false" for this setting means that splunkd does not perform
+  the TLS hostname validation check. If the server presents an otherwise valid
+  certificate, the client-to-server connection proceeds normally.
+* Default: false
+
+remote_queue.gcs_smartbus.large_message_store.sslRootCAPath = <path>
+* Full path to the Certificate Authority (CA) certificate PEM format file
+  that contains one or more certificates concatenated together. The server
+  certificate will be validated against the CAs present in this file.
+* Default: [sslConfig/caCertFile] in server.conf
+
+remote_queue.gcs_smartbus.large_message_store.cipherSuite = <cipher suite string>
+* Uses the specified cipher string for the SSL connection.
+* If this setting is not configured, splunkd uses the default cipher
+  string.
+* Default: TLSv1+HIGH:TLSv1.2+HIGH:@STRENGTH
+
+remote_queue.gcs_smartbus.large_message_store.encryption = gcp-sse-c|gcp-sse-kms|gcp-sse-gcp
+* The encryption scheme to use for index buckets while stored on Google
+  Cloud Storage (data-at-rest).
+* A value of "gcp-sse-c" maps to Google Cloud Platform (GCP)
+  customer-supplied encryption keys.
+* A value of "gcp-sse-kms" maps to GCP customer-managed encryption keys.
+* A value of "gcp-sse-gcp" maps to GCP Google-managed encryption keys.
+* Google Cloud always encrypts the incoming data on the server side.
+* For the "gcp-sse-kms" scheme, you must grant your Cloud Storage service
+  account permission to use your Cloud KMS key. For more details, search
+  for "Assigning a Cloud KMS key to a service account" on the Google Cloud
+  documentation site. To find your Cloud Storage service account, search
+  for "Getting the Cloud Storage service account".
+* Default: gcp-sse-gcp
+
+remote_queue.gcs_smartbus.large_message_store.gcp_kms.locations = <string>
+* Required if 'remote_queue.gcs_smartbus.large_message_store.encryption'
+  has a value of "gcp-sse-c" or "gcp-sse-kms".
+* Specifies the geographical regions where Key Management Service (KMS)
+  key rings and keys are stored for access.
+* Google Cloud offers three types of locations: regional locations such
+  as "us-central1", dual-regional locations such as "nam4", and
+  multi-regional locations such as "global" and "us". Search for "Cloud
+  KMS locations" on the Google Cloud documentation site for a complete
+  list.
+* For best performance, choose a key ring and a key in the same location
+  as the cloud stack.
+* No default.
+
+remote_queue.gcs_smartbus.large_message_store.gcp_kms.key_ring = <string>
+* Required if 'remote_queue.gcs_smartbus.large_message_store.encryption'
+  has a value of "gcp-sse-c" or "gcp-sse-kms".
+* Specifies the name of the key ring used for encryption when uploading
+  data to Google Cloud Storage.
+* In Google Cloud, a key ring is a grouping of keys for organizational
+  purposes. A key ring belongs to a Google Cloud Project and resides in a
+  specific location. Search for "key ring" on the Google Cloud
+  documentation site for more details.
+* No default.
+
+remote_queue.gcs_smartbus.large_message_store.gcp_kms.key = <string>
+* Required if 'remote_queue.gcs_smartbus.large_message_store.encryption'
+  has a value of "gcp-sse-c" or "gcp-sse-kms".
+* Specifies the name of the encryption key used for uploading data to
+  Google Cloud Storage.
+* No default.
+
+remote_queue.gcs_smartbus.large_message_store.encryption.gcp-sse-c.key_type = gcp_kms
+* Affects only the "gcp-sse-c" encryption scheme.
+* Identifies the mechanism the indexer uses to generate the key for
+  sending data to Google Cloud Storage.
+* The only valid value is "gcp_kms", which indicates Google Cloud Key
+  Management Service (GCP KMS).
+* You must also specify the following required Key Management Service (KMS)
+  settings:
+  * 'remote_queue.gcs_smartbus.large_message_store.gcp_kms.locations'
+  * 'remote_queue.gcs_smartbus.large_message_store.gcp_kms.key_ring'
+  * 'remote_queue.gcs_smartbus.large_message_store.gcp_kms.key'
+* If you do not specify these settings, the indexer cannot start while
+  it uses "gcp-sse-c" encryption.
+* Default: gcp_kms
+
+remote_queue.gcs_smartbus.large_message_store.encryption.gcp-sse-c.key_refresh_interval = <unsigned integer>
+* Specifies the interval, in seconds, for generating a new key that is
+  used for encrypting data uploaded to Google Cloud Storage.
+* Default: 86400
+
+remote_queue.gcs_smartbus.retry_policy_option = <number><unit>
+* The maximum amount of time that Pub/Sub will attempt to publish a message.
+* This setting determines how long the publisher retries message delivery.
+* This is separate from the backoff, which configures how long the publisher waits
+  between attempts.
+* If you do not provide a <unit> for this setting value, the Splunk
+  platform assumes that the value is in seconds.
+* Example: 1m (1 minute), 30s (30 seconds), 50ms (50 milliseconds), 10 (10 seconds)
+* Default: 20
+
+remote_queue.gcs_smartbus.back_off_policy_option.initial = <number><unit>
+* The initial backoff duration for Pub/Sub operations.
+* When a Pub/Sub operation results in a failure, this setting determines
+  how long to initially wait before attempting the operation again.
+* If you do not provide a <unit> for this setting value, the Splunk
+  platform assumes that the value is in seconds.
+* Example: 1m (1 minute), 30s (30 seconds), 50ms (50 milliseconds), 10 (10 seconds)
+* Default: 100ms
+
+remote_queue.gcs_smartbus.back_off_policy_option.max = <number><unit>
+* The maximum backoff duration for Pub/Sub operations.
+* This is the longest amount of time that the publisher will back
+  off, after scaling up its backoff time in the face of
+  multiple Pub/Sub operation failures.
+* If you do not provide a <unit> for this setting value, the Splunk
+  platform assumes that the value is in seconds.
+* Example: 1m (1 minute), 30s (30 seconds), 50ms (50 milliseconds), 10 (10 seconds)
+* Default: 60
+
+remote_queue.gcs_smartbus.back_off_policy_option.scaling = <decimal>
+* The scaling to use for exponential backoff for Pub/Sub operations.
+* On each subsequent failure, the remote queue increases the backoff
+  time by this multiplier.
+* For example, 2.0 means the backoff is doubled after each failure.
+* Default: 1.3
+
+remote_queue.gcs_smartbus.max_hold_time_option = <number><unit>
+* The maximum time that the publisher holds a message before it flushes
+  the message as part of Pub/Sub operations.
+* If you do not provide a <unit> for this setting value, the Splunk
+  platform assumes the value is in seconds.
+* Example: 1m (1 minute), 30s (30 seconds), 50ms (50 milliseconds), 10 (10 seconds)
+* Default: 10ms
+
+remote_queue.gcs_smartbus.max_pending_messages_option = <integer>
+* The maximum number of pending messages for Pub/Sub operations. 
+* A value of "0" means to use server-side configurations.
+* Default: 0 (use server-side configurations)
+
+####
 # Remote File System (RFS) Output
 ####
 [rfs]
@@ -1972,6 +2206,8 @@ batchTimeout = <integer>
   the batch is at least this many seconds old, flush the batch.
 * This threshold may not be honored if the total memory usage for raw events exceeds
   limits.conf/[ingest_actions]/rfs.provider.rawdata_limit_mb for a storage provider.
+* For an S3 destination, the maximum allowed 'batchTimeout' value is 1800 seconds (30
+  minutes).
 * Default = 30
 
 compression = none|gzip|lz4|zstd
@@ -2343,6 +2579,8 @@ batchTimeout = <integer>
 * RfsOutputProcessor batches events before flushing to the destination.
 * If a batch has not hit any other criteria for being flushed, and
   the batch is at least this many seconds old, flush the batch.
+* For an S3 destination, the maximum allowed 'batchTimeout' value is 1800 seconds (30
+  minutes).
 * Default: Inherited batchTimeout setting from the global [rfs] stanza.
 
 compression = none|gzip|lz4|zstd

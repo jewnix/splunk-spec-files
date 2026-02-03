@@ -1,4 +1,4 @@
-#   Version 10.0.2
+#   Version 10.2.0
 #
 ############################################################################
 # OVERVIEW
@@ -125,9 +125,7 @@ disable_highcharts_accessibility = <boolean>
 [feature:dashboard_studio]
 
 activate_downsampling = <boolean>
-* This setting turns on or off the downsampling feature in Dashboard Studio.
-* A value of "true" activates the downsampling of data in time series charts and charts with a strictly increasing numeric x-axis in Dashboard Studio.
-* Default: true
+* DEPRECATED: This setting has no effect. It will be removed without notice in a future release.
 
 activate_dsl_webworkers_for_visualizations = <boolean>
 * Uses WebWorkers for Dynamic Options Syntax execution to isolate from overall dashboard loading and performance.
@@ -155,18 +153,6 @@ execute_chain_searches_with_tokens_in_search_process = <boolean>
 * A value of "false" means that Dashboard Studio runs chain searches that use tokens in the main splunkd process rather than ahead of time in the search process.
 * Default: false
 
-activate_dashboard_versioning = <boolean>
-* This setting turns on or off UI to save, view, and restore Dashboard Studio versions.
-* A value of "true" means that Dashboard Studio dashboards can be saved with a commit message, and previous versions can be viewed and restored from the UI.
-* The setting will be removed without notice in a future release.
-* Default: true
-
-activate_add_saved_searches_from_studio = <boolean>
-* This setting activates the UI that adds a new Saved Search datasource directly from Dashboard Studio.
-* A value of "true" means that the option to add a new Saved Search appears in the Dashboard Studio UI.
-* The setting will be removed without notice in a future release.
-* Default: true
-
 activate_o11y_dashboards = <boolean>
 * This setting turns on or off all observability functionality within Dashboard Studio.
 * A value of "true" activates observability functionality. The activation of future observability features might be controlled separately.
@@ -186,15 +172,11 @@ activate_o11y_service_graph = <boolean>
 * Default: true
 
 activate_dashboard_publishing_and_view_without_login = <boolean>
-* This setting turns on or off the ability to publish dashboards that can be viewed without logging in.
-* A value of "true" means that Dashboard Studio dashboards can be published and then viewed with a unique URL without logging in.
-* The setting will be removed without notice in a future release.
-* Do not modify this value.
-* Default: true
+* REMOVED. This setting has been removed and has no effect.
 
 activate_link_to_dashboard_tab = <boolean>
 * This setting turns on or off the ability to link to a specific tab within a
-  Dashboard Studio dashboard by using the Link to dashboard interaction on a 
+  Dashboard Studio dashboard by using the Link to dashboard interaction on a
   visualization or shape.
 * A value of "true" means that users can link to specific tabs within existing
   Dashboard Studio dashboards by using the Link to dashboard interaction.
@@ -205,17 +187,51 @@ activate_save_to_dashboard_tab = <boolean>
 * This setting turns on or off the ability to save searches and reports to a
   specific tab within a Dashboard Studio dashboard.
 * A value of "true" means that users can save searches and reports to specific
-  tabs within existing Dashboard Studio dashboards by using the Save to 
+  tabs within existing Dashboard Studio dashboards by using the Save to
   Existing Dashboard dialog box.
 * The setting will be removed without notice in a future release.
 * Default: true
 
+activate_custom_visualizations = <boolean>
+* This setting determines whether Dashboard Studio can display custom
+  visualizations.
+* A value of "true" means that Dashboard Studio can display custom
+  visualizations.
+* A value of "false" turns off custom visualizations.
+* The setting will be removed without notice in a future release.
+* Do not modify this value.
+* Default: true
+
+activate_conditional_visibility = <boolean>
+* This settings determines whether users can access a modal to configure
+  advanced conditional visibility rules in Dashboard Studio.
+* A value of "true" means users can access the modal.
+* A value of "false" means users cannot access the modal.
+* The setting will be removed without notice in a future release.
+* Do not modify this value.
+* Default: true
+
+activate_spl2_datasources = <boolean>
+* This setting determines whether users can access SPL2 data sources in
+* Dashboard Studio.
+* A value of "true" means users can access SPL2 data sources.
+* A value of "false" means users cannot access SPL2 data sources.
+* The setting will be removed without notice in a future release.
+* Do not modify this value.
+* Default: true
+
 [feature:pdfgen]
+
 activate_chromium_legacy_export = <boolean>
-* Whether or not the Chromium web engine generates PDF exports for Simple XML dashboards, reports, and alerts.
-* A value of "true" means that Chromium generates PDF exports for these dashboards, reports, and alerts.
-* A value of "false" means that the Node.js runtime generates the PDF exports.
-* The value for this setting does not affect exports from Dashboard Studio.
+* REMOVED. This setting has been removed and has no effect.
+
+activate_scheduled_export_upscaling = <boolean>
+* Determines whether Dashboard Studio upscales scheduled exports, which
+  improves image quality for large dashboards.
+* A value of "true" activates automatic upscaling.
+* A value of "false" deactivates upscaling. Instead, Dashboard Studio uses a
+  1x scale factor, which might result in blurry visualizations and images for
+  large dashboards.
 * Default: true
 
 
@@ -235,24 +251,13 @@ enable_acuif_pages = <boolean>
 
 enable_triggered_alerts_vnext = <boolean>
 * Determines whether or not Splunk Web loads the new triggered alerts page.
-* DEPRECATED.
-* A value of "true" means that Splunk Web does load the new triggered alerts page.
-* CAUTION: Do not change this setting.
-* Default: true
+* REMOVED. This setting has been removed and has no effect.
 
 enable_home_vnext = <boolean>
-* Determines whether or not Splunk Web loads the new home page.
-* DEPRECATED.
-* A value of "true" means that Splunk Web does load the new home page.
-* CAUTION: Do not change this setting.
-* Default: true
+* REMOVED. This setting has been removed and has no effect.
 
 enable_datasets_vnext = <boolean>
-* Determines whether or not Splunk Web loads the new datasets page.
-* DEPRECATED.
-* A value of "true" means that Splunk Web does load the new datasets page.
-* CAUTION: Do not change this setting.
-* Default: true
+* REMOVED. This setting has been removed and has no effect.
 
 enable_job_manager_vnext = <boolean>
 * Determines whether or not Splunk Web loads the new job manager page.
@@ -331,6 +336,20 @@ enable_authentication_users_vnext = <boolean>
   which uses modals for edits.
 * Default: true
 
+enable_data_indexes_cloud_vnext = <boolean>
+* Whether or not Splunk Web loads the updated "Indexes" Cloud page.
+* A value of "true" means that Splunk Web loads the updated "Indexes" Cloud
+  page.
+* A value of "false" means that Splunk Web loads the classic "Indexes" Cloud
+  page.
+* Default: true
+
+enable_data_indexes_vnext = <boolean>
+* Whether or not Splunk Web loads the updated "Indexes" page.
+* A value of "true" means that Splunk Web loads the updated "Indexes" page.
+* A value of "false" means that Splunk Web loads the classic "Indexes" page.
+* Default: true
+
 enable_reports_vnext = <boolean>
 * Determines whether or not Splunk Web loads the new reports page.
 * DEPRECATED.
@@ -358,6 +377,20 @@ enable_saml_vnext = <boolean>
   Backbone library.
 * Default: true
 
+enable_admin_directory_vnext = <boolean>
+* Determines whether or not Splunk Web loads the "All configurations" page that
+  uses the React JavaScript library.
+* A value of "true" means that Splunk Web loads the modernized "All configurations"
+  page implemented with the React library instead of with Python and XML.
+* A value of "false" means that Splunk Web loads the page that uses the existing
+  Python and XML solution.
+* Default: true
+
+enable_federation_page_vnext = <boolean>
+* Whether or not Splunk Web displays the modernized Federation Page.
+* A value of "false" means Splunk Web displays the old federated_search page.
+* A value of "true" means Splunk Web displays the modernized Federation Page.
+* Default: false
 
 [feature:dashboard_inputs_localization]
 
@@ -471,6 +504,17 @@ enable_field_filters_ui = <boolean>
 * A value of "false" means that field filters are not visible in Splunk Web.
 * Default: true
 
+[feature:authentication_oauth]
+
+enable_authentication_oauth_ui = <boolean>
+* Whether or not Splunk Web displays the Open Authorization
+  (OAuth) configuration page as part of the Authentication
+  Methods configuration workflow.
+* A value of "true" means that Splunk Web displays the OAuth page.
+* A value of "false" means that Splunk Web does not display the
+  OAuth page.
+* Default: true
+
 [feature:identity_sidecar_scim]
 
 enabled = <boolean>
@@ -504,6 +548,17 @@ python.version = latest|python3.9
 * CAUTION: Do not change this setting.
 * Default: latest
 
+python.required = <comma-separated list>
+* The list of Python versions that Splunk Web supports.
+* This setting takes precedence over the 'python.version' setting if both
+  settings have values.
+* The following values are supported:
+  * "3.9": Splunk Web uses Python version 3.9.
+  * "3.13": Splunk Web uses Python version 3.13.
+  * "latest": Splunk Web uses the latest Python interpreter available.
+* CAUTION: Change this setting only when asked to do so by Splunk Support.
+* Default: latest
+
 [feature:federated_search]
 enable_ipv6_validations = <boolean>
 * Whether or not Splunk Web lets users enter IPv6 addresses and Classless
@@ -530,3 +585,21 @@ enable_reports_favorites = <boolean>
 * A value of "false" means users cannot favorite or unfavorite reports.
 * Default: true
 
+
+[feature:search_ai_assistant]
+* Determines whether Splunk Web displays the Splunk AI Assistant for SPL
+  in the Search app.
+* A value of "true" means that users can see the Splunk AI Assistant for SPL
+  in the Search app.
+* A value of "false" means that users can't see the Splunk AI Assistant for SPL
+  in the Search app.
+enable_search_ai_assistant = true
+
+
+
+[feature:spl2]
+enable_spl2 = <boolean>
+* Determines whether Splunk Web enables SPL2.
+* A value of "true" means Splunk Web enables SPL2.
+* A value of "false" means Splunk Web disables SPL2.
+* Default: true

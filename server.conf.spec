@@ -1,4 +1,4 @@
-#   Version 10.0.2
+#   Version 10.2.0
 #
 ############################################################################
 # OVERVIEW
@@ -462,6 +462,8 @@ decommission_search_jobs_min_wait_ratio = <decimal>
 * Default: 0.15
 
 python.version = python3|python3.9|force_python3|unspecified
+* DEPRECATED. Use 'python.required' in individual configuration files 
+  to specify supported Python versions for specific scripts.
 * For Python scripts only, sets the default Python version to use.
 * A value of either "python3" or "python3.9" means the system uses 
   Python 3.9.
@@ -475,12 +477,12 @@ python.version = python3|python3.9|force_python3|unspecified
   of python. This setting value is not supported.
 * Default: force_python3
 
-python.not_compatible = <comma-separated-string>
-* Specifies a comma-separated list of features that are not compatible with the
-  default Python version.
-* The only current valid <string> value is openssl3.0.
-* When openssl3.0 is specified and the default Python version is 3.9, Splunk
-  software switches to the Python 3.9 interpreter linked to OpenSSL1.
+python.not_compatible = <comma-separated list>
+* The list of features that are not compatible with the
+  default version of Python.
+* The previously-supported value "openssl3.0" is no longer supported.
+* Currently, there are no supported values for this setting. The setting 
+  remains for future compatibility purposes.
 * Default: <empty>
 
 roll_and_wait_for_uploads_at_shutdown_secs = <non-negative integer>
@@ -1859,6 +1861,14 @@ sslAltNameToCheck =  <alternateName1>, <alternateName2>, ...
   for details on this setting.
 * Default: splunkbase.splunk.com, apps.splunk.com, cdn.apps.splunk.com
 
+splunkbaseAppsDumpUrl = <string>
+* JSON file link with data on current Splunkbase apps.
+* Default: https://cdn.splunkbase.splunk.com/public/report/apps_dump.json
+
+archivedSplunkbaseAppsDumpUrl = <string>
+* JSON file link with data on archived Splunkbase apps.
+* Default: https://cdn.splunkbase.splunk.com/public/report/archived_apps_dump.json
+
 cipherSuite = <string>
 * See the description of 'cipherSuite' under the [sslConfig] stanza
   for details on this setting.
@@ -2376,6 +2386,15 @@ lm_ping_interval = <positive integer>
 * This setting is valid only when you enable High Availability Redundancy mode,
   which requires a special license and is only available to select customers.
 * Default: 86400 (once a day)
+
+request_full_license_info = <boolean>
+* Controls the amount of license information that is synchronized between
+  this peer and the license manager. 
+* By default, only aggregated information from the license stack for add-ons,
+  feature flags, and license keys is exchanged.
+* If an application requires detailed information about its license,
+  the license peer, such as the search head, receives all license details.
+* Default: false
 
 [lmpool:auto_generated_pool_forwarder]
 * This is the auto generated pool for the forwarder stack
@@ -3235,6 +3254,12 @@ max_peer_sum_rep_load = <integer>
   that a peer can take part in as either a target or source.
 * Default: 5
 
+max_peer_truncate_load = <integer>
+* Only valid for 'mode=manager'.
+* The maximum number of concurrent truncations in which a peer can participate.
+* A value of 0 means all truncations happen at once.
+* Default: 0
+
 max_nonhot_rep_kBps = <integer>
 * Only valid for 'mode=peer'.
 * The maximum throughput, in kilobytes per second, for warm/cold/summary
@@ -3889,6 +3914,24 @@ notify_buckets_usage_batch_size = <positive integer>
   that can be batched together in a single message.
 * CAUTION: Do not modify this setting without guidance from Splunk personnel.
 * Default: 2048
+
+clustered_bucket_database_granularity = global | index
+* Currently not supported. This setting is related to a feature that is
+  still under development.
+* Only valid for 'mode=peer'.
+* Specifies the level at which Splunk software creates search
+  manifest files on search peers in an indexer cluster.
+* Search manifest files list primary buckets for the search peer.
+  This is not the same as .bucketManifest files, which list all buckets that
+  reside on the host per index.
+* A value of "global" means Splunk software creates a single search 
+  manifest file that spans all indexes on the search peer.
+* A value of "index" means Splunk software creates a search manifest file
+  per index.
+* This setting is dynamically reloadable and does not require a restart of the
+  Splunk instance.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: global
 
 max_usage_rebalance_retries = <positive integer>
 * Only valid for 'mode=manager'.
@@ -5016,6 +5059,22 @@ conf_replication_quarantine_large_lookups = <boolean>
   reduces its size to less than or equal to the allowed limit.
 * Default: true
 
+conf_replication_max_csv_lookup_size_bytes = <integer>
+* Specifies the maximum size of a CSV lookup file, in bytes, that can be
+  replicated in a search head cluster.
+* A value of "5000000000" means that the cluster quarantines and does not
+  replicate CSV files that exceed 5GB. Lookup files that do not exceed 5GB
+  continue to replicate across the cluster. 
+* Lookup replication resumes when a change occurs to the lookup file that
+  reduces its size to less than or equal to the specified size limit. Until
+  then, the CSV lookup file remains on the search head and is not distributed
+  to other cluster members.
+* CAUTION: Setting this value higher than 5GB can cause downstream issues. For
+  use cases involving large lookup file sizes, use KV store lookups instead.
+* This setting is not reloadable. You must restart Splunk software for 
+  this setting to take effect.
+* Default: 5000000000
+
 conf_deploy_repository = <path>
 * Full path to directory containing configurations to deploy to cluster
   members.
@@ -5548,7 +5607,7 @@ defaultCidrPrefixLength = <positive int>[0-32]|disabled
 
 ocspValidation = <boolean>
 * OCSP (Online Certificate Status Protocol) checks for certificate revocation.
-* A value of "true" means OSCP valication is turned on, which eliminates the 
+* A value of "true" means OSCP validation is turned on, which eliminates the 
   requirement to periodically download a Certificate Revocation List (CRL) and
   restart the KV store.
 * A value of "false" means OSCP validation is turned off. You must periodically
@@ -6138,7 +6197,6 @@ pass4SymmKey_minLength = <integer>
 * Default: 12
 
 
-
 ############################################################################
 # Remote Storage of Search Artifacts Configuration
 ############################################################################
@@ -6172,6 +6230,7 @@ upload_archive_format = [none|tar.lz4]
 * This can reduce time to upload and artifact when the remote storage has a high
   seek penalty and the search artifact contains more than 100 individual files
 * Default : none
+
 
 
 ############################################################################
@@ -6485,6 +6544,17 @@ pool_size = <positive integer> | per_client
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: 1
 
+enable_for_sync_transactions = <boolean>
+* Whether or not the thread pool for synchronous S3 client transactions is
+  turned on.
+* Depending on the context, this setting can help improve search performance
+  when you turn it on.
+* A value of "true" means that the thread pool will be used for synchronous S3
+  client transactions.
+* A value of "false" means that the thread pool won't be used for synchronous S3
+  client transactions.
+* Default: false
+
 [s3_client_threads:<component>]
 pool_size = <positive integer>
 * Thread pool size for asynchronous S3 client transactions
@@ -6700,6 +6770,86 @@ enable_supervisor_admin_api = <boolean>
 * A value of "false" means the admin API endpoints are disabled by the supervisor.
 * Default: true
 
+sslVerifyServerCert = <boolean>
+* Whether or not the Splunk supervisor and the sidecar processes 
+  that it manages, as clients, validate the TLS certificate that a
+  server presents when they connect to that server.
+* See the 'sslVerifyServerCert' setting under the 
+  [sslConfig] stanza for more details on this setting.
+* No value for this setting means that the supervisor and its
+  managed sidecars use the value for 'sslVerifyServerCert' in the
+  [sslConfig] stanza.
+* Default: Not set
+
+[spotlight]
+enable_otlp_traces = <boolean>
+* Determines whether or not OpenTelemetry (OTel) trace 
+  collection is enabled for the Spotlight sidecar. 
+* A value of "false" means that OTel trace collection is disabled.
+* A value of "true" means that OTel trace collection is enabled.
+* Default: false
+
+enable_otlp_metrics = <boolean>
+* Whether or not OTel metrics collection is activated for the Spotlight sidecar.
+* A value of "false" means that Splunk software deactivates OTel metrics
+  collection.
+* A value of "true" means that Splunk software activates OTel metrics
+  collection.
+* You must restart the Splunk software after you make changes to this setting.
+* Default: false
+
+enable_otlp_metrics_export = <boolean>
+* Whether or not OTel metrics are exported to the Spotlight sidecar.
+* This setting takes effect only if 'enable_otlp_metrics' has a value of "true". 
+* A value of "false" means that Splunk software does not export OTel metrics to 
+  the Spotlight sidecar.
+* A value of "true" means that Splunk software exports OTel metrics to the
+  Spotlight sidecar.
+* Default: true
+
+traces_head_sampling_rate = <decimal>
+* Specifies the head sampling rate for trace data collected by the Spotlight sidecar. 
+  Must be between 0.0 and 1.0. 
+* A value of 1.0 means that all traces are sampled. 
+* A value of 0.0 means that no traces are sampled. 
+* Default: 0.0
+
+[spotlight:splunkd]
+* Settings in this stanza overwrite corresponding settings in the '[spotlight]' stanza.
+
+enable_otlp_traces = <boolean>
+* Changes whether OpenTelemetry (OTel) trace collection is disabled or enabled in splunkd for the
+  Spotlight sidecar by overriding the enable_otlp_traces setting value in the '[spotlight]' stanza. 
+* A value of "false" means that OTel trace collection in splunkd is disabled.
+* A value of "true" means that OTel trace collection in splunkd is enabled.
+* Default: false
+
+enable_otlp_metrics = <boolean>
+* Whether or not OTel metrics collection is activated in splunkd for the 
+  Spotlight sidecar. This setting overrides the 'enable_otlp_metrics' setting 
+  in the '[spotlight]' stanza.
+* A value of "false" means that OTel metrics collection in splunkd is 
+  deactivated.
+* A value of "true" means that OTel metrics collection in splunkd is activated.
+* You must restart the Splunk software after you make changes to this setting.
+* Default: false
+
+enable_otlp_metrics_export = <boolean>
+* Determines whether or not OTel metrics are exported
+  to the Spotlight sidecar by overriding the 'enable_otlp_metrics' setting value in the '[spotlight]' stanza.
+* This setting takes effect only if 'enable_otlp_metrics' has a value of "true". 
+* A value of "false" means that OTel metrics are not exported to the Spotlight sidecar.
+* A value of "true" means that OTel metrics are exported to the Spotlight sidecar.
+* Default: true
+
+traces_head_sampling_rate = <decimal>
+* Changes the head sampling rate for trace data collected by the Spotlight sidecar in splunkd by 
+  overriding the value of traces_head_sampling_rate setting in the '[spotlight]' stanza.
+  Must be between 0.0 and 1.0. 
+* A value of 1.0 means that all traces from splunkd are sampled. 
+* A value of 0.0 means that no traces from splunkd are sampled. 
+* Default: 0.0
+
 [localProxy]
 allocated_max_threads_percentage = <integer>
 * Specifies the percentage of maxThreads that can be allocated to 
@@ -6761,6 +6911,22 @@ repoDir = <path>
 * NOTE: Before you modify this setting, consult the Splunk support team.
 * Default: $SPLUNK_HOME/var/vcs
 
+[version_control:compression]
+disabled = <boolean>
+* Whether or not the automated compression job for the Version Control repository is turned on.
+* The compression job reduces the on-disk footprint of the Version Control metadata by
+  periodically archiving and compressing stale objects.
+* A value of "true" means that compression is turned off.
+* A value of "false" means that compression is turned on.
+* Default: true
+
+interval = <interval><unit>
+* How often the Splunk platform runs the Version Control compression job.
+* Use the standard Splunk interval syntax for seconds, minutes, hours, days, etc.
+  For example: 60s, 1m, 1h, 1d, etc.
+* Must be greater than 0s (0 seconds).
+* Default: 1d (1 day)
+
 ############################################################################
 # PostgreSQL configuration
 ############################################################################
@@ -6770,8 +6936,7 @@ disabled = <boolean>
 * Default: false
 
 enable_clustered_mode = <boolean>
-* This setting turns a clustered PostgreSQL deployment on or off for search head clusters (SHC).
-* Default: false
+REMOVED. This setting has been removed and has no effect. 
 
 ############################################################################
 # Inter-process Communication (IPC) Broker configuration
@@ -6802,6 +6967,42 @@ port = <integer>
     is 1024 and the highest is 65535.
 * No default.
 
+############################################################################
+# Cluster state server configuration
+############################################################################
+[cluster_state_server]
+disabled = <boolean>
+* Whether or not the cluster state server is turned off.
+* A value of "true" means the state server is turned off.
+* A value of "false" means the state server is turned on.
+* Default: false
+
+http_port = <integer>
+* The TCP/IP network port that the cluster state server helper
+  process uses to serve incoming requests.
+* This setting is optional.
+* The lowest valid value is 1025 and the highest is 65535.
+* Default: 8600
+
+helper_process_read_timeout_secs = <unsigned integer>
+* The maximum time, in seconds, that splunkd waits for the cluster state
+  server helper process to return results of query execution.
+* Default: 5 (five seconds)
+
+etcd_backup_interval = <unsigned integer>
+* The interval, in minutes, at which the cluster state server periodically
+  backs up etcd (distributed key-value store) data.
+* Reduce the value if you prioritize minimization of data loss during restore.
+* Increase the value if reducing backup overhead is a higher priority.
+* Default: 5
+
+max_peerdown_time = <unsigned integer>
+* The maximum wait time, in minutes, for a downed search head to rejoin
+  before the cluster state server reconfigures the etcd cluster.
+* Reduce the value if you want fast reconfiguration when a node is down.
+* Increase the value if nodes might be slow to return and you want to
+  avoid premature reconfiguration.
+* Default: 30
 
 ############################################################################
 # Data Management configuration
@@ -6876,3 +7077,63 @@ version = <positive integer>.<positive integer>.<positive integer>
 * The version of the opamp_binary_splunk_edge file to be installed onto a remote host.
 * The version should be in the format <major>.<minor>.<patch>
 * Default: not set
+
+############################################################################
+# Data Orchestrator configuration
+############################################################################
+[data_orchestrator]
+* NOTE: Do not change settings in this stanza unless instructed to do so by Splunk Support.
+
+disabled = <boolean>
+* Whether or not the data orchestrator component is turned on.
+* This component is what lets SPL2 function.
+* A value of "false" means that the data orchestrator component is turned on.
+* A value of "true" means that the data orchestrator component is turned off.
+* You must restart the Splunk platform instance for this change to take effect.
+* Default: false
+
+############################################################################
+# Heap Profiler
+############################################################################
+[heap_profiler]
+disabled = <boolean>
+* Whether or not the splunkd server periodically writes files with diagnostic
+  information about its heap memory usage. These files are also called heap
+  dumps.
+* This functionality is available only on Linux platform.
+* If set to "false", Splunk platform generates files with the filename prefix
+  specified by the "output_prefix" parameter.
+* If set to "true", Splunk platform does not generate these files.
+* To turn on automatic heap profiling, add the following line to the
+  splunk-launch.conf file:
+  MALLOC_CONF="prof:true,prof_active:false,prof_accum:true"
+* If you turn on automatic heap profiling, Splunk platform automatically
+  selects the correct version of jemalloc.
+* Default: true
+
+period = <interval>
+* Interval at which the splunkd server writes files with the heap diagnostic
+  information.
+* Use <integer><unit> to specify a duration. If <integer> is not specified,
+  it defaults to 1. If <unit> is not specified, it defaults to seconds.
+* Specify one of the following units: s, sec, second, secs, seconds, m, min,
+  minute, mins, minutes, h, hr, hour, hrs, hours, d, day, days.
+* For example: 60s = 60 seconds, 5m = 5 minutes.
+* A value of 0 means Splunk platform does not generate any files.
+* Default: 1m
+
+output_prefix = <string>
+* Output prefix for the files with heap diagnostic information.
+* Splunk platform names the generated files according to the following pattern:
+  <output_prefix>.<pid>.<counter>.m<counter>.heap
+  * For example: /tmp/heap_data.1234.1m1.heap
+* If the directory to store these files is missing, Splunk platform creates it
+  if possible.
+* Default: /tmp/heap_data
+
+min_free_space = <unsigned integer>[MB|GB|TB]
+* Determines the minimum free space for the heap dump generation.
+* If the filesystem free space is lower than the specified threshold, Splunk
+  platform cannot generate any new heap dumps.
+* You must specify both an integer and a unit.
+* Default: 256MB

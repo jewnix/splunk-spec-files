@@ -1,4 +1,4 @@
-#   Version 10.0.2
+#   Version 10.2.0
 #
 ############################################################################
 # OVERVIEW
@@ -100,6 +100,14 @@ bucketMerge.maxMergeCount = <unsigned integer>
 * Maximum number of buckets to merge.
 * You can override this value on a per-index basis.
 * Default: 24
+
+allowBulkDataMove = <boolean>
+* Whether or not Splunk software allows bulk data move operations on
+  non-SmartStore clustered indexes.
+* A value of "true" means Splunk software allows bulk data move operations.
+* A value of "false" means Splunk software does not allow bulk data move
+  operations.
+* Default: false
 
 queryLanguageDefinition = <path to file>
 * REMOVED.  This setting is no longer used.
@@ -219,6 +227,57 @@ assureUTF8 = <boolean>
 enableRealtimeSearch = <boolean>
 * Enables real-time searches.
 * Default: true
+
+perfTuneMetaDataAPIs = <boolean>
+* Whether or not the Splunk daemon auto-tunes metadata access to
+  improve indexing and index replication performance.
+* A value of "true" means that the Splunk daemon auto-tunes
+  metadata access to improve indexing and replication performance.
+* A value of "false" means that the Splunk daemon does not auto-tune
+  metadata access.
+* Default: false
+
+perfTuneMetaDataReads = <boolean>
+* Whether or not the Splunk daemon auto-tunes metadata read APIs.
+* A value of "true" means that the Splunk daemon auto-tunes
+  metadata read APIs.
+* A value of "false" means that the Splunk daemon does not auto-tune
+  metadata read APIs.
+* When 'perfTuneMetaDataAPIs' has a value of "false", this setting
+  has no effect.
+* This is an advanced setting. Do not change it unless
+  instructed to by Splunk Support.
+* Default: true
+
+perfTuneMetaDataWrites = <boolean>
+* Whether or not the Splunk daemon auto-tunes metadata write APIs.
+* A value of "true" means that the Splunk daemon auto-tunes
+  metadata write APIs.
+* A value of "false" means that the Splunk daemon does not auto-tune
+  metadata write APIs.
+* When 'perfTuneMetaDataAPIs' has a value of "false", this setting
+  has no effect.
+* This is an advanced setting. Do not change it unless
+  instructed to by Splunk Support.
+* Default: true
+
+quadReloadHashTable = <boolean>
+* Whether or not the Splunk daemon auto-tunes metadata internal table reloads.
+* A value of "true" means that the Splunk daemon auto-tunes
+  metadata internal table reloads.
+* A value of "false" means that the Splunk daemon does not auto-tune
+  metadata internal table reloads.
+* When 'perfTuneMetaDataAPIs' has a value of "false", this setting
+  has no effect.
+* This is an advanced setting. Do not change it unless
+  instructed to by Splunk Support.
+* Default: false
+
+hashTableSize = <integer>
+* The size, in bytes, of the metadata internal table.
+* This is an advanced setting. Do not change it unless
+  instructed to by Splunk Support.
+* Default: 1024
 
 suppressBannerList = <comma-separated list of strings>
 * suppresses index missing warning banner messages for specified indexes
@@ -774,6 +833,8 @@ coldToFrozenScript = <path to script interpreter> <path to script>
 * No default.
 
 python.version = {default|python|python2|python3|python3.7|python3.9|latest}
+* DEPRECATED. Use 'python.required' instead to specify which Python versions the
+  script supports.
 * For Python scripts only, selects which Python version to use.
 * This setting is valid for 'coldToFrozenScript' only when the value starts
   with the canonical path to the Python interpreter, in other words,
@@ -788,6 +849,27 @@ python.version = {default|python|python2|python3|python3.7|python3.9|latest}
   supported. It is related to a feature that is still under development.
 * Optional.
 * Default: Not set; uses the system-wide Python version.
+
+python.required = <comma-separated list>
+* For Python scripts only, the versions of Python that the script supports.
+* The Splunk platform uses this setting for 'coldToFrozenScript' only when
+  the setting value starts with the canonical path to the Python
+  interpreter, in other words, "$SPLUNK_HOME/bin/python". If you use any
+  other path, the Splunk platform ignores this setting.
+* This setting takes precedence over the 'python.version' setting if both
+  have values.
+* The Splunk platform selects the highest version of Python that is
+  available from the list that you provide.
+* The following values are supported:
+  * "3.9": The script supports Python version 3.9.
+  * "3.13": The script supports Python version 3.13.
+  * "latest": The script uses the latest Python interpreter available.
+    * Where possible, use a specific version string rather than "latest".
+    * NOTE: The "latest" value is an internal value that is related to
+      a feature that is still under development.
+* NOTE: Use this setting instead of the deprecated 'python.version' setting.
+* This setting is optional.
+* Default: Not set; uses 'python.version' if that setting has a value.
 
 coldToFrozenDir = <path to frozen archive>
 * An alternative to a 'coldToFrozen' script - this setting lets you
@@ -903,6 +985,18 @@ maxMemMB = <nonnegative integer>
 * The default is recommended for all environments.
 * The highest legal value is 4294967295.
 * Default: 5
+
+tsidxSyncPeriod = <positive integer>
+* The amount of time, in seconds, after which splunkd forces a sync of tsidx
+  files.
+* Indexed events become searchable after the sync, which happens when the
+  indexing buffer is filled or when 'tsidxSyncPeriod' elapsed.
+* Use the higher value to reduce indexing overhead, especially on systems with
+  many indexes.
+* Use the lower value for faster searchability.
+* If the indexedRealtime mode is used, 'tsidxSyncPeriod' should be less than
+  'indexed_realtime_disk_sync_delay'.
+* Default: 1
 
 maxHotSpanSecs = <positive integer>
 * Upper bound of timespan of hot/warm buckets, in seconds.
@@ -2907,25 +3001,52 @@ remote.azure.secret_key = <string>
 * No default.
 
 remote.azure.tenant_id = <string>
-* Specifies the ID of the tenant (instance of an Azure AD directory). Check
-  your Azure subscription for details.
-* Needed only for client token-based authentication.
+* Specifies the ID of the tenant, which is an instance of an Azure AD
+  directory. Consult your Azure subscription for details.
+* This setting is required only for client token and workload identity
+  authentication.
+* If this setting is not configured, the system checks the
+  'AZURE_TENANT_ID' environment variable and uses that value if set.
 * No default.
 
 remote.azure.client_id = <string>
-* Specifies the ID of the client (also called application ID - the unique 
-  identifier Azure AD issues to an application registration that identifies a 
-  specific application and the associated configurations).
-  You can obtain the client ID for an application from the Azure Portal in the
-  Overview section for the registered application.
-* Needed only for client token-based authentication.
-* Optional for managed identity authentication.
+* Specifies the ID of the client, also known as the application ID.
+  This unique identifier is issued by Azure Active Directory to an
+  application registration. It identifies a specific application
+  and its associated configurations.
+  You can obtain the client ID for an application from the Azure Portal in
+  the Overview section for the registered application.
+* This setting is required only for client token and workload identity
+  authentication.
+* This setting is optional for managed identity authentication.
+* If this setting is not configured, the system checks the
+  'AZURE_CLIENT_ID' environment variable and uses that value if set.
 * No default.
 
 remote.azure.client_secret = <string>
 * Specifies the secret key to use when authenticating using the client_id. You 
   generate the secret key through the Azure Portal.
 * Needed only for client token-based authentication.
+* No default.
+
+remote.azure.federated_token_file = <path>
+* Specifies the full path to the service account token file.
+  This file is used for Azure workload identity authentication in
+  Kubernetes environments.
+* This setting is required only when using Azure workload identity
+  authentication.
+* If this setting is not configured, the system checks the
+  'AZURE_FEDERATED_TOKEN_FILE' environment variable and uses that value 
+  if set.
+* No default.
+
+remote.azure.authority_host = <string>
+* Specifies the Azure Active Directory (AAD) endpoint URL.
+* This setting is not valid for managed identity authentication.
+* This setting is optional for client token and workload identity
+  authentication.
+* If this setting is not configured, the system checks the
+  'AZURE_AUTHORITY_HOST' environment variable and uses that value if set.
 * No default.
 
 remote.azure.sslRootCAPath = <path>
@@ -2984,30 +3105,75 @@ remote.azure.azure_kv.key_name = <string>
 * No default.
 
 remote.azure.azure_kv.key_vault_tenant_id = <string>
-* Specifies the ID of the Azure Active Directory tenant for authenticating
-  with the the Key Vault. Check your Azure Active Directory subscription for details.
-* Required only for client token-based authentication.
+* Specifies the ID of the Azure Active Directory tenant for
+  authenticating with the Key Vault. Check your Azure Active Directory
+  subscription for details.
+* This setting is required only for client token and workload identity
+  authentication.
+* If this setting and the 'remote.azure.tenant_id' setting are not
+  configured, the system checks the 'AZURE_TENANT_ID' environment
+  variable and uses that value if set.
 * You do not need to configure this setting if both of the following
   are true:
   * You have configured the 'remote.azure.tenant_id' setting to the
     same value.
-  * The Active Directory is provisioned for Key Vault Cryptography operations.
+  * The Active Directory is provisioned for Key Vault Cryptography
+    operations.
 * Default: the value of the 'remote.azure.tenant_id' setting.
 
 remote.azure.azure_kv.key_vault_client_id = <string>
-* Specifies the ID of the client, also called application ID - the unique
-  identifier Azure Active Directory issues to an application registration that identifies a
-  specific application and the associated configurations.
-* You can obtain the client ID for an application from the Azure Portal in the
-  Overview section for the registered application.
-* Required only for client token-based authentication.
-* Optional for managed identity authentication.
+* Specifies the ID of the client, also known as the application ID.
+  This unique identifier is issued by Azure Active Directory to an
+  application registration. It identifies a specific application
+  and its associated configurations.
+  You can obtain the client ID for an application from the Azure Portal in
+  the Overview section for the registered application.
+* This setting is required only for client token and workload identity
+  authentication.
+* This setting is optional for managed identity authentication.
+* If this setting and the 'remote.azure.client_id' setting are not 
+  configured, the system checks the 'AZURE_CLIENT_ID' environment variable
+  and uses that value if set.
 * You do not need to configure this setting if both of the following
   are true:
-  * You have configured the 'remote.azure.client_id' to the
+  * You have configured the 'remote.azure.client_id' setting to the
     same value.
-  * The Active Directory is provisioned for Key Vault Cryptography operations.
+  * The Active Directory is provisioned for Key Vault Cryptography
+    operations.
 * Default: the value of the 'remote.azure.client_id' setting.
+
+remote.azure.azure_kv.federated_token_file = <path>
+* Specifies the full path to the service account token file.
+  This file is used for Azure workload identity authentication in
+  Kubernetes environments.
+* This setting is required only when using Azure workload identity
+  authentication.
+* If this setting and the 'remote.azure.federated_token_file' setting are
+  not configured, the system checks the 'AZURE_FEDERATED_TOKEN_FILE'
+  environment variable and uses that value if set.
+* You do not need to configure this setting if both of the following
+  are true:
+  * You have configured the 'remote.azure.federated_token_file'
+    setting to the same value.
+  * The Active Directory is provisioned for Key Vault Cryptography
+    operations.
+* Default: the value of the 'remote.azure.federated_token_file' setting.
+
+remote.azure.azure_kv.authority_host = <url>
+* Specifies the Azure Active Directory (AAD) endpoint URL.
+* This setting is not valid for managed identity authentication.
+* This setting is optional for client token and workload identity
+  authentication.
+* If this setting and the 'remote.azure.authority_host' setting are not
+  configured, the system checks the 'AZURE_AUTHORITY_HOST' environment
+  variable and uses that value if set.
+* You do not need to configure this setting if both of the following
+  are true:
+  * You have configured the 'remote.azure.authority_host' setting to
+    the same value.
+  * The Active Directory is provisioned for Key Vault Cryptography
+    operations.
+* Default: the value of the 'remote.azure.authority_host' setting.
 
 remote.azure.azure_kv.key_vault_client_secret = <string>
 * Specifies the secret key to use when authenticating the Key Vault using the client_id.

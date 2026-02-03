@@ -1,4 +1,4 @@
-#   Version 10.0.2
+#   Version 10.2.0
 #
 ############################################################################
 # OVERVIEW
@@ -486,6 +486,17 @@ shc_adhoc_quota_enforcement = on | off | overflow
         change this setting without consulting Splunk Support.
 * Default: off
 
+hostwide_queued_search_limit = <integer>
+* Specifies the maximum number of queued searches for a search head.
+* When the hostwide_queued_search_limit is reached, searches that would
+  normally be queued will be rejected, until the number of queued searches does
+  not exceed the limit.
+* A value of 0 means there is no limit to the number of queued searches
+  on the search head. 
+* NOTE: Setting this value too high can cause performance issues, as Splunk
+  software might spend more time servicing queued jobs.
+* Default: 0
+
 ############################################################################
 # Distributed search
 ############################################################################
@@ -593,7 +604,6 @@ remote_search_requests_throttling_type = disabled | per_cpu | physical_ram
   'remote_search_requests_throttling_type = per_cpu, physical_ram'
   enables both "per_cpu" and "physical_ram".
 * Does not apply to real-time searches.
-* Do not use this feature in conjunction with workload management.
 * Default: disabled
 
 throttle_peer_busy_wait = <integer>[s|m]
@@ -1471,6 +1481,16 @@ write_multifile_results_out = <boolean>
   already be split into appropriate size files.
 * Default: true
 
+include_temp_dirs_in_disk_usage = <boolean>
+* Whether or not the size of temporary directories that user searches
+  create counts toward the total disk usage for the user who runs the
+  search.
+* A value of "true" means that the Splunk platform counts the size of
+  temporary directories that user searches create.
+* A value of "false" means that the Splunk platform does not count the
+  size of temporary directories that user searches create.
+* Default: false
+
 ############################################################################
 # Search process
 ############################################################################
@@ -1525,6 +1545,21 @@ idle_process_reaper_period = auto | <number>
 * Has no effect on Windows if 'search_process_mode' is not set to "auto" or
   if 'max_searches_per_process' is set to "0" or "1".
 * Default: 30
+
+idle_process_hostwide_memory_threshold = auto | <positive integer>
+* The threshold, specified as a percentage of allowed hostwide memory usage, 
+  that determines whether a search process can enter the pool of preforked 
+  search processes and become idle for reuse.
+* When total memory used by hostwide processes exceeds this threshold,
+  instead of idling a search process after job completion, the system 
+  terminates and doesn't reuse the search process when the total number of
+  idle search processes reaches the 'max_idle_process_count' limit,
+  or when the pool size reaches the 'max_search_process_pool' limit.
+* A value of "auto" lets the system automatically adjust the threshold.
+* This setting applies only when 'search_process_mode' has a value of "auto",
+  and has no effect on Windows platforms.
+* The valid value range for this threshold is from 1 to 100.
+* Default: 90
 
 launcher_max_idle_checks = auto | <integer>
 * Specifies the number of idle processes that are inspected before giving up
@@ -2076,13 +2111,15 @@ rr_sleep_factor = <integer>
 ############################################################################
 # This section describes peer-side settings for distributed search throttling.
 [search_throttling::per_cpu]
-max_concurrent = <unsigned integer>
+max_concurrent = <non-negative decimal>
 * Sets the maximum number of remote searches for each available CPU.
-  The total number of searches for this throttling type is thus calculated as:
+* The total number of searches for this throttling type is calculated using:
   max_searches = max_concurrent x number_of_cpus
-* When the calculated value is exceeded, search requests are rejected until the number
-  of concurrent searches falls below the limit.
-* A value of 0 disables throttling.
+* When the calculated value is exceeded, search requests are rejected until
+  the number of concurrent searches falls below the 'max_concurrent' limit.
+* A value of a fractional number less than 1 means that the limit of concurrent 
+  searches is less than 1 search per CPU. 
+* A value of 0 means that throttling is turned off.
 * This setting is relevant only when used with 'remote_search_requests_throttling_type'.
 * Default: 12
 
@@ -2353,7 +2390,6 @@ maxkvalue = <integer>
 * Maximum number of clusters to attempt to solve for.
 * Default: 1000
 
-
 [lookup]
 
 batch_index_query = <boolean>
@@ -2473,6 +2509,13 @@ indexed_csv_include_underscore_key_field = <boolean>
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: true
 
+[makeresults]
+
+maxresultrows = <integer>
+* Maximum number of result rows to create.
+* If not specified, defaults to the value set for 'maxresultrows' in the
+  [searchresults] stanza, which is 50000 by default.
+* Default: 50000
 
 [metadata]
 
@@ -3319,6 +3362,14 @@ enable_install_apps = <boolean>
 * Default: false
 
 
+enable_oauth2_for_applications = <boolean>
+* Whether or not OAuth authentication for third-party applications is turned on.
+* A value of "true" means OAuth authentication for third-party applications is  
+  turned on. 
+* A value of "false" means OAuth authentication for third-party applications is
+  turned off.
+* Default: true
+
 
 [http_input]
 
@@ -3369,21 +3420,22 @@ soft_preview_queue_size = <integer>
 [inputproc]
 
 file_tracking_db_threshold_mb = <integer>
-* The size, in megabytes, at which point the file tracking
-  database, otherwise known as the "fishbucket" or "btree", rolls over
-  to a new file.
-* The rollover process is as follows:
-  * After the fishbucket reaches 'file_tracking_db_threshold_mb' megabytes
-    in size, a new database file is created.
-  * From this point forward, the processor writes new entries to the
-    new database.
-  * Initially, the processor attempts to read entries from the new database,
-    but upon failure, falls back to the old database.
-  * Successful reads from the old database are written to the new database.
-* NOTE: During migration, if this setting doesn't exist, the initialization
-  code in splunkd triggers an automatic migration step that reads in the
-  current value for "maxDataSize" under the "_thefishbucket" stanza in
-  indexes.conf and writes this value into etc/system/local/limits.conf.
+* The maximum size (in megabytes) of the fishbucket file tracking checkpoint 
+  database.
+* When the fishbucket reaches this limit, the least recently used checkpoints 
+  are automatically deleted. 
+* Default: 500
+
+file_tracking_db_fsync_enabled = <boolean>
+* Flushes modified file tracking checkpoints to disk immediately, 
+  which ensures durability, but might negatively impact performance 
+  in some cases.
+* Turn off this setting only if performance of file tracking databases
+  is a concern.
+* When turned off, recently updated checkpoints might be lost in the event of
+  a power failure.
+*Default: true
+
 
 learned_sourcetypes_limit = <0 or positive integer>
 * Limits the number of entries added to the learned app for performance
@@ -3793,6 +3845,24 @@ render_chromium_screenshot_delay = <unsigned integer>
   This setting does not impact the render_chromium_timeout setting.
 * Default: 0
 
+export_max_file_size = <positive integer>
+* The maximum file size allowed, in megabytes, for Dashboard Studio scheduled
+  exports.
+* Set this value to half of the maximum attachment size of your mail server minus
+  about 1MB, because PNG scheduled exports are attached twice inside of emails.
+  An extra 1MB leaves room for metadata produced during export.
+* If an export exceeds this max file size, Dashboard Studio retries the export
+  at lower resolutions until it creates an export within this limit.
+* Default: 8
+
+export_max_scale_factor = <positive integer>
+* The maximum scale factor the exporter can apply to Dashboard Studio scheduled
+  exports.
+* A value of 1 means no scaling. The maximum allowed value is 10.
+* Higher values permit higher-resolution dashboard exports, which impact the
+  export file size, export time, and memory usage.
+* Default: 4
+
 [realtime]
 
 # Default options for indexer support of real-time searches
@@ -4078,6 +4148,16 @@ concurrency_message_throttle_time = <integer>[s|m|h|d]
   minutes, h, hr, hour, hrs, hours, d, day, days.
 * Default: 10m
 
+dispatch_mode = push | pull
+* Specifies the search job dispatching mode.
+* There are currently two supported modes: 'push' or 'pull'.
+* The 'push' mode means the captain pushes the search jobs to search head 
+  cluster members.
+* The 'pull' mode means the search head cluster members pull the search jobs 
+  from the captain.
+* Default: 'push'
+
+
 introspection_lookback = <duration-specifier>
 * The amount of time to "look back" when reporting introspection statistics.
 * For example: what is the number of dispatched searches in the last 60 minutes?
@@ -4139,6 +4219,13 @@ max_searches_perc.<n>.when = <cron string>
 * The scheduler looks in reverse-<n> order looking for the first match.
 * If either these settings aren't provided at all or no "when" matches the
   current time, the value falls back to the non-<n> value of 'max_searches_perc'.
+
+max_pull_based_fetch = <integer>
+* The maximum number of searches a SHC member can pull in a single
+  fetch request to the captain.
+* 0 means the limit will be based on the maximum available scheduled searches
+  the member can currently run.
+* Default: 0
 
 dynamic_max_searches_perc = <boolean>
 * Whether or not the search scheduler can dynamically adjust the maximum 
@@ -4305,6 +4392,44 @@ search_history_max_runtimes = <unsigned integer>
 * Used to calculate historical typical runtime during search prioritization.
 * Default: 10
 
+pull_interval = <double>
+* The amount of time, in seconds, between SHC members' requests to pull scheduled
+  jobs from the SHC captain.
+* This setting is applicable when "dispatching_mode=pull".
+* Value must be greater than 0 and less than or equal to 60.
+* Default: .5
+
+pull_interval_throttle_limit = <unsigned integer>
+* Controls how many times a SHC member can check for the available search capacity 
+  before throttling occurs.
+* When a SHC member reaches its scheduled search capacity, this setting determines
+  how many additional capacity checks will be allowed before the member temporarily
+  pauses (throttles) requests to pull jobs from the captain.
+* Once the throttle limit is reached, the SHC member will wait for the duration
+  specified in the 'pull_interval_throttle_interval' setting before resuming capacity checks.
+* This setting is only applicable when "dispatching_mode=pull".
+* Valid values range from 0 to 500.
+* Set to 0 to turn off throttling.
+* Default: 20
+
+pull_interval_throttle_interval = <double>
+* This setting is used in conjunction with 'pull_interval_throttle_limit'. 
+  Use this setting to specify the amount of time in seconds a SHC member 
+  should throttle before rechecking its scheduled search capacity to pull 
+  jobs from the SHC captain.
+* This setting is applicable when "dispatching_mode=pull" and 
+  the 'pull_interval_throttle_limit' setting is enabled.
+* Value must be greater than 0 and less than or equal to 300
+* Default: 10
+
+
+shc_scheduler_sticky_jobs_expiry = <double>
+* The amount of time in seconds that pull-based scheduled searches with 
+  affinity to a particular SHC member can remain enqueued before they are 
+  retried or skipped.
+* This setting is applicable when "dispatching_mode=pull".
+* The value must be greater than 0, and less than or equal to 300.
+* Default: 120
 
 [search_metrics]
 
@@ -5160,6 +5285,11 @@ rfsS3DestinationOff = <boolean>
 * Default: false
 
 
+enableDestConfigOnDs = <boolean>
+* Specifies whether S3 destinations for ingest actions 
+  can be configured on deployment servers.
+* Default: true
+
 ##########################################################################
 # Reloading
 ##########################################################################
@@ -5189,9 +5319,20 @@ sqs.ingest.max_threads = <non-negative integer>
 # SPL2
 ############################################################################
 [spl2]
-origin = [all|none|<search-origin>]
-* Limits where the SPL2 search can originate from.
-* Use a comma-separated list for the value. Currently, the only supported value is "ad-hoc".
+origin = [all|none|<comma-separated list>]
+* The location from where the SPL2 search can originate.
+* To limit the location from where the search can originate, specify a
+  comma-separated list of values.
+* Currently, the only supported search origin values are
+  "ad-hoc" and "scheduler".
+* A value of "all" means that SPL2 searches can originate
+  from any location that supports SPL2.
+* A value of "ad-hoc" means that the search can originate from
+  the Search & Reporting search bar.
+* A value of "scheduler" means that the search can originate
+  from scheduled searches.
+* A value of "none" means that the search cannot originate from
+  anywhere. 
 * Default: all
 
 run_as_owner_ttl = <nonnegative integer>[s|m|h|d]

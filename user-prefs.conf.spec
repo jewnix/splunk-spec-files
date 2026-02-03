@@ -129,6 +129,9 @@ hideInstrumentationOptInModal = <boolean>
 <setting> = <value>
 
 [general_default]
+appOrder = <string>
+* The name of the app that will appear first in the list of apps in Splunk Web.
+
 default_earliest_time = <string>
 default_latest_time = <string>
 * Sets the global default time range across all apps, users, and roles on the search page.
@@ -144,6 +147,9 @@ notification_python_2_removal = <string>
 notification_noah_upgrade = <string>
 * Flag to enable, disable, or snooze the Noah notification dialog.
 * Default: true
+
+showWhatsNew = <boolean>
+* REMOVED. This setting has been removed and has no effect.
 
 [role_<name>]
 

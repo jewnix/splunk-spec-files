@@ -1,6 +1,8 @@
 #
 # This file explains how to format viewstates.
 #
+# REMOVED. The settings in this file have been removed and have no effect.
+#
 # To use this configuration, copy the configuration block into
 # viewstates.conf in $SPLUNK_HOME/etc/system/local/. You must restart Splunk
 # to enable configurations.

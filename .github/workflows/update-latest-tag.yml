@@ -1,0 +1,20 @@
+name: Update latest tag
+
+on:
+  push:
+    tags:
+      - "[0-9]+.*"
+
+jobs:
+  update-latest-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Move latest tag
+        run: |
+          git tag -f latest
+          git push origin latest --force

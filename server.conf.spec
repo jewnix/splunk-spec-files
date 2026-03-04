@@ -1,4 +1,4 @@
-#   Version 10.2.0
+#   Version 10.2.1
 #
 ############################################################################
 # OVERVIEW
@@ -85,6 +85,15 @@ invalidateSessionTokensOnLogout = <boolean>
 * Splunkd on each node tries to keep the logout information in sync with other nodes in the
   cluster within the specified 'logoutCacheRefreshInterval'.
 * Default: false
+
+skipSearchSessionTokenInvalidationOnLogout = <boolean>
+* A value of "true" means the search head cluster skips KV store logout
+  invalidation writes for search-session tokens (for example, scheduled
+  searches).
+* A value of "false" means these writes are not skipped.
+* This setting has an effect only if search head clustering, KV store, and
+  'invalidateSessionTokensOnLogout' are turned on.
+* Default: true
 
 logoutCacheRefreshInterval = <nonnegative integer>[s|m|h|d]
 * This setting controls how often splunkd on a given node updates its local cache from the
@@ -5462,9 +5471,14 @@ caCertPath = <string>
 serverCert = <string>
 * See the description of 'serverCert' under the [sslConfig] stanza
   for details on this setting.
+* This setting is used for the server part of the KV store connection.
+  If the [kvstoreSslClientConfig] stanza is not present, this setting is
+  used for the client part of the KV store connection as well.
 * No default.
 
 sslVerifyServerCert = <boolean>
+* DEPRECATED. Configure client-related settings in the [kvstoreSslClientConfig]
+  stanza. Use '[kvstoreSslClientConfig]/sslVerifyServerCert' instead.
 * See the description of 'sslVerifyServerCert' under the [sslConfig] stanza
   for details on this setting.
 * If you have enabled FIPS (by setting SPLUNK_FIPS=1), splunkd always verifies
@@ -5472,6 +5486,8 @@ sslVerifyServerCert = <boolean>
 * Default (if you have not enabled FIPS): false
 
 sslVerifyServerName = <boolean>
+* DEPRECATED. Configure client-related settings in the [kvstoreSslClientConfig]
+  stanza. Use '[kvstoreSslClientConfig]/sslVerifyServerName' instead.
 * See the description of 'sslVerifyServerName' under the [sslConfig] stanza
   for details on this setting.
 * Default: false
@@ -5489,6 +5505,9 @@ sslPassword = <string>
 * If you have turned on FIPS mode in Splunk Enterprise, then
   you must configure this setting with a value. If you do not, then 
   App Key Value Store is not available.
+* This setting is used for the server part of the KV store connection.
+  If the [kvstoreSslClientConfig] stanza is not present, this setting is
+  used for the client part of the KV store connection as well.
 * No default.
 
 sslKeysPassword = <string>
@@ -5614,6 +5633,44 @@ ocspValidation = <boolean>
   download a CRL and restart KV store.
 * Default: true
 
+
+############################################################################
+# App Key Value Store (KV Store) SSL Client configuration
+############################################################################
+
+[kvstoreSslClientConfig]
+* TLS settings for the KV store client connections.
+* If you do not specify this stanza, splunkd uses the [kvstore] stanza TLS
+  server settings for KV store client TLS configuration as fallback. These 
+  settings are: [kvstore]/serverCert, [kvstore]/sslPassword,
+  [kvstore]/sslVerifyServerCert, [kvstore]/sslVerifyServerName.
+* Splunk platform does not fall back on the [kvstore] stanza settings if you've
+  specified any of the settings in the [kvstoreSslClientConfig] stanza. Once
+  you specify one setting in the [kvstoreSslClientConfig] stanza, you must
+  specify clientCert and sslPassword, or else KV store fails.
+
+clientCert = <string>
+* The full path to the client certificate.
+* For more information about certificates, and how to obtain, create,
+  and install them, search the Securing Splunk Enterprise Manual 
+  for "Introduction to Securing the Splunk Platform with TLS".
+* The certificate must be in privacy-enhanced mail (PEM) format.
+* Add root CA cert to the file on [sslConfig]/sslRootCAPath path.
+* No default.
+
+sslVerifyServerCert = <boolean>
+* See the description of 'sslVerifyServerCert' under the [kvstore] stanza
+for details on this setting.
+* Default (if you have not enabled FIPS): false
+
+sslVerifyServerName = <boolean>
+* See the description of 'sslVerifyServerName' under the [kvstore] stanza
+  for details on this setting.
+* Default: false
+
+sslPassword = <string>
+* The password for the client certificate, if you created one.
+* No default.
 
 ############################################################################
 # Indexer Discovery configuration

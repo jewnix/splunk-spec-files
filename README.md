@@ -4,7 +4,7 @@ This repository tracks Splunk default configuration and specification files acro
 
 ## What's in this repository
 
-This repository contains three types of files:
+This repository contains four types of files:
 
 ### 1. Configuration Specification Files (`.spec`)
 
@@ -43,13 +43,23 @@ This XML file defines the Splunk command-line interface structure, including:
 
 This file is useful for tracking changes to the `splunk` CLI tool across versions.
 
+### 4. REST API Reference (`rest_api_reference.md`)
+
+This Markdown file documents all Splunk Enterprise REST API endpoints, organized by functional group:
+- Endpoint paths and descriptions
+- Supported HTTP methods (GET, POST, DELETE)
+- Request parameters and their descriptions
+- Usage notes and related endpoints
+
+Endpoint groups include Access, Application, Cluster, Configuration, Deployment, Federated Search, Input, Introspection, Knowledge, KV Store, License, Metrics Catalog, Output, Search, System, and Workload Management.
+
 ---
 
 Each version of Splunk is tagged in this repository, making it easy to track changes across releases.
 
 ## Available Versions
 
-This repository tracks Splunk versions from **6.5.0** to **10.0.1**. You can see all available versions with:
+This repository tracks Splunk versions from **6.5.0** to **10.2.1**. You can see all available versions with:
 
 ```bash
 git tag --list

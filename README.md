@@ -53,6 +53,18 @@ This Markdown file documents all Splunk Enterprise REST API endpoints, organized
 
 Endpoint groups include Access, Application, Cluster, Configuration, Deployment, Federated Search, Input, Introspection, Knowledge, KV Store, License, Metrics Catalog, Output, Search, System, and Workload Management.
 
+### 5. SPL Search Reference (`spl/`)
+
+A collection of Markdown files documenting all SPL (Search Processing Language) commands, functions, and time reference syntax. Extracted from [help.splunk.com](https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.2). Contents include:
+
+- **Search Commands** - 146 commands with types, function groups, and descriptions
+- **Internal Commands** - 9 internal/unsupported commands
+- **Evaluation Functions** - 121 functions across 12 categories (bitwise, comparison/conditional, conversion, cryptographic, date/time, informational, JSON, mathematical, multivalue, statistical, text, trigonometry/hyperbolic)
+- **Statistical and Charting Functions** - 35 functions across 4 categories (aggregate, event order, multivalue, time)
+- **Time Reference** - 63 date/time format variables (strftime/strptime) and 36 time modifiers
+
+See [`spl/README.md`](spl/README.md) for the full index.
+
 ---
 
 Each version of Splunk is tagged in this repository, making it easy to track changes across releases.

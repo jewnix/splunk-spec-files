@@ -1,4 +1,4 @@
-#   Version 10.2.1
+#   Version 10.2.2
 #
 ############################################################################
 # OVERVIEW
@@ -67,16 +67,18 @@ srchFilterSelecting = <boolean>
 
 
 [role_<roleName>]
-<capability> = <enabled>
-* A capability that is enabled for this role. You can list many capabilities
-  for each role.
-* NOTE: 'enabled' is the only accepted value here, as capabilities are
-  disabled by default.
-* Roles inherit all capabilities from imported roles, and you cannot disable
-  inherited capabilities.
+* Defines a role with the name '<roleName>'.
 * Role names cannot have uppercase characters. Usernames, however, are
   case-insensitive.
 * Role names cannot contain spaces, colons, semicolons, or forward slashes.
+* Role names must use valid UTF-8 character encoding.
+
+<capability> = enabled
+* A capability that is enabled for this role. You can list multiple
+  capabilities for each role.
+* The only valid value is "enabled", as capabilities are disabled by default.
+* Roles inherit all capabilities from imported roles, and you cannot
+  disable inherited capabilities.
 
 importRoles = <semicolon-separated list>
 * A list of other roles and their associated capabilities that the Splunk

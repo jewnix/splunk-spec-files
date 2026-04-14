@@ -1,4 +1,4 @@
-#   Version 10.2.1
+#   Version 10.2.2
 #
 ############################################################################
 # OVERVIEW
@@ -7060,6 +7060,28 @@ max_peerdown_time = <unsigned integer>
 * Increase the value if nodes might be slow to return and you want to
   avoid premature reconfiguration.
 * Default: 30
+
+etcd_auto_compaction_retention = <string>
+* The retention period for etcd periodic auto-compaction.
+* Accepts duration strings such as "1h", "30m", or bare numbers
+  interpreted as hours. For example, "24" means 24 hours.
+* Auto-compaction removes old, unused data versions, called Multi-Version Concurrency
+  Control (MVCC) revisions, from the etcd database, reducing logical space usage.
+* This operation runs only on the etcd leader node, which coordinates write requests, makes
+  decisions, and manages cluster consistency. Because leadership can change at any time,
+  configure this setting consistently on all instances.
+* If the value is set to zero (0) or is invalid, the system uses the default value.
+* Default: 1h
+
+etcd_defrag_interval = <string>
+* The interval at which the cluster state server defragments the local
+  etcd database to reclaim physical disk space.
+* Accepts duration strings such as "1h", "30m", or bare numbers
+  interpreted as hours. For example: "24" means 24 hours.
+* Defragmentation runs independently on each instance with a random
+  initial delay to prevent simultaneous defragmentation across the cluster.
+* If the value is set to zero (0) or is invalid, the system uses the default value.
+* Default: 24h
 
 ############################################################################
 # Data Management configuration

@@ -4,7 +4,7 @@ Source: https://help.splunk.com/en/splunk-enterprise/rest-api-reference/10.2/
 
 ## Endpoint Groups
 
-- [Access](#access) (26 endpoints)
+- [Access](#access) (29 endpoints)
 - [Application](#application) (8 endpoints)
 - [Cluster](#cluster) (70 endpoints)
 - [Configuration](#configuration) (2 endpoints)
@@ -17,7 +17,7 @@ Source: https://help.splunk.com/en/splunk-enterprise/rest-api-reference/10.2/
 - [License](#license) (14 endpoints)
 - [Metrics Catalog](#metrics-catalog) (5 endpoints)
 - [Output](#output) (9 endpoints)
-- [Search](#search) (50 endpoints)
+- [Search](#search) (44 endpoints)
 - [System](#system) (10 endpoints)
 - [Workload Management](#workload-management) (10 endpoints)
 
@@ -67,6 +67,67 @@ Enable the {LDAP_strategy_name} LDAP strategy.
 
 Disable the {LDAP_strategy_name} LDAP strategy.
 
+### `/services/authentication/providers/oauth2`
+
+Requires the list_oauth_configs capability for GET operations.
+
+#### POST
+
+Create an OAuth provider configuration.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `jwks_uri` | string | OIDC provider's public keys endpoint. |
+| `audience` | string | Expected token audience. |
+| `groupsClaim` | string | JWT claim containing user groups. |
+| `issuer` | string | Token issuer URL. |
+| `clientIdClaim` | string | JWT claim containing client ID. |
+| `clientFullNameClaim` | string | Optional. JWT claim containing human-readable client name. |
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `jwks_uri` | string | OIDC provider's public keys endpoint. |
+| `audience` | string | Expected token audience. |
+| `groupsClaim` | string | JWT claim containing user groups. |
+| `issuer` | string | Token issuer URL. |
+| `clientIdClaim` | string | JWT claim containing client ID. |
+| `clientFullNameClaim` | string | Optional. JWT claim containing human-readable client name. |
+
+#### GET
+
+List all OAuth provider configurations.
+
+### `/services/authentication/providers/oauth2/{name}`
+
+Retrieves a specific OAuth provider configuration.
+
+#### GET
+
+Retrieves a specific OAuth provider configuration.
+
+#### POST
+
+Updates an existing OAuth provider configuration.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `jwks_uri` | String | Optional. The OIDC provider's public keys endpoint URL. |
+| `audience` | String | Optional. The expected audience ( aud ) claim in the JWT. |
+| `groupsClaim` | String | Optional. The name of the JWT claim that contains user groups. |
+| `clientIdClaim` | String | Optional. The name of the JWT claim that contains the client ID. |
+| `clientFullNameClaim` | String | Optional. The name of the JWT claim containing a human-readable client name. |
+| `disabled` | Boolean | Optional. Set to true to disable the configuration. Defaults to false . |
+
+#### DELETE
+
+Deletes an existing OAuth provider configuration.
+
 ### `/services/admin/metrics-reload/_reload`
 
 Use this endpoint to reload the metrics processor after updating a metrics-related configuration.
@@ -74,6 +135,31 @@ Use this endpoint to reload the metrics processor after updating a metrics-relat
 #### POST
 
 Reload the metrics processor.
+
+### `/services/admin/oauth2-groups`
+
+Requires the list_oauth_config_role_mappings capability for GET operations and edit_oauth_config_role_mappings for POST and DELETE operations.
+
+#### GET
+
+Lists group-to-role mappings. You can list all mappings or filter them by a specific OAuth configuration.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `config` | String | Optional. The name of an OAuth configuration to filter the results. If omitted, mappings for all configurations are returned. |
+
+#### POST
+
+Creates a group-to-role mapping for an OAuth configuration.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `config` | String | Required. The name of the OAuth configuration this mapping belongs to. |
+| `roles` | String | Required. The Splunk role to assign to the group. Supply this parameter for each role you want to assign. |
 
 ### `/services/admin/replicate-SAML-certs`
 
@@ -10166,203 +10252,6 @@ Get a list of words or descriptions for possible auto-complete terms.
 | `max_servers` | Number | 2 |
 | `output_mode` | String | csv |
 | `prefix required` | String |  |
-
-### `/services/services/orchestrator/v1/datasets`
-
-Return information about SPL2-supported datasets. For more information, see Datasets in the SPL2 Search Manual .
-
-#### GET
-
-Return information about datasets that you have access to. For views, you must have execute permission on the SPL2 module associated with the view.
-
-**Returned values**
-
-| Name | Type | Description |
-|------|------|-------------|
-| `results` | An array of objects with the same content as GET. The datasetid appears in the name. |  |
-| `nextLink` | The link to the next page of results. |  |
-| `totalCount` | The total number of elements that match the requested filters. Might be larger than the length of the results, if pagination is applied. |  |
-
-### `/services/Services/orchestrator/v1/datasets/{datasetid}`
-
-Provides information about a specific dataset , based on the dataset ID.
-
-#### GET
-
-Returns information about a dataset. The response depends on the kind of dataset.
-
-**Request parameters**
-
-| Name | Type | Description |
-|------|------|-------------|
-| `datasetid` | String |  |
-
-**Returned values**
-
-| Name | Type | Description |
-|------|------|-------------|
-| `id` | The dataset ID. |  |
-| `owner` | User ID of the user that created the dataset. |  |
-| `created` | Deprecated. The date and time object was created. The 'created' parameter is deprecated as of version v1. Although this parameter continues to function, it might be removed in a future version. Use the createdAt parameter instead. |  |
-| `createdAt` | The date and time object was created. |  |
-| `modified` | Deprecated. The date and time object was modified. The 'modified' parameter is deprecated as of version v1. Although this parameter continues to function, it might be removed in a future version. Use the updatedAt parameter instead. |  |
-| `updatedAt` | The date and time dataset was updated. |  |
-| `createdby` | Deprecated. The name of the user who created the object. This value is obtained from user credentials and may not be changed. Deprecated due to non-standard platform casing. Use the createdBy parameter instead. |  |
-| `createdBy` | The user ID of the user who created the object. This value is obtained from user credentials and may not be changed. |  |
-| `module` | The name of the module that the dataset belongs to. Currently only supported for the view dataset kind. Example: my_module |  |
-| `modifiedby` | Deprecated. The name of the user who most recently modified the object. Deprecated due to non-standard platform naming. Use the updatedBy parameter instead. |  |
-| `updatedBy` | The name of the user who most recently modified the object. |  |
-| `resourcename` | Deprecated. The dataset name qualified by the module name. Deprecated due to non-standard platform casing. Use the resourceName parameter instead. |  |
-| `resourceName` | The dataset name qualified by the module name. |  |
-| `appclientidcreatedby` | Deprecated. The AppClientId of the creator app of the dataset. Deprecated due to non-standard platform casing. Use the appClientIdCreatedBy parameter instead. |  |
-| `appclientidmodifiedby` | Deprecated. The AppClientId of the modifier app of the dataset. Deprecated due to non-standard platform casing. Use the appClientIdUpdatedBy parameter instead. |  |
-| `appClientIdCreatedBy` | The AppClientId of the creator app of the dataset. |  |
-| `appClientIdUpdatedBy` | The AppClientId of the modifier app of the dataset. |  |
-| `kind` | The kind of dataset, such as index, lookup, savedsearch, or view. Example: index |  |
-| `namespace` | The name of the namespace that contains the dataset. |  |
-| `title` | The title of the dataset. Does not have to be unique. |  |
-| `summary` | A summary of the dataset's purpose. |  |
-| `awsRegion` | AWS Region, for example: us-east-2. Returned for the following dataset kinds: awss3 |  |
-| `bucket` | The S3 bucket name. Returned for the following dataset kinds: awss3 |  |
-| `bucketKey` | The S3 bucket key. Returned for the following dataset kinds: awss3 |  |
-| `filePrefix` | The prefix for the log files. Max 100 characters. Returned for the following dataset kinds: awss3 |  |
-| `dataFormat` | The data format for the log files. Returned for the following dataset kinds: awss3 |  |
-| `compressionType` | Compression type for the data format. Optional for backward compatibility. Returned for the following dataset kinds: awss3 |  |
-| `sendBatchSize` | Optional parameter that controls the number of logs that will be accumulated before the file in S3 is created. integer Returned for the following dataset kinds: awss3 |  |
-| `registerRuntimes` | The runtimes for the datasets. Returned for the following dataset kinds: awss3 |  |
-| `s3authentication.awsAccessKeyId` | The AWS Access KEY ID. Returned for the following dataset kinds: awss3 |  |
-| `s3authentication.awsSecretAccessKey` | The AWS Secret Access KEY. Returned for the following dataset kinds: awss3 |  |
-| `s3authentication.awsSecretAccessKeyPath` | The paths used by Vault for the AWS Secret Access KEY. Returned for the following dataset kinds: awss3 |  |
-| `externalKind` | The type of the external lookup. Returned for the following dataset kinds: lookup |  |
-| `externalName` | The name of the external lookup. Returned for the following dataset kinds: lookup |  |
-| `caseSensitiveMatch` | Match case-sensitivity against the lookup. Returned for the following dataset kinds: lookup |  |
-| `filter` | A search that filters the results out of the lookup before those results are returned. Returned for the following dataset kinds: lookup savedSearch |  |
-| `disabled` | Specifies whether or not the Splunk index is disabled. Returned for the following dataset kinds: index |  |
-| `frozenTimePeriodInSecs` | The number of seconds after which indexed data rolls to frozen. Freezing data means it is removed from the index. Returned for the following dataset kinds: index metric |  |
-| `endpoint` | The Splunk HEC destination endpoint to send data to. Returned for the following dataset kinds: hecexporter |  |
-| `caCertificate` | The CA certificate used to verify server identity during the TLS handshake. Returned for the following dataset kinds: hecexporter |  |
-| `clientCertificate` | The client certificate presented during TLS handshake. Returned for the following dataset kinds: hecexporter |  |
-| `skipTLSVerification` | Where to skip TLS verification, whether or not TLS files are provided. Returned for the following dataset kinds: hecexporter |  |
-| `index` | The index where the incoming events should be indexed in. Returned for the following dataset kinds: hecexporter |  |
-| `source` | The source that identifies the incoming data. Returned for the following dataset kinds: hecexporter |  |
-| `sourcetype` | The source type of the incoming data. Returned for the following dataset kinds: hecexporter |  |
-
-### `/services/services/orchestrator/v1/spl2/convert`
-
-Converts an SPL search to SPL2.
-
-#### POST
-
-Converts a single SPL search into an SPL2 search.
-
-**Request parameters**
-
-| Name | Type | Description |
-|------|------|-------------|
-| `spl1` | String |  |
-| `runtime` | String |  |
-
-**Returned values**
-
-| Name | Type | Description |
-|------|------|-------------|
-| `spl2` | The converted search. |  |
-| `messages` | One or more text messages might be returned in the response. |  |
-
-### `/services/services/orchestrator/v1/spl2/module/dispatch`
-
-Dispatch a module that contains one or more SPL2 statements. For more information about what constitutes an SPL2 statement, see Modules and SPL2 statements in the SPL2 Search Manual .
-
-#### POST
-
-Start one or more new searches and return a search ID (SID) for each named search statement.
-
-**Request parameters**
-
-| Name | Type | Description |
-|------|------|-------------|
-| `module` | String |  |
-| `namespace` | String |  |
-| `queryParameters` | String |  |
-| `queryName` | String |  |
-| `earliest` | String | -24h@h |
-| `latest` | String | now |
-| `timezone` | String | Current system timezone |
-| `relativeTimeAnchor` | String | The time the search job is created |
-| `collectEventSummary` | Boolean | False |
-| `collectFieldSummary` | Boolean | False |
-| `collectTimeBuckets` | Boolean | False |
-| `adhocSearchLevel` | String | fast |
-
-**Returned values**
-
-| Name | Type | Description |
-|------|------|-------------|
-| `sid` | Search ID. |  |
-
-### `/services/services/orchestrator/v1/spl2/modules/permissions`
-
-Access a list of role-based permissions for a module. Requires the edit_spl2_module_permissions capability.
-
-#### GET
-
-Retrieve all of the permissions for a module.
-
-**Request parameters**
-
-| Name | Type | Description |
-|------|------|-------------|
-| `resourceName` | String |  |
-
-**Returned values**
-
-| Name | Type | Description |
-|------|------|-------------|
-| `operation` | Array |  |
-| `resourceName` | String |  |
-| `resourceType` | String |  |
-| `role` | String |  |
-
-#### PUT
-
-Update permissions for a module. You must specify the existing permissions and any new or changed permissions.
-
-**Request parameters**
-
-| Name | Type | Description |
-|------|------|-------------|
-| `resourceType` | String |  |
-| `resourceName` | String |  |
-| `permissions` | JSON array |  |
-
-### `/services/services/orchestrator/v1/spl2/modules/{resourceName}`
-
-Return information about a module, or create, update, or delete an SPL2 module.
-
-#### GET
-
-Retrieves information about a specific module.
-
-#### PUT
-
-Create or update a module in a specific namespace.
-
-**Request parameters**
-
-| Name | Type | Description |
-|------|------|-------------|
-| `namespace` | String |  |
-| `definition` | String |  |
-
-**Returned values**
-
-| Name | Type | Description |
-|------|------|-------------|
-| `415` | Unsupported media type. The type must be application/json . |  |
-
-#### DELETE
-
-Delete a module in a specific application. Specify the namespace and the module name.
 
 ---
 

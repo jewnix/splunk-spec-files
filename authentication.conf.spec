@@ -163,13 +163,14 @@ userBaseFilter = <string>
 * Default: empty string (no filtering)
 
 userNameAttribute = <string>
-* This is the username.
-* NOTE: This setting should use case insensitive matching for its values,
-  and the values should not contain whitespace
-    * Usernames are case insensitive in the the Splunk platform
-* In Active Directory, this is 'sAMAccountName'
-* Required.
+* Specifies the attribute that represents the Splunk username.
+* NOTE: This setting uses case-insensitive matching for its values, and the
+  values must not contain whitespace.
+  * Usernames are case-insensitive in the Splunk platform.
+  * The resolved Splunk username must use valid UTF-8 character encoding.
+* In Active Directory, this attribute is typically 'sAMAccountName'.
 * A typical value is 'uid'.
+* Required.
 * No default.
 
 realNameAttribute = <string>

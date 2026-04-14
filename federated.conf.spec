@@ -446,6 +446,14 @@ rsh_delta_write_timeout = <unsigned integer>
 * A value of 0 means the remote search head applies its own default timeout.
 * Default: 0
 
+skipLoadWithoutPpcFor = <comma-separated list>
+* A comma-separated list of internal tags that are responsible for search head
+  pool member functions. Adding a tag to this list causes Splunk software to
+  revert to default settings and add redundant caching. 
+* Valid values are: "captain_update", "add_sid", and "remove_sid".
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* No default
+
 ############################################################################
 # Configs for blocking unsupported commands in Federated Search
 ############################################################################

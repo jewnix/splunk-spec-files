@@ -1466,7 +1466,7 @@ field_filters = <boolean>
   Splunk platform indexes.
 * When set to "true": field filters are turned on.
 * When set to "false": field filters are turned off.
-* Default: false
+* Default: true
 
 truncate_report = [1|0]
 * Specifies whether or not to apply the 'max_count' setting to report output.

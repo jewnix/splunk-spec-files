@@ -1,4 +1,4 @@
-#   Version 10.2.2
+#   Version 10.2.3
 #
 ############################################################################
 # OVERVIEW
@@ -4430,6 +4430,17 @@ shc_scheduler_sticky_jobs_expiry = <double>
 * This setting is applicable when "dispatching_mode=pull".
 * The value must be greater than 0, and less than or equal to 300.
 * Default: 120
+
+dispatch_only_when_kvstore_ready = <boolean>
+* Whether or not KVStore must be ready on peers before the SHC captain 
+  dispatches search jobs.
+* A value of "true" means all searches are prevented from dispatching until 
+  KVStore is ready.
+* A value of "false" means searches dispatch regardless of KVStore readiness.
+* Use this setting only if most search jobs depend on KVStore.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: false
+
 
 [search_metrics]
 

@@ -36,7 +36,6 @@
         <!--
         # Please See serverclass.conf.spec for how these properties are used.
         -->
-        <continueMatching>true</continueMatching>
         <restartSplunkWeb>false</restartSplunkWeb>
         <restartSplunkd>false</restartSplunkd>
         <stateOnClient>enabled</stateOnClient>

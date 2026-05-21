@@ -293,7 +293,7 @@ login_content = <string>
 
 sslVersions = <comma-separated list>
 * The list of TLS versions to support.
-* The versions available are "tls1.0", "tls1.1", and "tls1.2"
+* The versions available are "tls1.0", "tls1.1", "tls1.2" and "tls1.3"
 * The special version "*" selects all supported versions. The version "tls"
   selects all versions tls1.0 or newer
 * If you prefix a version with "-", it is removed from the list.
@@ -1233,6 +1233,12 @@ allowSslCompression = <boolean>
 * If set to "true", the server lets clients negotiate SSL-layer
   data compression.
 * The HTTP layer has its own compression layer which is usually sufficient.
+* In Splunk Enterprise version 10.4 and later, this setting has no effect
+  when TLS 1.3 is enabled. TLS 1.3 does not support SSL-layer compression.
+* To use compression for HTTPS connections with TLS 1.3, both the HTTP
+  client and the server must enable HTTP-layer compression. To enable
+  server-side compression, set 'enable_gzip' to "true". Most modern HTTP
+  clients and browsers request compression by default.
 * Default: false
 
 allowSslRenegotiation = <boolean>
@@ -1633,3 +1639,58 @@ remoteProxyLegacyRequireDoubleEncodedUriArgs = <boolean>
   as the REST endpoint handles the encoding,
   for example: https://<server>:<port>/services/remote-proxy/<REST endpoint>?proxy_to=<proxy_to>&param1=val1&param2=val2&param3=val3'.
 * Default: false
+
+[nghttpx_server]
+auto_start = <boolean>
+* Whether or not the Nghttpx proxy server automatically starts when the
+  Splunk platform starts.
+* A value of "true" means the server starts automatically.
+* A value of "false" means the server does not start automatically.
+* Default: false
+
+httpport = <unsigned integer>
+* The Transmission Control Protocol (TCP) port on which the Nghttpx proxy
+  server listens for incoming connections.
+* This setting is required for Nghttpx to start.
+* If you omit this setting or set it to 0, the server does not start an
+  Nghttpx listener.
+* Because the server must use Secure Sockets Layer (SSL), set this port
+  to the Hypertext Transfer Protocol Secure (HTTPS) port number.
+* Default: 9000
+
+workers = <unsigned integer>
+* The number of worker threads in the Nghttpx process.
+* Default: 1
+
+backendConnectionsPerFrontend = <unsigned integer>
+* The maximum number of backend concurrent connections or streams per
+  frontend.
+* This setting is meaningful when the browser and Nghttpx use Hypertext
+  Transfer Protocol version 2 (HTTP/2).
+* A value of "0" means there is no limit to the number of connections.
+* Default: 0
+
+privKeyPath = <path>
+* The path to the file that contains the Nghttpx server Secure Sockets
+  Layer (SSL) certificate private key.
+* You can specify an absolute path to an external key.
+* The Splunk daemon (splunkd) interprets a relative path as relative to
+  the $SPLUNK_HOME directory.
+* The default can vary. By default, Nghttpx uses the same private key
+  specified for Splunk Web.
+
+serverCert = <path>
+* The full path to the Privacy Enhanced Mail (PEM) format Nghttpx server
+  certificate file.
+* The file can also contain root and intermediate certificates.
+* The Splunk daemon (splunkd) interprets a relative path as relative to
+  the $SPLUNK_HOME directory.
+* The default can vary. By default, Nghttpx uses the same certificate
+  file specified for Splunk Web.
+
+sslPassword = <string>
+* The password that protects the private key specified by 'privKeyPath'.
+* If Nghttpx uses the same private key specified for Splunk Web, it
+  also uses the same password specified for Splunk Web.
+* Optional.
+* Default: Not set

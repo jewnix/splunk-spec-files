@@ -6,11 +6,11 @@ READ THIS FIRST: Should you deploy field filters in your organization?
 # their sensitive fields from prying eyes, but it might not be a good fit 
 # for everyone. If your organization runs Splunk Enterprise Security or if 
 # your users rely heavily on commands that field filters restricts by default
-# (mpreview, mstats, tstats, typeahead, and walklex), do not use field filters 
-# in production until you have thoroughly planned how you will work around 
-# these restricted commands. For more information about restricted commands,
-# search for "Plan for field filters in your organization" in Securing 
-# Splunk Platform in the Splunk Docs. 
+# (mpreview and mstats), do not use field filters in production until you have 
+# thoroughly planned how you will work around these restricted commands. 
+# For more information about restricted commands, search for "Plan for 
+# field filters in your organization" in Securing Splunk Platform at 
+# help.splunk.com. 
 # 
 ############################################################################ 
 # OVERVIEW

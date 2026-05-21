@@ -52,34 +52,37 @@ numeric_search_time_range = <bool>
 
 [workload_rule:<rule_name>]
 predicate = <string>
-* Specifies the predicate of this workload classification rule.
-* The format is logical expression with predicate as <type>=<value>.
+* The logical expression for this workload classification rule.
+* The format is a logical expression where the predicate is <type>=<value>.
 * For example, "app=search AND (NOT role=power)".
-* The valid <type> are "app", "role", "user", "index",
-  "search_type", "search_mode", "search_time_range", and "runtime".
-  The <value> is the exact value of the <type>.
-* For "app" type, the value is the name of the app. For example, "app=search".
-* For "role" type, the value is the name of the role. For example, "role=admin".
-* For "index" type, the value is the name of the index. For example,
-  "index=_internal". Note that the value can refer to an internal or public index.
-* For "user" type, the value is the name of any valid user. For example,
-  "user=bob". Note that the reserved internal user "noboby" is invalid; the
-  reserved internal user "splunk-system-user" is valid.
-* For "search_type" type, the value is the type of the search. Valid search 
-  types include "adhoc", "scheduled", "datamodel_acceleration", 
-  "report_acceleration" and "summary_index".
-* For "search_mode" type, the value is the mode of the search. Valid modes 
-  include "realtime" and "historical".
-* For "search_time_range" type, the value is the time range of the search.
-  Value can be "alltime" or a numerical value. For example, 
-  "search_time_range>7d" or "search_time_range<=24h".
-  To specify a numerical value, the 'numerical_search_time_range' flag
-  must be set to "true".
-
-* For "runtime" type, the value is the amount of time a search must run in a 
-  workload pool to trigger a specified action, such as alert, move or abort.
-  Valid units for runtime values include s, second, seconds, m, minute, minutes,
-  and h, hour, hours.
+* The valid <type> values are "app", "role", "user", "index",
+  "indexes_count", "search_type", "search_mode", "search_time_range", and
+  "runtime". Provide the exact value for the specified <type>.
+* For the "app" type, provide the name of the app. For example,
+  "app=search".
+* For the "role" type, provide the name of the role. For example,
+  "role=admin".
+* For the "index" type, provide the name of the index. For example,
+  "index=_internal". You can refer to an internal or public index.
+* For the "user" type, provide the name of any valid user. For example,
+  "user=bob". Note that the reserved internal user "nobody" is invalid, but
+  the reserved internal user "splunk-system-user" is valid.
+* For the "search_type" type, specify the type of the search. Valid
+  search types include "adhoc", "scheduled", "datamodel_acceleration",
+  "report_acceleration", and "summary_index".
+* For the "search_mode" type, specify the mode of the search. Valid
+  modes include "realtime" and "historical".
+* For the "search_time_range" type, provide the time range of the
+  search. The value can be "alltime" or a numerical value. For example,
+  "search_time_range>7d" or "search_time_range<=24h". To specify a
+  numerical value, activate the 'numerical_search_time_range' setting.
+* For the "indexes_count" type, provide a non-negative integer that
+  indicates the number of indexes targeted by the search. Supported
+  operators are "=", ">", and "<". For example, "indexes_count>500".
+* For the "runtime" type, provide the amount of time a search runs in
+  a workload pool to trigger a specified action, such as an alert, move, or
+  abort. Valid units for runtime values include s, second, seconds, m,
+  minute, minutes, h, hour, and hours.
 * Required.
 
 workload_pool = <string>
@@ -175,30 +178,36 @@ rules = <string>
 
 [search_filter_rule:<rule_name>]
 predicate = <string>
-* Specifies the predicate of this workload classification rule.
-* The format is logical expression with predicate as <type>=<value>.
+* The logical expression for this search filter rule.
+* The format is a logical expression where the predicate is <type>=<value>.
 * For example, "app=search AND (NOT role=power)".
-* The valid <type> are "app", "role", "user", "index",
-  "search_type", "search_mode", "search_time_range", and "adhoc_search_percentage".
-  The <value> is the exact value of the <type>.
-* For "app" type, the value is the name of the app. For example, "app=search".
-* For "role" type, the value is the name of the role. For example, "role=admin".
-* For "index" type, the value is the name of the index. For example,
-  "index=_internal". Note that the value can refer to an internal or public index.
-* For "user" type, the value is the name of any valid user. For example,
-  "user=bob". Note that the reserved internal user "noboby" is invalid; the
-  reserved internal user "splunk-system-user" is valid.
-* For "search_type" type, the value is the type of the search. Valid search 
-  types include "adhoc", "scheduled", "datamodel_acceleration", 
-  "report_acceleration" and "summary_index".
-* For "search_mode" type, the value is the mode of the search. Valid modes 
-  include "realtime" and "historical".
-* For "search_time_range" type, the value is the time range of the search. 
-  For now, value can only be "alltime".
-* For "adhoc_search_percentage" type, the value is an integer in the range [0,100]
-  indicating the percentage of total concurrent searches that adhoc searches can
-  consume before being filtered or queued. If specified, predicate must also include
-  "search_type=adhoc".
+* The valid <type> values are "app", "role", "user", "index",
+  "indexes_count", "search_type", "search_mode", "search_time_range", and
+  "adhoc_search_percentage". Provide the exact value for the specified
+  <type>.
+* For the "app" type, provide the name of the app. For example,
+  "app=search".
+* For the "role" type, provide the name of the role. For example,
+  "role=admin".
+* For the "index" type, provide the name of the index. For example,
+  "index=_internal". You can refer to an internal or public index.
+* For the "user" type, provide the name of any valid user. For example,
+  "user=bob". Note that the reserved internal user "nobody" is invalid, but
+  the reserved internal user "splunk-system-user" is valid.
+* For the "search_type" type, specify the type of the search. Valid
+  search types include "adhoc", "scheduled", "datamodel_acceleration",
+  "report_acceleration", and "summary_index".
+* For the "search_mode" type, specify the mode of the search. Valid
+  modes include "realtime" and "historical".
+* For the "search_time_range" type, provide the time range of the
+  search. For now, the value can only be "alltime".
+* For the "indexes_count" type, provide a non-negative integer that
+  indicates the number of indexes targeted by the search. Supported
+  operators are "=", ">", and "<". For example, "indexes_count>500".
+* For the "adhoc_search_percentage" type, provide an integer in the
+  range [0,100] indicating the percentage of total concurrent searches
+  that adhoc searches can consume before being filtered or queued. If
+  specified, the predicate must also include "search_type=adhoc".
 * Required.
 
 action = filter | queue

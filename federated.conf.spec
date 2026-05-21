@@ -76,6 +76,70 @@ appContext = <application_short_name>
   name and application context.
 * Default: search
 
+
+useAppContextFromSearch = <boolean>
+* Whether or not the application context for federated searches run with this
+  federated provider is determined from the app context of the search the user
+  runs on the local search head.
+* A value of "true" means the federated provider uses the app context of the
+   search the user runs on the local search head.
+* A value of "false" means the federated provider uses the app context
+  specified by the 'appContext' setting in this file.
+* For federated providers where 'type = splunk' and 'mode = transparent',
+  this setting defaults to "true" and ignores any values set in
+  'useAppContextFromSearch' and 'appContext'. 
+* Because standard mode federated search does not send knowledge objects to
+  remote federated providers, administrators must be careful when setting
+  'useAppContextFromSearch' to "true". If the search app context does not exist
+  on the remote federated provider, the search fails. Ensure that all possible 
+  app contexts from searches that users might run with this federated provider 
+  exist on the remote federated provider.
+* Default: false
+
+
+fedSrchIndexesAllowed = <semicolon-separated list>
+* Specifies the federated indexes that this federated provider may search in 
+  transparent mode, when 'allowIndexBasedProviderFiltering' is set to "true".
+* This setting works in conjunction with the 'allowIndexBasedProviderFiltering' 
+  setting in federated provider stanzas specified in the federated.conf 
+  configuration file. 
+  * If 'allowIndexBasedProviderFiltering' has a value of "true", only federated
+    providers whose 'fedSrchIndexesAllowed' setting matches the federated 
+    indexes in the search are included in federated searches. For example, if 
+    a federated provider has 'fedSrchIndexesAllowed' set to "prod_*" and the 
+    search queries 'index=prod_data', that provider is included. If the search 
+    queries 'index=test_data', the provider is excluded.
+  * If 'allowIndexBasedProviderFiltering' has a value of "false", this setting
+    is ignored and providers are not filtered by indexes.
+* This setting provides a soft enforcement policy, meaning that Splunk software 
+  sends any search string that has at least one "allowed" federated index to 
+  the federated provider that the federated index is associated with.
+  * If the search string lists multiple federated indexes for a provider, and 
+    at least one index is allowed, Splunk software sends the search string   
+    to that provider, even if other indexes in the search are not in the  
+    allowed list.
+  * If none of the indexes for a provider in the search string are allowed, 
+    the search is not sent to that provider.
+  * If the search string includes allowed indexes for other providers, 
+    Splunk software sends the search to those providers as appropriate.
+* This setting can be:
+  * "*": Uses the default value "*", which searches all federated indexes that 
+    this provider is allowed to search.
+  * A semicolon-separated list of indexes: Splunk software checks the search 
+    against this list for each provider.
+    * A wildcard (*) can be used to match any sequence of characters. 
+      For example, if the allowed list is "prod_*_test;local*", then matching 
+      indexes could be "prod_security_test", "prod_finance_test" and 
+      "local_telemetry".    
+  * Empty: Blocks this provider from being searched.
+* This feature adds to, but does not override, any role-based access control 
+  (RBAC) permissions that govern user access to indexes. The search request 
+  is sent to a provider if at least one index is allowed, but RBAC 
+  controls whether the user can access data from those indexes. If the user's 
+  role does not permit access to a specific index, no results are returned 
+  from that index, even if the search was sent to the provider.
+* Default: *
+
 useFSHKnowledgeObjects = <boolean>
 * Determines whether federated searches with this provider use knowledge
   objects from the federated provider (the remote search head) or from the
@@ -164,6 +228,24 @@ connectivityFailuresThreshold = <integer>
   Support.
 * Default: 3
 
+providerVerificationMode = [deactivated | audit | strict | auto]
+* Controls provider verification enforcement for remote search execution.
+* Determines whether federated providers must pass heartbeat verification 
+  before searches run against them.
+* A value of "deactivated" means no verification is required. The system does
+  not create or validate challenges during heartbeat operations.
+* A value of "audit" means the system verifies providers and logs failures,
+  but allows all searches to proceed regardless of verification status.
+* A value of "strict" means the system blocks all searches to providers that
+  have not passed heartbeat verification.
+* A value of "auto" means the system applies "strict" mode only for providers
+  that advertise verification capability in their capabilities response.
+  Providers without verification capability are allowed without verification.
+  This functionality allows for gradual rollout during upgrades where mixed 
+  versions exist.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: deactivated
+
 controlCommandsMaxThreads = <int>
 * The maximum number of threads that can run a federated search action, such as 
   a search pause or search cancellation, from a local federated search head on 
@@ -217,6 +299,20 @@ allowCaseInsensitivityForFederatedProvider = <boolean>
 * CAUTION: Change this setting only when Splunk Support directs you to do so.
 * Default: true
 
+allowIndexBasedProviderFiltering = <boolean>
+* Whether or not Splunk software filters federated providers based on the 
+  federated indexes specified in the search string.
+* This setting works in conjunction with the 'fedSrchIndexesAllowed' setting
+  in federated provider stanzas specified in the federated.conf configuration 
+  file.
+* A value of "true" means that only federated providers whose 
+  'fedSrchIndexesAllowed' setting matches the federated indexes in the search 
+  are included in federated searches.
+* A value of "false" means that the 'fedSrchIndexesAllowed' setting won't be 
+  used and providers are not filtered by indexes. 
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: true
+
 allowAstProjectionElim = <boolean>
 * Controls whether Splunk software enables projection elimination
   optimization on the federated search head.
@@ -239,7 +335,7 @@ allowAstPredicateMerge = <boolean>
 * For more information, search for 'search_optimization::predicate_merge'
   in the limits.conf.spec file.
 * CAUTION: Change this setting only when Splunk Support directs you to do so.
-* Default: false
+* Default: true
 
 allowAstInsertRedistributeCommand = <boolean>
 * Controls whether Splunk software enables a search language optimization
@@ -263,7 +359,7 @@ allowAstReplaceChartCmdsWithTstats = <boolean>
   'search_optimization::replace_chart_cmds_with_tstats' in the 
   limits.conf.spec file.
 * CAUTION: Change this setting only when Splunk Support directs you to do so.
-* Default: false
+* Default: true
 
 allowAstReplaceDatamodelStatsCmdsWithTstats = <boolean>
 * Controls whether Splunk software enables a search language optimization
@@ -371,7 +467,21 @@ enable_streaming_optimization = <boolean>
 * This setting needs to be enabled only on federated search heads. Remote
   search heads follow instructions from federated search heads.
 * NOTE: Do not change this setting unless Splunk Support instructs you to do so.
-* Default: false
+* Default: true
+
+federated_search_retry_count = <unsigned integer>
+* The maximum number of times the federated search head retries a search when a
+  remote search head returns an HTTP 429 error indicating too many requests.
+* A value greater than 0 means a remote search head returns HTTP 429
+  when its concurrency limit is reached. This prompts the federated search
+  head to retry the search with exponential backoff. Federated searches
+  return partial results from available remote search heads instead 
+  of failing entirely.
+* A value of 0 means retry is turned off and a remote search head returns an 
+  HTTP 503 error when the concurrency limit is reached.
+* Configure this setting only on the federated search head. Remote search heads
+  receive this setting from the federated search head via dispatch arguments.
+* Default: 0
 
 max_preview_generation_duration = <unsigned integer>
 * The maximum amount of time, in seconds, that the search head can spend to 
@@ -419,6 +529,14 @@ federated_search_remote_ttl = <unsigned integer>
   federated searches on the remote search head after those searches complete.
 * Default: 600 (10 minutes)
 
+federated_search_max_events_per_bucket = <unsigned integer>
+* For federated searches, this setting limits the number of events that Splunk
+  software retrieves for each timeline bucket that is displayed in the main 
+  Search view in Splunk Web.
+* Fetching more events per bucket might delay the finalization of some searches,
+  such as searches that run in verbose mode.
+* Default: 200
+
 s2s_standard_mode_local_only_commands = <comma-separated list>
 * Specifies search processing language (SPL) commands that, in standard mode
   federated searches, must be processed only on the local search head, and not
@@ -453,6 +571,190 @@ skipLoadWithoutPpcFor = <comma-separated list>
 * Valid values are: "captain_update", "add_sid", and "remove_sid".
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * No default
+
+expand_federated_index_wildcard_only = <bool>
+* Controls whether wildcard expansion applies to federated indexes only when 
+  wildcard strings include the "federated:" prefix. 
+* A value of "true" means that federated indexes that match the sequence of 
+  characters in the wildcard string are only included in wildcard expansion if 
+  the wildcard string includes the prefix "federated:". 
+  * For example, if the search "|index=federated:f*" is run on indexes "fin"  
+    and "federated:fedfin", the result of wildcard expansion is 
+    "|index=federated:fedfin
+* A value of "false" means all indexes, including federated indexes, that 
+  match the sequence of characters in the wildcard string are included in 
+  wildcard expansion, even if the wildcard string doesn't include the 
+  "federated:" prefix. 
+  * For example, if the search "|index=f*" is run on indexes "fin" and 
+    "federated:fedfin", after wildcard expansion, the search becomes
+    "|index=fin OR index=federated:fedfin".
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.  
+* Default: true 
+
+fshFeaturesTransactionRequestEnabled = <boolean>
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Controls whether the local deployment sends a management transaction to the
+  remote provider to query its features and capabilities.
+* A value of "true" means a transaction is sent to query the
+  remote provider federated features.
+* A value of "false" means a transaction querying features is not sent.
+* Default: true
+
+fshHeartbeatRestConnectTimeout = <unsigned integer>
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Specifies the connection timeout, in seconds, for heartbeat REST API calls to
+  remote federated providers.
+* This timeout applies when establishing the initial connection to a remote
+  provider during heartbeat operations.
+* The heartbeat mechanism periodically polls remote providers to verify
+  connectivity, retrieve server and cluster GUIDs, and query provider versions
+  and federated capabilities.
+* A value of zero or greater is required.
+* If the connection cannot be established within this timeout period, the
+  heartbeat transaction fails with a connection timeout error.
+* Default: 10
+
+fshHeartbeatRestReadTimeout = <unsigned integer>
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Specifies the read timeout, in seconds, for heartbeat REST API calls to
+  remote federated providers.
+* This timeout applies when reading the response data from the remote provider
+  after a connection has been established during heartbeat operations.
+* The heartbeat mechanism retrieves server information, cluster configuration,
+  and feature capabilities from remote providers.
+* A value of zero or greater is required.
+* If the response cannot be fully read within this timeout period, the
+  heartbeat transaction fails with a read timeout error.
+* Default: 10
+
+proxyBundleToCaptainEnabled = <boolean>
+* Controls whether bundle replication from a search head cluster member
+  to the cluster captain is turned on.
+* A value of "true" means the federated search head (FSH) uses the proxy
+  endpoints to route bundles through the SH cluster member to the captain.
+* A value of "false" means the FSH falls back to the legacy single-hop endpoint.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: true
+
+proxyBundleFromMemberToCaptainConnectionTimeout = <integer>
+* The connection timeout, in seconds, that is used when establishing 
+  the HTTP connection for proxy bundle transfer.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: 60
+
+proxyBundleFromMemberToCaptainReadTimeout = <integer>
+* The read timeout, in seconds, that is used when waiting to read data during 
+  bundle transfer.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: 60
+
+proxyBundleFromMemberToCaptainWriteTimeout = <integer>
+* The write timeout, in seconds, that is used when writing bundle data 
+  during transfer.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: 60
+
+legacy_aws_federated_provider_support = <string>
+* Change this setting only when directed to do so by Splunk Support.
+* Controls which operations are allowed for AWS-based federated provider
+  types.
+* Splunk software uses this setting for the phased deprecation of Federated
+  Search for Amazon S3 (FS-S3) in preparation for migration to the Data
+  Management app.
+* Specify a comma-separated list of rules. Each rule must follow the format
+  '<federated-provider-type>:<allowed-actions>'.
+  * Federated provider types: 'aws_s3', 'aws_s3_sal', 'aws_lake', or '*'
+    for all types.
+  * Actions: 'create', 'edit', 'list', 'delete', or '*' for all actions.
+  * Separate multiple actions with a pipe (|) character.
+* Provider type mapping:
+  * 'aws_s3': Legacy FS-S3 providers (Splunk-managed and customer-managed).
+  * 'aws_s3_sal': Federated Search for Cisco Security Analytics and Logging
+    (FS-SAL) providers.
+  * 'aws_lake': Federated Analytics for Amazon Security Lake (FS-ASL)
+    providers.
+* Examples:
+  * "*:*" - All operations allowed for all federated provider types
+    (default).
+  * "aws_s3:edit|list|delete,aws_s3_sal:*,aws_lake:*" - Blocks 'aws_s3'
+    creation but allows editing and other operations. Federated providers
+    for FS-SAL and FS-ASL have full access.
+  * "aws_s3:list|delete,aws_s3_sal:*,aws_lake:*" - Blocks both creation
+    and editing for 'aws_s3'. Only 'list' and 'delete' are allowed.
+* NOTE: Federated providers for Federated Search for Splunk (FS-S2S) are
+  not affected by this setting.
+* Default: *:*
+
+legacy_aws_federated_index_support = <string>
+* Change this setting only when directed to do so by Splunk Support.
+* Controls which operations are allowed for federated indexes based on the
+  type of the associated federated provider.
+* Splunk software uses this setting for the phased deprecation of Federated
+  Search for Amazon S3 (FS-S3) in preparation for migration to the Data
+  Management app.
+* Specify a comma-separated list of rules. Each rule must follow the format
+  '<federated-provider-type>:<allowed-actions>'.
+  * Federated provider types: 'aws_s3', 'aws_s3_sal', 'aws_lake', or '*'
+    for all types.
+  * Actions: 'create', 'edit', 'list', 'delete', 'search',
+    'search_deprecated', or '*' for all actions.
+  * Separate multiple actions with a pipe (|) character.
+* The 'search' action allows 'sdselect' queries to execute against indexes
+  of this federated provider type without any deprecation warning.
+* The 'search_deprecated' action allows 'sdselect' queries to execute but
+  displays a deprecation warning in the search job messages (visible in the
+  Search UI job inspector and REST API search results).
+* If neither 'search' nor 'search_deprecated' is specified, 'sdselect'
+  queries are blocked with an error.
+* Provider type mapping:
+  * 'aws_s3': Legacy FS-S3 providers (Splunk-managed and customer-managed).
+  * 'aws_s3_sal': Federated Search for Cisco Security Analytics and Logging
+    (FS-SAL) providers.
+  * 'aws_lake': Federated Analytics for Amazon Security Lake (FS-ASL)
+    providers.
+* Examples:
+  * "*:*" - All operations allowed for all federated provider types
+    (default).
+  * "aws_s3:edit|list|delete|search_deprecated,aws_s3_sal:*,aws_lake:*" -
+    Blocks 'aws_s3' federated index creation. Search is allowed with a
+    deprecation warning. Full access for 'aws_s3_sal' and 'aws_lake'.
+  * "aws_s3:list|delete,aws_s3_sal:*,aws_lake:*" - Blocks creation,
+    editing, and search for 'aws_s3' federated indexes. Only 'list' and
+    'delete' are allowed. Allows other operations including search for 
+    'aws_s3_sal' and 'aws_lake' federated indexes.
+* NOTE: Federated indexes for Federated Search for Splunk (FS-S2S) are not
+  affected by this setting.
+* Default: *:*
+
+[features]
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* This stanza configures features and their capabilities on a
+  federated provider deployment.
+* Features are specified using the dot notation:
+  <featureName>.capabilities.<capabilityName>.types.<type>= <value>
+* <type> is the type of the value, which can be a string, unsigned integer,
+  or boolean value.
+* Each feature can have multiple capabilities with different names and values.
+* Capability values can be boolean strings ("true", "false") or other string
+  values, including unsigned integers represented as strings.
+
+<featureName>.capabilities.<capabilityName>.types.<type>= <string>
+* Defines a capability for a feature.
+* <featureName> is the name of the feature, for example:
+  "FSH_CATALOGUE_TRANSACTION_REQUEST_TIMEOUT".
+* <capabilityName> is the name of the capability, for example, "enabled"
+  or "timeout".
+* <string> is the value for the capability. It can be "true", "false",
+  or any string value including unsigned numeric values represented as strings,
+  for example, "30" or "100".
+* <type> is the type of the value, which can be a string, unsigned integer,
+  or boolean value.
+* Examples:
+  * FSH_CATALOGUE_TRANSACTION_REQUEST_TIMEOUT.capabilities.enabled.types.
+    boolean = true
+  * feature_2.capabilities.timeout.types.unsignedInt = 30
+  * proxyBundlesRshForwarding.capabilities.enabled.types.boolean = true
+* No default.
 
 ############################################################################
 # Configs for blocking unsupported commands in Federated Search

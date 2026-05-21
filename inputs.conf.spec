@@ -209,18 +209,22 @@ _INDEX_AND_FORWARD_ROUTING = <string>
 ############################################################################
 
 [blacklist:<path>]
-* Protects files on the file system from being indexed or previewed.
+* Protects files on the file system from being indexed or previewed through
+  Splunk Web and REST API endpoints.
 * The input treats a file as denied if the file starts with any of the
   defined deny list <paths>.
-* Adding a file to the deny list with the specified path occurs even if a monitor
-  stanza defines an allow list that matches the file path.
-* The preview endpoint returns an error when asked to preview an
-  excluded file.
-* The oneshot endpoint and command also returns an error.
-* When a denied file is monitored, using monitor:// or batch://,
-  the 'filestatus' endpoint shows an error.
-* For fschange with the 'sendFullEvent' option enabled, contents of
+* Adding a file to the deny list with the specified path occurs even if a
+  monitor stanza defines an allow list that matches the file path.
+* The preview endpoint returns an error when asked to preview an excluded
+  file.
+* The 'oneshot' endpoint and command also return an error.
+* When a denied file is monitored, using monitor:// or batch://, the
+  'filestatus' endpoint shows an error.
+* For 'fschange' with the 'sendFullEvent' option enabled, contents of
   denied files are not indexed.
+* This stanza does not exclude file monitoring inputs. To protect files
+  from being monitored, use the 'blacklist' setting inside the
+  [monitor://<path>] stanza.
 
 ############################################################################
 # Input types
@@ -1033,7 +1037,7 @@ requireClientCert = <boolean>
 
 sslVersions = <comma-separated list>
 * The list of TLS/SSL versions to support for incoming connections.
-* The versions available are "tls1.0", "tls1.1", and "tls1.2".
+* The versions available are "tls1.0", "tls1.1", "tls1.2", and "tls1.3".
 * The special version "*" selects all supported versions.
   The version "tls" selects all versions tls1.0 or newer.
 * If you prefix a version with "-", it means to exclude that version
@@ -1085,6 +1089,7 @@ dhFile = <string>
 * The DH group size, which determines the strength of the key that the
   DH key exchange process uses, must not be fewer than 2048 bits.
 * You must specify this file to enable any Diffie-Hellman ciphers.
+* SSL compression is not supported in TLS 1.3.
 * No default.
 
 dhfile = <string>
@@ -1103,9 +1108,11 @@ allowSslRenegotiation = <boolean>
   * This limits the amount of CPU a single TCP connection can use, 
     but it can cause connectivity problems, especially for long-lived
     connections.
+* Not supported when using TLS 1.3.
 * Default: true
 
 sslQuietShutdown = <boolean>
+* DEPRECATED.
 * Whether or not quiet SSL shutdown mode is turned on.
 * When a client is finished with a TLS connection, it can shut that
   connection down normally or quietly.
@@ -1207,6 +1214,7 @@ useSSLCompression = <boolean>
   layer data compression.
 * A value of "true" means the server lets forwarders negotiate
   TLS-layer data compression.
+* SSL compression is not supported in TLS 1.3.
 * Default: The value of 'server.conf:[sslConfig]/allowSslCompression'
 
 sslServerHandshakeTimeout = <integer>
@@ -1684,6 +1692,25 @@ enableSSL = <boolean>
   TLS turned on when the Splunk management server has TLS turned off.
 * Default: true
 
+jsonParser = [legacy|vectorized]
+* The JSON parser implementation that the HTTP Event Collector uses.
+* A value of "legacy" sets the original JSON parser.
+* A value of "vectorized" sets an optimized JSON parser, which improves 
+   parsing speed and efficiency.
+* CAUTION: Contact Splunk Support first before configuring this setting.
+* Default: legacy
+
+jsonParserMaxEventSize = <positive integer>[KiB|MiB]
+* The maximum size of a single JSON event that the vectorized
+  JSON parser can process.
+* If an individual JSON event in the HEC payload exceeds this size,
+  parsing stops and the request returns an error. Events that appear
+  before the oversized event in the payload are still ingested, but
+  the oversized event and any subsequent events are dropped.
+* This setting only applies in instances where 'jsonParser' has a value of "vectorized".
+* CAUTION: Contact Splunk Support first before configuring this setting.
+* Default: 8MiB
+
 backpressureState = [disabled|warn_at_80]
 * The level of backpressuring for the HTTP Event Collector (HEC) and HEC
   indexer acknowledgment (ACK) services.
@@ -1706,6 +1733,22 @@ backpressureState = [disabled|warn_at_80]
 * When you configure this setting, do not put its value within quotation marks.
 * CAUTION: Do not configure this setting without first contacting Splunk Support.
 * Default: disabled
+
+ackExpiryMode = [off|expire_at_90]
+* Controls whether the HTTP Event Collector (HEC) periodically evicts the
+  oldest pending indexer acknowledgment (ACK) entries from channels that
+  approach their per-channel ACK queue limit.
+* A value of "off" means no automatic eviction occurs. Channels that
+  fill to capacity block new events until clients poll for their ACK IDs.
+* A value of "expire_at_90" turns on a periodic sweep that inspects each
+  ACK channel. When a channel exceeds 90% of its per-channel ACK queue
+  limit, the sweep evicts the oldest entries (lowest ACK IDs) to reduce
+  the channel to 85% of capacity.
+* Evicted ACK IDs are reported as unacknowledged to clients that
+  subsequently poll for them. This can cause clients to re-send events
+  that were already indexed, potentially resulting in duplicate events.
+* This setting can only be configured in the global [http] stanza.
+* Default: off
 
 headerEnforcementMode = [off|warn|block]
 * How an HTTP Event Collector (HEC) input enforces load balancer cookie markers
@@ -1821,14 +1864,14 @@ caPath = <string>
 
 sslVersions = <comma-separated list>
 * The list of TLS versions to support.
-* The versions available are "tls1.0", "tls1.1", and "tls1.2".
+* The versions available are "tls1.0", "tls1.1", "tls1.2", and "tls1.3".
 * The special version "*" selects all supported versions.
   The version "tls" selects all versions tls1.0 or newer.
 * If you prefix a version with "-", it means to exclude that version
   from the list.
 * SSL versions 2 and 3 are always disabled. "-ssl2" and "-ssl3" are accepted 
   as values in the version list, but have no effect.
-* Default: tls1.2
+* Default: tls1.2, tls1.3
 
 cipherSuite = <string>
 * The cipher string to use for the HTTP Event Collector input.
@@ -2005,6 +2048,7 @@ allowSslCompression = <boolean>
   TLS-layer data compression.
 * A value of "false" means the server does not let clients negotiate
   TLS-layer data compression.
+* SSL compression is not supported in TLS 1.3.
 * Default: true
 
 allowSslRenegotiation = <boolean>
@@ -2019,6 +2063,7 @@ allowSslRenegotiation = <boolean>
   * This limits the amount of CPU a single TCP connection can use, 
     but it can cause connectivity problems, especially for long-lived
     connections.
+* This setting is not supported when using TLS 1.3
 * Default: true
 
 ackIdleCleanup = <boolean>
@@ -2065,6 +2110,13 @@ maxMemoryUsagePct = <positive integer>
 route = [has_key|absent_key:<key>:<queueName>;...]
 * See 'route' in the "[splunktcp]" stanza for
   information on this setting.
+
+hecCacheCapacity = <positive integer>
+* The maximum number of unique entries that the
+  HTTP Event Collector (HEC) stores in its cache.
+* Each entry consists of a source IP and a timestamp
+  of the last incoming event.
+* Default: 1000
 
 ############################################################################
 # HTTP Event Collector (HEC) - Local stanza for each token
@@ -2170,6 +2222,30 @@ useACK = <boolean>
 * When set to false, acknowledgment is not enabled.
 * This setting can be set at the stanza level.
 * Default: false
+
+customMetadataMode = [disabled|query_string]
+* Specifies the mode for adding custom metadata fields to events when you use
+  this token to send HEC requests to the /raw endpoint.
+* The following modes are supported:
+  * "disabled": Custom metadata injection is not allowed. Any custom metadata
+    fields included in the request are ignored.
+  * "query_string": Allows custom metadata injection through query
+    string parameters. 
+* When 'customMetadataMode' is set to "query_string", the following
+  behavior applies:
+  * You can add a metadata field to an event by specifying a query string
+    parameter in the HEC request using the format "fields_<fieldname>=<value>".
+    You can also use an ampersand ( & ) to append additional field-value pairs.
+      * For example, the query string "?fields_env=prod&fields_region=us-east"
+        adds the metadata fields "env" and "region" to the event.
+  * Field names and values must be URL-encoded if they contain characters 
+    other than a-z, A-Z, 0-9, hyphens ( - ), periods ( . ), underscores ( _ ), 
+    or tildes ( ~ ).
+  * To add an internal metadata field where the name is prefixed by an
+    underscore ( _ ), use two underscores to separate the parameter name from
+    the field name. For example, "fields__my_field" creates an internal field
+    named "_my_field".
+* Default: disabled
 
 allowQueryStringAuth = <boolean>
 * Enables or disables sending authorization tokens with a query string.
@@ -3661,13 +3737,13 @@ remote_queue.sqs_smartbus.large_message_store.sslVerifyServerCert = <boolean>
 
 remote_queue.sqs_smartbus.large_message_store.sslVersions = <comma-separated list>
 * The list of TLS versions to use to connect to 'remote.sqs_smartbus.large_message_store.endpoint'.
-* The versions available are "tls1.0", "tls1.1", and "tls1.2".
+* The versions available are "tls1.0", "tls1.1", "tls1.2", and "tls1.3".
 * The special version "*" selects all supported versions.  The version "tls"
   selects all versions tls1.0 or newer.
 * If a version is prefixed with "-" it is removed from the list.
 * SSL versions 2 and 3 are always disabled. "-ssl2" and "-ssl3" are accepted 
   as values in the version list, but have no effect.
-* Default: tls1.2
+* Default: tls1.2,tls1.3
 
 remote_queue.sqs_smartbus.large_message_store.sslCommonNameToCheck = <commonName1>, <commonName2>, ..
 * If this value is set, and 'remote_queue.sqs_smartbus.large_message_store.sslVerifyServerCert' is set to true,
@@ -3876,13 +3952,13 @@ remote_queue.asq.large_message_store.sslVerifyServerCert = <boolean>
 remote_queue.asq.large_message_store.sslVersions = <comma-separated list>
 * The list of TLS versions to use to connect to
   'remote.asq.large_message_store.endpoint'.
-* The versions available are "tls1.0", "tls1.1", and "tls1.2".
+* The versions available are "tls1.0", "tls1.1", "tls1.2", and "tls1.3".
 * The special version "*" selects all supported versions.  The version "tls"
   selects all versions tls1.0 or newer.
 * If a version is prefixed with "-" it is removed from the list.
 * SSL versions 2 and 3 are always disabled. "-ssl2" and "-ssl3" are accepted 
   as values in the version list, but have no effect.
-* Default: tls1.2
+* Default: tls1.2,tls1.3
 
 remote_queue.asq.large_message_store.sslRootCAPath = <path>
 * Full path to the Certificate Authority (CA) certificate PEM format file
@@ -3986,6 +4062,25 @@ remote_queue.gcs_smartbus.large_message_store.path = <string>
 * The path to the large message store.
 * Default: not set
 
+remote_queue.gcs_smartbus.pubsub_endpoint = <string>
+* The URL for the Publisher/Subscriber (Pub/Sub) Application Programming
+  Interface (API) endpoint that the Splunk platform uses for connections.
+* You can use this setting to specify a custom endpoint for testing or for
+  private Google Cloud environments.
+* If you do not give this setting a value, the Splunk platform uses the
+  standard Google Cloud Pub/Sub endpoint.
+* Default: not set
+
+remote_queue.gcs_smartbus.storage_endpoint = <string>
+* The URL for the Google Cloud Storage endpoint that the Splunk platform uses
+  for large message storage.
+* You can use this setting to specify a custom endpoint for testing, using
+  private endpoints, or connecting to compatible storage services.
+* If you do not give this setting a value, the Splunk platform uses the
+  standard Google Cloud Storage endpoint.
+* Example: https://storage.googleapis.com
+* No default.
+
 remote_queue.gcs_smartbus.credential_file = <string>
 * Specifies the credential file that is used for Pub/Sub and large
   message storage authentication.
@@ -4013,8 +4108,8 @@ remote_queue.gcs_smartbus.large_message_store.connectUsingIpVersion = auto|4-onl
   * Otherwise, this setting defaults to "4-only".
 * Default: auto
 
-remote_queue.gcs_smartbus.large_message_store.sslVersionsForClient = tls1.0|tls1.1|tls1.2
-remote_queue.gcs_smartbus.large_message_store.sslVersionsForClient = tls1.0|tls1.1|tls1.2
+remote_queue.gcs_smartbus.large_message_store.sslVersionsForClient = tls1.0|tls1.1|tls1.2|tls1.3
+remote_queue.gcs_smartbus.large_message_store.sslVersionsForClient = tls1.0|tls1.1|tls1.2|tls1.3
 * Defines the minimum SSL/TLS version to use for outgoing connections.
 * Default: tls1.2
 

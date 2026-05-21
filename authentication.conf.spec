@@ -613,6 +613,25 @@ verboseLoginFailMsg = <boolean>
 * This setting is optional.
 * Default: true
 
+
+scsSyncUserDeletes = <boolean>
+* Whether or not the Splunk platform de-provisions a user in Splunk
+  Cloud Services when you delete that user on the instance locally
+  using either Splunk Web or the REST API.
+* For de-provisioning on SCS to work, the instance must be converged
+  with SCS. The 'enableIdentityConvergence' setting controls
+  convergence between a Splunk platform instance and SCS.
+* A value of "true" means that the Splunk platform instance makes
+  a call to SCS to de-provision the user that you have deleted on the
+  local instance that is converged with SCS.
+* A value of "false" means that the Splunk platform instance does not
+  attempt to contact SCS to de-provision a user there.
+* This user sync only happens with local users; it is not possible to
+  sync a SAML user deletion with this method.
+* This setting is optional.
+* Default: true
+
+
 #####################
 # Security Assertion Markup Language (SAML) settings
 #####################
@@ -1013,7 +1032,7 @@ cipherSuite = <cipher suite string>
 
 sslVersions = <comma-separated list>
 * The list of TLS versions to support.
-* The versions available are "tls1.0", "tls1.1", and "tls1.2".
+* The versions available are "tls1.0", "tls1.1", "tls1.2", and "tls1.3".
 * Default: The value of 'sslVersions' in the server.conf configuration file
 
 sslCommonNameToCheck = <commonName>
@@ -1166,41 +1185,64 @@ sloBinding = <string>
 * This setting is optional.
 * Default: HTTPPost
 
-signatureAlgorithm = RSA-SHA1 | RSA-SHA256 | RSA-SHA384 | RSA-SHA512
+signatureAlgorithm = RSA-SHA256 | RSA-SHA384 | RSA-SHA512
 * The signature algorithm that is used for outbound SAML messages,
   for example, SP-initiated SAML request.
 * This setting is only used when 'signAuthnRequest' is set to "true".
 * This setting is applicable for both HTTP POST and HTTP Redirect binding.
-* RSA-SHA1 corresponds to 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'.
 * RSA-SHA256 corresponds to 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'.
 * RSA-SHA384 corresponds to 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha384'.
 * RSA-SHA512 corresponds to 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha512'.
-* The "RSA-SHA1" algorithm has been DEPRECATED.
+* The "RSA-SHA1" algorithm has been removed. Setting this as a value no longer
+  has an effect.
 * For a higher level of security, use "RSA-SHA384" or "RSA-SHA512".
 * This algorithm is sent as a part of 'sigAlg'.
 * This setting is optional.
 * Default: RSA-SHA256
 
-inboundSignatureAlgorithm = RSA-SHA1;RSA-SHA256;RSA-SHA384;RSA-SHA512
+inboundSignatureAlgorithm = RSA-SHA256;RSA-SHA384;RSA-SHA512
 * A semicolon-separated list of signature algorithms for the SAML responses
   that you want Splunk Web to accept.
 * The Splunk platform rejects any SAML responses that are not signed by
   any one of the specified algorithms.
 * This setting is applicable for both HTTP POST and HTTP Redirect binding.
-* The "RSA-SHA1" algorithm has been DEPRECATED.
+* The "RSA-SHA1" algorithm has been removed. Setting this as a value no longer
+  has an effect.
 * For a higher level of security, use "RSA-SHA384" or "RSA-SHA512".
 * This setting is optional.
 * Default: RSA-SHA256;RSA-SHA384;RSA-SHA512
 
-inboundDigestMethod = SHA1;SHA256;SHA384;SHA512
+inboundDigestMethod = SHA256;SHA384;SHA512
 * A semicolon-separated list of digest methods for the SAML responses
   that you want Splunk Web to accept.
 * The Splunk platform rejects any SAML responses that are not hashed by
   any one of the specified methods.
 * This setting is applicable for HTTP POST binding only.
+* The "SHA1" algorithm has been removed. Setting this as a value no longer
+  has an effect.
 * For improved security, set to "SHA256", "SHA384", or "SHA512".
 * This setting is optional.
-* Default: SHA1;SHA256;SHA384;SHA512
+* Default: SHA256;SHA384;SHA512
+
+includeAssertionConsumerServiceURL = <boolean>
+* Whether or not the Splunk platform includes the 'AssertionConsumerServiceURL'
+  field in the Security Assertion Markup Language (SAML) request.
+* A value of "true" means the Splunk platform includes this field.
+* A value of "false" means the Splunk platform does not include this field.
+* NOTE: The Splunk platform also includes this field when the
+  'signAuthnRequest' setting has a value of "true".
+* This setting is optional.
+* Default: false
+
+includeDestination = <boolean>
+* Whether or not the Splunk platform includes the 'Destination' field in the
+  SAML request.
+* A value of "true" means the Splunk platform includes this field.
+* A value of "false" means the Splunk platform does not include this field.
+* NOTE: The Splunk platform also includes this field when the
+  'signAuthnRequest' setting has a value of "true".
+* This setting is optional.
+* Default: false
 
 replicateCertificates = <boolean>
 * If set to "true", IdP certificate files are replicated across search head cluster setup.
@@ -1542,7 +1584,7 @@ timeout = <integer>
 
 sslVersions = <versions_list>
 * The list of TLS versions to support for incoming connections.
-* The versions available are "tls1.0", "tls1.1", and "tls1.2".
+* The versions available are "tls1.0", "tls1.1", "tls1.2", and "tls1.3".
 * This setting is optional.
 * Default: The value of 'sslVersions in the server.conf configuration file
 
@@ -1681,7 +1723,7 @@ messageOnError = <string>
 
 sslVersions = <comma-separated list>
 * The list of TLS versions to support for incoming connections.
-* The versions available are "tls1.0", "tls1.1", and "tls1.2".
+* The versions available are "tls1.0", "tls1.1", "tls1.2", and "tls1.3".
 * If not set, the Splunk platform uses the value of 'sslVersions' in server.conf.
 * This setting is optional.
 * The default can vary. See the 'sslVersions' setting in
@@ -1761,7 +1803,8 @@ sslVersionsForClient = <versions_list>
 * Comma-separated list of SSL versions to support for outgoing HTTP connections.
 * If not set, Splunk uses the value for 'sslVersionsForClient' in server.conf.
 * This setting is optional.
-* Default: tls1.2
+* The default can vary. See the 'sslVersionsForClient' setting in the
+  $SPLUNK_HOME/etc/system/default/server.conf file.
 
 replicateCertificates = <boolean>
 * Whether or not RSA certificate files are automatically replicated across search head
@@ -1808,58 +1851,6 @@ sslPassword = <string>
 * If '[oauth2_settings]/certFile' has a value, then this setting
   must also have a value.
 * Default: Not set
-
-[client_<string>]
-* Settings that define an OAuth2 internal client. 
-* The '<string>' suffix in this stanza heading is the client ID.
-
-id = <string>
-* Client ID, same as in the stanza suffix.
-* Required.
-* No default.
-
-name = <string>
-* A human-readable name for the OAuth2 client. This value does not have to be 
-  unique, as clients are identified by the ID string in the stanza name.
-* Required.
-* No default.
-
-grantTypes = <comma-separated list>
-* A list of the OAuth2 grant types that are applied to this client. 
-* Valid values are "client_credentials" and "authorization_code". The list can 
-  contain either or both of these values.
-* A value of "client_credentials" means that service-to-service grants
-  are allowed for this OAuth2 client.
-  * When 'grantTypes' includes "client_credentials", you must provide one or 
-    more roles for the 'roles' setting.
-* A value of "authorization_code" means that user-to-service grants are
-  allowed for this OAuth2 client.
-* Required.
-* No default.
-
-jwks = {"keys":[{<string>:<string>,<string>:<string>,...}]}
-* A JSON array of public keys that can be used to authenticate the OAuth2 
-  client by checking the signature on a signed client assertion.
-* Required if 'tokenEndpointAuthMethod' has a value of "private_key_jwt".
-* No default.
-
-roles = <comma-separated list>
-* A comma-separated list of Splunk platform roles granted to the OAuth2 client 
-  when acting on its behalf. 
-* Required when 'grantTypes' contains "client_credentials".
-* No default.
-
-tokenEndpointAuthMethod = [private_key_jwt]
-* The requested authentication method. The only valid value is 
-  "private_key_jwt".
-* Required.
-* No default.
-
-instanceId = <string>
-* String representing the Splunk instance ID (GUID).
-* It can be obtained with GET /services/server/info (the "guid" field).
-* Required.
-* No default.
 
 ############################################################
 # External OAuth2 Configuration For Third Party Applications
@@ -2008,14 +1999,52 @@ oAuth2Config = <string>
 * Required.
 * No default.
 
-roles = <semicolon separated list>
-* A semicolon-separated list of roles within this Splunk platform deployment 
-  that are assigned to users who authenticate through this OAuth client.
+roles = <semicolon-separated list>
+* A list of roles within this Splunk platform deployment that
+  users who authenticate through this OAuth client receive.
 * Roles must exist in the authorize.conf configuration file.
 * Do not include spaces around the semicolons in the roles list.
 * Example: power;user
 * Required.
 * No default.
+
+############################################################
+# OAuth2 Restricted Endpoints
+############################################################
+[oauth2_restricted_endpoints]
+* Settings under this stanza limit the network locations that are
+  acceptable as JSON Web Key Sets (JWKS) endpoints for OAuth2.
+* Configure the settings in this stanza to improve security by reducing
+  the potential for server-side request forgery (SSRF)-style attacks.
+
+ipv4_cidrs = <comma-separated list>
+* A list of IPv4 address networks that the Splunk platform cannot
+  use as JWKS endpoints for OAuth.
+* You must specify values for this setting in classless
+  inter-domain routing (CIDR) notation, for example, "169.254.0.0/16",
+  "10.0.0.0/8". Regular IPv4 addresses are not accepted, nor are
+  they translated to CIDR notation.
+* Default: 127.0.0.0/8, 169.254.0.0/16, 10.0.0.0/8, 172.16.0.0/12,
+  192.168.0.0/16, 0.0.0.0/8
+
+ipv6_cidrs = <comma-separated list>
+* A list of IPv6 address networks that the Splunk platform
+  cannot use as JWKS endpoints for OAuth.
+* You must specify values for this setting in CIDR notation
+  (for example, "::1/128", "fe80::/10"). Regular IPv6
+  addresses are not accepted, nor are they translated to CIDR
+  notation.
+* Default: ::1/128, fe80::/10, fec0::/10, fd00:ec2::254/128,
+  ::ffff:127.0.0.0/104, ::ffff:169.254.0.0/112, ::ffff:10.0.0.0/104,
+  ::ffff:172.16.0.0/108, ::ffff:192.168.0.0/112
+
+hostnames = <comma-separated list>
+* A list of hostnames that the Splunk platform cannot use
+  as JWKS endpoints for OAuth.
+* The Splunk platform blocks access for machines with hostnames that 
+  are an exact match to the values you specify here, with the exception
+  that it ignores case.
+* Default: localhost, localhost.localdomain, local
 
 #####################
 # services/admin/auth-tokens endpoint configuration
@@ -2033,3 +2062,28 @@ maxRequestAge = <integer>
 * This setting is optional.
 * Default: 3600 (1 hour)
 
+#####################
+# Splunk Token Settings
+#####################
+[splunk_token_settings]
+* Settings used for generating Splunk Authorization Tokens
+
+use_cloudconnect = <boolean>
+* Whether or not this search head uses the Cloud Connect Splunk
+  platform extension.
+* A value of "true" means that Splunk authorization tokens generated on a
+  Splunk Enterprise instance contain claims that the Cloud Connect workflow
+  specifically uses.
+* A value of "false" means that the tokens do not contain these claims.
+* This setting is optional.
+* Default: false
+
+cloudconnect_tenant = <string>
+* The name of the Splunk Cloud Services tenant to which this
+  search head belongs.
+* The Splunk platform uses this setting value when it creates Splunk
+  authorization tokens.
+* For this setting to work, the 'cloudconnect' setting must have
+  a value of "true".
+* This setting is optional.
+* No default.

@@ -23,27 +23,6 @@ enable_search_v2_endpoint = <boolean>
 * A value of "true" means Splunk Web uses the v2 search endpoint.
 * Default: true
 
-[feature:quarantine_files]
-
-enable_jQuery2 = <boolean>
-* DEPRECATED.
-* Determines whether or not Splunk Web can use jQuery 2 JavaScript files
-  packaged with the Splunk platform.
-* A "false" value means Splunk Web cannot use jQuery 2 JavaScript files
-  packaged with the Splunk platform.
-* CAUTION: Do not change this setting.
-* Default: false
-
-enable_unsupported_hotlinked_imports = <boolean>
-* Determines whether or not Splunk Web can use unsupported JavaScript
-  files that the Splunk platform will delete in a future release.
-* Unsupported hotlinked imports are dependencies in your Simple XML Custom
-  JavaScript Extensions that directly reference Splunk software.
-* A "false" value means Splunk Web cannot use hotlinked imports
-  that the Splunk platform will delete in a future release.
-* CAUTION: Do not change this setting.
-* Default: false
-
 [feature:dashboards_csp]
 
 enable_dashboards_external_content_restriction = <boolean>
@@ -173,42 +152,21 @@ activate_o11y_service_graph = <boolean>
 activate_dashboard_publishing_and_view_without_login = <boolean>
 * REMOVED. This setting has been removed and has no effect.
 
-activate_link_to_dashboard_tab = <boolean>
-* This setting turns on or off the ability to link to a specific tab within a
-  Dashboard Studio dashboard by using the Link to dashboard interaction on a
-  visualization or shape.
-* A value of "true" means that users can link to specific tabs within existing
-  Dashboard Studio dashboards by using the Link to dashboard interaction.
-* The setting will be removed without notice in a future release.
-* Default: true
-
-activate_save_to_dashboard_tab = <boolean>
-* This setting turns on or off the ability to save searches and reports to a
-  specific tab within a Dashboard Studio dashboard.
-* A value of "true" means that users can save searches and reports to specific
-  tabs within existing Dashboard Studio dashboards by using the Save to
-  Existing Dashboard dialog box.
-* The setting will be removed without notice in a future release.
-* Default: true
-
 activate_custom_visualizations = <boolean>
-* This setting determines whether Dashboard Studio can display custom
-  visualizations.
-* A value of "true" means that Dashboard Studio can display custom
-  visualizations.
-* A value of "false" turns off custom visualizations.
-* The setting will be removed without notice in a future release.
-* Do not modify this value.
+* REMOVED. This setting has been removed and has no effect.
+
+activate_studio_extension_framework = <boolean>
+* Determines whether Dashboard Studio uses custom visualizations built
+  with the Studio Extension Framework.
+* A value of "true" means that Dashboard Studio displays custom
+  visualizations built with the Studio Extension Framework.
+* A value of "false" means that the Splunk platform supports only legacy
+  custom visualizations.
+* Do not modify this setting.
 * Default: true
 
 activate_conditional_visibility = <boolean>
-* This settings determines whether users can access a modal to configure
-  advanced conditional visibility rules in Dashboard Studio.
-* A value of "true" means users can access the modal.
-* A value of "false" means users cannot access the modal.
-* The setting will be removed without notice in a future release.
-* Do not modify this value.
-* Default: true
+* REMOVED. This setting has been removed and has no effect.
 
 activate_spl2_datasources = <boolean>
 * This setting determines whether users can access SPL2 data sources in
@@ -234,6 +192,18 @@ activate_scheduled_export_upscaling = <boolean>
 * Default: true
 
 
+[feature:new_data_management_experience]
+
+
+enable_new_data_management_home = <boolean>
+* Whether or not the Data Management link navigates to the Data Management
+  app home page on the Splunk platform deployment.
+* A value of "true" means the link navigates to the Data Management app home
+  page on the Splunk platform deployment.
+* A value of "false" means that the link does not work for Splunk Enterprise,
+  and navigates to the landing page on the Splunk Cloud Services (SCS) tenant
+  for Splunk Cloud Platform.
+* Default: true
 
 
 [feature::windows_rce]
@@ -246,7 +216,58 @@ enable_acuif_pages = <boolean>
   Admin Config UI Framework version of the page.
 * Default: false
 
+[feature:modern-nav]
+
+enable_nav_vnext = <boolean>
+* Determines whether or not Splunk Web loads the new Layout API.
+* A value of "true" means Splunk Web loads the latest Layout API.
+* A value of "false" means Splunk Web loads the legacy Layout API.
+* Do not modify this value.
+* Default: false
+
 [feature:page_migration]
+enable_data_ui_workflow-actions_vnext = <boolean>
+* Controls whether Splunk Web loads the updated "Workflow actions" page in the 
+  Data user interface (UI).
+* A value of "true" means that Splunk Web loads the updated page implemented 
+  with the React JavaScript library.
+* A value of "false" means that Splunk Web loads the existing page.
+* Default: true
+
+enable_data_props_sourcetype-rename_vnext = <boolean>
+* Controls whether Splunk Web loads the updated "Sourcetype renaming" page.
+* A value of "true" means that Splunk Web loads the updated page implemented 
+  with the React JavaScript library.
+* A value of "false" means that Splunk Web loads the existing page.
+* Default: true
+
+enable_data_transforms_extractions_vnext = <boolean>
+* Controls whether Splunk Web loads the updated "Extractions" management page.
+* A value of "true" means that the Splunk Web component loads the updated
+  page implemented with the React JavaScript library.
+* A value of "false" means that Splunk Web loads the existing page.
+* Default: true
+
+enable_data_props_fieldaliases_vnext = <boolean>
+* Controls whether Splunk Web loads the updated "Field aliases" page.
+* A value of "true" means that Splunk Web loads the updated page implemented 
+  with the React JavaScript library.
+* A value of "false" means that Splunk Web loads the existing page.
+* Default: true
+
+enable_data_props_extractions_vnext = <boolean>
+* Controls whether Splunk Web loads the updated "Field extractions" page.
+* A value of "true" means that Splunk Web loads the updated page implemented 
+  with the React JavaScript library.
+* A value of "false" means that Splunk Web loads the existing page.
+* Default: true
+
+enable_data_props_calcfields_vnext = <boolean>
+* Controls whether Splunk Web loads the updated "Calculated fields" page.
+* A value of "true" means that Splunk Web loads the updated page implemented 
+  with the React JavaScript library.
+* A value of "false" means that Splunk Web loads the existing page.
+* Default: true
 
 enable_triggered_alerts_vnext = <boolean>
 * Determines whether or not Splunk Web loads the new triggered alerts page.
@@ -273,14 +294,6 @@ enable_authoverview_vnext = <boolean>
 * A value of "false" means that Splunk Web loads the existing authentication methods
   page.
 * Default: true
-
-enable_password_management_page_vnext = <boolean>
-* Determines whether or not Splunk Web loads the "Password Management" page that uses
-  the React JavaScript library.
-* A value of "true" means that Splunk Web loads the new "Password Management" page
-  implemented with the React library instead of the Backbone library.
-* A value of "false" means that Splunk Web loads the page that uses the existing
-  Backbone library.
 
 enable_authentication_providers_LDAP_vnext = <boolean>
 * Whether or not Splunk Web loads the updated "LDAP" configuration page
@@ -318,21 +331,17 @@ enable_duo_mfa_vnext = <boolean>
 * Default: true
 
 enable_authorization_roles_vnext = <boolean>
+* REMOVED. Splunk removed an outdated version of the "Authorization roles" page.
+  Configuring this setting no longer has any effect.
 * Whether or not Splunk Web loads the updated "Authorization
   roles" page.
-* A value of "true" means that Splunk Web loads the "Authorization roles"
-  page using separate pages for edits.
-* A value of "false" means that Splunk Web loads the existing "Roles" page
-  using modals for edits.
 * Default: true
 
 enable_authentication_users_vnext = <boolean>
+* REMOVED. Splunk removed an outdated version of the "Users" page.
+  Configuring this setting no longer has any effect.
 * Whether or not Splunk Web loads the updated "Users" page,
   which uses separate pages for edits.
-* A value of "true" means that Splunk Web loads the updated "Users" page,
-  which uses separate pages for edits.
-* A value of "false" means that Splunk Web loads the previous "Users" page,
-  which uses modals for edits.
 * Default: true
 
 enable_data_indexes_cloud_vnext = <boolean>
@@ -358,6 +367,12 @@ enable_reports_vnext = <boolean>
 
 enable_alerts_vnext = <boolean>
 * DEPRECATED. This setting has been deprecated and has no effect.
+
+enable_dashboards_vnext = <boolean>
+* Determines whether or not Splunk Web loads the new dashboards listing page.
+* A value of "true" means that Splunk Web loads the new dashboards listing page.
+* A value of "false" means that Splunk Web loads the classic dashboards listing page.
+* Default: true
 
 enable_admin_alert_actions_vnext = <boolean>
 * Determines whether or not Splunk Web loads the "Email Settings" page that uses
@@ -594,6 +609,15 @@ enable_reports_favorites = <boolean>
   in the Search app.
 enable_search_ai_assistant = true
 
+[feature:splunk_ai_canvas]
+check_ai_canvas_eligible = false
+* Whether or not the Splunk platform displays AI Canvas.
+* A value of "true" means that users can see AI Canvas.
+* A value of "false" means that users cannot see AI Canvas.
+* This setting applies only to the Splunk Cloud Platform.
+* CAUTION: Do not change this setting.
+* Default: false
+
 
 
 [feature:spl2]
@@ -602,3 +626,35 @@ enable_spl2 = <boolean>
 * A value of "true" means Splunk Web enables SPL2.
 * A value of "false" means Splunk Web disables SPL2.
 * Default: true
+
+[feature:splunk_oauth_clients]
+enable_splunk_oauth_clients_ui = <boolean>
+* Whether or not Splunk Web displays pages related to Splunk Open
+  Authorization clients.
+* A value of "true" means that Splunk OAuth clients are visible in Splunk Web.
+* A value of "false" means that Splunk OAuth clients are not visible in Splunk Web.
+* Default: false
+
+[feature:appserver_security]
+deactivate_custom_mako_templates = <boolean>
+* Whether or not Splunk Web blocks custom Mako templates shipped by apps.
+* A value of "true" means Splunk Web blocks custom app Mako templates in the
+  $SPLUNK_HOME/etc/apps/<app>/appserver/templates and $SPLUNK_HOME/etc/apps/
+  <app>/appserver/modules directories.
+* A value of "false" means Splunk Web allows custom app Mako templates in those
+  directories.
+* Regardless of this setting, Splunk Web always allows first-party templates in
+  the $SPLUNK_HOME/share/splunk/search_mrsparkle directory.
+* Default: false
+
+deactivate_custom_cherrypy_controllers = <boolean>
+* Whether or not Splunk Web blocks custom CherryPy controllers shipped by apps.
+* A value of "true" means Splunk Web blocks custom app CherryPy controllers.
+  Also, app controllers in the $SPLUNK_HOME/etc/apps/<app>/appserver/controllers
+  directory are not registered, causing all /custom/<app>/* routes to return
+  a 404 error.
+* A value of "false" means Splunk Web allows custom app CherryPy controllers in
+  those directories.
+* This setting only affects the /custom/<app>/* directory. It does not affect
+  REST endpoints, views, dashboards, and static assets.
+* Default: false

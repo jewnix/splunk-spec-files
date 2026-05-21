@@ -769,15 +769,33 @@ useClientSSLCompression = <boolean>
 * A value of "true" means compression on TLS/SSL is enabled.
 * If you use this setting, the 'tcpout_connections' group in the metrics.log
   file shows throughput values before compression occurs.
+* SSL compression is not supported for TLS 1.3.
 * Default: true
 
 sslQuietShutdown = <boolean>
-* Enables quiet shutdown mode in SSL.
+* DEPRECATED.
+* Whether or not quiet SSL shutdown mode is turned on.
+* When a client is finished with a TLS connection, it can shut that
+  connection down normally or quietly.
+* A normal SSL shutdown between a local node, in this case the client, 
+  and a peer node, in this case the server, involves either
+  node sending a message to the other to terminate the TLS/SSL connection. 
+  This message is called the "close_notify" message.
+* When a local node sends this message, the peer node returns the same message
+  upon receipt, then stops sending further messages over TLS. The TLS connection
+  remains open until the peer also closes the connection on its side.
+* A "quiet" SSL shutdown means that neither node sends this message when it
+  terminates the TLS connection. Instead, the node sets the connection to the
+  "shutdown" state immediately.
+* A value of "true" means that the client uses quiet SSL shutdown mode to
+  terminate TLS connections.
+* A value of false means that the client shuts down TLS connections using the
+  normal shutdown process.
 * Default: false
 
 sslVersions = <comma-separated list>
 * The list of TLS versions to support.
-* The versions available are "tls1.0", "tls1.1", and "tls1.2"
+* The versions available are "tls1.0", "tls1.1", "tls1.2", and "tls1.3".
 * The special version "*" selects all supported versions. The version "tls"
   selects all versions tls1.0 or newer
 * If you prefix a version with "-", it is removed from the list.
@@ -802,8 +820,9 @@ autoCertRotation = <boolean>
   * It has been configured for the forwarder to use it
   * It is within its validity window, which means the current date must be between
     its 'Not Before' and 'Not After' dates, inclusive
-  * Less than or equal to 50% of its validity period remains. For example, a certificate with a
-    validity period of 52 weeks is eligible for renewal after 26 weeks from its start of validity.
+  * The remaining validity is less than or equal to the 'certRotationThresholdPct'.
+    For example, with the default threshold percentage of 15, a certificate with a validity period of 52 weeks
+    becomes eligible for renewal at 7.8 weeks (15% of 52) remaining.
 * A certificate that has not been renewed remains until it either expires
   or the forwarder successfully completes forwarder certificate renewal.
 * After forwarder certificate renewal is complete, the renewed certificate replaces the existing one.
@@ -811,6 +830,17 @@ autoCertRotation = <boolean>
   check and attempts to renew the certificate until the certificate successfully renews.
 * A value of "false" means that the forwarder does not attempt to perform forwarder certificate renewal.
 * Default: false
+
+certRotationThresholdPct = <integer>
+* The threshold, as a percentage of the total certificate lifetime, at or below which the forwarder
+  attempts to renew its TLS certificate.
+* For this setting to work, the 'autoCertRotation' setting must have a value of "true".
+* Valid values are from 0 to 100 inclusive. 
+* A lower value means that the forwarder attempts to renew closer to the expiration time.
+* A higher value means that the forwarder attempts to renew closer to the validity
+  start time.
+* For example, a value of "15" means to renew when 15% or less of the lifetime remains.
+* Default: 15
 
 #----Indexer Acknowledgment ----
 # Indexer acknowledgment ensures that forwarded data is reliably delivered
@@ -1009,31 +1039,18 @@ useClientSSLCompression = <boolean>
 * A value of "false" means TLS/SSL compression is turned off.
 * If you use this setting, the 'tcpout_connections' group in the metrics.log
   file shows throughput values before compression occurs.
+* SSL compression is not supported in TLS version 1.3.
 * Default: true
 
 sslQuietShutdown = <boolean>
-* Whether or not quiet SSL shutdown mode is turned on.
-* When a client is finished with a TLS connection, it can shut that
-  connection down normally or quietly.
-* A normal SSL shutdown between a local node, in this case the client, 
-  and a peer node, in this case the server, involves either
-  node sending a message to the other to terminate the TLS/SSL connection. 
-  This message is called the "close_notify" message.
-* When a local node sends this message, the peer node returns the same message
-  upon receipt, then stops sending further messages over TLS. The TLS connection
-  remains open until the peer also closes the connection on its side.
-* A "quiet" SSL shutdown means that neither node sends this message when it
-  terminates the TLS connection. Instead, the node sets the connection to the
-  "shutdown" state immediately.
-* A value of "true" means that the client uses quiet SSL shutdown mode to
-  terminate TLS connections.
-* A value of false means that the client shuts down TLS connections using the
-  normal shutdown process.
+* DEPRECATED.
+* See the description of 'sslQuietShutdown' in the [default] section
+  for details on this setting.
 * Default: false
 
 sslVersions = <comma-separated list>
 * The list of TLS versions to support for secure network connections.
-* The versions available are "tls1.0", "tls1.1", and "tls1.2"
+* The versions available are "tls1.0", "tls1.1", "tls1.2", and "tls1.3".
 * The special version "*" selects all supported versions. The version "tls"
   selects all versions tls1.0 or newer
 * If you prefix a version with "-", it is removed from the list.
@@ -1498,13 +1515,13 @@ remote_queue.sqs_smartbus.large_message_store.sslVerifyServerCert = <boolean>
 remote_queue.sqs_smartbus.large_message_store.sslVersions = <comma-separated list>
 * The list of TLS versions to use to connect to
   'remote.sqs_smartbus.large_message_store.endpoint'.
-* The versions available are "tls1.0", "tls1.1", and "tls1.2".
+* The versions available are "tls1.0", "tls1.1", "tls1.2", and "tls1.3".
 * The special version "*" selects all supported versions.  The version "tls"
   selects all versions tls1.0 or newer.
 * If a version is prefixed with "-" it is removed from the list.
 * SSL versions 2 and 3 are always disabled. "-ssl2" and "-ssl3" are accepted 
   as values in the version list, but have no effect.
-* Default: tls1.2
+* Default: tls1.2,tls1.3
 
 remote_queue.sqs_smartbus.large_message_store.sslCommonNameToCheck = 
   <comma-separated list>
@@ -1770,13 +1787,13 @@ remote_queue.asq.large_message_store.sslVerifyServerCert = <boolean>
 remote_queue.asq.large_message_store.sslVersions = <comma-separated list>
 * The list of TLS versions to use to connect to
   'remote.asq.large_message_store.endpoint'.
-* The versions available are "tls1.0", "tls1.1", and "tls1.2".
+* The versions available are "tls1.0", "tls1.1", "tls1.2", and "tls1.3".
 * The special version "*" selects all supported versions.  The version "tls"
   selects all versions tls1.0 or newer.
 * If a version is prefixed with "-" it is removed from the list.
 * SSL versions 2 and 3 are always disabled. "-ssl2" and "-ssl3" are accepted 
   as values in the version list, but have no effect.
-* Default: tls1.2
+* Default: tls1.2,tls1.3
 
 remote_queue.asq.large_message_store.sslRootCAPath = <path>
 * Full path to the Certificate Authority (CA) certificate PEM format file
@@ -1919,6 +1936,25 @@ remote_queue.gcs_smartbus.large_message_store.path = <string>
 * The path to the large message store.
 * Default: not set
 
+remote_queue.gcs_smartbus.pubsub_endpoint = <string>
+* The URL for the Publisher/Subscriber (Pub/Sub) Application Programming
+  Interface (API) endpoint that the Splunk platform uses for connections.
+* You can use this setting to specify a custom endpoint for testing or for
+  private Google Cloud environments.
+* If you do not give this setting a value, the Splunk platform uses the
+  standard Google Cloud Pub/Sub endpoint.
+* Default: not set
+
+remote_queue.gcs_smartbus.storage_endpoint = <string>
+* The URL for the Google Cloud Storage endpoint that the Splunk platform uses
+  for large message storage.
+* You can use this setting to specify a custom endpoint for testing, using
+  private endpoints, or connecting to compatible storage services.
+* If you do not give this setting a value, the Splunk platform uses the
+  standard Google Cloud Storage endpoint.
+* Example: https://storage.googleapis.com
+* No default.
+
 remote_queue.gcs_smartbus.encoding_format = protobuf|s2s
 * The encoding format that Google Cloud Services uses to write data to the
   remote queue.
@@ -1974,7 +2010,7 @@ remote_queue.gcs_smartbus.large_message_store.connectUsingIpVersion = auto|4-onl
   * Otherwise, this setting defaults to "4-only".
 * Default: auto
 
-remote_queue.gcs_smartbus.large_message_store.sslVersionsForClient = tls1.0|tls1.1|tls1.2
+remote_queue.gcs_smartbus.large_message_store.sslVersionsForClient = tls1.0|tls1.1|tls1.2|tls1.3
 * Defines the minimum SSL/TLS version to use for outgoing connections.
 * Default: tls1.2
 
@@ -2418,14 +2454,14 @@ remote.s3.sslVerifyServerCert = <boolean>
 
 remote.s3.sslVersions = <comma-separated list>
 * The list of TLS versions to use to connect to 'remote.s3.endpoint'.
-* The versions available are "tls1.0", "tls1.1", and "tls1.2".
+* The versions available are "tls1.0", "tls1.1", "tls1.2", and "tls1.3".
 * The special version "*" selects all supported versions.  The version "tls"
   selects all versions tls1.0 or newer.
 * If a version is prefixed with "-" it is removed from the list.
 * SSL versions 2 and 3 are always disabled. "-ssl2" and "-ssl3" are accepted 
   as values in the version list, but have no effect.
 * Optional.
-* Default: tls1.2
+* Default: tls1.2,tls1.3
 
 remote.s3.sslCommonNameToCheck = <commonName1>, <commonName2>, ..
 * If this value is set, and 'remote.s3.sslVerifyServerCert' is set to true,

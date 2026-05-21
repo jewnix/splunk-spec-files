@@ -480,7 +480,9 @@ pdf.html_image_rendering = <boolean>
 
 sslVersions = <comma-separated list>
 * The list of TLS versions to support.
-* The versions available are "tls1.0", "tls1.1", and "tls1.2".
+* The versions available are "tls1.0", "tls1.1", "tls1.2", and "tls1.3".
+* NOTE: The "tls1.0" and "tls1.1" values do not work when the Splunk
+  platform uses version 3.9 of the Python interpreter.
 * The special version "*" selects all supported versions.  The version "tls"
   selects all versions tls1.0 or newer.
 * If a version is prefixed with "-" it is removed from the list.

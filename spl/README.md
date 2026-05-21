@@ -1,7 +1,7 @@
 # Splunk SPL Search Reference
 
-Extracted from [https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.2](https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.2)  
-Splunk version: 10.2
+Extracted from [https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.4](https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.4)  
+Splunk version: 10.4
 
 ## Contents
 

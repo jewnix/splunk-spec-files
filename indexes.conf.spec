@@ -616,6 +616,24 @@ remotePath = <root path for remote volume, prefixed by a URI-like scheme>
 * If 'remotePath' is specified, the 'coldPath' and 'thawedPath' settings are
   ignored. However, you must still specify them.
 
+mdlIndex = <boolean>
+* A value of "true" means the Machine Data Lake ecosystem uses this index, and
+  Splunk platform uses the 'mdlRemotePath' setting to configure the index's
+  remote storage path.
+* A value of "false" means this index is only a regular index, the Machine
+  Data Lake ecosystem won't use it, and Splunk platform instead uses the
+  'remotePath' setting to configure the index's remote storage path.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: false
+
+mdlRemotePath = <root path for remote volume, prefixed by a URI-like scheme>
+* Overrides the 'remotePath' setting when the 'mdlIndex' setting has a value of
+  "true".
+* The path for the remote volume is formatted the same as for the 'remotePath'
+  setting, please refer to that setting for further information on formatting.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Optional.
+
 maxBloomBackfillBucketAge = <nonnegative integer>[smhd]|infinite
 * If a (warm or cold) bucket with no bloomfilter is older than this,
   splunkd does not create a bloomfilter for that bucket.
@@ -1491,14 +1509,10 @@ waitPeriodInSecsForManifestWrite = <nonnegative integer>
 * Default: 60 (1 min)
 
 hotBucketStreaming.sendSlices = <boolean>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Enables uploading of journal slices of hot buckets to the remote storage.
 * Default: false
 
 hotBucketStreaming.removeRemoteSlicesOnRoll = <boolean>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Enables removal of uploaded journal slices of hot buckets from the remote
   storage after a bucket rolls from hot to warm.
 * This setting should be enabled only if 'hotBucketStreaming.sendSlices' is
@@ -1506,8 +1520,6 @@ hotBucketStreaming.removeRemoteSlicesOnRoll = <boolean>
 * Default: false
 
 hotBucketStreaming.removeRemoteSlicesOnFreeze = <boolean>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Enables removal of uploaded journal slices of hot buckets from the remote
   storage after a bucket rolls from warm to frozen.
 * This setting should be enabled only if 'hotBucketStreaming.sendSlices' is
@@ -2387,6 +2399,16 @@ remote.s3.enable_signed_payloads  = <boolean>
 * Valid only for remote.s3.signature_version = v4
 * Default: true
 
+remote.s3.object_locks_retention_period = <integer>
+* The retention period, in days, for AWS S3 Object Locks that splunkd
+  applies to new objects in remote storage.
+* For Dynamic Data: Active Searchable (DDAS), configure this setting
+  to match the number of days that you want to keep version history
+  in the DDAS AWS S3 bucket, for example, 15.
+* A value of 0 means that Object Lock is deactivated.
+* NOTE: Do not change unless instructed to do so by Splunk Support.
+* Supported only on Splunk Cloud Platform.
+* Default: 0
 
 remote.s3.retry_policy = max_count
 * Sets the retry policy to use for remote file operations.
@@ -2442,14 +2464,14 @@ remote.s3.sslVerifyServerCert = <boolean>
 
 remote.s3.sslVersions = <comma-separated list>
 * The list of TLS versions to use to connect to 'remote.s3.endpoint'.
-* The versions available are "tls1.0", "tls1.1", and "tls1.2".
+* The versions available are "tls1.0", "tls1.1", "tls1.2", and "tls1.3".
 * The special version "*" selects all supported versions.  The version "tls"
   selects all versions tls1.0 or newer.
 * If a version is prefixed with "-" it is removed from the list.
 * SSL versions 2 and 3 are always disabled. "-ssl2" and "-ssl3" are accepted 
   as values in the version list, but have no effect.
 * Optional.
-* Default: tls1.2
+* Default: tls1.2,tls1.3
 
 remote.s3.sslCommonNameToCheck = <commonName1>, <commonName2>, ..
 * If this value is set, and 'remote.s3.sslVerifyServerCert' is set to true,
@@ -2829,7 +2851,7 @@ remote.gs.connectUsingIpVersion = auto|4-only|6-only
     * Otherwise, this defaults to "4-only"
 * Default: auto
 
-remote.gs.sslVersionsForClient = tls1.0|tls1.1|tls1.2
+remote.gs.sslVersionsForClient = tls1.0|tls1.1|tls1.2|tls1.3
 * Defines the minimum ssl/tls version to use for outgoing connections.
 * Default: tls1.2
 
@@ -2946,7 +2968,7 @@ remote.azure.use_delimiter = <boolean>
   does not need to report similar objects.
 * Default: true
 
-remote.azure.sslVersions = tls1.0|tls1.1|tls1.2
+remote.azure.sslVersions = tls1.0|tls1.1|tls1.2|tls1.3
 * Specifies the minimum SSL/TLS version to use for outgoing connections.
 * Default: tls1.2
 

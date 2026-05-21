@@ -1,6 +1,6 @@
-# Splunk REST API Reference (version 10.2)
+# Splunk REST API Reference (version 10.4)
 
-Source: https://help.splunk.com/en/splunk-enterprise/rest-api-reference/10.2/
+Source: https://help.splunk.com/en/splunk-enterprise/rest-api-reference/10.4/
 
 ## Endpoint Groups
 
@@ -10,15 +10,16 @@ Source: https://help.splunk.com/en/splunk-enterprise/rest-api-reference/10.2/
 - [Configuration](#configuration) (2 endpoints)
 - [Deployment](#deployment) (24 endpoints)
 - [Federated Search](#federated-search) (10 endpoints)
-- [Input](#input) (53 endpoints)
+- [Input](#input) (55 endpoints)
 - [Introspection](#introspection) (41 endpoints)
-- [Knowledge](#knowledge) (38 endpoints)
+- [Knowledge](#knowledge) (40 endpoints)
 - [Kv Store](#kv-store) (13 endpoints)
 - [License](#license) (14 endpoints)
 - [Metrics Catalog](#metrics-catalog) (5 endpoints)
 - [Output](#output) (9 endpoints)
 - [Search](#search) (44 endpoints)
 - [System](#system) (10 endpoints)
+- [Topology](#topology) (0 endpoints)
 - [Workload Management](#workload-management) (10 endpoints)
 
 ---
@@ -504,6 +505,8 @@ Update the specified role.
 | `imported_srchTimeWin` | String | Maximum time span of a search, in seconds. 0 indicates searches are not limited to any specific time window. imported_srchTimeWin specifies the limit from imported roles. |
 | `rtSrchJobsQuota` | Number | The maximum number of concurrent real-time search jobs for this role. This count is independent from the normal search jobs limit. |
 | `srchDiskQuota` | Number | The maximum disk space in MB that can be used by a user's search jobs. For example, 100 limits this role to 100 MB total. |
+| `srchFederatedProvidersAllowed` | A semicolon-separated list of transparent mode federated providers that this role has permission to search. This list can use wildcards ( * ) to match multiple federated providers. To maintain backward compatibility, if a role lacks an entry for srchFederatedProvidersDefault , the Splunk platform "falls back" to default transparent mode federated providers for that role and routes searches from users assigned to that role to those default providers. If no included providers are defined for any of a user's various roles, the Splunk platform does not send that user's searches to any providers. Removing a provider from this list excludes that provider from searches that users with that role run. Applies only to Federated Search for Splunk transparent mode federated providers. |  |
+| `srchFederatedProvidersDefault` | The list of transparent mode federated providers that a search by this role runs over by default. This list can use wildcards ( * ) to match multiple federated providers. The srchFederatedProvidersAllowed parameter overrides this parameter. As a result, if for this role you list a federated provider for srchFederatedProvidersDefault that is not also listed for srchFederatedProvidersAllowed , searches by this user that do not list providers will not be sent to that federated provider. Therefore, as a best practice, ensure that all values of srchFederatedProvidersDefault for a role are also present in srchFederatedProvidersAllowed for that same role. If a user lacks an entry for srchFederatedProvidersDefault among their various roles, and the user submits a search that does not specify a transparent mode federated provider, the Splunk platform does not send that user's searches to any providers. If you remove a provider from this default list, then that provider is excluded from searches that users with that role run. However, if the provider is included in the srchFederatedProvidersAllowed list, a user with that role can still explicitly specify in their searches that transparent mode federated provider for relevant indexes. Applies only to Federated Search for Splunk transparent mode federated providers. |  |
 | `srchFilter` | String | Search string that restricts the scope of searches run by this role. Search results for this role show only events that also match this search string. When a user has multiple roles with different search filters, they are combined with an OR . |
 | `srchIndexesAllowed` | String | A list of indexes this role has permissions to search. |
 | `srchIndexesDefault` | String | List of search indexes that default to this role when no index is specified. |
@@ -2782,6 +2785,7 @@ Provides the current general federated search settings for your Splunk platform 
 |------|------|-------------|
 | `disabled` | Specifies whether federated search functionality is turned on for your Splunk platform deployment. If disabled = false , federated search functionality is turned on for your deployment. If disabled = true , federated search functionality is turned off for your deployment. Defaults to false . |  |
 | `transparent_mode` | Specifies whether transparent mode federated search functionality is turned on for your Splunk platform deployment. If set to true , transparent mode is turned on, which means federated search users on your deployment can run federated searches over transparent mode federated providers as well as standard mode federated providers. If set to false , transparent mode is turned off, which means federated search users on your deployment can run federated searches only over standard mode federated providers. Defaults to true . |  |
+| `allowIndexBasedProviderFiltering` | Note: Do not change this setting unless instructed to do so by Splunk Support. Specifies whether Splunk software filters federated providers based on the federated indexes specified in the search string. This argument works in conjunction with the fedSrchIndexesAllowed argument on the data/federated/provider/{federated_provider_name} endpoint. A value of true means that only federated providers whose fedSrchIndexesAllowed argument matches at least one of the indexes in the search are included in federated searches. A value of false means that the fedSrchIndexesAllowed argument isn't being used and providers are not filtered by indexes. |  |
 | `controlCommandsFeatureEnabled` | Specifies whether a federated search head can send a federated search action, such as a search cancellation, to federated providers. Does not support search pause. Defaults to true . |  |
 | `controlCommandsMaxThreads` | The maximum number of threads that can run a federated search action, such as a search cancellation, from a federated search head, on federated providers. Does not support search pause. Defaults to 5 . |  |
 | `controlCommandsMaxTimeThreshold` | The maximum number of seconds that a federated search head waits for the completion of a federated search action such as a search cancellation. Does not support search pause. Defaults to 5 . |  |
@@ -2803,6 +2807,7 @@ Updates general federated search settings. Can be used to turn federated search 
 |------|------|-------------|
 | `disabled` | Boolean | When set to false , disabled specifies that federated search functionality is turned on for your Splunk platform deployment. When set to true , disabled specifies that federated search functionality is turned off for your Splunk platform deployment. Defaults to false . |
 | `transparent_mode` | Boolean | When set to true , transparent_mode specifies that transparent mode federated search functionality is turned on for your Splunk platform deployment, which means that federated search users on your deployment can run federated searches over transparent mode federated providers as well as standard mode federated providers. When set to false , transparent_mode specifies that transparent mode federated search functionality is turned off for your Splunk platform deployment, which means that federated search users on your deployment can run federated searches only over standard mode federated providers. Defaults to true . Note: After turning on or off transparent mode, you must call _reload by running the following HTTP POST request; otherwise the change won't take effect: curl -k -u admin:changeme -X POST https://localhost:management-port/services/configs/conf-federated/_reload |
+| `allowIndexBasedProviderFiltering` | Boolean | Note: Do not change this setting unless instructed to do so by Splunk Support. Specifies whether Splunk software filters federated providers based on the federated indexes specified in the search string. This argument works in conjunction with the fedSrchIndexesAllowed argument on the data/federated/provider/{federated_provider_name} endpoint. A value of true means that only federated providers whose fedSrchIndexesAllowed argument matches the indexes in the search are included in federated searches. A value of false means that the fedSrchIndexesAllowed argument isn't being used and providers are not filtered by indexes. |
 | `controlCommandsFeatureEnabled` | Boolean | Specifies whether a federated search head can send a federated search action, such as a search cancellation, to federated providers. Does not support search pause. Defaults to true . Change this setting only when instructed to do so by Splunk Support. |
 | `controlCommandsMaxThreads` | Number | The maximum number of threads that can run a federated search action, such as a search cancellation, from a federated search head, on federated providers. Does not support search pause. Defaults to 5 . Change this setting only when instructed to do so by Splunk Support. |
 | `controlCommandsMaxTimeThreshold` | Number | The maximum number of seconds that a federated search head waits for the completion of a federated search action such as a search cancellation. Does not support search pause. Defaults to 5 . Change this setting only when instructed to do so by Splunk Support. |
@@ -2820,6 +2825,7 @@ Updates general federated search settings. Can be used to turn federated search 
 |------|------|-------------|
 | `disabled` | Specifies whether federated search functionality is turned on for your Splunk platform deployment. If disabled = false , federated search functionality is turned on for your deployment. If disabled = true , federated search functionality is turned off for your deployment. Defaults to false . |  |
 | `transparent_mode` | Specifies whether transparent mode federated search functionality is turned on for your Splunk platform deployment. If set to true , transparent mode is turned on, which means federated search users on your deployment can run federated searches over transparent mode federated providers as well as standard mode federated providers. If set to false , transparent mode is turned off, which means federated search users on your deployment can run federated searches only over standard mode federated providers. Defaults to true . |  |
+| `allowIndexBasedProviderFiltering` | Note: Do not change this setting unless instructed to do so by Splunk Support. Specifies whether Splunk software filters federated providers based on the federated indexes specified in the search string. This argument works in conjunction with the fedSrchIndexesAllowed argument on the data/federated/provider/{federated_provider_name} endpoint. A value of true means that only federated providers whose fedSrchIndexesAllowed argument matches at least one of the indexes in the search are included in federated searches. A value of false means that the fedSrchIndexesAllowed argument isn't being used and providers are not filtered by indexes. |  |
 | `controlCommandsFeatureEnabled` | Specifies whether a federated search head can send a federated search action, such as a search cancellation, to federated providers. Does not support search pause. Defaults to true . |  |
 | `controlCommandsMaxThreads` | The maximum number of threads that can run a federated search action, such as a search cancellation, from a federated search head, on federated providers. Does not support search pause. Defaults to 5 . |  |
 | `controlCommandsMaxTimeThreshold` | The maximum number of seconds that a federated search head waits for the completion of a federated search action such as a search cancellation. Does not support search pause. Defaults to 5 . |  |
@@ -2927,7 +2933,8 @@ Returns a definition of a specific {federated_provider_name} .
 |------|------|-------------|
 | `type` | All providers | Specifies the federated provider type. If you have a Splunk Enterprise deployment, you can set type only to splunk , indicating that the provider is for Federated Search for Splunk. If you have a Splunk Cloud Platform deployment, you can set type to either splunk or aws_s3 . A type = aws_s3 setting indicates the provider is for Federated Search for Amazon S3. Defaults to splunk . |
 | `mode` | Applies only to Federated Search for Splunk providers | Specifies whether the federated provider runs federated searches in standard or transparent mode. For a detailed comparison of the standard and transparent modes of federated search, see About Federated Search for Splunk in Federated Search . Defaults to standard . |
-| `appContext` | Applies only to Federated Search for Splunk providers | Specifies the Splunk application context for federated searches that are run over standard mode federated providers. The application context ensures that standard mode federated searches using this federated provider are limited to the knowledge objects that are associated with the named application. If mode = standard for this federated provider, appContext specifies an the folder name of an app that is installed on the remote search head of the federated provider. If mode = transparent for this federated provider, the federated provider ignores the appContext setting when you run federated searches over the provider. Transparent mode federated searches use the application context of the user running the search. Defaults to search . |
+| `fedSrchIndexesAllowed` | Applies only to Federated Search for Splunk providers | Specifies the indexes for this federated provider that a federated search head can access in transparent mode. This argument takes effect only when the value of the allowIndexBasedProviderFiltering argument on the data/federated/settings/general endpoint is true . If the value of the allowIndexBasedProviderFiltering argument is true , only federated providers whose fedSrchIndexesAllowed setting matches at least one of the indexes in the search are included in federated searches. For example, if a federated provider has fedSrchIndexesAllowed set to a value of prod_* , and the search queries index=prod_data OR index=test_data , that provider is included. If the search queries index=test_data OR index=test_user , the provider is excluded. If the value of the allowIndexBasedProviderFiltering argument is false , the fedSrchIndexesAllowed argument is ignored and providers are not filtered by indexes. |
+| `appContext` | Applies only to Federated Search for Splunk providers | Specifies the Splunk application context for federated searches that are run over standard mode federated providers. The application context ensures that standard mode federated searches using this federated provider are limited to the knowledge objects that are associated with the named application. If mode = standard for this federated provider, appContext specifies the folder name of an app that is installed on the remote search head of the federated provider. If mode = transparent for this federated provider, the federated provider ignores the appContext setting when you run federated searches over the provider. Transparent mode federated searches use the application context of the user running the search. Defaults to search . |
 | `aws_account_id` | Applies only to Federated Search for Amazon S3 providers | Specifies a 12-digit Amazon Web Services (AWS) account ID. |
 | `aws_glue_tables_allowlist` | Applies only to Federated Search for Amazon S3 providers | Specifies a comma-separated list of AWS Glue tables from which Federated Search for Amazon S3 can get metadata and data schemas. |
 | `aws_kms_keys_arn_allowlist` | Applies only to Federated Search for Amazon S3 providers | Specifies a comma-separated list of the Amazon resource names (ARNs) for the AWS KMS keys that encrypt Amazon S3 data. |
@@ -2937,6 +2944,7 @@ Returns a definition of a specific {federated_provider_name} .
 | `data_catalog` | Applies only to Federated Search for Amazon S3 providers | Specifies the Amazon Resource Name (ARN) for the AWS Glue Data Catalog. The ARN points to an AWS account. |
 | `hostPort` | Applies only to Federated Search for Splunk providers | Specifies the protocols required to connect to a federated provider. Usually follows this format <Host_Name>:<Service_Port_Number>. In some cases, an IP address is used instead of a host name. |
 | `serviceAccount` | Applies only to Federated Search for Splunk providers | Specifies the user name for a service account that has been set up on the federated provider for the purpose of facilitating secure federated searches. |
+| `useAppContextFromSearch` | Applies only to Federated Search for Splunk providers | Specifies whether the application context for federated searches run with this federated provider is determined from the app context of the search the user runs on the local search head. A value of true means the standard mode federated provider uses the app context of the search the user runs on the local search head. A value of false means the standard mode federated provider uses the app context specified by the appContext setting. A value of false is not allowed for transparent mode federated providers. For federated providers where type = splunk and mode = transparent , this setting defaults to true and any values set in useAppContextFromSearch and appContext are ignored. Because standard mode federated search does not send knowledge objects to remote federated providers, administrators must be careful when setting useAppContextFromSearch to true . If the search app context does not exist on the remote federated provider, the search fails. Ensure that all possible app contexts from searches that users might run with this federated provider exist on the remote federated provider. Defaults to false. |
 | `useFSHKnowledgeObjects` | Applies only to Federated Search for Splunk providers | Specifies whether the remote search head uses its own knowledge objects for federated searches, or if it uses knowledge objects that are bundle-replicated from the federated search head. The federated provider mode determines the required setting for useFSHKnowledgeObjects . When the federated provider has mode=standard , Splunk software always interprets useFSHKnowledgeObjects as being set to 0 or false , which means that the federated search can use a blend of local and remote knowledge objects. When the federated provider has mode=transparent , Splunk software always interprets useFSHKnowledgeObjects as being set to 1 or true , because transparent mode federated searches can use knowledge objects only from the federated search head. |
 | `connectivityStatus` | Applies only to Federated Search for Splunk providers | Specifies whether the federated provider established a connection to your local deployment in its last attempt to do so. When connectivityStatus=valid , this federated provider was able to connect to your local deployment. When connectivityStatus=invalid , this federated provider was unable to connect to your local deployment. When connectivityStatus=unknown , the ability of the federated provider to check this connection has been turned off. This setting is for diagnostic purposes only and cannot be set or changed by users. |
 | `disabled` | All providers | Specifies whether the federated provider is turned on or off. When a federated provider is turned off, the provider cannot return results for federated searches. |
@@ -2954,8 +2962,10 @@ Updates a definition for a specific {federated_provider_name} .
 | `aws_glue_tables_allowlist` | Applies only to Federated Search for Amazon S3 providers | String |
 | `aws_kms_keys_arn_allowlist` | Applies only to Federated Search for Amazon S3 providers | String |
 | `aws_s3_paths_allowlist` | Applies only to Federated Search for Amazon S3 providers | String |
+| `fedSrchIndexesAllowed` | Applies only to Federated Search for Splunk providers | String |
 | `hostPort` | Applies only to Federated Search for Splunk providers | String |
 | `password` | Applies only to Federated Search for Splunk providers | String |
+| `useAppContextFromSearch` | Applies only to Federated Search for Splunk providers | Boolean |
 | `serviceAccount` | Applies only to Federated Search for Splunk providers | String |
 
 **Returned values**
@@ -2964,7 +2974,7 @@ Updates a definition for a specific {federated_provider_name} .
 |------|------|-------------|
 | `type` | All providers | Specifies the federated provider type. If you have a Splunk Enterprise deployment, you can set type only to splunk , indicating that the provider is for Federated Search for Splunk. If you have a Splunk Cloud Platform deployment, you can set type to either splunk or aws_s3 . A type = aws_s3 setting indicates the provider is for Federated Search for Amazon S3. Defaults to splunk . |
 | `mode` | Applies only to Federated Search for Splunk providers | Specifies whether the federated provider runs federated searches in standard or transparent mode. For a detailed comparison of the standard and transparent modes of federated search, see About Federated Search for Splunk in Federated Search . Defaults to standard . |
-| `appContext` | Applies only to Federated Search for Splunk providers | Specifies the Splunk application context for federated searches that are run over standard mode federated providers. The application context ensures that standard mode federated searches using this federated provider are limited to the knowledge objects that are associated with the named application. If mode = standard for this federated provider, appContext specifies an the folder name of an app that is installed on the remote search head of the federated provider. If mode = transparent for this federated provider, the federated provider ignores the appContext setting when you run federated searches over the provider. Transparent mode federated searches use the application context of the user running the search. Defaults to search . |
+| `appContext` | Applies only to Federated Search for Splunk providers | Specifies the Splunk application context for federated searches that are run over standard mode federated providers. The application context ensures that standard mode federated searches using this federated provider are limited to the knowledge objects that are associated with the named application. If mode = standard for this federated provider, appContext specifies the folder name of an app that is installed on the remote search head of the federated provider. If mode = transparent for this federated provider, the federated provider ignores the appContext setting when you run federated searches over the provider. Transparent mode federated searches use the application context of the user running the search. Defaults to search . |
 | `aws_account_id` | Applies only to Federated Search for Amazon S3 providers | Specifies a 12-digit Amazon Web Services (AWS) account ID. |
 | `aws_glue_tables_allowlist` | Applies only to Federated Search for Amazon S3 providers | Specifies a comma-separated list of AWS Glue tables from which Federated Search for Amazon S3 can get metadata and data schemas. |
 | `aws_kms_keys_arn_allowlist` | Applies only to Federated Search for Amazon S3 providers | Specifies a comma-separated list of the Amazon resource names (ARNs) for the AWS KMS keys that encrypt Amazon S3 data. |
@@ -2973,7 +2983,9 @@ Updates a definition for a specific {federated_provider_name} .
 | `database` | Applies only to Federated Search for Amazon S3 providers | Specifies the name of the AWS Glue Data Catalog database that contains the AWS Glue Data Catalog tables for the federated provider. |
 | `data_catalog` | Applies only to Federated Search for Amazon S3 providers | Specifies the Amazon Resource Name (ARN) for the AWS Glue Data Catalog. The ARN points to an AWS account. Splunk software provides the value for this setting. |
 | `hostPort` | Applies only to Federated Search for Splunk providers | Specifies the protocols required to connect to a federated provider. Usually follows this format <Host_Name>:<Service_Port_Number>. In some cases, an IP address is used instead of a host name. |
+| `fedSrchIndexesAllowed` | Applies only to Federated Search for Splunk providers | Specifies the indexes for this federated provider that a federated search head can access in transparent mode. This argument takes effect only when the value of the allowIndexBasedProviderFiltering argument on the data/federated/settings/general endpoint is true . If the value of the allowIndexBasedProviderFiltering argument is true , only federated providers whose fedSrchIndexesAllowed setting matches at least one of the indexes in the search are included in federated searches. For example, if a federated provider has fedSrchIndexesAllowed set to a value of prod_* , and the search queries index=prod_data OR index=test_data , that provider is included. If the search queries index=test_data OR index=test_user , the provider is excluded. If the value of the allowIndexBasedProviderFiltering argument is false , the fedSrchIndexesAllowed argument is ignored and providers are not filtered by indexes. |
 | `serviceAccount` | Applies only to Federated Search for Splunk providers | Specifies the user name for a service account that has been set up on the federated provider for the purpose of facilitating secure federated searches. |
+| `useAppContextFromSearch` | Applies only to Federated Search for Splunk providers | Specifies whether the application context for federated searches run with this federated provider is determined from the app context of the search the user runs on the local search head. A value of true means the standard mode federated provider uses the app context of the search the user runs on the local search head. A value of false means the standard mode federated provider uses the app context specified by the appContext setting. A value of false is not allowed for transparent mode federated providers. For federated providers where type = splunk and mode = transparent , this setting defaults to true and any values set in useAppContextFromSearch and appContext are ignored. Because standard mode federated search does not send knowledge objects to remote federated providers, administrators must be careful when setting useAppContextFromSearch to true . If the search app context does not exist on the remote federated provider, the search fails. Ensure that all possible app contexts from searches that users might run with this federated provider exist on the remote federated provider. Defaults to false. |
 | `useFSHKnowledgeObjects` | Applies only to Federated Search for Splunk providers | Specifies whether the remote search head uses its own knowledge objects for federated searches, or if it uses knowledge objects that are bundle-replicated from the federated search head. The federated provider mode determines the required setting for useFSHKnowledgeObjects . When the federated provider has mode=standard , Splunk software always interprets useFSHKnowledgeObjects as being set to 0 or false , which means that the federated search can use a blend of local and remote knowledge objects. When the federated provider has mode=transparent , Splunk software always interprets useFSHKnowledgeObjects as being set to 1 or true , because transparent mode federated searches can use knowledge objects only from the federated search head. |
 | `connectivityStatus` | Applies only to Federated Search for Splunk providers | Specifies whether the federated provider established a connection to your local deployment in its last attempt to do so. When connectivityStatus=valid , this federated provider was able to connect to your local deployment. When connectivityStatus=invalid , this federated provider was unable to connect to your local deployment. When connectivityStatus=unknown , the ability of the federated provider to check this connection has been turned off. This setting is for diagnostic purposes only and cannot be set or changed by users. |
 | `disabled` | All providers | Specifies whether the federated provider is turned on or off. When a federated provider is turned off, the provider cannot return results for federated searches. |
@@ -3542,6 +3554,34 @@ Regenerate the {name} token value.
 | Name | Type | Description |
 |------|------|-------------|
 | `token` | Regenerated token value. |  |
+
+### `/services/data/inputs/http/connections`
+
+#### GET
+
+Retrieves a list of recent HTTP Event Collector (HEC) connections.
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `id` | String | The full URL of the individual connection resource. |
+| `content.ip_address` | String | The source IP address of the HEC sender. |
+| `content.last_conn_time` | Integer | The Unix timestamp (in seconds) of the last event received from this sender. |
+
+### `/services/data/inputs/http/connections/{ip_address}`
+
+#### GET
+
+Retrieves connection details for a specific HEC sender, identified by its IP address.
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `id` | String | The full URL of the individual connection resource. |
+| `content.ip_address` | String | The source IP address of the HEC sender. |
+| `content.last_conn_time` | Integer | The Unix timestamp (in seconds) of the last event received from this sender. |
 
 ### `/services/data/inputs/monitor`
 
@@ -6820,6 +6860,62 @@ Create a new dashboard source XML definition.
 | `label` | Dashboard label. |  |
 | `rootNode` | XML root node. |  |
 
+### `/services/data/ui/views/{dashboard_id}/disable`
+
+Deactivate an existing dashboard to block UI access to it. Deactivating a dashboard requires the deactivate_dashboards capability.
+
+#### POST
+
+Deactivate a specific dashboard.
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `applicationSuite` | Application suite that the dashboard belongs to. |  |
+| `dashboardType` | Framework category for the dashboard (Simple XML, Dashboard Studio, or other). Represented as a numeric value: Simple XML = 0 Dashboard Studio = 1 Other = 2 |  |
+| `disabled` | Dashboard activation state. |  |
+| `eai:appName` | App context for the dashboard. |  |
+| `eai:data` | Dashboard definition. |  |
+| `eai:digest` | Unique hash representing current dashboard state. |  |
+| `eai:type` | User interface type. For dashboards, this type is view . |  |
+| `eai:userName` | User who created the dashboard. |  |
+| `embed.enabled` | Boolean value indicating whether dashboard embedding is activated. |  |
+| `embed.expiry` | Numeric value representing expiry time for an embedded dashboard. |  |
+| `isDashboard` | Boolean value indicating whether the knowledge object is a dashboard. |  |
+| `isVisible` | Boolean value indicating whether the dashboard is visible. |  |
+| `label` | Dashboard label. |  |
+| `rootNode` | XML root node. |  |
+| `version` | Dashboard definition schema version. |  |
+
+### `/services/data/ui/views/{dashboard_id}/enable`
+
+Activate an existing deactivated dashboard to allow UI access to it. Activating a dashboard requires the deactivate_dashboards capability.
+
+#### POST
+
+Request parameters
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `applicationSuite` | Application suite that the dashboard belongs to. |  |
+| `dashboardType` | Framework category for the dashboard (Simple XML, Dashboard Studio, or other). Represented as a numeric value: Simple XML = 0 Dashboard Studio = 1 Other = 2 |  |
+| `disabled` | Dashboard activation state. |  |
+| `eai:appName` | App context for the dashboard. |  |
+| `eai:data` | Dashboard definition. |  |
+| `eai:digest` | Unique hash representing current dashboard state. |  |
+| `eai:type` | User interface type. For dashboards, this type is view . |  |
+| `eai:userName` | User who created the dashboard. |  |
+| `embed.enabled` | Boolean value indicating whether dashboard embedding is activated. |  |
+| `embed.expiry` | Numeric value representing expiry time for an embedded dashboard. |  |
+| `isDashboard` | Boolean value indicating whether the knowledge object is a dashboard. |  |
+| `isVisible` | Boolean value indicating whether the dashboard is visible. |  |
+| `label` | Dashboard label. |  |
+| `rootNode` | XML root node. |  |
+| `version` | Dashboard definition schema version. |  |
+
 ### `/services/data/ui/views/{name}`
 
 Access or update source XML for an existing dashboard.
@@ -7745,13 +7841,14 @@ List all peers registered to this license manager.
 | `label` | Plain text name for the license peer. |  |
 | `pool_ids` | License pools for which this license peer is a member. |  |
 | `stack_ids` | License stacks for which this license peer is a member. |  |
+| `uri` | Full management URI of the license peer (scheme, IP address, and port), for example, https://10.241.186.51:8089 . This field is available in Splunk Enterprise version 10.4 or higher. |  |
 | `warning_count` | Number of license warnings issued for this license peer. |  |
 
 ### `/services/licenser/peers/{name}`
 
 #### GET
 
-List attributes of the peer instance specified by {name}.
+List attributes of the peer instance specified by {name}, which is the unique GUID of the peer.
 
 **Returned values**
 
@@ -7760,6 +7857,7 @@ List attributes of the peer instance specified by {name}.
 | `label` | Plain text name for the license peer. |  |
 | `pool_ids` | License pools for which this license peer is a member. |  |
 | `stack_ids` | License stacks for which this license peer is a member. |  |
+| `uri` | Full management URI of the license peer (scheme, IP address, and port), for example, https://10.241.186.51:8089 . This field is available in Splunk Enterprise version 10.4 or higher. |  |
 | `warning_count` | Number of license warnings issued for this license peer. |  |
 
 ### `/services/licenser/stacks`
@@ -9712,6 +9810,7 @@ Start a new search and return the search ID (<sid>)
 | `earliest_time` | String |  |
 | `enable_lookups` | Boolean | true |
 | `exec_mode` | Enum | normal |
+| `federated_remote_providers` | String |  |
 | `force_bundle_replication` | Boolean | false |
 | `id` | String |  |
 | `index_earliest` | String |  |
@@ -10358,6 +10457,10 @@ Rotates the splunk.secret file on a standalone Splunk Enterprise instance.
 #### GET
 
 Returns server configuration for a Splunk deployment.
+
+---
+
+## Topology
 
 ---
 

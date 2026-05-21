@@ -75,7 +75,7 @@ srchFilterSelecting = <boolean>
 <capability> = enabled
 * A capability that is enabled for this role. You can list multiple
   capabilities for each role.
-* The only valid value is "enabled", as capabilities are disabled by default.
+* The only valid value is "enabled", as capabilities are disabled by default. 
 * Roles inherit all capabilities from imported roles, and you cannot
   disable inherited capabilities.
 
@@ -299,27 +299,45 @@ srchFederatedProvidersAllowed = <semicolon-separated list>
 * A list of transparent mode federated providers that this role has permission
   to search.
 * This list can use wildcards ("*") to match multiple federated providers.
-* If a user does not have a role with a 'srchFederatedProvidersAllowed' value,
-  that user's searches go to all available transparent mode federated
-  providers.
-* No default.
+* If this setting is not specified for a role, then "*" is applied by default,
+  which means that this role is allowed to send searches to all transparent
+  providers, including the local Splunk platform deployment.
+* If a user's roles are all set to 'srchFederatedProvidersAllowed =', 
+  searches are not allowed to be sent to any transparent providers, including
+  the local Splunk platform deployment. As a result, the user's searches will
+  not produce any results.
+* Default: *
 
 srchFederatedProvidersDefault = <semicolon-separated list>
-* The list of transparent mode federated providers that a search by this role
-  runs over.
-* This list can use wildcards ("*") to match multiple federated providers.
-* 'srchFederatedProvidersAllowed' overrides this setting. As a result, if for
-  this role you list a federated provider for 'srchFederatedProvidersDefault'
-  that is not also listed for 'srchFederatedProvidersAllowed', searches by this
-  user that do not list providers will not be sent to that federated provider.
-  * Therefore, as a best practice, ensure that all values of
-    'srchFederatedProvidersDefault' for a role are also present in
-    'srchFederatedProvidersAllowed' for that same role.
-* If a user has no 'srchFederatedProvidersDefault' values among their various
-  roles, and the user submits a search that does not specify a transparent-mode
-  federated provider, Splunk software sends the search to all available
-  transparent-mode federated providers.
-* No default.
+* Lists the transparent mode federated providers over which searches by this
+  role run.
+* Supports wildcards ("*") to match multiple federated providers.
+* If a provider is not explicitly specified in the search using
+  'splunk_federated_provider', the search is sent to the default providers
+  listed in 'srchFederatedProvidersDefault'.
+* If this setting is not specified for a role, then all searches for that role
+  are sent to all default transparent providers, including the local Splunk
+  platform deployment.
+* If no default providers exist for any of a user's roles and no providers are
+  specified in the search, the search produces no results.
+* The 'srchFederatedProvidersAllowed' setting overrides
+  'srchFederatedProvidersDefault'.
+  * If a federated provider appears in 'srchFederatedProvidersDefault'
+    for a role but is not listed in 'srchFederatedProvidersAllowed' for the
+    same role, searches by users with that role are not sent to that provider,
+    even if explicitly specified in the search using
+    'splunk_federated_provider'. Therefore, ensure that all values in
+    'srchFederatedProvidersDefault' for a role are also
+    included in 'srchFederatedProvidersAllowed' for that role.
+  * If all of a user's roles have 'srchFederatedProvidersAllowed =' set,
+    searches are not sent by default to any transparent providers, including
+    the local Splunk platform deployment.
+* To select a specific provider for a given index from providers listed in
+  'srchFederatedProvidersAllowed' and override the default providers, users can
+  include 'splunk_federated_provider' in their searches.
+  * For example, the following search is sent only to the 'rsh1' provider on
+    the main index: index=main splunk_federated_provider=rsh1
+* Default: *
 
 srchIndexesDefault = <semicolon-separated list>
 * A list of indexes to search when no index is specified.
@@ -496,6 +514,25 @@ ephemeralExpiration = <relative-time-modifier>
 [capability::edit_own_objects]
 * Lets a user edit the knowledge objects or entities for configuration endpoints
   that they own.
+
+[capability::list_alert_actions]
+* Lets a user list all alert actions, including sensitive fields
+  such as the OAuth configuration which email alert actions use, 
+  regardless of existing access control lists (ACLs) for alert
+  actions endpoints.
+* Currently, all users can list alert actions, but the system
+  excludes sensitive fields such as the OAuth configuration. 
+* NOTE: Assign this capability in lieu of the 'admin_all_objects'
+  capability to grant permission to view all alert actions
+  including OAuth fields for email alert actions. Assign only to
+  high-privileged roles such as "power" or "admin".
+
+[capability::edit_alert_actions]
+* Lets a user edit all alert actions, regardless of whether existing
+  access control lists (ACL) allow changes to alert actions.
+* NOTE: Assign this capability in lieu of the 'admin_all_objects' capability
+  to grant permission to edit alert actions. Assign only to
+  high-privileged roles such as "power" or "admin".
 
 [capability::list_all_objects]
 * Lets a user list all configuration settings for the configuration endpoints.
@@ -689,14 +726,22 @@ ephemeralExpiration = <relative-time-modifier>
   Assign only to privileged roles.
 
 [capability::edit_saved_search_owner]
-* Lets a user change the owner of a saved search that is visible to the user.
-* To change the owner of any saved search regardless of the access control
-  list (ACL) on that search, the user must hold a role with the 'list_saved_searches' capability.
-* To let users change saved search owners in Splunk Web, combine this
-  capability with the 'list_all_users' capability.
-* NOTE: Assign this capability in lieu of the 'admin_all_objects' capability
-  when you want to grant permission to edit the owner of a saved search.
-  Assign only to privileged roles.
+* Lets a user change the owner of a saved search that is visible
+  to that user.
+* Users can change the owner of a saved search to either themselves
+  or the 'nobody' user.
+  * To change the owner of a saved search to a user other than themselves
+    or 'nobody', the user must also hold a role with the
+    'list_all_users' capability.
+* To change the owner of a saved search to 'nobody', thus making it
+  unowned, the user must:
+  * Grant read access to both the saved search and the app that
+    contains it to a role that the user holds
+  * In Splunk Web, in the permissions for the saved search, set the
+    'Display For' to "App"
+* NOTE: Assign this capability in lieu of the 'admin_all_objects'
+  capability when you want to grant permission to edit the owner of a
+  saved search. Assign only to privileged roles.
 
 
 [capability::edit_scripted]
@@ -1131,12 +1176,37 @@ ephemeralExpiration = <relative-time-modifier>
 [capability::edit_web_features]
 * Lets a user write to the '/web-features' REST endpoint.
 
+[capability::edit_connections]
+* Lets a user create, edit and delete Federated Analytics dataset connections through the
+  /services/orchestrator/v1/connections REST endpoint.
+
+[capability::read_connections]
+* Lets a user read Federated Analytics dataset connections through the
+  /services/orchestrator/v1/connections REST endpoint.
+
+[capability::edit_datasets]
+* Lets a user create, edit and delete Federated Analytics datasets through the
+  /services/orchestrator/v1/datasets endpoint.
+
+[capability::write_datasets]
+* Lets a user use Federated Analytics datasets as destinations in pipelines.
+
+[capability::read_datasets]
+* Lets a user view Federated Analytics datasets through the /services/orchestrator/v1/datasets REST endpoint
+  and use them as sources in pipelines.
+
 [capability::edit_spl2_module_permissions]
 * Lets a user create and edit permissions to Search Processing Language version 2 (SPL2) items through the REST API.
 
 [capability::edit_published_dashboards]
 * Lets a user publish a dashboard, creating a unique URL that makes the dashboard viewable without
   logging in.
+
+[capability::auto_refresh_dashboards]
+* Lets a user run auto refresh searches in dashboards.  
+
+[capability::deactivate_dashboards]
+* Lets a user activate/deactivate UI view access to specific Classic or Studio dashboards.
 
 [capability::list_spl2_modules]
 * Lets a user read and list SPL2 modules.
@@ -1190,6 +1260,14 @@ ephemeralExpiration = <relative-time-modifier>
 [capability::list_internal_oauth_clients]
 * Lets a user list existing OAuth internal clients.
 
+[capability::edit_authentication_node]
+* Lets a user create, update, and delete authentication_node configuration
+  settings through REST API endpoints.
+
+[capability::list_authentication_node]
+* Lets a user list and view authentication_node configuration settings through
+  REST API endpoints.
+
 [capability::edit_storage_passwords_masking]
 * Lets a user edit the /storage/passwords cleartext password masking settings.
 
@@ -1199,4 +1277,45 @@ ephemeralExpiration = <relative-time-modifier>
 
 [capability::edit_heap_profiler]
 * Lets a user edit the heap profiler configuration without restarting splunkd.
+
+[capability::list_federated_providers]
+* Lets a user view all of the federated providers' configurations.
+  Consequently, a user with this capability can see any federated providers
+  in the local Splunk platform deployment, regardless of the role-based access 
+  control (RBAC) restrictions that are set to allow the user to view 
+  federated providers.
+* Assign this capability only to roles that you intend to assign to
+  high-privileged users.
+
+[capability::edit_federated_indexes]
+* Lets a user create, update, or delete any federated index configurations
+  in the local Splunk platform deployment.
+
+[capability::edit_federated_providers]
+* Lets a user:
+  * View, create, update, or delete any federated provider configurations
+    in the local Splunk platform deployment.
+  * View or edit federated search settings accessible at the
+    'data/federated/settings/general' REST endpoint.
+* If a user does not have the 'edit_federated_providers' capability, they can
+  still view the configurations of federated providers that are associated with
+  federated indexes to which their role has access permissions.
+
+[capability::edit_output_ingest_processor]
+* Lets a user update Ingest Processor configurations without restarting the
+  Splunk platform. For example, a user with this capability can deactivate
+  sending events to Ingest Processor without restarting the Splunk platform.
+
+[capability::edit_input_ingest_processor]
+* Lets a user update Ingest Processor configurations without restarting the
+  Splunk platform. For example, a user with this capability can deactivate
+  receiving events from Ingest Processor without restarting the Splunk platform.
+
+[capability::edit_conf_objects]
+* Lets a user create, update, and delete configuration objects using the 
+ /services/configs/v1 REST API Endpoint.
+
+[capability::list_conf_objects]
+* Lets a user list and read configuration objects using the 
+ /services/configs/v1 REST API Endpoint.
 

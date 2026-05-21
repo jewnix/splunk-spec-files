@@ -221,11 +221,11 @@ Type "./splunk help [topic name | object name | parameter name]" to get help on 
     <item obj="backup" verb="true">
         <common>
             <help>
-                <header><![CDATA[Backup kvstore data to a file.
-The archive file will be placed in $SPLUNK_DB/kvstorebackup/]]></header>
-                <syntax><![CDATA[backup [kvstore]]]></syntax>
+                <header><![CDATA[Backup data to a file.]]></header>
+                <syntax><![CDATA[backup [kvstore|postgres]]]></syntax>
                 <examples>
                     <ex><![CDATA[./splunk backup kvstore -archiveName kvdump]]></ex>
+                    <ex><![CDATA[./splunk backup postgres -backupName backup1]]></ex>
                 </examples>
             </help>
         </common>
@@ -234,12 +234,11 @@ The archive file will be placed in $SPLUNK_DB/kvstorebackup/]]></header>
     <item obj="restore" verb="true">
         <common>
             <help>
-                <header><![CDATA[Restore kvstore data from a file.
-The archive file will be read from $SPLUNK_DB/kvstorebackup/
-Data will not be restored to non-existent collections. They should be recreated first.]]></header>
-                <syntax><![CDATA[restore [kvstore]]]></syntax>
+                <header><![CDATA[Restore data from a file.]]></header>
+                <syntax><![CDATA[restore [kvstore|postgres]]]></syntax>
                 <examples>
                     <ex><![CDATA[./splunk restore kvstore -archiveName kvdump.tar.gz]]></ex>
+                    <ex><![CDATA[./splunk restore postgres -backupName backup1]]></ex>
                 </examples>
             </help>
         </common>
@@ -2954,6 +2953,7 @@ More information in the online documentation for the corresponding REST endpoint
             <uri><![CDATA[/kvstore/backup/create]]></uri>
             <help>
                 <title><![CDATA[Backup KVStore data to an archive file.]]></title>
+                <description><![CDATA[The archive file will be placed in $SPLUNK_DB/kvstorebackup/]]></description>
                 <optional>
                     <arg name="-archiveName"><![CDATA[Specifies filename for backup archive file]]></arg>
                     <arg name="-appName"><![CDATA[Specifies which app to backup to the archive file]]></arg>
@@ -2973,6 +2973,7 @@ More information in the online documentation for the corresponding REST endpoint
             <uri><![CDATA[/kvstore/backup/restore]]></uri>
             <help>
                 <title><![CDATA[Restore KVStore data from an archive file.]]></title>
+                <description><![CDATA[Data will not be restored to non-existent collections. They should be recreated first.]]></description>
                 <required>
                     <arg name="-archiveName"><![CDATA[Specifies backup archive file to restore from (to be located in $SPLUNK_DB/kvstorebackup)]]></arg>
                 </required>
@@ -3092,6 +3093,102 @@ More information in the online documentation for the corresponding REST endpoint
             </help>
             <type>edit</type>
             <post_only/>
+        </cmd>
+    </item>
+
+    <!-- show postgres-status -->
+    <item obj="postgres-status">
+        <cmd name="show">
+            <uri><![CDATA[/v1/postgres/status]]></uri>
+            <help>
+                <title><![CDATA[View status of the PostgreSQL deployment.]]></title>
+                <syntax><![CDATA[show postgres-status]]></syntax>
+                <required/>
+                <examples>
+                    <ex><![CDATA['./splunk show postgres-status']]></ex>
+                </examples>
+            </help>
+            <type>list</type>
+        </cmd>
+    </item>
+
+    <!-- show postgres-health -->
+    <item obj="postgres-health">
+        <cmd name="show">
+            <uri><![CDATA[/v1/postgres/health]]></uri>
+            <help>
+                <title><![CDATA[View health of the PostgreSQL sidecar.]]></title>
+                <syntax><![CDATA[show postgres-health]]></syntax>
+                <required/>
+                <examples>
+                    <ex><![CDATA['./splunk show postgres-health']]></ex>
+                </examples>
+            </help>
+            <type>list</type>
+        </cmd>
+    </item>
+
+    <!-- show postgres-recovery-status [id] -->
+    <item obj="postgres-recovery-status">
+        <cmd name="show">
+            <implied_arg_name><![CDATA[id]]></implied_arg_name>
+            <uri><![CDATA[/v1/postgres/recovery/status]]></uri>
+            <help>
+                <title><![CDATA[View status of a PostgreSQL backup or restore operation.]]></title>
+                <syntax><![CDATA[show postgres-recovery-status [id]]]></syntax>
+                <optional>
+                    <arg name="id"><![CDATA[The operation ID returned by backup or restore (omit to show the most recent operation)]]></arg>
+                </optional>
+                <examples>
+                    <ex><![CDATA['./splunk show postgres-recovery-status']]></ex>
+                    <ex><![CDATA['./splunk show postgres-recovery-status abc123']]></ex>
+                </examples>
+            </help>
+            <type>list</type>
+        </cmd>
+    </item>
+
+    <!-- backup/restore postgres -->
+    <item obj="postgres">
+        <cmd name="backup">
+            <uri><![CDATA[/v1/postgres/recovery/backup]]></uri>
+            <help>
+                <title><![CDATA[Backup a PostgreSQL database.]]></title>
+                <syntax><![CDATA[backup postgres [-database db] [-backupName name] [-type Logical|Physical] [-recoveryTargetTime timestamp]]]></syntax>
+                <optional>
+                    <arg name="-database"><![CDATA[The database to back up (omit to back up all databases)]]></arg>
+                    <arg name="-backupName"><![CDATA[Filename for the backup archive (auto-generated if omitted)]]></arg>
+                    <arg name="-type"><![CDATA[The type of backup: Logical (default) or Physical]]></arg>
+                    <arg name="-recoveryTargetTime"><![CDATA[RFC3339 timestamp for point-in-time recovery (e.g. 2026-04-05T14:00:00Z)]]></arg>
+                </optional>
+                <examples>
+                    <ex><![CDATA['./splunk backup postgres']]></ex>
+                    <ex><![CDATA['./splunk backup postgres -database mydb -backupName backup1']]></ex>
+                    <ex><![CDATA['./splunk backup postgres -type Physical']]></ex>
+                </examples>
+            </help>
+            <type>edit</type>
+        </cmd>
+        <cmd name="restore">
+            <uri><![CDATA[/v1/postgres/recovery/restore]]></uri>
+            <help>
+                <title><![CDATA[Restore a PostgreSQL database from a backup.]]></title>
+                <syntax><![CDATA[restore postgres -backupName name [-database db] [-type Logical|Physical] [-recoveryTargetTime timestamp]]]></syntax>
+                <required>
+                    <arg name="-backupName"><![CDATA[The backup archive to restore from]]></arg>
+                </required>
+                <optional>
+                    <arg name="-database"><![CDATA[The database to restore (omit to restore all databases)]]></arg>
+                    <arg name="-type"><![CDATA[The type of restore: Logical (default) or Physical]]></arg>
+                    <arg name="-recoveryTargetTime"><![CDATA[RFC3339 timestamp for point-in-time recovery (e.g. 2026-04-05T14:00:00Z; Physical restores with WAL archiving only)]]></arg>
+                </optional>
+                <examples>
+                    <ex><![CDATA['./splunk restore postgres -backupName backup1']]></ex>
+                    <ex><![CDATA['./splunk restore postgres -database mydb -backupName backup1']]></ex>
+                    <ex><![CDATA['./splunk restore postgres -backupName backup1 -recoveryTargetTime 2026-04-05T14:00:00Z']]></ex>
+                </examples>
+            </help>
+            <type>edit</type>
         </cmd>
     </item>
 
@@ -5621,7 +5718,8 @@ Supported commands and objects:
 
         show                [config|datastore-dir|deploy-poll|default-hostname|default-index|
                             jobs|minfreemb|servername|splunkd-port|web-port|kvstore-port|
-                            kvstore-status]
+                            kvstore-status|postgres-status|postgres-health|
+                            postgres-recovery-status]
 
         spool               NONE
 
@@ -5637,9 +5735,9 @@ Supported commands and objects:
 
         resync              [kvstore|shcluster-replicated-config]
 
-        backup              [kvstore]
+        backup              [kvstore|postgres]
 
-        restore             [kvstore]
+        restore             [kvstore|postgres]
 
         merge-buckets       [--index-name]
 

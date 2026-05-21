@@ -738,18 +738,33 @@ ADD_EXTRA_TIME_FIELDS = [none | subseconds | all | <boolean>]
                     treats any number of spaces and tabs as a
                     single delimiter
 
-INDEXED_EXTRACTIONS = <CSV|TSV|PSV|W3C|JSON|HEC>
+INDEXED_EXTRACTIONS = <CSV|TSV|PSV|W3C|JSON|HEC|XML|XMLKV|XMLKV-WINEVT>
 * The type of file that Splunk software should expect for a given source
   type, and the extraction and/or parsing method that should be used on the 
   file.
 * The following values are valid for 'INDEXED_EXTRACTIONS':
-  CSV  - Comma separated value format
-  TSV  - Tab-separated value format
-  PSV  - pipe ("|")-separated value format
-  W3C  - World Wide Web Consortium (W3C) Extended Log File Format
-  JSON - JavaScript Object Notation format
-  HEC  - Interpret file as a stream of JSON events in the same format as the 
-         HTTP Event Collector (HEC) input.
+  CSV          - Comma separated value format
+  TSV          - Tab-separated value format
+  PSV          - pipe ("|")-separated value format
+  W3C          - World Wide Web Consortium (W3C) Extended Log File Format
+  JSON         - JavaScript Object Notation format
+  HEC          - Interpret file as a stream of JSON events in the same
+                 format as the HTTP Event Collector (HEC) input.
+  XML          - Automatically extracts fields from XML-formatted data.
+                 Extracted field includes path similar to the
+                 'spath' search command.
+                 This setting is only active if you configure
+                 'XML_INDEXED_EXTRACTIONS_PIPELINE'.
+  XMLKV        - Automatically extracts fields from XML-formatted data.
+                 Extracted field excludes path similar to the
+                 'xmlkv' search command.
+                 This setting is only active if you configure
+                 'XML_INDEXED_EXTRACTIONS_PIPELINE'.
+  XMLKV-WINEVT - Automatically extracts fields from Windows event logs
+                 that are in XML format. Extracted field excludes path
+                 similar to the 'xmlkv' search command.
+                 This setting is only active if you configure
+                 'XML_INDEXED_EXTRACTIONS_PIPELINE'.
 * These settings change the defaults for other settings in this subsection
   to appropriate values, specifically for these formats.
 * The HEC format lets events overide many details on a per-event basis, such
@@ -759,6 +774,11 @@ INDEXED_EXTRACTIONS = <CSV|TSV|PSV|W3C|JSON|HEC>
 * When 'INDEXED_EXTRACTIONS = JSON' for a particular source type, do not also 
   set 'KV_MODE = json' for that source type. This causes the Splunk software to 
   extract the JSON fields twice: once at index time, and again at search time.
+* When you configure 'INDEXED_EXTRACTIONS' for a particular
+  source type to 'XML', 'XMLKV', or 'XMLKV-WINEVT', do not also
+  configure 'KV_MODE = xml' for that source type. This causes
+  the Splunk platform to extract the XML fields twice: once
+  at index time, and again at search time.
 * Default: not set
 
 METRICS_PROTOCOL = <STATSD|COLLECTD_HTTP>
@@ -936,6 +956,70 @@ JSON_TRIM_BRACES_IN_ARRAY_NAMES = <boolean>
 * CAUTION: Setting this to "true" makes array field names that are extracted
   at index time through the JSON parser inconsistent with search-time
   extraction of array field names through the 'spath' search command.
+* Default: false
+
+#******************************************************************************
+# Field extraction configuration for XML-formatted data
+#******************************************************************************
+XML_INDEXED_EXTRACTIONS_PIPELINE = <structuredparsing|wineventlog|typing|exec>
+* The pipeline to use for index-time field extractions from data that
+  arrives in XML format.
+* The following values are valid for 'XML_INDEXED_EXTRACTIONS_PIPELINE':
+  * typing: This pipeline turns on field extraction from
+    XML-formatted data.
+  * structuredparsing: This pipeline turns on field
+    extraction from XML-formatted data if you want to extract fields on
+    Splunk Universal Forwarder instances.
+  * exec: This pipeline turns on field extraction from Windows event logs
+    that are in XML format with 'INDEXED_EXTRACTIONS=xmlkv-winevt' if
+    you want to extract fields on Splunk Universal Forwarder instances.
+  * wineventlog: This pipeline turns on field extraction from
+    Windows event logs (.evtx files) that are in XML format with
+    'INDEXED_EXTRACTIONS=xmlkv-winevt' if you want to extract fields on
+    Splunk Universal Forwarder instances.
+* This setting is only active if you configure 'INDEXED_EXTRACTIONS'.
+* NOTE: The 'typing' value is not applicable for
+  Splunk Universal Forwarder instances.
+* Default: not set
+
+extraction_cutoff = <non-negative integer>
+* The maximum number of bytes of data that the Splunk platform extracts
+  from incoming events that are in XML format.
+* Default: 10000
+
+XML_IE_INCLUDE = <comma-separated list>
+* The metadata fields that The Splunk platform is to extract for an
+  event.
+* Use this setting to filter index-time field extractions from data that
+  arrives in XML format.
+* You can use "*" as a wildcard.
+* For example:
+    [XmlWinEventLog]
+    XML_IE_INCLUDE = *Process*,Event*
+* Default: *
+
+XML_IE_EXCLUDE = <comma-separated list>
+* The metadata fields that The Splunk platform must not extract for an
+  event.
+* Use this setting to filter index-time field extractions from data that
+  arrives in XML format.
+* You can use "*" as a wildcard.
+* For example:
+    [XmlWinEventLog]
+    XML_IE_EXCLUDE = TargetProcessId
+* Default: not set
+
+OPTIMIZE_IE_EXTRACT = <boolean>
+* Whether or not Splunk software skips search-time field extractions
+  for this stanza when all fields required by an SPL search are
+  already present from index-time extraction for an event.
+* This setting applies only to events where index-time
+  field extraction has occurred.
+* A value of "true" means search-time extractions are skipped if
+  index-time extraction covers all required fields for the search.
+* A value of "false" means Splunk software performs search-time
+  extractions regardless of whether index-time extractions also occur.
+* Optional. 
 * Default: false
 
 #******************************************************************************
@@ -1631,6 +1715,17 @@ maxDist = <integer>
   software, such as on a forwarder that has configured inputs acquiring the
   data.
 * Default: 300
+
+trackPipelineLatency = <boolean>
+* Whether or not the Splunk platform tracks the latency, in seconds, of
+  pipeline events and logs average/max latency.
+* A value of "true" means the Splunk platform tracks the latency of pipeline
+  events with their ingest time.
+* A value of "false" means the Splunk platform does not track the latency of
+  pipeline events with their ingest time.
+* The Splunk platform logs event latency metrics to 'metrics.log' for the
+  'per_host/sourcetype/source/index_thruput' group.
+* Default: true
 
 # rule:: and delayedrule:: configuration
 

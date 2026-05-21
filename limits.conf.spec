@@ -113,6 +113,25 @@ max_mem_usage_mb = <non-negative integer>
       processor stops adding the requested fields to the search results.
 * Default: 200
 
+max_search_string_size = <unsigned integer>[B|KB|MB|GB]
+* Specifies the maximum allowed length of the search string, in bytes,
+  kilobytes, megabytes, or gigabytes. 
+* Every time a search runs, it undergoes multiple rounds of parsing, 
+  expansion, and optimization before producing the final optimized 
+  string. This limit is applied in every round and can cause the search 
+  to fail even if the initial search string is below the limit.
+* If a search has subsearches, part of the search string is replaced with the 
+  results of its subsearches. The size of these results is factored into the 
+  total length of the search string. 
+* This setting prevents the search string from expanding indefinitely and 
+  provides guardrails to limit memory usage during the parsing phase of 
+  searches. If a search exceeds this limit, it stops running and does 
+  not complete successfully. 
+* This setting does not limit the total memory used by the search process; 
+  it only controls the size of the search string.
+* A value of 0 means no limit is enforced on the search string size.
+* Default: 0B
+
 min_batch_size_bytes = <integer>
 * Specifies the size, in bytes, of the file/tar after which the
   file is handled by the batch reader instead of the trailing processor.
@@ -162,6 +181,16 @@ clb_cpu_profiling = <boolean>
   Entries in metrics.log will appear per_host_clb_cpu, per_source_clb_cpu,
   per_sourcetype_clb_cpu, per_index_clb_cpu.
 * Default: false
+
+xml_cpu_profiling = <boolean>
+* Whether or not the Splunk platform turns on Central Processing Unit (CPU)
+  time metrics for the XmlExtractionProcessor.
+* A value of "true" means the Splunk platform turns on these metrics and
+  writes the output to the 'metrics.log' file. 
+  * The log file entries appear as 'per_host_xml_cpu', 'per_source_xml_cpu',
+    'per_sourcetype_agg_cpu', and 'per_index_xml_cpu'.
+* A value of "false" means the Splunk platform does not enable these metrics.
+* Default: true
 
 file_and_directory_eliminator_reaper_interval = <integer>
 * Specifies how often, in seconds, to run the FileAndDirectoryEliminator reaping
@@ -277,6 +306,17 @@ show_warn_on_filtered_indexes = <boolean>
 * Read more about subsearches in the online documentation:
   http://docs.splunk.com/Documentation/Splunk/latest/Search/Aboutsubsearches
 
+capture_subsearch_telemetry = <boolean>
+* Controls whether to capture subsearch telemetry.
+* When set to "true", subsearch telemetry is sent into a separate dispatch folder.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: false
+
+enable_early_evaluated_subsearch = <boolean>
+* When set to "true" relevant subsearches get executed earlier in order to 
+  run through search optimization. Do not set the value to "1" to indicate "true", 
+  because some systems might not parse this value correctly.
+* Default: false
 
 maxout = <integer>
 * Maximum number of results to return from a subsearch.
@@ -483,6 +523,8 @@ shc_adhoc_quota_enforcement = on | off | overflow
         to under-counting of the cluster-wide ad hoc search numbers and cause
         the ad hoc search count to exceed cluster-wide quota limits. Do not
         change this setting without consulting Splunk Support.
+* NOTE: When `shc_role_quota_base_only_enforcement` is enabled, the behavior of this setting
+        changes such that role-based quotas are not multiplied by the size of the cluster.
 * Default: off
 
 hostwide_queued_search_limit = <integer>
@@ -996,16 +1038,50 @@ record_search_telemetry = <boolean>
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: true
 
+index_remote_search_telemetry = <boolean>
+* Controls whether search peers can index remote search telemetry. 
+  This setting applies locally to search peers.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: false
+
+fetch_remote_search_telemetry = <boolean>
+* Controls whether to fetch remote search telemetry from indexer peers to the 
+  search head.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Do not set the value  to "1" to indicate "true", because some systems might 
+  not parse this value correctly.
+* Default: true
+
+optimize_search_telemetry = <boolean>
+* When set to "true", optimizes the search telemetry payload by disabling the
+  following low priority metrics: phases.nodes.splunk_version,
+  phases.nodes.splunk_build and perf.subsearch_properties.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: false
 
 search_telemetry_file_limit = <integer>
 * Sets a limit to the number of telemetry files that the Splunk software can
   copy to the var/run/splunk/search_telemetry/ directory, so that it may index
   them in the _introspection index.
+* This setting applies only to the search head. See
+  'remote_search_telemetry_file_limit' to set the corresponding setting
+  for search peers, which applies to remote searches.
 * Once this limit is reached, the Splunk software stops adding telemetry files
   to the directory for indexing.
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: 500
 
+remote_search_telemetry_file_limit = <integer>
+* Sets a limit for the number of telemetry files that Splunk software copies
+  to the var/run/splunk/search_telemetry/ directory when indexing
+  the files in the _introspection index.
+* This setting applies only to telemetry on search peers and is typically set
+  to a lower value than the 'search_telemetry_file_limit' setting to limit
+  the impact of search telemetry on indexer input pipelines.
+* When this limit is reached, Splunk software stops adding telemetry files
+  to the directory for indexing.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: 30
 
 search_telemetry_component_limit = <integer>
 * Sets a limit to the size (in bytes) of each of the constituent components in
@@ -1842,6 +1918,11 @@ status_cache_size = <integer>
   This cache improves performance of the jobs endpoint.
 * Default: 10000
 
+status_cache_per_entry_max_size = <integer>
+* The maximum serialized size, in bytes, of a search job eligible for caching
+  in the status cache.
+* Default: 1048576
+
 status_period_ms = <integer>
 * The minimum amount of time, in milliseconds, between successive
   status/info.csv file updates.
@@ -1851,6 +1932,38 @@ status_period_ms = <integer>
   * It could also be important for extremely rapid responses from search
     peers, when the search peers have very little work to do.
 * Default: 1000 (1 second)
+
+status_field_truncation.enabled = <boolean>
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Reduces memory usage by truncating individual fields of status CSV files
+  before storing them internally for managing search job status.
+* All fields are eligible for truncation unless they are included in 
+  'status_field_truncation.exclude_fields'.
+* Default: false
+
+status_field_truncation.exclude_fields = <comma separated list>
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* A comma-separated list of job status fields to exclude from truncation
+  when 'status_field_truncation.enabled' has a value of "true".
+* Default: report_search
+
+status_field_truncation.search_field_len = <non-negative integer>
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* The maximum length, in characters, for any search-based field in the search job
+  status when 'status_field_truncation.enabled' has a value of "true".
+* Field values longer than this length are truncated unless included in the
+  'status_field_truncation.exclude_fields' list.
+* Search-based fields include: remote_search, normalized_search, optimized_search,
+  phase_0_search, phase_1_search, report_search, and events_search.
+* Default: 5000
+
+status_field_truncation.default_field_len = <non-negative integer>
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* The maximum length, in characters, for any non search-based field in the search
+  job status when 'status_field_truncation.enabled' has a value of "true".
+* Field values longer than this length are truncated unless included in the
+  'status_field_truncation.exclude_fields' list.
+* Default: 1000000
 
 ############################################################################
 # Timelines
@@ -2057,6 +2170,45 @@ search_transaction_establish_connection_max_retries = <integer>
   contacts search peers.
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: 3
+
+############################################################################
+# Dispatch reaping
+############################################################################
+# This section contains the dispatch reaping settings.
+
+priority_based_dispatch_reaper = <boolean>
+* Whether or not the priority-based dispatch reaper is active. This reaper
+  uses the expiration time (creation or modification time plus the
+  Time-To-Live (TTL) period) of a search artifact to optimize the order in
+  which artifacts are reaped from the artifact directory on disk. This
+  reaping strategy builds an in-memory state of reaping attributes of search
+  artifacts based on the order of their expiration in ascending order.
+* A value of "true" means the priority-based dispatch reaper is turned on.
+* A value of "false" means the priority-based dispatch reaper is turned off.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: false
+
+dispatch_dir_maximum_count = <integer>
+* The maximum number of completed jobs in the dispatch directory. This
+  setting helps prioritize the health of Splunk platform deployments by
+  reaping older dispatch directories.
+* When the maximum is exceeded, completed search artifacts are reaped
+  in order of earliest creation or modification time. For example,
+  the oldest artifacts are reaped first until the count of completed
+  search artifacts falls below the limit. If two artifacts exist,
+  one created at time t1 and another at time t2, where t1 is earlier
+  than t2, the artifact from t1 is reaped first if the limit is exceeded
+  and it is the earliest one in the order.
+* This setting can reap search artifacts ahead of their expiration
+  to satisfy this limit and preserve the health of the Splunk platform
+  deployment.
+* This setting applies only when 'priority_based_dispatch_reaper' has
+  a value of "true".
+* This setting applies only to dispatch directories containing completed
+  search artifacts. In-progress search jobs are not affected.
+* NOTE: Do not change this setting unless instructed to do so by
+  Splunk Support.
+* Default: 40000
 
 ############################################################################
 # Unsupported settings
@@ -2339,6 +2491,34 @@ zl_0_gridcell_longspan = <decimal>
 * Grid-spacing at other zoom levels are auto created from this value by
   reducing by a factor of 2 at each zoom-level.
 
+[indexing_search_log]
+
+enabled = <boolean>
+* Controls whether to enable the setting that indexes search.log 
+  files for failed searches. The number of failed searches per day 
+  whose search.log files are indexed is based on the 'rate_limit_per_day' 
+  setting.
+* NOTE: Do not change this setting unless directed to do so by Splunk Support.
+* Default: false
+
+rate_limit_per_day = <integer>
+* The maximum number of times per day that failed search.log files
+  should be indexed.
+* NOTE: Do not change this setting unless directed to do so by Splunk Support.
+* Default: 5
+
+queue_capacity = <integer>
+* The capacity of the queue for search.log files, which is the maximum
+  number of files that can be held in memory for processing before the queue
+  starts rejecting new entries.
+* NOTE: Do not change this setting unless directed to do so by Splunk Support.
+* Default: 10
+
+sinkhole_file_limit = <integer>
+* The maximum number of search.log files that can be held in the
+  var/run/splunk/search_log directory while search.log data is being indexed.
+* NOTE: Do not change this setting unless directed to do so by Splunk Support.
+* Default: 100
 
 [inputcsv]
 
@@ -2347,6 +2527,32 @@ mkdir_max_retries = <integer>
   subdir of SPLUNK_HOME/var/run/splunk)
 * Default: 100
 
+[inputlookup]
+kv_chunk_size = <integer>
+* Specifies the maximum number of results to fetch in a single read from an
+  external or cohosted KV store by the 'inputlookup' command.
+* This setting applies to external or cohosted KV store lookups only.
+* A smaller value requires less memory on the search head. However, setting
+  this value too small decreases 'inputlookup' performance.
+* NOTE: Do not change this setting unless Splunk Support instructs you to
+  do so.
+* Default: 50000
+
+inputlookup_cursor = <boolean>
+* Controls whether 'inputlookup' operations use cursor mode for external or
+  cohosted KV store lookups.
+* A value of "true" means that 'inputlookup' operations send multiple
+  requests to the external or cohosted KV store 'inputlookup' cursor API.
+  This maintains state across requests and improves performance for
+  'inputlookup' operations with complex queries.
+* A value of "false" means that 'inputlookup' operations use the standard
+  'inputlookup' mode, which makes multiple separate requests to the
+  external or cohosted KV store, with each request receiving a single
+  response. This mode supports pagination with offset-based data retrieval.
+* This setting applies to external or cohosted KV store lookups only.
+* NOTE: Do not change this setting unless Splunk Support instructs you to
+  do so.
+* Default: false
 
 [iplocation]
 
@@ -3161,6 +3367,26 @@ use_bloomfilter = <boolean>
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: true
 
+optimize_time_bin_memory = <boolean>
+* Whether or not Splunk software allocates optimized time bins within  
+  a single TSIDX file when mstats search jobs process data that groups
+  results by time (for example, using 'span') and the data contains a 
+  dimset.
+* This setting applies only to mstats search jobs.
+* A value of "false" means Splunk software does not optimize time
+  bins for mstats search jobs and uses the old algorithm.
+* A value of "true" means Splunk software optimizes time bins for
+  mstats search jobs and uses the new, optimized algorithm.
+* This setting, when "true", can reduce memory usage for mstats
+  search jobs that process large amounts of data. It applies to all
+  mstats searches.
+* You can apply the setting to an individual search by using the
+  '|noop' command:
+  '| noop feature_flag="mstats:optimize_time_bin_memory:<boolean>"'
+* NOTE: Do not change this setting unless instructed to do so by
+  Splunk Support.
+* Default: false
+
 [typeahead]
 
 cache_ttl_sec = <integer>
@@ -3595,6 +3821,15 @@ max_documents_per_batch_save = <unsigned integer>
 * The maximum number of documents that can be saved in a single batch
 * Default: 1000
 
+max_documents_per_batch_export_backup_kvservice = <unsigned integer>
+* The maximum number of documents that can be exported from kvservice 
+  in a single batch during backup.
+* Default: 50000
+
+max_size_per_batch_export_backup_kvservice_mb = <unsigned integer>
+* The maximum size, in megabytes (MB), that can be exported from kvservice
+  in a single batch during backup.
+* Default: 50
 
 max_fields_per_acceleration = <unsigned integer>
 * The maximum number of fields that can be part of a compound acceleration
@@ -3642,6 +3877,14 @@ indexedcsv_failure_cleanup = <boolean>
   CSV lookup files fail to be indexed.
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: false
+
+max_documents_per_conditional_update = <unsigned integer>
+* Determines how many documents you can modify per conditional update request.
+* If you configure this setting to a value less than 1, the software sets
+  it to 1.
+* If you configure this setting to a value greater than 100, the software
+  sets it to 100.
+* Default: 10
 
 
 [kvstore_migration]
@@ -4119,6 +4362,18 @@ scheduler_user_timezone_cache_expiry = <integer>[s|m|h|d]
   For example: 60s, 1m, 1h, 1d, etc.
 * Default: 150m
 
+suppression_cleanup_interval = <positive integer>
+* The interval, in seconds, at which the suppression cleanup background
+  thread processes queued suppression deletions.
+* Minimum value: 1. Maximum value: 300.
+* If you configure this setting to a value less than 1, the software sets
+  it to 1.
+* If you configure this setting to a value greater than 300, the software
+  sets it to 300.
+* NOTE: Do not change this setting unless instructed to do so by
+  Splunk Support.
+* Default: 5
+
 auto_summary_perc = <integer>
 * The maximum number of concurrent searches to be allocated for auto
   summarization, as a percentage of the concurrent searches that the scheduler
@@ -4155,6 +4410,12 @@ dispatch_mode = push | pull
 * The 'pull' mode means the search head cluster members pull the search jobs 
   from the captain.
 * Default: 'push'
+
+allow_skew_hash_algorithm = djb2 | xxh32
+* The hash algorithm used for deterministic scheduler allow_skew placement.
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+* Default: djb2 
 
 
 introspection_lookback = <duration-specifier>
@@ -4315,6 +4576,15 @@ saved_searches_disabled = <boolean>
 * Whether saved search jobs are disabled by the scheduler.
 * Default: false
 
+durable_search_disabled = <boolean>
+* Specifies whether durable search functionality is disabled for all saved
+  search jobs.
+* When set to 'true', the Splunk software ignores the durable search settings of
+  all saved search configurations.
+* To disable durable search for an individual saved search, find its
+  configuration in 'savedsearches.conf' and set its 'durable.track_time_type'
+  setting to 'none'.
+* Default: false
 
 scheduled_view_timeout = <integer>[s|m|h|d]
 * The maximum amount of time that a scheduled view (pdf delivery) would be
@@ -4324,21 +4594,38 @@ scheduled_view_timeout = <integer>[s|m|h|d]
 * Default: 60m
 
 shc_role_quota_enforcement = <boolean>
-* When this attribute is enabled, the search head cluster captain enforces
-  user-role quotas for scheduled searches globally (cluster-wide).
-* A given role can have (n *number_of_members) searches running cluster-wide,
-  where n is the quota for that role as defined by srchJobsQuota and
-  rtSrchJobsQuota on the captain and number_of_members include the members
-  capable of running scheduled searches.
-* Scheduled searches will therefore not have an enforcement of user role
-  quota on a per-member basis.
-* Role-based disk quota checks (srchDiskQuota in authorize.conf) can be
-  enforced only on a per-member basis.
-  These checks are skipped when shc_role_quota_enforcement is enabled.
-* Quota information is conveyed from the members to the captain. Network delays
-  can cause the quota calculation on the captain to vary from the actual values
-  in the members and may cause search limit warnings. This should clear up as
-  the information is synced.
+* Controls whether the search head cluster captain enforces user-role
+  quotas for scheduled searches globally (cluster-wide).
+* A value of "true" means the captain enforces quotas globally. A given
+  role can have (n * number_of_members) searches running cluster-wide.
+  * 'n' is the quota for that role as defined by 'srchJobsQuota' and
+    'rtSrchJobsQuota' on the captain.
+  * 'number_of_members' is the count of members capable of running
+    scheduled searches.
+* When this setting is "true", scheduled searches do not have an
+  enforcement of user role quota on a per-member basis.
+* Role-based disk quota checks ('srchDiskQuota' in 'authorize.conf') are
+  enforced only on a per-member basis. These checks are skipped when
+  'shc_role_quota_enforcement' is "true".
+* Quota information travels from the members to the captain. Network delays
+  can cause the quota calculation on the captain to vary from the actual
+  values in the members and might cause search limit warnings. This
+  discrepancy clears up as the information syncs.
+* NOTE: When the 'shc_role_quota_base_only_enforcement' setting is
+  enabled, the behavior of this setting changes such that role-based quotas
+  are not multiplied by the size of the cluster.
+* Default: false
+
+shc_role_quota_base_only_enforcement = <boolean>
+* Controls whether the 'shc_role_quota_enforcement' setting multiplies the
+  user quota by the size of nodes in the search head cluster.
+* A value of "true" means that the user quota is not multiplied by the
+  cluster size. Enable this setting only if the number of users causes
+  search concurrency issues for all of your cluster members.
+* A value of "false" means that the user quota is multiplied by the cluster
+  size, as determined by the 'shc_role_quota_enforcement' setting.
+* This setting has no effect if 'shc_role_quota_enforcement' is "false" or
+  'shc_adhoc_quota_enforcement' is "off".
 * Default: false
 
 shc_syswide_quota_enforcement = <boolean>
@@ -4647,6 +4934,23 @@ auto_finalize_secs_after_maxtime = <integer>
   limit for a summary search and causes the Splunk software to ignore the 
   'auto_finalize_secs_after_maxtime' setting.
 * Default: 300
+
+disable_local_dma_search = <boolean>
+* Controls whether to turn off local data model acceleration (DMA) search 
+  execution when the search head has no meaningful local data.
+* When turned on, data model summarization searches run only on remote indexers 
+  instead of the local search head, which avoids unnecessary computation and 
+  reduces the risk of out-of-memory (OOM) errors that can occur when large 
+  DMA creation searches are run against empty local buckets.
+* This optimization is most useful for Splunk Cloud Platform deployments 
+  and large Splunk Enterprise installations where search heads forward all 
+  data to dedicated indexer tiers.
+* In single-instance deployments (where the search head is also the indexer), 
+  this optimization is automatically disabled regardless of this setting, 
+  ensuring local data is properly searched.
+* Turn this setting off if you need to run DMA locally for troubleshooting 
+  purposes.  
+* Default: false
 
 sleep_seconds = <integer>
 * The amount of time, in seconds, to sleep between polling the summarization
@@ -5237,6 +5541,15 @@ stats = <boolean>
 * Do not change this setting unless instructed to do so by Splunk support.
 * Default: false
 
+foreach = <boolean>
+* A value of "true" means the foreach processor delegates assembly of required 
+  fields to its subsearch pipeline. This can narrow the required field list 
+  and improve performance by reducing unnecessary field extractions.
+* A value of "false" means that all fields are extracted by default, which can
+  make the search slower.
+* Default: true
+
+
 
 [watchdog]
 stack_files_ttl = <integer>
@@ -5381,4 +5694,3 @@ view_cleartext_spl_rest = <boolean>
 * A value of "false" means that the command cannot return cleartext passwords
   when it makes calls to the "/storage/passwords" endpoint.
 * Default: true
-

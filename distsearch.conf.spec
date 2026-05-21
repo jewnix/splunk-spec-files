@@ -295,8 +295,7 @@ replicationPolicy = [classic | cascading | rfs | mounted]
   cascading replication, refer to the `cascading_replication` stanza in
   server.conf.
 * When set to 'rfs', the search head uploads the bundle to the configured remote
-  file system like Amazon S3. Note that this policy is not supported for
-  on-premise Splunk Enterprise deployments.
+  file system like Amazon S3.
 * When set to 'mounted', the search head assumes that all the search peers can
   access the correct bundles via shared storage and have configured the
   options listed under the "SEARCH HEAD BUNDLE MOUNTING OPTIONS" heading.
@@ -317,6 +316,20 @@ sendRcvTimeout = <integer>
 * The maximum amount of time to wait, in seconds, when a search head is sending
   a full replication to a peer.
 * Default: 60
+
+bundleTransferTimeout = <non-negative integer>
+* The maximum total amount of time, in seconds, to wait for a bundle upload
+  to complete.
+* A value of "0" means the Splunk platform disables the overall transfer
+  timeout.
+* Default: 0
+
+slowReplicationLoggingInterval = <non-negative integer>
+* The interval, in seconds, at which the Splunk platform logs messages
+  regarding slow bundle transfers for each peer.
+* A value of "0" means the Splunk platform disables the slow bundle
+  transfer messages.
+* Default: 30
 
 replicationThreads = <positive integer>|auto
 * The maximum number of threads to use when performing bundle replication
@@ -484,8 +497,6 @@ cascade_plan_replication_threshold_failures = <integer>
 ################################################################
 
 enableRFSMonitoring = <boolean>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * If set to "true", remote file system bundle monitoring is enabled.
 * Search peers periodically monitor the configured remote file system
   and download any bundles that they do not have on disk.
@@ -493,8 +504,6 @@ enableRFSMonitoring = <boolean>
 * Default: false
 
 rfsMonitoringPeriod = <unsigned integer>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * The amount of time, in seconds, that a search peer waits between polling
   attempts. You must also configure this setting on search heads, whether or
   not the 'enableRFSMonitoring' setting is enabled on them.
@@ -505,8 +514,6 @@ rfsMonitoringPeriod = <unsigned integer>
 * Default: 60
 
 rfsSyncReplicationTimeout = <unsigned integer>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * The amount of time, in seconds, that a search head waits for synchronous
   replication to complete. Only applies to RFS bundle replication.
 * The default value is computed from the 'rfsMonitoringPeriod' setting.
@@ -518,8 +525,6 @@ rfsSyncReplicationTimeout = <unsigned integer>
 * Default: auto
 
 activeServerTimeout = <unsigned integer>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * The amount of time, in seconds, that must elapse before a search peer
   considers the search head to be inactive and no longer attempts to
   download knowledge bundles from that search head from S3/RFS.
@@ -527,8 +532,6 @@ activeServerTimeout = <unsigned integer>
 * Default: 360
 
 path = <path>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * The remote storage location where bundles reside.
 * Required.
 * The format for this attribute is: <scheme>://<remote-location-specifier>
@@ -554,8 +557,6 @@ remote.s3.url_version = v1|v2
 * Default: v1
 
 remote.s3.endpoint = <URL>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * The URL of the remote storage system supporting the S3 API.
 * The protocol, http or https, can be used to enable or disable SSL
   connectivity with the endpoint.
@@ -575,8 +576,6 @@ remote.s3.bucket_name = <string>
 * Optional.
 
 remote.s3.encryption = [sse-s3|none]
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * Specifies the schema to use for Server-Side Encryption (SSE) for data at rest.
 * sse-s3: See:
   http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html
@@ -602,8 +601,6 @@ remote.s3.supports_versioning = <boolean>
 * Default: false
 
 rfsMaxDeltaCountBetweenFull = <unsigned integer>
-* Currently not supported. This setting is related to a feature that is
-  still under development.
 * The maximum number of delta knowledge object bundles that the search head
   can upload to the Remote File System (RFS) in between full bundle uploads.
 * Search peers can download these delta bundles and apply them against a 

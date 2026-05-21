@@ -25,16 +25,27 @@
 fallback_to_deployment_server_ui = <boolean>
 * REMOVED.  This setting is no longer used.
 
-log_level = <string> 
-* How verbose the logs are.
-* log level = DEBUG | INFO | WARN | ERROR | FATAL
-* Default: INFO
+log_level = <string>
+* REMOVED. Use $SPLUNK_HOME/etc/log-node-platform-local.cfg settings instead.
+* See $SPLUNK_HOME/etc/log-node-platform.cfg for detailed instructions.
 
 request_timeout = <string>
 * A global request timeout setting that defines how long the agent management processes a request before it times out.
 * Valid values are numbers followed by a time unit.
 * Valid time units are "ms", "s", "m", "h".
 * Default: 5m.
+
+repository_type = <string>
+* The type of storage layer that agent
+  management uses.
+* Valid values are "ds" and "database".
+  * A value of "ds" means agent management
+    uses the deployment server as the storage
+    layer.
+  * A value of "database" means agent
+    management uses a database as the storage
+    layer.
+* Default: database
 
 [search_client]
 * Agent management helper process settings for the SPL subsystem.
@@ -49,7 +60,7 @@ query_agents_with_error = <string>
 * The SPL search that is run to obtain a list of agents with a status of "error".
 
 query_agents_offline = <string>
-* The SPL search that is run to obtain a list of offline agents. 
+* The SPL search that is run to obtain a list of offline agents.
 
 query_agents_updated_config = <string>
 * The SPL search that is run to obtain a list of agents with updated configurations.
@@ -96,10 +107,10 @@ polling_interval = <string>
 * Settings dedicated to the Effective Configuration feature.
 
 max_size = <positive integer>
-* The maximum size, in megabytes, of the effective configuration 
+* The maximum size, in megabytes, of the effective configuration
   that the universal forwarder sends to the agent management, and that
   the deployment server saves.
-* The effective configuration of the forwarder is comprised of 
+* The effective configuration of the forwarder is comprised of
   the rules of operation and data processing for the forwarder,
   specifically, the configuration as shown by various 'splunk
   btool' commands.
@@ -164,3 +175,104 @@ job_timeout = <string>
 * Minimum value is 1s.
 * Valid time units are "s", "m", "h".
 * Default: 5m
+
+[repository_database]
+* Agent management data retrieval and storage
+  settings for the database repository.
+* Settings prefixed with 'agents_matching'
+  configure how agent management retrieves server
+  classes and apps matching to each connected agent
+  based on the criteria configured in serverclass.conf.
+
+agents_matching_refresh_batch_size = <positive integer>
+* The number of agent entries processed in a
+  single batch during the agent matching
+  refresh operation.
+* Default: 10000
+
+agents_matching_refresh_interval_s = <positive integer>
+* How often, in seconds, the agent matching data
+  is refreshed in the background.
+* Default: 60
+
+agents_matching_max_concurrent_ds_requests = <positive integer>
+* The maximum number of concurrent requests that
+  agent management can make to the deployment
+  server to obtain agents matching data.
+* Default: 10
+
+agents_matching_refresh_timeout_m = <positive integer>
+* The maximum amount of time, in minutes, that a
+  single matching refresh request can run
+  before it times out.
+* Default: 20
+
+database_prune_interval_h = <positive integer>
+* How often, in hours, the agent management prunes
+  stale agent, server class, and app records from the database.
+* Default: 24
+
+database_items_ttl_h = <positive integer>
+* The time-to-live, in hours, for inactive
+  agent, server class, and app records in the
+  database.
+* Records older than this value are eligible
+  for pruning.
+* Default: 744 (31 days)
+
+app_events_file_limit = <positive integer>
+* The maximum number of app event files retained by the
+  database repository.
+* Default: 10
+
+app_events_ingestion_interval_m = <positive integer>
+* How often, in minutes, agent management
+  ingests app event files into the database.
+* Default: 1
+
+app_events_ingestion_batch_size = <positive integer>
+* The number of app event entries processed in a single
+  ingestion batch.
+* Default: 10000
+
+client_events_file_limit = <positive integer>
+* The maximum number of client event files retained by the
+  database repository.
+* Default: 10
+
+client_events_ingestion_interval_m = <positive integer>
+* How often, in minutes, agent management ingests
+  client event files into the database.
+* Default: 1
+
+client_events_ingestion_batch_size = <positive integer>
+* The number of client event entries processed in a single
+  ingestion batch.
+* Default: 10000
+
+phonehome_events_file_limit = <positive integer>
+* The maximum number of phonehome event files retained by the
+  database repository.
+* Default: 10
+
+phonehome_events_ingestion_interval_m = <positive integer>
+* How often, in minutes, agent management ingests
+  phonehome event files into the database.
+* Default: 1
+
+phonehome_events_ingestion_batch_size = <positive integer>
+* The number of phonehome event entries processed in a single
+  ingestion batch.
+* Default: 10000
+
+stale_csv_cleanup_interval_m = <positive integer>
+* How often, in minutes, agent management runs
+  the stale comma-separated value (CSV) file
+  cleanup operation.
+* Default: 60
+
+stale_csv_cleanup_ttl_m = <positive integer>
+* The maximum age, in minutes, of CSV files
+  before agent management considers them stale
+  and eligible for cleanup.
+* Default: 10080 (7 days)

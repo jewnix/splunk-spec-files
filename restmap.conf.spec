@@ -539,6 +539,27 @@ path = <path>
 untar = <boolean>
 * Whether or not to untar a file once the transfer is complete.
 
+[proxybundleshcmember:...]
+path = <directory path>
+* The directory path to search for configuration bundles from search peers.
+
+untar = [true|false]
+* A value of "true" means the file is untarred on the target after the 
+  transfer completes. 
+* A value of "false" means the file is not untarred after the transfer 
+  completes.
+
+[proxybundleshccaptain:...]
+path = <directory path>
+* The directory path to search for configuration bundles from search head
+  cluster captain.
+
+untar = [true|false]
+* A value of "true" means the file is untarred on the target after the 
+  transfer completes. 
+* A value of "false" means the file is not untarred after the transfer 
+  completes.
+
 [proxybundleuploadrshcluster:...]
 path = <path>
 * The path to search through to find proxy configuration bundles from search heads.

@@ -167,15 +167,7 @@ tmpFolder = <path>
 * Default: $SPLUNK_HOME/var/run/tmp
 
 continueMatching = <boolean>
-* Controls how configuration is layered across classes and
-  server-specific settings.
-* A value of "true" means configuration lookups continue matching server
-  classes, beyond the first match.
-* A value of "false" means only the first match is used.
-* Matching is done in the order in which server classes are defined.
-* A serverClass can override this setting and stop the matching.
-* You can override this setting at the serverClass level.
-* Default: true
+* REMOVED. This setting has been removed and has no effect.
 
 endpoint = <URL template string>
 * The endpoint from which a deployment client can download content.
@@ -329,23 +321,21 @@ blacklist.<n> = <clientName> | <IP address> | <hostname> | <instanceId>
 # whitelist.0=*.ops.example.com
 
 # Caution: Filter-triggered atomic override (level-dependent behavior)
-# The following filters have different behavior depending on the level:
+# The following filter has different behavior depending on the level:
 #   * machineTypesFilter
-#   * packageTypesFilter  
-#   * updaterRunningFilter
 #
 # At the app level:
-#   Defining any of these filters triggers an atomic override that clears
+#   Defining this filter triggers an atomic override that clears
 #   both whitelist and blacklist inherited from the parent serverClass.
 #   You must explicitly define whitelist and/or blacklist at the app level,
 #   or no agents will match (due to empty whitelist in default whitelist mode).
 #
 # At the serverClass level:
-#   Defining any of these filters doesn't clear whitelist and blacklist
+#   Defining this filter doesn't clear whitelist and blacklist
 #   inherited from the global level. The inherited filters remain in effect.
 #
 # At the global level:
-#   These three filters have no effect. They are only operational at the
+#   This filter has no effect. They are only operational at the
 #   serverClass or app level.
 
 # Example: Filter-triggered override pitfall:
@@ -524,6 +514,20 @@ cronSchedule = <string>
   rather than manually.
 * No default.
 
+applicationMatchingCacheDisabled = <boolean>
+* Determines whether the deployment server caches matched server classes
+  and applications for each deployment client.
+* A value of "true" means the deployment server deactivates the cache,
+  performing matching for each request instead of using cached results.
+* A value of "false" means the deployment server performs matching only
+  once after a reload, then retrieves all subsequent results from cache.
+* Each deployment server or 'serverClass' reload invalidates the cache.
+* Using this feature should speed up deployment server response time,
+  especially in environments where reloads are rare.
+* Using this feature can result in higher memory consumption to store
+  the cache.
+* Default: false
+
 #################################################
 ########### SECOND LEVEL: serverClass ###########
 #################################################
@@ -569,69 +573,15 @@ machineTypesFilter = <comma-separated list>
 * No default.
 
 packageTypesFilter = <comma-separated list>
-* Filters deployment clients based on the package type of the client.
-* Optional.
-* Caution: Defining 'packageTypesFilter' at the app level triggers an atomic
-  override that clears both 'whitelist' and 'blacklist' inherited from the
-  parent serverClass. You must explicitly define 'whitelist' and/or
-  'blacklist' at the app level where you define 'packageTypesFilter', or
-  agents will not match.
-* At the serverClass level, defining 'packageTypesFilter' doesn't clear
-  'whitelist' and 'blacklist' inherited from the global level.
-* This filter has no effect when defined at the global level.
-* Boolean OR logic is employed: a match against any element in the list
-  constitutes a match.
-* This filter is used in boolean AND logic with 'whitelist' and
-  'blacklist' filters. Only clients that match the 'whitelist' or
-  'blacklist' filters and that match this 'packageTypesFilter' setting
-  are included.
-  * In other words, the match is an intersection of the matches for the
-    'whitelist' or 'blacklist' filters and the matches for
-    'packageTypesFilter'.
-* You can override this setting at the serverClass and serverClass:app
-  levels.
-* These patterns are Perl Compatible Regular Expression (PCRE) regular
-  expressions, with the following aids for easier entry:
-  * You can specify '.' to mean '\.'
-  * You can specify '*' to mean '.*'
-* Matches are always case-insensitive; you do not need to specify the
-  '(?i)' prefix.
-* No default.
+* DEPRECATED. This setting has been deprecated and will be removed.
 
 updaterRunningFilter = <boolean>
-* Filters deployment clients based on whether the self-updater process is
-  running on the host.
-* Caution: Defining 'updaterRunningFilter' at the app level triggers an
-  atomic override that clears both 'whitelist' and 'blacklist' inherited
-  from the parent serverClass. You must explicitly define 'whitelist'
-  and/or 'blacklist' at the app level where you define
-  'updaterRunningFilter', or agents will not match.
-* At the serverClass level, defining 'updaterRunningFilter' doesn't clear
-  'whitelist' and 'blacklist' inherited from the global level.
-* This filter has no effect when defined at the global level.
-* This filter is used in boolean AND logic with 'whitelist' and
-  'blacklist' filters. Only clients that match the 'whitelist' or
-  'blacklist' filters and that match this 'updaterRunningFilter' setting
-  are included.
-  * In other words, the match is an intersection of the matches for the
-    'whitelist' or 'blacklist' filters and the matches for
-    'updaterRunningFilter'.
-* The self-updater is a process that must be installed separately to
-  upgrade the deployment client. This setting is applicable only if the
-  self-updater is installed.
-* A value of "true" means only the clients with the self-updater running
-  on the host are included.
-* A value of "false" means only the clients without the self-updater
-  running on the host are included.
-* You can override this setting at the serverClass level and the
-  serverClass:app level.
-* No default.
+* DEPRECATED. This setting has been deprecated and will be removed.
 
 # Note:
 # The following settings are all described in detail in the
 # previous [global] section. They can be used in the serverClass stanza to
 # override the global setting.
-continueMatching = <boolean>
 endpoint = <URL template string>
 excludeFromUpdate = <comma-separated list>
 filterType = whitelist|blacklist
@@ -674,8 +624,7 @@ cronSchedule = <string>
 #   or 'whitelist', no agents will be matched in version 
 #   9.4.3 and later (agents will not match the empty whitelist). 
 #
-# * If you define machineTypesFilter, packageTypesFilter, or 
-#   updaterRunningFilter at the app level, you must also explicitly define
+# * If you define machineTypesFilter at the app level, you must also explicitly define
 #   'whitelist' or 'filterType=blacklist' to match agents.
 #
 # * Migration: Review existing app-level stanzas that use blacklist or
@@ -697,6 +646,4 @@ filterType = whitelist|blacklist
 whitelist.<n> = <clientName> | <IP address> | <hostname>
 blacklist.<n> = <clientName> | <IP address> | <hostname>
 machineTypesFilter = <comma-separated list>
-packageTypesFilter = <comma-separated list>
-updaterRunningFilter = <boolean>
 stateOnClient = enabled|disabled|noop

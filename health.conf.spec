@@ -1,4 +1,4 @@
-#   Version 10.4.0
+#   Version 10.4.1
 #
 # This file sets the default thresholds for Splunk Enterprise's built
 # in Health Report.

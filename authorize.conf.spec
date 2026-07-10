@@ -1,4 +1,4 @@
-#   Version 10.4.0
+#   Version 10.4.1
 #
 ############################################################################
 # OVERVIEW
@@ -85,6 +85,12 @@ importRoles = <semicolon-separated list>
   platform should import.
 * Importing other roles also imports the other aspects of that role, such as
   allowed indexes to search.
+* Imported roles do not override values that a role receives from its own
+  stanza or from the [default] stanza. The Splunk platform first applies normal
+  configuration precedence to each role, then combines the importing role with
+  its imported roles according to the rules for each role attribute.
+* For search quota attributes, the combined value is the least restrictive
+  quota value.
 * Default: A role imports no other roles
 
 grantableRoles = <semicolon-separated list>
@@ -246,6 +252,14 @@ srchJobsQuota = <integer>
   can run concurrently.
 * A value of 0 means that there is no limit to the number of historical
   searches that a user who holds this role can run concurrently.
+* If a user holds multiple roles, or holds a role that imports other roles, the
+  Splunk platform uses the least restrictive 'srchJobsQuota' value from the
+  flattened role set. Higher numeric values are less restrictive, and 0 is the
+  least restrictive value because it means unlimited.
+* The [default] stanza supplies values that participate in this merge. For
+  example, if [default] sets 'srchJobsQuota = 0', a role that does not set
+  'srchJobsQuota' explicitly has an unlimited direct quota, even if it imports
+  a role that sets 'srchJobsQuota = 5'.
 * If you give the 'enable_cumulative_quota' setting in the limits.conf file
   a value of "true", then the 'cumulativeSrchJobsQuota' setting in this
   file also has an effect on the number of concurrent searches that a user

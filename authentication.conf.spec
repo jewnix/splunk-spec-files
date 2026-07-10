@@ -1,4 +1,4 @@
-#   Version 10.4.0
+#   Version 10.4.1
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.
@@ -881,6 +881,24 @@ saml_negative_cache_timeout = <nonnegative decimal>
 * This setting does not prevent SAML queries on login. Login always queries the SAML
   provider to confirm that a user exists.
 * Default: 3600
+
+saml_negative_cache_max_entries = <positive integer>
+* The maximum number of users that the Splunk platform keeps in the
+  in-memory SAML negative cache.
+* After the cache reaches this size, the Splunk platform evicts the
+  least-recently-used entries.
+* This setting is optional.
+* Default: 1000
+
+preserveNegativeCache = <boolean>
+* Whether or not the Splunk platform retains in-memory SAML negative-cache
+  entries across authentication reloads.
+* A value of "false" means the Splunk platform clears the in-memory SAML
+  negative-cache entries during authentication reload.
+* A value of "true" means the Splunk platform retains in-memory SAML
+  negative-cache entries across authentication reloads.
+* This setting is optional.
+* Default: true
 
 scriptPath = <string>
 * The name of the authentication extension script to run.

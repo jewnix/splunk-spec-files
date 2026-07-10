@@ -1,4 +1,4 @@
-#   Version 10.4.0
+#   Version 10.4.1
 #
 # This file contains possible settings and values for configuring
 # node-local authentication settings via authentication_node.conf.

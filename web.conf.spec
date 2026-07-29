@@ -1,4 +1,4 @@
-#   Version 10.4.1
+#   Version 10.4.2
 #
 # This file contains possible attributes and values you can use to configure
 # the Splunk Web interface.
@@ -742,7 +742,7 @@ cookieSameSite = [ not_specified | lax | strict | none ]
   'tools.sessions.secure' setting to configure this behavior.
 * You must also give the 'x_frame_options_sameorigin' setting a value of "false"
   to allow for the embedding of a Splunk dashboard in the <iframe>.
-* Default: not_specified
+* Default: lax
 
 #
 # Splunk bar options
@@ -847,7 +847,7 @@ SSOMode = [permissive | strict]
 * When set to "strict": All requests to Splunk Web will be restricted to those
   originating from a trusted IP except those to endpoints that do not require
   authentication.
-* Default: strict
+* Default: lax
 
 trustedIP = <ip_addresses>
 * IP addresses of the authenticating proxy (trusted IP).

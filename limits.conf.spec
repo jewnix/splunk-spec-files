@@ -1,4 +1,4 @@
-#   Version 10.4.1
+#   Version 10.4.2
 #
 ############################################################################
 # OVERVIEW
@@ -2694,6 +2694,15 @@ input_errors_fatal = <boolean>
 * Certain kinds of errors cause searches to fail no matter how this setting is
   set.
 * Default: false
+
+scripted_lookup_raw_write_enforcement = [warn|block]
+* Controls how Splunk platform handles raw configuration writes through the
+  /properties/transforms and /configs/conf-transforms files, when the resulting
+  transforms.conf stanza would create or edit a scripted lookup definition and
+  the caller does not have the required external lookup capability.
+* A value of "warn" logs a warning and allows the write.
+* A value of "block" rejects the write.
+* Default: warn
 
 enable_splunkd_kv_lookup_indexing = <boolean>
 * This setting determines whether KV Store lookup indexing is performed

@@ -1,4 +1,4 @@
-#   Version 10.4.1
+#   Version 10.4.2
 #
 ############################################################################
 # OVERVIEW
@@ -5796,6 +5796,7 @@ postgresMigrateOnStartup = <boolean>
 * A value of "false" means that Splunk platform does not initiate this
   migration.
 * Default: false
+
 
 defaultCidrPrefixLength = <positive int>[0-32]|disabled
 * The default prefix length added to IPs without such prefix in CIDR match type

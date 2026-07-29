@@ -1,4 +1,4 @@
-#   Version 10.4.1 
+#   Version 10.4.2 
 #
 # This file contains possible attribute/value pairs for configuring event rendering properties.
 #

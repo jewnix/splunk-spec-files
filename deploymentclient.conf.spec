@@ -54,6 +54,7 @@ clientName = deploymentClient
 * This setting takes precedence over DNS names.
 * You can use 'clientName' to filter with, or independently from 
   the client IP or DNS name.
+* It can contain only letters, numbers, underscores, dots, dashes, and colons.
 * Default: deploymentClient
 
 workingDir = $SPLUNK_HOME/var/run
@@ -95,6 +96,17 @@ endpoint=$deploymentServerUri$/services/streams/deployment?name=$serverClassName
   'target-broker'stanza.
 * $serverClassName$ and $appName$ name the server class and the app,
   respectively.
+
+ds_proxy = [disabled|enabled]
+* Controls whether this deployment client exposes the /proxy/deployment REST
+  endpoint for proxying requests to its configured deployment server.
+* A value of "enabled" means the deployment client exposes the endpoint.
+* A value of "disabled" means the deployment client does not expose the
+  endpoint.
+* Activate the proxy endpoint only when it is required.
+* You must restart the Splunk platform for changes to this setting to
+  take effect.
+* Default: disabled
 
 serverEndpointPolicy = [acceptAlways|rejectAlways]
 
@@ -142,12 +154,12 @@ reloadDSOnAppInstall = <boolean>
 sslVersions = <versions_list>
 * The list of TLS versions to connect to the specified
   Deployment Server
-* The versions available are "tls1.0", "tls1.1", "tls1.2", and "tls1.3".
-* The special version "*" selects all supported versions.  The version "tls"
-  selects all versions tls1.0 or newer.
+* The versions available are "tls1.2" and "tls1.3".
+* TLS versions 1.0 and 1.1 are not supported and are always turned off.
+* Use the value "tls" or "*" to include all supported TLS versions.
 * If a version is prefixed with "-" it is removed from the list.
-* SSL versions 2 and 3 are always disabled. "-ssl2" and "-ssl3" are accepted 
-  as values in the version list, but have no effect.
+* The values "-ssl2", "-ssl3", "-tls1.0", and "-tls1.1" are accepted in
+  the version list, but have no effect.
 * Default: The 'sslVersions' value in the server.conf file [sslConfig] stanza
 
 sslVerifyServerCert = <boolean>

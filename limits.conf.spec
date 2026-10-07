@@ -240,6 +240,64 @@ result_limit = <unsigned integer>
 * NOTE: Change this setting only under the direction of Splunk Support.
 * Default: 10000
 
+validation = [basic | enhanced | strict]
+* The type of validation that the Splunk platform is to use
+  when it sends emails.
+* A value of "basic" means the following:
+  * The platform attempts to send the email to email addresses that are
+    syntactically correct.
+  * The platform does not reject email addresses that are not
+    valid, but the email provider might reject the email
+    if it contains invalid addresses.
+* A value of "enhanced" means the following:
+  * The platform attempts to send the email to email addresses that are
+    syntactically correct.
+  * As part of this process, the platform drops email addresses that
+    are not syntactically correct from the recipient list.
+  * The email provider might still reject the email if it contains
+    invalid addresses.
+* A value of "strict" means that the platform rejects the email entirely
+  if even one email address is not valid.
+* Default: basic
+
+enforce_limits = <boolean>
+* Whether or not the Splunk platform enforces limits with regard to
+  sending emails.
+* This setting controls the following email delivery limit settings:
+  * max_recipients
+* A value of "true" means that the Splunk platform enforces email
+  delivery limits.
+* A value of "false" means that the Splunk platform does not
+  enforce email delivery limits.
+* Default: false
+
+max_recipients = <integer>
+* The maximum number of recipients in an email message bound for delivery.
+* If 'enforce_limits' has a value of "false" then the Splunk platform
+  ignores this setting.
+* Use this setting to prevent the email provider from dropping emails because
+  a set number of recipients has been exceeded.
+* Splunk plans to update the default value for this setting to support the
+  maximum number of recipients that the email provider supports.
+* This count includes recipients in the "To:", "Cc:", and "Bcc:" fields.
+* A value of -1 means there are no limits to the number of recipients.
+* Default: -1
+
+custom_smtp_active = <boolean>
+* Whether or not the Splunk platform uses a customer-configured Simple
+  Mail Transfer Protocol (SMTP) server for email delivery.
+* A value of "true" means that the Splunk platform connects directly
+  to the customer-configured SMTP server for email delivery.
+* A value of "false" means that the Splunk platform routes email
+  through the default managed email relay.
+* The Splunk platform uses this setting for Splunk Cloud Platform
+  deployments where a customer wants to bypass the default managed
+  relay and deliver email directly through their own SMTP server.
+* This setting exists for all instances but is only intended for
+  Splunk Cloud Platform deployments.
+* Splunk Enterprise deployments already deliver email directly through
+  the configured mailserver and do not need to turn this setting on.
+* Default: false
 
 [searchresults]
 * This stanza controls search results for a variety of Splunk search commands.
@@ -658,6 +716,40 @@ throttle_peer_busy_wait = <integer>[s|m]
   For example: 60s, 1m, etc.
 * Default: 1m
 
+throttle_peer_oom_wait = <integer>[s|m]
+* The amount of time, in seconds or minutes, that the search head waits before
+  launching new searches after the maximum out-of-memory (OOM) tolerance, 
+  defined by 'max_oom_rate_before_full_throttling', is exceeded on peers.
+* This setting differs from 'throttle_peer_busy_wait', which applies when the 
+  search head receives a peer busy response due to too many search requests.
+* A value of "0s" means that throttling based on remote OOMs is turned off.
+* Specify the interval as a string with a unit of seconds (s) or minutes (m).
+  For example: "60s", "1m", etc.
+* Default: 0s
+
+max_oom_rate_before_partial_throttling = <decimal>
+* Rate of out-of-memory events per minute at which throttling starts queuing
+  some searches to avoid overwhelming peers.
+* The rate is calculated through the exponentially-decaying moving average
+  algorithm.
+* A lower value means throttling starts earlier when OOMs occur on
+  remote peers.
+* The supported range of values for this setting is [0.05, 1000]
+* Default: 0.1
+
+max_oom_rate_before_full_throttling = <decimal>
+* Rate of out-of-memory events per minute at which throttling starts queuing
+  all searches to avoid overwhelming peers.
+* The rate is calculated through the exponentially-decaying moving average
+  algorithm.
+* A higher value means that throttling accommodates more OOMs before stopping 
+  all searches from being dispatched.
+* Once this value is reached, searches queue for the duration specified by
+  'throttle_peer_oom_wait'.
+* The supported range of values for this setting is:
+  [max_oom_rate_before_partial_throttling, 1000]
+* Default: 0.5
+
 remote_search_requests_send_capabilities_list = <boolean>
 * When turned on, the search head sends the list of all capabilities of the
   user running the search to every search peer participating in the search.
@@ -822,7 +914,8 @@ async_quota_update = <boolean>
     slightly exceed concurrent search quotas.
 * Set this setting to 'false' if you require strict maintenance of user disk 
   quotas.
-* Default: false
+* Default (on Splunk Cloud Platform): true
+* Default (on Splunk Enterprise): false
 
 async_quota_update_freq = <number>
 * The frequency, in seconds, at which the disk quota cache for searches is 
@@ -877,6 +970,16 @@ enable_datamodel_meval = <boolean>
   comma-separated eval during the generation of datamodel searches.
 * default: true
 
+allow_dma_with_base_search_subsearches = <boolean>
+* Whether or not the Splunk platform allows data model acceleration (DMA) for
+  data models that contain early-evaluated subsearches in their base searches.
+* A value of "true" means the Splunk platform accelerates data models that
+  contain early-evaluated subsearches in their base searches.
+* A value of "false" means the Splunk platform does not accelerate data
+  models that contain early-evaluated subsearches in their base searches.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* default: true
+
 enable_file_command = <boolean>
 * DEPRECATED. This setting has been deprecated and has no effect.
 
@@ -886,6 +989,18 @@ enable_conditional_expansion = <boolean>
 * the search head.
 * NOTE: Do not change unless instructed to do so by Splunk Support.
 * Default: true
+
+max_tag_eventtype_depth = <integer>
+* Sets the maximum depth of nested tag and eventtype definitions that
+  the search processor can expand during search-time field expansion.
+* This setting prevents infinite recursion when tags or eventtypes have
+  circular references or are nested too deeply.
+* If the expansion reaches this depth, the search fails with an error message
+  identifying the tag or eventtype that caused the limit.
+* Restructure tags or eventtypes to reduce nesting depth if searches fail due
+  to deeply nested definitions.
+* The valid range is 1 to 8.
+* Default: 8
 
 force_saved_search_dispatch_as_user = <boolean>
 * Specifies whether to overwrite the "dispatchAs" value.
@@ -971,6 +1086,24 @@ search_retry_max_historical = <integer>
   fails with an error stating that results are incomplete.
 * Default: 15
 
+search_retry_realtime = <Boolean>
+* Specifies whether the Splunk software reruns a currently running real-time
+  search process when the search head detects a change in the indexing tier.
+* Additions, subtractions, and restarts of indexer nodes are examples of 
+  indexing tier changes that can result in real-time search retries.
+* A setting of 'true' means that when the Splunk software detects a qualifying 
+  indexing tier change, it stops and restarts the real-time search, using the 
+  same search string and search ID. Do not set the value 
+  to "1" to indicate "true", because some systems might not parse this value 
+  correctly.
+  * NOTE: Splunk software performs search reruns on a best effort basis. When 
+    you enable this setting it is possible for Splunk software to return 
+    partial results for searches without warning.
+* A setting of 'false' means that the Splunk software takes no action when 
+  indexing tier changes happen. When real-time searches fail as a result of 
+  an indexing tier change, they fail with an error stating that results are 
+  incomplete.
+* Default: false
 
 search_retry_waiting_time = <integer>
 * Sets how long, in seconds, 'search_retry' waits to get updated indexer 
@@ -1188,6 +1321,21 @@ max_fieldmeta_cnt_ui = <number>
   splunkd mothership, but show less field metadata in the web UI.
 * Default: 1000
 
+exclude_missing_indexed_fields_for_negated_numeric_predicates = <boolean>
+* Whether or not to use the previous filtering behavior for negated
+  numeric predicates on indexed fields in the search command, for example,
+  "NOT my_indexed_field=7".
+* A value of "true" means the Splunk platform restores previous behavior and
+  excludes events that do not contain the indexed field from the result set
+  when a negated numeric predicate references that field.
+* A value of "false" means the Splunk platform includes events that do
+  not contain the indexed field in the result set when a negated numeric
+  predicate references that field.
+* Default: false
+
+enable_cpu_telemetry = <boolean>
+* Enable the collection of CPU telemetry for the search processes.
+* Default: false
 
 ############################################################################
 # Parsing
@@ -1208,6 +1356,16 @@ max_subsearch_depth = <integer>
 * It is considered a search exception if a subsearch does not stop after
   this many levels.
 * Default: 8
+
+max_savedsearch_depth = <integer>
+* The maximum number of saved-search expansions allowed during a single search parse.
+* This limit applies to both nested or cyclic saved-search references and
+  non-recursive searches that expand multiple saved searches.
+* A search exception occurs if the saved-search expansion exceeds this limit.
+* A value must be greater than or equal to 1.
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+* Default: 100
 
 min_prefix_len = <integer>
 * The minimum length of a prefix before a wildcard (*) to use in the query
@@ -2552,8 +2710,38 @@ inputlookup_cursor = <boolean>
 * This setting applies to external or cohosted KV store lookups only.
 * NOTE: Do not change this setting unless Splunk Support instructs you to
   do so.
-* Default: false
+* Default: true
 
+inputlookup_prefetch = <boolean>
+* Whether 'inputlookup' operations prefetch the next response from an external
+  or cohosted KV Service while processing the current response.
+* A value of "true" means 'inputlookup' operations overlap retrieval of the
+  next buffered response with row processing of the current response. At most,
+  one additional response is held in memory. This applies to standard mode and
+  cursor mode.
+* A value of "false" means 'inputlookup' operations fetch and process responses
+  serially.
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+* Default: true
+
+inputlookup_streaming = <boolean>
+* Whether external or cohosted 'inputlookup' responses are parsed directly into
+  search rows as response tokens arrive.
+* A value of "true" means 'inputlookup' responses are parsed directly into
+  search rows as they arrive.
+* A value of "false" selects the buffered JSON response reader instead.
+* Default: true
+
+inputlookup_profile = <boolean>
+* Whether external or cohosted 'inputlookup' operations emit per-stage timing
+  entries to search.log.
+* A value of "true" means 'inputlookup' operations do emit per-stage timing
+  entries to search.log.
+* A value of "false" means they do not emit per-stage timing entries.
+* Profiling is turned off by default because it adds timer and logging
+  overhead.
+* Default: false
 [iplocation]
 
 db_path = <path>
@@ -2580,6 +2768,15 @@ subsearch_timeout = <integer>
 * Default: 120
 * DEPRECATED
 
+support_multiple_data_sources = <boolean>
+* This setting must be used in conjunction with the 
+  'enableConcurrentPipelineProcessing' setting in the [subsearch] stanza.
+* When both this setting and the 'enableConcurrentPipelineProcessing' setting
+  are set to "true", subsearch processing is incorporated into main search
+  processing for join commands. Do not set the value to 
+  "1" to indicate "true", because some systems might not parse this value 
+  correctly.
+* Default: false
 
 [kmeans]
 
@@ -2596,6 +2793,24 @@ maxkvalue = <integer>
 * Default: 1000
 
 [lookup]
+
+lookup_streaming = <boolean>
+* Whether external or cohosted lookup responses are parsed directly
+  into search rows as response tokens arrive.
+* A value of "true" means lookup responses are parsed directly into search rows
+  as response tokens arrive.
+* A value of "false" selects the buffered JSON response reader instead.
+* Default: true
+
+lookup_profile = <boolean>
+* Whether external or cohosted lookup operations emit per-stage timing entries
+  to search.log.
+* A value of "true" means lookup operations do emit per-stage timing entries
+  to search.log.
+* A value of "false" means they do not emit per-stage timing entries.
+* Profiling is turned off by default because it adds timer and logging
+  overhead.
+* Default: false
 
 batch_index_query = <boolean>
 * Should non-memory file lookups (files that are too large) use batched queries
@@ -2719,9 +2934,16 @@ enforce_auto_lookup_order = <boolean>
 * Default : false
 
 indexed_csv_include_underscore_key_field = <boolean>
-* Determines whether Splunk software indexes the _key field during CSV lookup indexing.
-* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
-* Default: true
+* REMOVED. This setting has been removed and no longer has any effect.
+
+max_download_file_size = <unsigned integer>[B|KB|MB|GB]
+* Maximum stored file size for lookup file downloads.
+* For *.csv files, this limit applies to the stored CSV file size.
+* For *.csv.gz files, this limit applies to the stored compressed file size.
+* You must specify both an integer value and unit suffix. There is no default
+  unit.
+* Set to "0B" to deactivate this limit and effectively set to unlimited.
+* Default: 200MB
 
 [makeresults]
 
@@ -2849,17 +3071,57 @@ max_mem_usage_mb = <non-negative integer>
 [outputlookup]
 
 outputlookup_check_permission = <boolean>
-* Specifies whether the outputlookup command should verify that users
-  have write permissions to CSV lookup table files.
-* outputlookup_check_permission is used in conjunction with the
-  transforms.conf setting check_permission.
-* The system only applies outputlookup_check_permission to .csv lookup
-  configurations in transforms.conf that have check_permission=true.
-* You can set lookup table file permissions in the .meta file for each lookup
-  file, or through the Lookup Table Files page in Settings. By default, only
-  users who have the admin or power role can write to a shared CSV lookup
+* Whether the outputlookup command verifies write permission before writing to
+  an existing CSV lookup table.
+* A value of "false" means Splunk platform does not verify if you have write
+  permission to a CSV lookup table before the outputlookup command writes to
+  that file.
+* A value of "true" means Splunk platform verifies if you have write permission
+  to an existing CSV lookup table before the outputlookup command writes to that
   file.
+* However, Splunk platform checks if you have write permission to the lookup
+  file only if "outputlookup_check_permission = true" and that lookup's
+  corresponding transforms.conf stanza sets "check_permission = true".
+* If that lookup's corresponding transforms.conf stanza sets "check_permission
+  = false", Splunk platform does not check if you have write permission to the
+  lookup file, even if "outputlookup_check_permission = true". If
+  "check_permission = false", the outputlookup command always performs the
+  write unless another permission check prevents it.
+* Set lookup file permissions either in the .meta file for each lookup file,
+  or through the Lookup Table Files page in Settings. By default, only users
+  who have the admin or power role can write to a shared CSV lookup file.
 * Default: false
+
+enforce_permissions_for_creating_shared_csv_lookup = [warn|block]
+* How the outputlookup command responds when a user does not have
+  write permission to create a new shared CSV lookup table file with
+  "create_context = app" or "create_context = system".
+* A value of "warn" means that the command returns a warning and creates the
+  shared CSV lookup table file.
+* A value of "block" means that the command fails and does not create the
+  shared CSV lookup table file.
+* Set lookup table file permissions either in the .meta file for each lookup
+  file, or through the Lookup Table Files page in Settings. By default, shared
+  CSV lookup table ACLs grant write permission only to users who have the admin
+  or power role.
+* This setting does not apply to existing CSV lookup table files or to private
+  CSV lookup table files created with "create_context = user".
+* Default: warn
+
+enforce_permissions_for_modifying_existing_csv_lookup = [warn|block]
+* How the outputlookup command responds when a user does not have write
+  permission to modify an existing lookup table file in comma-separated
+  values (CSV) format.
+* A value of "warn" means that the command returns a warning and modifies the
+  existing CSV lookup table file.
+* A value of "block" means that the command fails and does not modify the
+  existing CSV lookup table file.
+* If both 'outputlookup_check_permission' and
+  'transforms.conf:[<unique_transform_stanza_name>]/check_permission' have a
+  value of "true", the command blocks a denied modification regardless of
+  this setting.
+* This setting does not apply when creating a new CSV lookup table file.
+* Default: warn
 
 create_context = [app|user|system]
 * Specifies the context where the lookup file will be created for the first time.
@@ -3595,6 +3857,75 @@ enable_install_apps = <boolean>
   uninstallation, creation, and update.
 * Default: false
 
+enforce_app_reload_capability_check = <boolean>
+* Whether or not the Splunk platform enforces app-management capabilities when
+  a user invokes app reload paths, including the per-app '_reload' custom
+  action through the '/services/apps/local/<app>/_reload' REST endpoint and the
+  app listing refresh path.
+* A value of "true" means the caller must have the same capability required
+  to edit local apps before the app is reloaded.
+  * When 'enable_install_apps' is "true", the caller must hold the
+    'edit_local_apps' capability.
+  * When 'enable_install_apps' is "false", the caller must satisfy the
+    default write-capability behavior for local app management, as described
+    by the 'enable_install_apps' setting above.
+* A value of "false" means this additional capability check is turned off.
+* Default: true
+
+
+* Currently not supported. This setting is related to a feature that is still in
+  development.
+enable_scoped_capabilities = <boolean>
+* Whether or not the Splunk platform uses scoped capabilities to
+  give administrators fine-grained control over access to
+  indexes.
+* A value of "true" means the Splunk platform uses scoped capabilities.
+* A value of "false" means the Splunk platform does not use scoped capabilities.
+* Default: false
+
+scoped_capability_max_policies = <integer>
+* THIS IS AN INTERNAL SETTING.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Currently not supported. This setting is related to a feature that is still in
+  development.
+* Used with scoped capabilities to specify the maximum number of policies
+  allowed for each capability.
+* Default: 100
+
+policy_max_conditions = <integer>
+* THIS IS AN INTERNAL SETTING.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Currently not supported. This setting is related to a feature that is still in
+  development.
+* Used with scoped capabilities to specify the maximum number of conditions
+  allowed for each policy.
+* Default: 1
+
+policy_max_condition_values = <integer>
+* THIS IS AN INTERNAL SETTING.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Currently not supported. This setting is related to a feature that is still
+  in development.
+* Used with scoped capabilities to specify the maximum number of values allowed
+  for each policy condition.
+* Default: 100
+
+policy_allowed_attributes = <string>
+* THIS IS AN INTERNAL SETTING.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Currently not supported. This setting is related to a feature that is still in
+  development.
+* Specifies the attributes that are allowed in a policy.
+* Default: o11y::organization::*
+
+policy_allowed_capabilities = <string>
+* THIS IS AN INTERNAL SETTING.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Currently not supported. This setting is related to a feature that is still in
+  development.
+* Specifies the capabilities that are allowed to have policies.
+* Default: o11y_*
+
 
 enable_oauth2_for_applications = <boolean>
 * Whether or not OAuth authentication for third-party applications is turned on.
@@ -3747,6 +4078,21 @@ time_before_close = <integer>
 * Specifying this setting in limits.conf is DEPRECATED, but overrides
   the setting for all inputs, for now.
 
+disable_inputs = <bool>
+* When set to "true": All modular and scripted inputs are disabled, except:
+  * Introspection inputs. (with '_introspection' index,
+    or 'splunk_resource_usage__internal' sourcetype.)
+  * Modular and scripted inputs with sourcetypes specified in the
+    'always_on_input_sourcetypes' setting.
+  * Scripted inputs with unset sourcetypes.
+* This setting is used only for disaster recovery on cloud stacks.
+* Default: false
+
+always_on_input_sourcetypes =
+* When 'disable_inputs' is set to "true", modular and scripted inputs that use
+  these sourcetypes continue running by default.
+* This setting is used only for disaster recovery on cloud stacks.
+* Default: Not set
 
 [journal_compression]
 
@@ -3840,6 +4186,15 @@ max_size_per_batch_export_backup_kvservice_mb = <unsigned integer>
   in a single batch during backup.
 * Default: 50
 
+allow_cursor_based_backups = <boolean>
+* Controls whether KV store backups use server-side cursor export instead
+  of offset-based pagination.
+* A value of "true" means backups use server-side cursor export.
+* A value of "false" means backups use offset-based pagination.
+* This setting applies only when 'defaultKVStoreType' has a value of
+  "cohosted".
+* Default: true
+
 max_fields_per_acceleration = <unsigned integer>
 * The maximum number of fields that can be part of a compound acceleration
   (i.e. an acceleration with multiple keys)
@@ -3894,6 +4249,93 @@ max_documents_per_conditional_update = <unsigned integer>
 * If you configure this setting to a value greater than 100, the software
   sets it to 100.
 * Default: 10
+
+large_batch_opt = <boolean>
+* A value of "true" means KV Service uses large batch optimizations.
+* A value of "false" means KV Service does not use large batch optimizations.
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+* Default: false
+
+large_batch_size = <unsigned integer>
+* The size, in count, of the database query field array batch used by KV
+  Service. Splunk platform sends this parameter along with read requests to the
+  KV Service.
+* This setting only applies in instances where "large_batch_opt = true".
+* Must be set to a positive integer. If set to "0", a negative integer, or any
+  other invalid value, KV Service does not receive the value and Splunk
+  platform logs a warning instead.
+* Must be set above the KV Service configured minimum, for which the default
+  value is "10", or KV Service is likely to reject the value.
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+* Default (when 'large_batch_opt' has a value of "true"): auto
+* Default (in all other cases): Not set
+
+max_size_per_cache_json_file = <integer>
+* The maximum size, in megabytes, of a cache JSON file retrieved from S3.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: 50
+
+collection_cache = <string>
+* Enable collection cache on SH, indexer, or both.
+* Collection cache is only supported for external SCS KVService.
+* Values: sh, indexer, both
+* The values are case sensitive.
+* Default: ""
+
+collection_cache_protection = <string>
+* Controls whether collection cache files are protected from reaping while a
+  search is running.
+* When set to "dispatch_hardlink", the collection cache files are hard-linked
+  into the search dispatch directory. This keeps the files reachable for the
+  lifetime of the search, even if the reaper removes the original cache entry.
+* If hard-link creation fails, the lookup falls back to querying KV Service
+  directly.
+* When set to "disabled", searches read collection cache files directly from
+  the collection cache directory. In this mode, cache files are not protected
+  from reaping while the search is running.
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+* Default: dispatch_hardlink (in code)
+
+use_s3_fetch_job = <boolean>
+* Determines whether or not the collection cache uses
+  the external SCS KV Service ExportSnapshot API.
+* A value of "true" means that the collection cache uses
+  the external SCS KV Service ExportSnapshot API to
+  download collections from S3.
+* A value of "false" means that the collection cache uses
+  the external SCS KV Service ExportCollection API to
+  download collections from Aurora Database.
+* Default: false
+
+max_threads_per_s3_fetch_job = <unsigned integer>
+* The maximum number of threads to use when downloading SCS KV Service 
+  collections from S3 for the collection cache.
+* A value of 0 means that a single thread is used.
+* This setting is capped at 5.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: 1
+
+orphaned_collections_cleanup = <boolean>
+* Determines whether Splunk software removes orphaned KVService collections.
+* There are 2 ways you can cause KVService collections to be orphaned:
+  * When you delete an app that has KVService collection definitions in a 
+    collections.conf file, the corresponding KVService collections are 
+    orphaned. 
+    * When you reload KVService and 'orphaned_collections_cleanup=true', Splunk 
+      software removes collections without corresponding definitions in
+      collections.conf.
+  * When you run the 'clean kvstore' cli command against a specific collection, 
+    a specific app, or all apps, you might cause kvstore collections to become 
+    orphaned. 
+    * When 'orphaned_collections_cleanup=true', Splunk software removes  
+      orphaned collections as part of the 'clean kvstore' process.
+* A setting of 'false' means that Splunk software does not remove orphaned 
+  KVService collections.
+* NOTE: Change this setting only when instructed to do so by Splunk Support.
+* Default: false
 
 
 [kvstore_migration]
@@ -4037,8 +4479,8 @@ max_users_to_precache = <unsigned integer>
 interval = <integer>
 * Number of seconds between logging splunkd metrics to metrics.log.
 * Minimum of 10.
-* Default (Splunk Enterprise): 60
-* Default (Splunk Universal Forwarder): 60
+* Default (on Splunk Enterprise): 60
+* Default (on Splunk Universal Forwarder): 60
 
 maxseries = <integer>
 * The number of series to include in the per_x_thruput reports in metrics.log.
@@ -4360,6 +4802,117 @@ async_admission_eval_interval = <integer>
   searches is done on the scheduler thread.
 * Default: 600
 
+checkpoint_nextrun_map = <boolean>
+* Whether or not the scheduler asynchronously saves checkpoint data for the
+  next-run map in KV Store.
+* A value of "true" means that the scheduler saves checkpoint data for the
+  next-run map in KV Store as a best-effort second copy for recovery after
+  a search head restart or search head cluster captaincy switch.
+* A value of "false" means that the scheduler does not save checkpoint data
+  for the next-run map.
+* The in-memory scheduler next-run map remains the primary source of truth.
+* NOTE: Do not change this setting unless instructed to do so by
+  Splunk Support.
+* Default: false
+
+checkpoint_nextrun_map_ttl = <integer>
+* The maximum age, in seconds, of next-run map checkpoint data that the
+  scheduler can restore from KV Store.
+* The scheduler treats checkpoint data older than this value as expired and
+  does not load it.
+* The scheduler deletes expired checkpoint data during best-effort restore
+  cleanup.
+* This setting applies only when 'checkpoint_nextrun_map' has a value of
+  "true".
+* NOTE: Do not change this setting unless instructed to do so by
+  Splunk Support.
+* Default: 7200
+
+checkpoint_summary_inprogress_map = <boolean>
+* Whether or not the scheduler asynchronously saves checkpoint data for the
+  summary search concurrency map in KV Store.
+* A value of "true" means that the scheduler saves checkpoint data for the
+  summary search concurrency map in KV Store as a best-effort second copy for
+  recovery after a search head cluster captaincy switch.
+* A value of "false" means that the scheduler does not save checkpoint data
+  for the summary search concurrency map.
+* This setting applies only to search head clusters.
+* The in-memory scheduler summary search concurrency map remains the primary
+  source of truth while the captain scheduler is running.
+* NOTE: Do not change this setting unless instructed to do so by
+  Splunk Support.
+* Default: false
+
+checkpoint_summary_inprogress_map_ttl = <integer>
+* The maximum age, in seconds, of summary search concurrency map checkpoint
+  data containing real search IDs that the scheduler can restore from KV
+  Store.
+* The scheduler treats checkpoint data older than this value as expired and
+  does not load it.
+* The scheduler deletes expired checkpoint data during best-effort restore
+  cleanup.
+* This setting applies only when 'checkpoint_summary_inprogress_map' has a
+  value of "true".
+* NOTE: Do not change this setting unless instructed to do so by
+  Splunk Support.
+* Default: 86400
+
+checkpoint_summary_slot_holder_ttl = <integer>
+* The maximum age, in seconds, of summary search concurrency checkpoint data
+  for a temporary slot holder that the scheduler can restore from KV Store
+  before Splunk records a real search ID.
+* A slot holder represents a reserved summary search concurrency slot until
+  Splunk software records the real search ID.
+* The scheduler treats slot-holder checkpoint data older than this value as
+  expired and does not load it.
+* The scheduler deletes expired slot-holder checkpoint data during best-effort
+  restore cleanup.
+* This setting applies only when 'checkpoint_summary_inprogress_map' has a
+  value of "true".
+* NOTE: Do not change this setting unless instructed to do so by
+  Splunk Support.
+* Default: 300
+
+checkpoint_async_queue_size = <integer>
+* The maximum number of pending asynchronous scheduler checkpoint operations
+  that the scheduler holds in memory.
+* The next-run map checkpoint and the summary search concurrency map checkpoint
+  share this queue.
+* The scheduler coalesces pending checkpoint operations by collection and row
+  key. A later operation for the same checkpoint row replaces the earlier
+  pending operation instead of increasing the queue size.
+* If the queue reaches this size, the scheduler drops new checkpoint
+  operations that cannot replace an existing pending operation instead of
+  blocking scheduler threads.
+* Dropped checkpoint operations can make the durable checkpoint stale. The
+  in-memory scheduler maps remain the primary source of truth while the
+  scheduler is running.
+* The scheduler applies runtime changes to this setting when you reload
+  scheduler limits.
+* This value must be greater than 0.
+* If you configure this setting to a value of 0, the software uses the default
+  value.
+* NOTE: Do not change this setting unless instructed to do so by
+  Splunk Support.
+* Default: 10000
+
+checkpoint_async_flush_interval = <integer>
+* The interval, in seconds, at which the scheduler flushes pending
+  asynchronous scheduler checkpoint operations to KV Store.
+* The next-run map checkpoint and the summary search concurrency map checkpoint
+  share this interval.
+* The scheduler applies runtime changes to this setting when you reload
+  scheduler limits. The changes take effect on the next wake-up of the
+  asynchronous checkpoint queue.
+* The minimum value is 1. The maximum value is 300.
+* If you configure this setting to a value less than 1, the software sets
+  it to 1.
+* If you configure this setting to a value greater than 300, the software
+  sets it to 300.
+* NOTE: Do not change this setting unless instructed to do so by
+  Splunk Support.
+* Default: 5
+
 scheduler_user_timezone_cache_expiry = <integer>[s|m|h|d]
 * The amount of time that the scheduler caches the timezones
   that are associated with the scheduled searches.
@@ -4489,11 +5042,17 @@ max_searches_perc.<n>.when = <cron string>
 * If either these settings aren't provided at all or no "when" matches the
   current time, the value falls back to the non-<n> value of 'max_searches_perc'.
 
-max_pull_based_fetch = <integer>
-* The maximum number of searches a SHC member can pull in a single
-  fetch request to the captain.
-* 0 means the limit will be based on the maximum available scheduled searches
-  the member can currently run.
+max_pull_based_fetch = <percentage>
+* The maximum percentage of currently available search capacity that a search
+  head cluster member can pull from the captain in a single fetch request.
+* For example, a value of 5 means 5% of the currently available search capacity.
+* Valid values are integers from 0 through 100.
+* The currently available search capacity is the minimum of the member's
+  available scheduled search capacity and available historical search capacity.
+* The Splunk platform rounds nonzero percentages up to the next whole search
+  and caps the result at the currently available search capacity.
+* For values outside the valid range, the Splunk platform uses the default
+  value of 0. A value of 0 is equivalent to 100 for backward compatibility.
 * Default: 0
 
 dynamic_max_searches_perc = <boolean>
@@ -4663,6 +5222,23 @@ shc_local_quota_check = <boolean>
 * For example, setting 'shc_role_quota_enforcement=true' turns off local role
   quota enforcement for all nodes in the cluster and is enforced cluster-wide
   by the captain.
+
+enable_cron_schedule_restrictions = <boolean>
+* Whether or not the Splunk platform enforces role-based restrictions on
+  scheduled search cron schedules.
+* A value of "true" means the Splunk platform enforces role-based
+  restrictions, such as minimum schedule intervals and advanced cron
+  expression limits defined in authorize.conf.
+* A value of "false" means the Splunk platform does not enforce these
+  restrictions.
+* When a user creates or edits a scheduled search, the Splunk platform
+  validates the cron schedule against the effective role settings.
+* The Splunk platform uses this setting to prevent aggressive schedules
+  from impacting cluster resources and external services invoked by
+  trigger actions.
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+* Default: false
 
 shp_dispatch_to_slave = <boolean>
 * DEPRECATED; use shp_dispatch_to_member instead.
@@ -5049,17 +5625,12 @@ installed_files_anomalous_integrity_interval = <interval>
 
 
 orphan_searches = enabled|disabled
-* Enables/disables automatic UI message notifications to admins for
-  scheduled saved searches with invalid owners.
-  * Scheduled saved searches with invalid owners are considered "orphaned".
-    They cannot be run because Splunk cannot determine the roles to use for
-    the search context.
-  * Typically, this situation occurs when a user creates scheduled searches
-    then departs the organization or company, causing their account to be
-    deactivated.
-* Currently this check and any resulting notifications occur on system
-  startup and every 24 hours thereafter.
-* Default: enabled
+* REMOVED. This setting has no effect.
+* The Splunk platform reports orphaned scheduled searches through 'splunkd.log'
+  events with an 'event' field of 'orphaned_saved_search'.
+* The Splunk platform limits repeated log events for the same owner in each
+  thread during each 24-hour period.
+* Default: Not applicable.
 
 
 [thruput]
@@ -5089,8 +5660,8 @@ maxKBps = <integer>
   * For more information about multiple ingestion pipelines, see
     the 'parallelIngestionPipelines' setting in the
     server.conf.spec file.
-* Default (Splunk Enterprise): 0 (unlimited)
-* Default (Splunk Universal Forwarder): 256
+* Default (on Splunk Enterprise): 0 (unlimited)
+* Default (on Splunk Universal Forwarder): 256
 
 [viewstates]
 
@@ -5352,6 +5923,29 @@ detect_search_time_field_collisions = <Boolean>
   occur.
 * Default: true
 
+[search_expansion_and_evaluation]
+enable_lispy_empty_subgroup_pruning = <boolean>
+* Whether or not the LISPY optimization procedure prunes a parent group
+  when an opposite child group becomes empty.
+* A value of "true" means the optimization might prune the parent group.
+* A value of "false" means the optimization retains the empty child group
+  in the generated LISPY.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: true
+
+expanded_search_string_deduplication_mode = <boolean>
+* Whether or not the search evaluator removes duplicate predicates during
+  search evaluation after expansion.
+* The optimized search tree is used to generate the remote search that the
+  Splunk platform sends to indexers.
+* A value of "true" means the search evaluator identifies and removes
+  redundant predicates from AND and OR groups after expansion.
+* A value of "false" means the search evaluator does not remove duplicate
+  predicates after expansion.
+* This setting can reduce search complexity when multiple expansions resolve
+  to the same underlying search predicates.
+* Default: true
+
 [directives]
 required_tags = enabled|disabled
 * Enables the use of the required tags directive, which allows the search
@@ -5523,7 +6117,292 @@ use_segmenter_v2 = <boolean>
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: false
 
+############################################################################
+# remote  ui state
+############################################################################
+[uistate]
+disabled  = <boolean>
+* When set to 'false', UI configurations are stored in a remote store instead of
+  in local configuration files.
+* Default: true
 
+storage-provider = <kvservice>
+* When set to 'kvservice', this instance uses SCS KV Service to store
+  UI configurations. Set the 'defaultKVStoreType' to 'external' in the
+  [kvstore] stanza of "server.conf" to use this setting.
+* Default: unset
+
+kvservice.read_timeout_ms = <positive integer>
+* Timeout in milliseconds for reading data from SCS KV Service.
+* Default: 500
+
+kvservice.write_timeout_ms = <positive integer>
+* Timeout in milliseconds for writing data to SCS KV Service.
+* Default: 500
+
+kvservice.connect_timeout_ms = <positive integer>
+* Timeout in milliseconds for establishing connection with SCS KV Service.
+* Default: 500
+
+############################################################################
+# Federated Search for Amazon S3
+############################################################################
+[structured_data_service]
+enabled = <boolean>
+* Specifies whether Federated Search for Amazon S3 is enabled.
+* A setting of 'true' means that users of this Splunk Cloud Platform deployment
+  can use Federated Search for Amazon S3.
+* Federated Search for Amazon S3 lets you:
+  * Place unmanaged Amazon S3 data into federated indexes that you define.
+  * Search those federated indexes with the 'sdselect' command.
+* Default: false
+
+free_trial_enabled = <boolean>
+* Specifies whether the free trial for Federated Search for Amazon S3
+  is turned on.
+* A value of "true" means that users of this Splunk Cloud Platform deployment
+  can explore Federated Search for Amazon S3 through a time-bound free trial
+  before purchase.
+* Default: false
+
+s3_connect_timeout_ms = <positive integer>
+* Specifies the AWS S3 socket connection timeout period, in milliseconds.
+* NOTE: Change this setting from its default only when instructed to do so by 
+  Splunk Support. 
+  * Splunk Support might advise you to increase this setting if you see ERROR 
+    severity messages in search.log related to AWS S3 service connection 
+    failures.
+* Default: 1000
+
+s3_request_timeout_ms = <positive integer>
+* Specifies the AWS S3 socket request timeout period, in milliseconds.
+* NOTE: Change this setting from its default only when instructed to do so
+  by Splunk Support. That may be required when you see ERROR severity
+  messages in search.log related to AWS S3 service connection failures.
+* Default: 3000
+
+max_splunk_managed_database_tables = <integer>
+* Sets the maximum number of Splunk-managed AWS Glue tables that a single 
+  Splunk Cloud Platform deployment can support.
+* NOTE: Change this setting from its default only when instructed to do so by 
+  Splunk Support.
+* Default: 1000
+
+
+[sdselect]
+reuse_search_results_default = <boolean>
+* Sets the default value of the 'reuse_search_results_default' argument for the
+  'sdselect' command.
+  * The 'reuse_search_results_default' argument determines whether a search that has
+    been run successfully within the time window specified by
+    'reuse_search_results_max_age_in_minutes' can have its results reused for a
+    subsequent run of the same search.
+  * A setting of "true" means that the 'reuse_search_results' argument for
+    'sdselect' defaults to "true". The argument is applied to all 'sdselect'
+    searches by default. Users must add 'reuse_search_results=false' to the
+    search string if they want a rerun of the search to potentially return a
+    different set of results.
+  * A setting of "false" means that the 'reuse_search_results' argument for
+    'sdselect' defaults to "false". By default, the 'reuse_search_results'
+    argument is not applied to any 'sdselect' searches. Users must add
+    'reuse_search_results=true' to the search string if they want a rerun of
+    the search to be able to reuse the results from the last successful run of
+    that search, as long as that last search run occurred within the time window
+    defined by 'reuse_search_results_max_age_in_minutes'.
+* Default: true
+
+reuse_search_results_max_age_in_minutes = <positive integer>
+* Specifies, in minutes, the maximum age of a previous search result that
+  'sdselect' should consider for reuse.
+* You cannot set this setting to a value higher than 1440, or 1 day.
+* Default: 1440
+
+query_fetch_size_mb = <positive integer>
+* Specifies the maximum amount of data, in megabytes (mb), that the Splunk 
+  software can download through each call to the 'server.query_results_path' 
+  setting in server.conf. 
+* The Splunk software makes this call at least once per thread, as defined by 
+  'query_fetch_max_threads'. 
+* The Splunk software makes this call multiple times during the search to 
+  provide a preview of the Federated Search for Amazon S3 search results prior 
+  to the completion of the search.
+* Change this setting only if you are encountering issues with memory 
+  usage, or if you must change the amount of data previewed during the search.
+* Default: 10
+
+query_fetch_max_threads = <positive integer>
+* Specifies the maximum number of threads to use when downloading results in 
+  parallel.
+* Each thread makes a call to the 'server.query_results_path' (defined in
+  server.conf), and fetches at most 'query_fetch_size_mb' megabytes.
+* Change this setting only if you are encountering issues with thread usage.
+* The minimum value for this setting is 1.
+* Default: 5
+
+query_status_check_ms = <positive integer>
+* Sets the Federated Search for Amazon S3 status check interval in terms of
+  milliseconds.
+* At the end of each interval, the Splunk software checks whether the
+  Federated Search for Amazon S3 search has a status of 'success' or 'failure'.
+  * If, at the end of a status check interval, the Federated Search for Amazon 
+    S3 search status is 'success', the Splunk software fetches one
+    'query_fetch_size_mb' of result megabytes at a time until the search is 
+    complete.
+  * If, at the end of a status check interval, the Federated Search for Amazon 
+    S3 search status is 'failure', the Splunk software stops the search.
+  * If, at the end of a status check interval, the Federated Search for Amazon 
+    S3 search status is neither 'success' or 'fail', the Splunk software waits
+    again for this specified interval. In the meantime, it also performs other
+    tasks, such as updating search metrics and checking for user requests to
+    stop the search.
+* The default of 500ms ensures that the Splunk software responds to user
+  requests and other issues promptly while it waits for the Federated Search 
+  for Amazon S3 search status changes.
+* Default: 500
+
+max_mem_usage_mb = <non-negative integer>
+* Overrides the default value for 'max_mem_usage_mb'.
+* Limits the amount of RAM, in megabytes (MB) that a batch of events or results
+  can use in the memory of a search process.
+* A result of '0' means that the results are spilled to the disk when the number
+  of results exceeds the ‘maxresultrows’ setting.
+* See the definition for 'max_mem_usage_mb' in the [default] stanza for more
+  details.
+* Default: 500
+
+maxresultrows = <integer>
+* Specifies the maximum number of events that can be present in memory at one
+  time when 'max_mem_usage_mb' is set to '0'.
+* Default: The value set for 'maxresultrows' in the [searchresults] stanza,
+  which is '50000' by default.
+
+max_number_of_results = <integer>
+* Specifies the maximum number of results that the search head can return for 
+  a 'sdselect' search that does not include a 'limit' clause.
+  * If the 'sdselect' search includes a 'limit' clause, the top number of 
+    results that the search head can return is set by the 'limit' clause.
+* When set to '0': Specifies an unlimited number of results.
+* Default: 100000
+
+############################################################################
+# Federated Analytics
+############################################################################
+[federated_analytics]
+enable_fa_asl = <boolean>
+* Specifies whether Federated Analytics is activated for Amazon Security Lake data.
+* Default: false
+
+enable_federated_analytics_service = <boolean>
+* Controls whether Splunk software enables the internal 'fasearch' command
+  and communicates with the Federated Analytics Service.
+* A value of "true" means that Splunk software enables the internal
+  'fasearch' command and communicates with the Federated Analytics Service.
+* A value of "false" means that Splunk software does not enable the
+  'fasearch' command and does not communicate with the Federated Analytics 
+  Service.
+* This setting must only be enabled by automation as part of the Federation 
+  feature.
+* NOTE: Change this setting only when Splunk Support instructs you to do so.
+* Default: false
+
+disable_union_pushdown = <boolean>
+* Whether or not Splunk software suppresses union pushdown for Federated
+  Analytics searches.
+* A value of "true" means that Splunk software does not push down union
+  operations to the Federated Analytics Service.
+* A value of "false" means that Splunk software pushes down union operations
+  to the Federated Analytics Service.
+* NOTE: Change this setting only when Splunk Support instructs you to do so.
+* Default: false
+
+workgroup = <string>
+* Specifies the name of the Amazon Athena workgroup that this Splunk Cloud
+  Platform deployment uses for Federated Analytics.
+* NOTE: Do not change this setting without consulting with Splunk Support.
+* No default
+
+query_results_path = <string>
+* Required. Specifies the Amazon S3 location for storage of query results.
+* NOTE: Do not change this setting without consulting with Splunk Support.
+* No default
+
+external_id_fs_asl = <string>
+* Required. Specifies the external ID to be used for the search Amazon Security 
+  Lake workflow, to facilitate federated search of ASL datasets.
+  * Amazon Security Lake adds the external ID to the resource share name. 
+* NOTE: Do not change this setting without consulting with Splunk Support.
+* No default
+
+external_id_ingest_asl = <string>
+* Required. Specifies the external ID to be used for the ingest Amazon Security
+  Lake workflow, to facilitate ingestion of ASL datasets into the Splunk Cloud 
+  Platform deployment.
+  * Amazon Security Lake adds the external ID to the role it creates. Splunk 
+    software then uses this role to access and ingest the Amazon Security Lake 
+    data.
+* NOTE: Do not change this setting without consulting with Splunk Support.
+* No default
+
+service_connect_timeout = <unsigned integer>
+* Set the connection timeout, in seconds, to use when interacting with
+  the Federated Analytics Service.
+* NOTE: Do not change this setting without consulting with Splunk Support.
+* Default: 10
+
+service_read_timeout = <unsigned integer>
+* Set the read timeout, in seconds, to use when interacting with the 
+  Federated Analytics Service.
+* NOTE: Do not change this setting without consulting with Splunk Support.
+* Default: 120
+
+service_write_timeout = <unsigned integer>
+* Set the write timeout, in seconds, to use when interacting with the
+  Federated Analytics Service.
+* NOTE: Do not change this setting without consulting with Splunk Support.
+* Default: 120
+
+service_configs_json = <string>
+* Specifies an optional JSON-structured configuration string sent by splunkd to
+  the Federated Analytics Service (FAS) as dispatch.fas_configs to evaluate
+  user-generated search submission requests.
+* This setting is for service-side per-search configuration owned by the
+  Federated Analytics Service.
+* NOTE: Change this setting only when Splunk Support instructs you to do so.
+* No default
+
+max_number_of_results = <integer>
+* Specifies the maximum number of results that the Federated Analytics
+  Service can return for a query.
+* A value of '0' means that the Federated Analytics Service returns the
+  default number of results.
+* NOTE: Do not change this setting without consulting Splunk Support.
+* Default: 100000
+
+results_download_bufsize_mb = <unsigned integer>
+* Limits the overall response size, in megabytes (MB), when a downloader
+  thread obtains federated search results from a remote store such as
+  Amazon S3.
+* The minimum value is 64 MB.
+* NOTE: Do not change this setting without consulting Splunk Support.
+* Default: 256
+
+auth_payload_expiration = <string>
+* Specifies the time-to-live (TTL), as a relative time, for searches
+  designated to run on the Federated Analytics Service.
+* Valid time units are 's' (seconds), 'm' (minutes), 'h' (hours), and
+  'd' (days).
+* NOTE: Do not change this setting without consulting with Splunk Support.
+* Default: 1h
+
+search_fed_2.0_tier = [starter|paid]
+* Specifies the tier for Federated Analytics, which determines the limits
+  Splunk software applies to federated searches.
+* This setting applies only when the 'enable_federated_analytics_service'
+  setting is "true".
+* A value of "starter" activates the starter tier.
+* A value of "paid" activates the paid tier.
+* NOTE: Do not change this setting without consulting Splunk Support.
+* Default: paid
 
 
 ############################################################################
@@ -5560,6 +6439,29 @@ foreach = <boolean>
 
 
 
+############################################################################
+# Flex Index
+############################################################################
+
+[flex_index]
+flex_index_enabled = <boolean>
+* Specifies whether the flex indexes can be created.
+* When set to 'true', users have the option of declaring an index as a flex index in
+  indexes.conf. Flex indexes are optimized for infrequently accessed data.
+* When set to 'false', the flex index setting will be ignored.
+  available. Existing flex indexes will be unsearchable.
+* Default: false
+
+flex_search_max_pipeline = <integer>
+* This setting controls the number of search pipelines that are launched on the
+  indexer when searching a flex index.
+* This setting is equivalent to batch_search_max_pipeline, but applies specifically to
+  searching flex indexes.
+* Increasing the number of search pipelines can improve search performance.
+  However, this can also result in increased thread and memory usage.
+* Default: 8
+
+
 [watchdog]
 stack_files_ttl = <integer>
 * The amount of time to keep a watchdog stack file.
@@ -5574,6 +6476,20 @@ stack_files_removal_period = <integer>
 * The interval can be specified as a string for minutes, seconds, hours, days.
 * For example; 60s, 1m, 1h, 1d etc.
 * Default: 1h
+
+
+[DDAA]
+dataArchiverPostprocessingWorkers = [<positive integer>|auto]
+* Specifies the number of threads used for restore post-processing
+  in Dynamic Data: Active Archive, or DDAA for short
+* By fine tuning the number of cores for a specific machine, users can achieve performance
+  suited for specific scenarios; 
+* The value "auto" provides an approximation of the optimal number of threads by
+  using a multiple of 1.25 times the number of CPUs on the machine.
+* Setting a value that is much higher than the number of available cores
+  might lead to a performance penalty.
+* Range: 1 to 512
+* Default: auto
 
 
 ############################################################################
@@ -5616,6 +6532,12 @@ rfsS3DestinationOff = <boolean>
 * S3 destination configuration is turned off by default in GCP instances.
 * Default: false
 
+rfsFSDestinationOff = <boolean>
+* Specifies whether ingest actions file system destination configuration is turned off.
+* If file system destination configuration is turned off, users will not be able to configure
+  file system destination through REST endpoint.
+* File system destination configuration is turned off by default in Splunk Cloud instances.
+* Default: true
 
 enableDestConfigOnDs = <boolean>
 * Specifies whether S3 destinations for ingest actions 
@@ -5625,6 +6547,20 @@ enableDestConfigOnDs = <boolean>
 ##########################################################################
 # Reloading
 ##########################################################################
+
+[reload_on_delete]
+* Settings in this stanza control whether splunkd reloads configuration after
+  app deletion when the deleted app's configuration files support reload.
+
+disabled = <boolean>
+* Whether or not splunkd skips attempts to reload configuration after app
+  deletion.
+* A value of "true" means splunkd requires a restart after app deletion.
+* A value of "false" means splunkd reloads configuration when every
+  configuration file in the deleted app supports reload. Otherwise, splunkd
+  requires a restart.
+* This setting is reloadable.
+* Default: true
 
 [reloads]
 custom_configuration_files_ignore_reload = <boolean>
@@ -5672,6 +6608,75 @@ run_as_owner_ttl = <nonnegative integer>[s|m|h|d]
 * Valid time units are s (seconds), m (minutes), h (hours), and d (days).
 * Default: "1d" (1 day)
 
+mdl_dataset_cache_soft_ttl = <nonnegative integer>[s|m|h|d]
+* The soft time-to-live (ttl), specified as a relative time, for cached MDL
+  dataset metadata that is retrieved from the data orchestrator.
+* Valid time units are s (seconds), m (minutes), h (hours), and d (days).
+* After this interval, splunkd attempts to refresh the dataset metadata while
+  still allowing the cached metadata to be used until the hard ttl in the 
+  `mdl_dataset_cache_hard_ttl` setting expires.
+* Cached dataset metadata is shared across users inside one splunkd process.
+  Authorization is evaluated for the current caller on every
+  request that consumes these attributes.
+* Default: 60s
+
+mdl_dataset_cache_hard_ttl = <nonnegative integer>[s|m|h|d]
+* The hard time-to-live (ttl), specified as a relative time, for cached MDL
+  dataset metadata that is retrieved from the data orchestrator.
+* Valid time units are s (seconds), m (minutes), h (hours), and d (days).
+* After this interval, splunkd must refresh the dataset metadata before the dataset metadata can
+  be used.
+* Values greater than 1h, or values less than `mdl_dataset_cache_soft_ttl`, are
+  ignored and the default ttl settings are used.
+* Default: 300s (5m)
+
+mdl_dataset_cache_entries = <integer>
+* Maximum number of MDL dataset metadata entries to keep in the local cache in the splunkd process.
+* Values less than 2 are ignored and the default size is used.
+* Default: 1024
+
+############################################################################
+# SRS2
+############################################################################
+[searchresults2]
+block_split_check_freq = <integer>
+* Data flows through pipelines and is written to and read back from files 
+  in blocks. In some cases, if these blocks become too large (as defined by 
+  the 'max_mem_usage_mb' and 'maxresultrows' settings), the blocks are split 
+  into smaller pieces.
+* Splunk software splits data only when results are modified. To limit 
+  processing overhead, by default, Splunk software only checks every 
+  100 edits to determine whether to split data into smaller pieces.
+* If set to "0", disables automatic block splitting.
+* If set to a non-zero number, specifies the number of edits that must occur   
+  in between checks to determine whether block splitting is needed.
+* This setting applies only to processors running in SRS2 mode, as configured 
+  by the other settings in this stanza.
+* Default: 100
+
+eval = <boolean>
+* If set to "true", the 'eval' command uses the SRS2 version of the code.
+* If set to "false", the 'eval' command uses the SRS1 version.
+* Users won't be able to detect differences between the versions. 
+* Default: false
+
+mvcombine = <boolean>
+* If set to "true", the 'mvcombine' command uses the SRS2 version of the code.
+* If set to "false", the 'mvcombine' command uses the SRS1 version.
+* Users won't be able to detect differences between the versions. 
+* Default: false
+
+mvexpand = <boolean>
+* If set to "true", the 'mvexpand' command uses the SRS2 version of the code.
+* If set to "false", the 'mvexpand' command uses the SRS1 version.
+* Users won't be able to detect differences between the versions.
+* Default: false
+
+sort = <boolean>
+* If set to "true", the 'sortprocessor' command uses the SRS2 version of the code.
+* If set to "false", the 'sortprocessor' command uses the SRS1 version.
+* Users won't be able to detect differences between the versions. 
+* Default: false
 
 [storage_passwords_masking]
 view_cleartext_allowlist = <comma-separated list>
@@ -5705,11 +6710,13 @@ view_cleartext_spl_rest = <boolean>
 * Default: true
 
 mask_encr_password = <boolean>
-* Whether or not the Splunk platform masks the 'encr_password' field in responses from the
-  "/storage/passwords" REST endpoint.
-* A value of "true" means the 'encr_password' field is replaced with a
-  static placeholder value that does not contain the actual encrypted
-  secret. The placeholder uses the "$7$" prefix followed by asterisks.
+* Whether or not the Splunk platform masks the 'encr_password' field in
+  responses from the "/storage/passwords" REST endpoint.
+* A value of "true" means the Splunk platform replaces the 'encr_password'
+  field with a static placeholder value that does not contain the actual
+  encrypted secret.
+* The placeholder uses the "$8$" prefix followed by two groups of asterisks
+  separated by "$".
 * A value of "false" means the 'encr_password' field returns the actual
   encrypted password value.
 * This setting applies to both direct REST API calls and the SPL 'rest'

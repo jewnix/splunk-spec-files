@@ -75,6 +75,11 @@ restart_background_jobs = <boolean>
 * will not start when splunkd restarts.
 * Default: false.
 
+display_new_search_banner = <boolean>
+* Specifies whether the new search experience banner is displayed to the user.
+* If "display_new_search_banner" is set to 'true', the banner is displayed to the user on the Search app page.
+* If "display_new_search_banner" is set to 'false', the banner is not displayed to the user on the Search app page.
+* Default: true
 
 install_source_checksum = <string>
 * Records a checksum of the tarball from which a given set of private user

@@ -50,11 +50,13 @@ srchFilterSelecting = <boolean>
     (sourcetype!=ex3 AND index=main)) AND ((sourcetype=ex2))
 * Default: true
 
+[role-settings]
+reservedRoleNames=o11y_admin;o11y_power;o11y_usage;o11y_read_only
 
 [capability::<capability>]
 * DO NOT edit, remove, or add capability stanzas. The existing capabilities
   are the full set of Splunk system capabilities.
-* the Splunk platform adds all of its capabilities this way.
+* The Splunk platform adds all of its capabilities this way.
 * For the default list of capabilities and assignments, see authorize.conf
   under the 'default' directory.
 * Only alphanumeric characters and "_" (underscore) are allowed in
@@ -63,7 +65,151 @@ srchFilterSelecting = <boolean>
   * edit_visualizations
   * view_license1
 * Descriptions of specific capabilities are listed below.
+* The policy metadata below is an implementation contract supplied by Splunk,
+  not an administrator extension point. Overriding it does not add attributes
+  or operations to the capability's runtime authorization context and can make
+  policy validation inconsistent with enforcement.
 
+policy_attributes = <string>
+* The attributes that are allowed in a policy attached to this capability.
+* Attribute names may use wildcards, for example: "indexes::entity::*".
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+* No default.
+
+policy_attribute.<attribute>.operations = <string>
+* The operations that are allowed for <attribute> in a policy attached to this
+  capability, where <attribute> is one of the entries in 'policy_attributes'.
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+* Default: oneOf
+
+policy_attribute.<attribute>.max_condition_values = <integer>
+* Specifies the maximum number of values allowed in a single policy condition
+  on <attribute>, where <attribute> is one of the entries in
+  'policy_attributes'.
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+* Default (when 'policy_max_condition_values' is set): the global
+  'policy_max_condition_values' limit in limits.conf.
+* Default (when 'policy_max_condition_values' is unset): 100
+
+policy_max_policies = <integer>
+* Specifies the maximum number of policies allowed for this capability.
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+* Default (when 'scoped_capability_max_policies' is set): the global
+  'scoped_capability_max_policies' limit in limits.conf.
+* Default (when 'scoped_capability_max_policies' is unset): 100
+
+policy_max_conditions = <integer>
+* Specifies the maximum number of conditions allowed for each policy attached
+  to this capability.
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+* Default (when 'policy_max_conditions' is set): the global
+  'policy_max_conditions' limit in limits.conf.
+* Default (when 'policy_max_conditions' is unset): 1
+
+[policy::<policy name>]
+* For internal use only, currently under development and not yet released.
+* Definition of an authorization policy that provides fine-grained control over
+  authorization capabilities, enabling granular access management.
+
+access = <string>
+* The rules that define a policy and grant access based on specified conditions.
+* Must be a valid JavaScript Object Notation (JSON) document. The system
+  ignores invalid JSON.
+* A policy definition includes an 'allow' subsection, which outlines the 'conditions'
+  that must be met for access to be granted.
+* Each condition is defined as an object with 'operation', 'attr', and 'values'
+  or 'valueRefs' fields. There can be multiple conditions in a policy.
+* The following operations are supported:
+  - "oneOf": The condition is satisfied when the attribute has a single value that
+    matches any of the values in the 'values' or 'valueRefs' arrays. Supports
+    wildcard patterns (for example, "NameA*", "*NameB", "*NameC*").
+  - "intersects": The condition is satisfied when the attribute is a list and at
+    least one element in the list matches any of the values in the 'values' or
+    'valueRefs' arrays. Supports wildcard patterns.
+* The 'attr' field specifies the attribute path that the Splunk platform
+  evaluates against the specified values.
+* The 'values' array contains literal values to compare against.
+* The 'valueRefs' array contains attribute references that the Splunk platform
+  resolves from the authorization context when it evaluates the condition. This
+  allows conditions to compare one context attribute against another (for example,
+  comparing a resource attribute against a user attribute).
+  - For "oneOf", you can specify multiple valueRefs. Each referenced attribute
+    must resolve to a single value (not a list).
+  - For "intersects", you can specify exactly one valueRef. The referenced
+    attribute can resolve to either a list or a single value. If it resolves
+    to a list, the Splunk platform flattens its elements into individual values
+    for intersection checking against the condition's 'attr'. If it resolves to
+    a single value, the Splunk platform treats it as a single-element list.
+  - You can specify both 'values' and 'valueRefs' in the same condition. The
+    Splunk platform combines the resolved values for evaluation.
+  - If a referenced attribute is missing from the context, the Splunk platform
+    skips it.
+* A policy is satisfied when all its conditions are met.
+* Example using oneOf:
+    { "allow": {
+        "conditions": [
+          {
+            "operation": "oneOf",
+            "attr": "resource::attribute::name",
+            "values": ["NameA", "NameB"]
+          },
+          {
+            "operation": "oneOf",
+            "attr": "resource::attribute::category",
+            "values": ["CategoryX", "CategoryY"]
+          }
+        ]
+      }
+    }
+  This example policy allows access only to resources whose 'name' attribute is
+  either 'NameA' or 'NameB', and whose 'category' attribute is either 'CategoryX'
+  or 'CategoryY'.
+* Example using intersects:
+    { "allow": {
+        "conditions": [
+          {
+            "operation": "intersects",
+            "attr": "resource::attribute::tags",
+            "values": ["production", "staging"]
+          }
+        ]
+      }
+    }
+  This example allows for access when the resource's 'tags' attribute
+  contains at least one of "production" or "staging".
+* Example using valueRefs with oneOf:
+    { "allow": {
+        "conditions": [
+          {
+            "operation": "oneOf",
+            "attr": "resource::attribute::owner",
+            "valueRefs": ["session::user::name"]
+          }
+        ]
+      }
+    }
+  This example allows access when the resource's 'owner' attribute matches the
+  current user's 'name' attribute from the authorization context.
+* Example using valueRefs with intersects:
+    { "allow": {
+        "conditions": [
+          {
+            "operation": "intersects",
+            "attr": "resource::attribute::allowed_roles",
+            "valueRefs": ["session::user::roles"]
+          }
+        ]
+      }
+    }
+  This example allows access when any of the resource's 'allowed_roles' overlap
+  with the user session's 'roles'. If 'session::user::roles' is a list (for
+  example, ["admin", "editor"]), its elements are flattened and checked
+  individually against the resource's 'allowed_roles' list.
 
 [role_<roleName>]
 * Defines a role with the name '<roleName>'.
@@ -75,7 +221,7 @@ srchFilterSelecting = <boolean>
 <capability> = enabled
 * A capability that is enabled for this role. You can list multiple
   capabilities for each role.
-* The only valid value is "enabled", as capabilities are disabled by default. 
+* The only valid value is "enabled", as capabilities are disabled by default.
 * Roles inherit all capabilities from imported roles, and you cannot
   disable inherited capabilities.
 
@@ -308,6 +454,82 @@ srchMaxTime = <integer><unit>
 * This maximum value does not apply to real-time searches.
 * Examples: 1h, 10m, 2hours, 2h, 2hrs, 100s
 * Default: 100days
+
+srchMinScheduleInterval = <unsigned integer>
+* The minimum time interval, in minutes, between scheduled search
+  executions allowed for users who hold this role.
+* The Splunk platform uses this setting to prevent aggressive cron schedules
+  from overloading cluster resources or external services invoked by alert
+  actions.
+* The Splunk platform validates the cron schedule against this minimum
+  interval when a user creates or edits a scheduled search.
+* This setting is not inherited from parent roles (importRoles). You must
+  explicitly set it on the role assigned to the user.
+* If a user holds multiple directly assigned roles, the Splunk platform
+  applies the most permissive (lowest non-zero) value.
+* A value of "0" means the Splunk platform enforces no minimum interval
+  restriction.
+* The Splunk platform enforces this setting only when a user creates or
+  edits a scheduled search. Preexisting searches are not affected.
+* This setting only takes effect when the 'enable_cron_schedule_restrictions'
+  setting in limits.conf is activated.
+* Default: 0
+
+srchAllowAdvancedCron = <boolean>
+* Whether or not the Splunk platform allows users who hold this role to
+  use advanced (non-preset) cron expressions for scheduled searches.
+* A value of "true" means the Splunk platform allows users to enter
+  arbitrary cron expressions.
+* A value of "false" means the Splunk platform restricts users to standard
+  preset schedules only. The allowed patterns are:
+    * * * * *           (every minute)
+    */N * * * *         (every N minutes, where N divides 60)
+    M * * * *           (every hour at minute M)
+    M */N * * *         (every N hours, where N divides 24)
+    0 0 * * *           (daily at midnight)
+* The Splunk platform does not inherit this setting from parent roles
+  (importRoles). You must explicitly set it on the role assigned to the
+  user.
+* If a user holds multiple directly assigned roles, the Splunk platform
+  allows advanced cron if any role allows it.
+* The Splunk platform enforces this setting only when a user creates or
+  edits a scheduled search. Preexisting searches are not affected.
+* This setting only takes effect when the 'enable_cron_schedule_restrictions'
+  setting in limits.conf is activated.
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+* Default: true
+
+srchMinScheduleInterval.<action_name> = <unsigned integer>
+* The minimum time interval, in minutes, between scheduled search
+  executions when the specified alert action is activated.
+* The <action_name> corresponds to alert action names as returned by the
+  /services/alerts/alert_actions endpoint (for example, "email" or
+  "webhook").
+* The Splunk platform uses this setting to apply a stricter minimum
+  interval to searches that use a specific action, independent of the
+  global 'srchMinScheduleInterval'.
+* For example, setting 'srchMinScheduleInterval.email = 60' prevents a
+  user from saving a search that both has email alerting activated and
+  runs more often than once per hour. This setting does not limit the
+  number of such searches a user can create, nor does it affect action
+  queue concurrency.
+* The Splunk platform does not inherit this setting from parent roles
+  (importRoles). You must explicitly set it on the role assigned to the
+  user.
+* If a user holds multiple directly assigned roles, the Splunk platform
+  applies the most permissive (lowest non-zero) value per action.
+* A value of "0" or an empty value means the Splunk platform removes the
+  action-specific override, and the action falls back to the global
+  'srchMinScheduleInterval' baseline. The Splunk platform ignores existing
+  "0" values on load.
+* The Splunk platform enforces this setting only when a user creates or
+  edits a scheduled search. Preexisting alert actions are not affected.
+* This setting only takes effect when the 'enable_cron_schedule_restrictions'
+  setting in limits.conf is activated.
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+* Default: No default
 
 srchFederatedProvidersAllowed = <semicolon-separated list>
 * A list of transparent mode federated providers that this role has permission
@@ -542,7 +764,7 @@ ephemeralExpiration = <relative-time-modifier>
   high-privileged roles such as "power" or "admin".
 
 [capability::edit_alert_actions]
-* Lets a user edit all alert actions, regardless of whether existing
+* Lets a user view and edit all alert actions, regardless of whether existing
   access control lists (ACL) allow changes to alert actions.
 * NOTE: Assign this capability in lieu of the 'admin_all_objects' capability
   to grant permission to edit alert actions. Assign only to
@@ -564,6 +786,10 @@ ephemeralExpiration = <relative-time-modifier>
 * For full access to listing users, roles, and capabilities, the user must also
   have or assign the 'list_all_users' capability.
 
+[capability::list_auth_policies]
+* Currently not supported. This setting is related to a feature
+  that is still in development.
+* Lets a user list all authorization policies.
 
 [capability::edit_tokens_settings]
 * Lets a user access all token auth settings in the system, such as turning the
@@ -698,6 +924,8 @@ ephemeralExpiration = <relative-time-modifier>
 * Lets the user add and edit journald inputs. 
 * This input is not available on Windows.
 
+[capability::edit_modinput_search_artifacts_helper]
+* Lets a user add and edit search artifacts helper inputs.
 
 [capability::edit_modinput_winhostmon]
 * Lets a user add and edit inputs for monitoring Windows host data.
@@ -757,6 +985,17 @@ ephemeralExpiration = <relative-time-modifier>
   capability when you want to grant permission to edit the owner of a
   saved search. Assign only to privileged roles.
 
+[capability::edit_field_extraction]
+* Lets a user view and edit all field extraction and field transformation
+  objects without explicit read and write permissions for those objects.
+* Assign this capability only to roles that require this level of access.
+* NOTE: Assign this capability instead of the 'admin_all_objects' capability to
+  grant permission to manage field extraction and field transformation objects.
+
+[capability::edit_auth_policies]
+* Currently not supported. This setting is related to a feature
+  that is still in development.
+* Lets a user edit authorization policies.
 
 [capability::edit_scripted]
 * Lets a user create and edit scripted inputs.
@@ -817,7 +1056,9 @@ ephemeralExpiration = <relative-time-modifier>
   configured with the same token.
 
 [capability::edit_storage_passwords]
-* Lets a user read from (GET) and write to (POST) the /storage/passwords endpoint.
+* Lets a user write to (POST) and delete from (DELETE) the /storage/passwords endpoint.
+* To read from (GET) the /storage/passwords endpoint, users must hold 
+  the 'list_storage_passwords' capability.
 
 [capability::edit_tcp]
 * Lets a user change settings for receiving general TCP inputs.
@@ -852,6 +1093,10 @@ ephemeralExpiration = <relative-time-modifier>
 
 [capability::delete_saml_user]
 * Lets a user delete user accounts that were created through SAML authentication.
+
+[capability::delete_spa_user]
+* Lets a user delete Secure Production Access (SPA) user accounts that OpenID
+  Connect (OIDC) creates.
 
 [capability::edit_view_html]
 * Lets a user create, edit, or otherwise modify HTML-based views.
@@ -964,6 +1209,18 @@ ephemeralExpiration = <relative-time-modifier>
 
 [capability::list_search_scheduler]
 * Lets a user list search scheduler settings.
+
+[capability::list_metric_alerts]
+* Lets a user list metric alert configurations through the
+  properties/metric_alerts and configs/conf-metric_alerts endpoints.
+* NOTE: Assign this capability only to roles that you intend to assign
+  to high-privileged users.
+
+[capability::edit_metric_alerts]
+* Lets a user create and modify metric alert configurations through the
+  properties/metric_alerts and configs/conf-metric_alerts endpoints.
+* NOTE: Assign this capability only to roles that you intend to assign
+  to high-privileged users.
 
 [capability::list_saved_searches]
 * Lets a user discover all of the saved searches on the instance.
@@ -1098,6 +1355,9 @@ ephemeralExpiration = <relative-time-modifier>
 [capability::upload_lookup_files]
 * Lets a user upload files which can be used in conjunction with lookup definitions.
 
+[capability::download_lookup_files]
+* Lets a user download the csv or csv.gz contents of lookup table files.
+
 [capability::upload_mmdb_files]
 * Lets a user upload mmdb files, which are used for iplocation searches.
 
@@ -1169,6 +1429,10 @@ ephemeralExpiration = <relative-time-modifier>
 [capability::edit_kvstore]
 * Lets a user execute KV Store administrative commands through the KV Store REST endpoints.
 
+[capability::kvstore_collection_stats_read]
+* Lets a user read KV Store collection statistics through the KV Store
+  collection stats REST endpoint.
+
 [capability::list_cascading_plans]
 * Lets a user view the generated knowledge bundle replication plans if the chosen replication
   policy in distsearch.conf is set to 'cascading'.
@@ -1208,6 +1472,9 @@ ephemeralExpiration = <relative-time-modifier>
 [capability::read_datasets]
 * Lets a user view Federated Analytics datasets through the /services/orchestrator/v1/datasets REST endpoint
   and use them as sources in pipelines.
+
+[capability::edit_orchestrator_jobs]
+* Lets a user manage jobs through the /services/orchestrator/v1/dispatch and /services/orchestrator/v1/jobs REST endpoints.
 
 [capability::edit_spl2_module_permissions]
 * Lets a user create and edit permissions to Search Processing Language version 2 (SPL2) items through the REST API.
@@ -1269,7 +1536,9 @@ ephemeralExpiration = <relative-time-modifier>
 * Lets a user edit and delete the role mappings for an OAuth configuration.
 
 [capability::edit_internal_oauth_clients]
-* Lets a user edit OAuth internal clients.
+* Lets a user create, edit, and remove internal OAuth clients, and assign roles
+  to those clients. Role assignments follow the same authorization rules as
+  assigning roles to users with the 'edit_user' capability.
 
 [capability::list_internal_oauth_clients]
 * Lets a user list existing OAuth internal clients.
@@ -1329,7 +1598,95 @@ ephemeralExpiration = <relative-time-modifier>
 * Lets a user create, update, and delete configuration objects using the 
  /services/configs/v1 REST API Endpoint.
 
+[capability::edit_transforms]
+* Lets a user edit transforms through the services/properties/transforms
+  endpoint.
+
 [capability::list_conf_objects]
 * Lets a user list and read configuration objects using the 
  /services/configs/v1 REST API Endpoint.
 
+[capability::edit_auto_ui_updates]
+* Lets a user enable automatic ui updates in Splunk Cloud Platform.
+
+[capability::edit_ip_allow_list]
+* Lets a user edit their IP Allow List in Splunk Cloud Platform.
+
+[capability::edit_webhook_allow_list]
+* Lets a user edit their webhook allow list in Splunk Cloud Platform.
+
+[capability::edit_limits_conf]
+* Lets a user edit limits.conf using the Admin Config Service (ACS) API in
+  Splunk Cloud Platform.
+
+[capability::edit_dashboard_allow_list]
+* Lets a user edit their dashboards trusted domains list in Splunk Cloud Platform
+  and Splunk Enterprise.  This controls the list of allowed domains for embedded
+  content in dashboards.
+
+[capability::export_apps]
+* Lets a user export non-restricted apps using the Admin Config Service (ACS)
+  apps/export endpoint in Splunk Cloud Platform.
+
+[capability::edit_config_tracker_conf]
+* Lets a user edit the config tracker configuration using the Admin Config
+  Service (ACS) API in Splunk Cloud Platform.
+
+[capability::list_xrdr_conf]
+* Grants the user read only access for XRDR (Cross Region Disaster Recovery)
+configurations and endpoints.
+
+[capability::edit_xrdr_conf]
+* Lets a user have read and write capabilities for XRDR (Cross Region Disaster
+Recovery) configurations and endpoints.
+
+[capability::list_splunk_oauth_clients]
+* Lets a user list existing Splunk OAuth clients.
+
+[capability::edit_splunk_oauth_clients]
+* Lets a user edit Splunk OAuth clients.
+
+[capability::delete_splunk_oauth_clients]
+* Lets a user delete Splunk OAuth clients.
+
+[capability::rotate_splunk_oauth_client_secrets]
+* Lets a user rotate Splunk OAuth client secrets.
+
+[capability::cisco_tenant_admin]
+* Grants the user tenant admin permissions in Cisco Unified Identity (CUI).
+
+[capability::list_topology]
+* Lets a user read and list Splunk topology endpoints,
+  which are API paths that provide information about
+  data and infrastructure relationships.
+
+[capability::list_topology_restricted]
+* Lets a user read and list the Splunk topology endpoints,
+  which are API paths that provide information about
+  data and infrastructure relationships.
+* Users with this capability receive a filtered response from the following
+  endpoints: /services/stack-explainer/v1/topology,
+  /services/stack-explainer/v1/node-identity,
+  and /services/stack-explainer/v1/trusted-connections. This response
+  excludes Splunk Platform infrastructure components.
+
+
+############################################################################
+# Settings used to control commands started by Splunk
+############################################################################
+
+[commands:user_configurable]
+prefix = <path>
+* The Splunk platform reads this setting only from the system app.
+  Values configured in other apps have no effect.
+* All non-internal commands started by splunkd are prefixed with this
+  string, allowing for "jailed" command execution.
+* Should be only one word.  In other words, commands are supported, but
+  commands and arguments are not.
+* Applies to commands such as: search scripts, scripted inputs, SSL
+  certificate generation scripts.  (Any commands that are
+  user-configurable).
+* Does not apply to trusted/non-configurable command executions, such as:
+  splunk search, splunk-optimize, gunzip.
+* $SPLUNK_HOME is expanded.
+* No default.

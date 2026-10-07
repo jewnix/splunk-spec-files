@@ -241,7 +241,7 @@ reload.<conf_file_name>.<conf_stanza_prefix> = [ simple | never | access_endpoin
   will fallback to the "rolling restart behavior" upon detecting changes of those
   "missing" stanzas in the newly pushed cluster bundle.
 * NOTE: This setting is ONLY used by indexer-cluster peers and ONLY supported
-  by inputs.conf and server.conf.
+  by inputs.conf, server.conf, and distsearch.conf.
 * NOTE: The "conf_file_name" value does not include the file extension ".conf".
 
 [shclustering]

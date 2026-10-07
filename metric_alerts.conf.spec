@@ -181,8 +181,7 @@ splunk_ui.<label-name> = <label-value>
 
 splunk_ui.track = <boolean>
 * Optional.
-* Indicates whether the alert is tracked on the Triggered Alerts page and the
-  Splunk Analytics Workspace.
+* Indicates whether the alert is tracked on the Triggered Alerts page.
 * Defaults: false
 
 splunk_ui.severity = <integer>

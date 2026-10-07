@@ -274,9 +274,12 @@ enable_secure_entity_move = <boolean>
 * Default: true
 
 enable_insecure_pdfgen = <boolean>
-* Whether or not the "/services/pdfgen/render" REST endpoint allows GET requests.
+* Whether or not the "/services/pdfgen/render" splunkd REST endpoint allows GET
+  requests.
 * If "true", allows PDFs to be generated using GET or POST requests.
 * If "false", only allows PDFs to be generated using POST requests.
+* This setting does not enable GET through Splunk Web. Splunk Web exposes this
+  endpoint through POST only.
 * Default: false
 
 simple_error_page = <boolean>
@@ -293,12 +296,12 @@ login_content = <string>
 
 sslVersions = <comma-separated list>
 * The list of TLS versions to support.
-* The versions available are "tls1.0", "tls1.1", "tls1.2" and "tls1.3"
-* The special version "*" selects all supported versions. The version "tls"
-  selects all versions tls1.0 or newer
+* The versions available are "tls1.2" and "tls1.3".
+* TLS versions 1.0 and 1.1 are not supported and are always turned off.
+* Use the value "tls" or "*" to include all supported TLS versions.
 * If you prefix a version with "-", it is removed from the list.
-* SSL versions 2 and 3 are always disabled. "-ssl2" and "-ssl3" are accepted 
-  as values in the version list, but have no effect.
+* The values "-ssl2", "-ssl3", "-tls1.0", and "-tls1.1" are accepted in
+  the version list, but have no effect.
 * For the default, see $SPLUNK_HOME/etc/system/default/web.conf.
 
 supportSSLV3Only = <boolean>
@@ -846,7 +849,7 @@ SSOMode = [permissive | strict]
 * When set to "strict": All requests to Splunk Web will be restricted to those
   originating from a trusted IP except those to endpoints that do not require
   authentication.
-* Default: lax
+* Default: strict
 
 trustedIP = <ip_addresses>
 * IP addresses of the authenticating proxy (trusted IP).
@@ -1504,8 +1507,7 @@ appNavReportsLimit = <integer>
 * Default: 500
 
 simplexml_dashboard_create_version = <string>
-* DEPRECATED. The dashboard framework uses the latest Simple XML dashboard version for newly created dashboards.
-* CAUTION: Do not change this setting without contacting Splunk Support.
+REMOVED. This setting has been removed and no longer has any effect.
 * The Simple XML dashboard version used for newly created Simple XML dashboards.
 * Version must be a valid Simple XML dashboard version of the form 1.x (for example, 1.1).
 * Default: 1.1
@@ -1535,6 +1537,13 @@ allowExternalRemote = <boolean>
 * Determines whether or not Splunk Web displays the "Automatic UI updates" menu item.
 * Default: false
 
+remoteRoot = <string>
+* The URL of the content delivery network that hosts remote Splunk Pages.
+* Default: https://core-ae.scp.splunk.com
+
+stack_id = <string>
+* The stack ID for a Splunk Cloud Platform instance.
+* Default: emptry string
 
 [admin_config_ui]
 * Set the options to control the display of additional dashboard 
@@ -1549,6 +1558,18 @@ dashboards_trusted_domains_list = <boolean>
   Domains List page.
 * A value of "false" means that Splunk Web doesn't display the Dashboards 
   Trusted Domains List page.
+* Default: true
+
+ip_allow_list = <boolean>
+* Feature flag for the IP Allow List page in the Admin Config UI Framework.
+* Default: true
+
+webhook_allow_list = <boolean>
+* Feature flag for the webhook allow list page in the Admin Config UI Framework.
+* Default: true
+
+limits_conf = <boolean>
+* Feature flag for the limits.conf page in the Admin Config UI Framework.
 * Default: true
 
 

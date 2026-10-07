@@ -66,6 +66,27 @@ v1APIBlockGETSearchLaunch = <boolean>
   HTTP GET requests.
 * Default: false
 
+blockRetiredConfigHandlers = <boolean>
+* Whether or not to block Splunk REST API requests for retired configuration
+  handlers.
+* Retired configuration files and their handlers are not intended for use,
+  regardless of this setting's value.
+* A value of "true" means REST requests for retired handlers return 
+  an HTTP 403 (Forbidden) error.
+* Applies to the following Splunk REST API endpoints:
+  * /services/configs/conf-<filename>
+  * /services/properties/<filename>
+* The currently retired handler names are:
+  * conf
+  * crawl
+  * datatypesbnf
+  * deployed-fwd-mode
+  * deployment
+  * literals
+  * livetail
+  * pubsub
+* Default: false
+
 [<rest endpoint name>:<endpoint description string>]
 * Settings under this stanza are applicable to all REST stanzas.
 * Settings in other stanzas might supply additional information.

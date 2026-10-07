@@ -101,6 +101,16 @@ payload_format = [xml|json]
   STDIN.
 * Default: xml
 
+passSystemAuth = <boolean>
+* Whether or not to include a 'splunk-system-user' authentication token in
+  the payload that the Splunk platform sends to a custom alert action script,
+  in addition to the per-search 'session_key' token.
+* A value of "true" means the Splunk platform includes the token in the
+  'system_authtoken' field in the payload.
+* A value of "false" means the Splunk platform includes only the per-search
+  'session_key' token in the payload.
+* Default: false
+
 label = <string>
 * For custom alert actions, defines the label that is shown in the UI.
   If not specified, the stanza name is used instead.
@@ -480,14 +490,12 @@ pdf.html_image_rendering = <boolean>
 
 sslVersions = <comma-separated list>
 * The list of TLS versions to support.
-* The versions available are "tls1.0", "tls1.1", "tls1.2", and "tls1.3".
-* NOTE: The "tls1.0" and "tls1.1" values do not work when the Splunk
-  platform uses version 3.9 of the Python interpreter.
-* The special version "*" selects all supported versions.  The version "tls"
-  selects all versions tls1.0 or newer.
+* The versions available are "tls1.2" and "tls1.3".
+* TLS versions 1.0 and 1.1 are not supported and are always turned off.
+* Use the value "tls" or "*" to include all supported TLS versions.
 * If a version is prefixed with "-" it is removed from the list.
-* SSL versions 2 and 3 are always disabled. "-ssl2" and "-ssl3" are accepted
-  as values in the version list, but have no effect.
+* The values "-ssl2", "-ssl3", "-tls1.0", and "-tls1.1" are accepted in
+  the version list, but have no effect.
 * Used exclusively for the email alert action and the sendemail search command.
 * The default can vary. See the 'sslVersions' setting in the
   $SPLUNK_HOME/etc/system/default/alert_actions.conf file for the current default.

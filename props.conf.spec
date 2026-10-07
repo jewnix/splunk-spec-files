@@ -998,6 +998,15 @@ XML_IE_INCLUDE = <comma-separated list>
     XML_IE_INCLUDE = *Process*,Event*
 * Default: *
 
+XML_IE_INCLUDE_MV = <comma-separated list>
+* The metadata fields for which the Splunk platform extracts
+  multiple values for an event that arrives in XML format.
+* You can use "*" as a wildcard.
+* For example:
+    [XmlWinEventLog]
+    XML_IE_INCLUDE_MV = *Process*,Event*
+* Default: *
+
 XML_IE_EXCLUDE = <comma-separated list>
 * The metadata fields that The Splunk platform must not extract for an
   event.
@@ -1008,6 +1017,59 @@ XML_IE_EXCLUDE = <comma-separated list>
     [XmlWinEventLog]
     XML_IE_EXCLUDE = TargetProcessId
 * Default: not set
+
+XML_IE_EXCLUDE_MV = <comma-separated list>
+* The metadata fields for which the Splunk platform must not extract multiple
+  values for an event.
+* Use this setting to filter multivalue index-time field extractions from data
+  that arrives in XML format. The Splunk platform extracts only the first value
+  for each matching field.
+* You can use "*" as a wildcard.
+* For example:
+    [XmlWinEventLog]
+    XML_IE_EXCLUDE_MV = EventID
+* Default: not set
+
+XML_IE_EXCLUDE_VALS = <comma-separated list>
+* The metadata field values that the Splunk platform must not
+  extract for an event whose values match entries in this list, when data
+  arrives in XML format.
+* For example:
+    [XmlWinEventLog]
+    XML_IE_EXCLUDE_VALS = -
+* Default: not set
+
+XML_IE_SKIP_XML_ENCODED_VALS = <boolean>
+* Whether or not the Splunk platform skips index-time field
+  extraction for an XML event when an included field value contains
+  XML-encoded characters.
+* This setting applies only when 'INDEXED_EXTRACTIONS' has a value of
+  "xmlkv-winevt".
+* A value of "true" skips index-time field extraction for the event so that
+  search-time extraction can process the field value.
+* A value of "false" decodes XML-encoded characters in the field value and
+  proceeds with index-time field extraction.
+* Default: true
+
+XML_IE_MAX_EXTRACTED_VALUE_SIZE = <positive integer>
+* The maximum XML metadata field value length for index-time extraction.
+* The Splunk platform skips XML index-time field extraction for
+  values larger than this limit, so that search-time extraction can
+  handle the full value.
+* The Splunk index processor truncates values with lengths
+  over 1000 during index-time handling.
+* Lower values cause the Splunk platform to skip index-time extraction
+  because more field values exceed the threshold. This can increase
+  search-time CPU load.
+* If you specify a larger value than the default, the Splunk
+  platform processes the metadata more efficiently at search
+  time than at index time. The platform uses the default value
+  to keep disk space usage by tsidx files in check.
+* A tsidx file is part of the index bucket.
+  See https://docs.splunk.com/Splexicon:Tsidxfile for more information.
+    [XmlWinEventLog]
+    XML_IE_MAX_EXTRACTED_VALUE_SIZE = 500
+* Default: 1000
 
 OPTIMIZE_IE_EXTRACT = <boolean>
 * Whether or not Splunk software skips search-time field extractions
@@ -1650,7 +1712,8 @@ unarchive_cmd_start_mode = [direct|shell]
     "shell" instead.
 * A value of "shell" means that a shell process runs the "unarchive_cmd" commands.
   This allows for execution of a command pipeline that consists of multiple commands.
-* Default: shell
+* Default (on Splunk Cloud Platform): direct
+* Default (on Splunk Enterprise): shell
 
 unarchive_sourcetype = <string>
 * Sets the source type of the contents of the matching archive file. Use

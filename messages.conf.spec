@@ -106,7 +106,7 @@ roles = <comma-separated list>
   "capabilities" setting, which is ignored for the message.
 * This setting should be manually configured with any system- or user-created
   role.
-* Default (Splunk Enterprise): not set
+* Default (on Splunk Enterprise): not set
 
 help = <string>
 * The location string to link users to specific documentation.

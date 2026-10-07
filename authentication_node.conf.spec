@@ -69,7 +69,7 @@ instanceId = <string>
 * This ID is a globally unique identifier (GUID).
 * You can obtain this ID by running an HTTP GET method against the
   /services/server/info REST endpoint and extracting the "guid" field.
-* Required.
+* Optional.
 * No default.
 
 redirectUris = <semicolon-separated list>

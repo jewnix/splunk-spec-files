@@ -32,6 +32,45 @@ authType = [Splunk|LDAP|Scripted|SAML|ProxySSO]
 * Default: Splunk
 
 
+authVersion  = <string>
+* The version of the authentication.conf format.
+* Supported values are "v1" and "v2"
+* You must configure this setting if you want the instance to be able
+  to authenticate using multiple identity providers (IdPs).
+* To enable multiple-IdP authentication, set to "v2".
+* No default.
+
+authDomains  = <comma-separated list>
+* A list of authentication system domain configurations.
+* The auth system uses these domains to authenticate into more than one IdP.
+* You must configure a [domain] stanza with the appropriate settings and values
+  for each value that you specify here.
+* Valid only when 'authVersion' is set to "v2"
+* Required.
+* No default.
+
+disabledDomains  = <comma-separated list>
+* A comma-separated list of disabled domains.
+* Disabled domains are not used for authentication.
+* Use this setting to list domains that are currently not active but whose
+  configuration you want to preserve for later use.
+* Valid only when 'authVersion' is set to "v2"
+* This setting is optional.
+* No default.
+
+defaultDomain  = <string>
+* Default domain from the list of domains that you specified in 'authDomains'
+* Valid only when 'authVersion' is set to "v2"
+* When you specify a single domain for authentication, also set this value with
+  the name of the domain.
+* When you specify multiple domains for authentication, identify a default
+  domain and set this value.
+* Splunk platform uses default domain for authentication when either a single
+  domain is set or multiple domains are set and username does not match
+  any regex entry in domain pinning map.
+* Required.
+* No default.
+
 authSettings = <authSettings-key>,<authSettings-key>,...
 * Key to look up the specific configurations of chosen authentication
   system.
@@ -70,6 +109,18 @@ passwordHashAlgorithm = [SHA512-crypt|SHA256-crypt|SHA512-crypt-<num_rounds>|SHA
   previous hashing algorithm.
 * Default: SHA512-crypt
 
+allowSamlUserDeletion = <boolean>
+* Whether or not you can delete Security Assertion Markup Language (SAML)
+  users through the '/users' REST application programming interface (API)
+  and corresponding user interface actions.
+* This is a global setting that applies to all SAML identity providers
+  configured on the instance.
+* Both the Splunk daemon and Splunk Web respect this setting for SAML user deletion.
+* A value of "true" means the Splunk platform can delete SAML users, 
+  provided you have the 'edit_user' and 'delete_saml_user' Splunk capabilities.
+* A value of "false" means the Splunk platform cannot delete SAML users.
+* Default: true
+
 
 defaultRoleIfMissing = <splunk role>
 * Applicable for LDAP authType. If the LDAP server does not return any groups, or if
@@ -98,6 +149,52 @@ scimSupportedDomains = <comma-separated list>
 * Do not modify this setting.
 * Default: *.okta.com, *.oktapreview.com, *.okta-emea.com
 
+splunkOAuthAuthorizationServer = <boolean>
+* Whether or not the Splunk platform turns on its OpenID
+  Connect (OIDC)/OAuth2 authorization server.
+* When the server is on, it exposes Open Authorization (OAuth)/OIDC endpoints
+  including authorization code flow, token exchange, discovery, and JSON Web
+  Key Sets (JWKS) for use by external OAuth clients and Splunk-managed
+  integrations.
+* Authorization code flow is the standard OAuth mechanism that lets a client
+  application obtain tokens on behalf of a user after the user logs in.
+* Discovery and JWKS endpoints let clients retrieve server metadata and
+  public keys for token validation.
+* Certain Splunk Cloud Platform service configurations might automatically
+  turn on this capability based on your deployment, even when this setting
+  has no value.
+* This is an advanced setting. Do not modify it unless Splunk
+  Support directs you to do so.
+* A value of "true" means external OAuth clients and Splunk-managed
+  integrations can use this instance as an authorization server to obtain
+  tokens. The Splunk platform also turns on the Splunk Identity Service (SIS)
+  runtime. It uses default values of "true" for the
+  'automaticTrustBootstrap' and 'sisOidcClientFlow' settings unless those
+  settings have explicit values in the '[sis:settings]' stanza.
+* A value of "false" means this instance does not issue tokens as an
+  authorization server. External OAuth clients cannot authenticate through
+  this instance.
+* Default: false
+
+[domainPinningMap]
+* The mapping of username regular expressions (regexes) to a domain name from
+  the list of 'authDomains'.
+* Follow this stanza name with several Domain-to-Regex(es) mappings as defined
+  in the following setting/value pattern.
+* Valid only when 'authVersion' is set to "v2"
+* This setting is optional.
+
+<domain name> = <semicolon separated list>
+* A semicolon-separated list of username regexes to map to an authentication domain.
+* List several of these setting/value pairs to map multiple authentication domains to
+  username regexes.
+* The authentication system matches the login username with the username regex in
+  the mapping to determine which authentication domain to use.
+* The domain in this mapping must be present in the list of 'authDomains'.
+* Example: splunk_saml_domain = .*@splunk.com
+* This setting is optional.
+* No default.
+
 
 #####################
 # LDAP settings
@@ -111,6 +208,13 @@ scimSupportedDomains = <comma-separated list>
 * The <authSettings-key> must be one of the values listed in the
   authSettings setting, which must be specified in the previous [authentication]
   stanza.
+* The Splunk platform supports LDAP authentication through the 'authSettings'
+  list in the [authentication] stanza.
+* The Splunk platform does not load LDAP domain stanzas from 'authDomains'.
+* Before you upgrade, set 'authType' to "LDAP" in the [authentication] stanza
+  and list each LDAP strategy stanza in 'authSettings'.
+* The Splunk platform does not migrate LDAP domain configuration automatically.
+* No default.
 
 host = <string>
 * The hostname of the LDAP server.
@@ -371,6 +475,16 @@ ldap_negative_cache_timeout = <nonnegative decimal>
 
 [<authSettings-key>]
 * Follow this stanza name with the following setting/value pairs:
+* When 'authVersion' is set to "v2", '<authSettings-key>' is a domain name
+  from the list of 'authDomains'.
+* This setting is required to enable Scripted authentication scheme when
+  'authVersion' is set to "v2".
+
+authType = Scripted
+* Specifies that the settings pertain to the Scripted authentication scheme.
+* Valid only when 'authVersion' is set to "v2"
+* Required.
+* No default.
 
 python.version = {default|python|python2|python3|python3.7|python3.9|latest}
 * DEPRECATED. Use 'python.required' instead to specify which Python versions the
@@ -457,6 +571,20 @@ getUsersTTL = <time range string>
 [splunk_auth]
 * Settings for Splunk's internal authentication system.
 
+authType = Splunk
+* Specifies that these settings pertain to the native Splunk platform authentication scheme.
+* Valid only when 'authVersion' is set to "v2"
+* This setting is optional.
+* Default: Splunk
+
+passwordHashAlgorithm = [SHA512-crypt|SHA256-crypt|SHA512-crypt-<num_rounds>|SHA256-crypt-<num_rounds>|MD5-crypt]
+* This controls how the Splunk platform stores hashed passwords in the password file for
+  the "Splunk" 'authType'.
+* Valid only when 'authVersion' is set to "v2"
+* See the 'passwordHashAlgorithm' setting in the [authentication] stanza for
+  additional information.
+* This setting is optional.
+* Default: SHA512-crypt
 
 minPasswordLength = <positive integer>
 * Specifies the minimum permitted password length in characters when
@@ -604,14 +732,15 @@ constantLoginTime = <decimal>
 * Default: 0
 
 verboseLoginFailMsg = <boolean>
-* Specifies whether or not the login failure message explains
-  the failure reason.
-* When set to true, the Splunk platform displays a message on login
+* Whether or not the login failure message explains the failure reason.
+* A value of "true" means the Splunk platform displays a message on login
   along with the failure reason.
-* When set to false, the Splunk platform displays a generic failure
+* A value of "false" means the Splunk platform displays a generic failure
   message without a specific failure reason.
+* When this setting has a value of "true", unauthenticated clients can
+  determine whether a username exists by observing login failure messages.
 * This setting is optional.
-* Default: true
+* Default: false
 
 
 scsSyncUserDeletes = <boolean>
@@ -640,6 +769,17 @@ scsSyncUserDeletes = <boolean>
 * Follow this stanza name with the following setting/value pairs.
 * The <authSettings-key> must be one of the values listed in the
 * authSettings setting, specified above in the [authentication] stanza.
+* When 'authVersion' is set to "v2", '<saml-authSettings-key>' is a domain name
+  from the list of 'authDomains'.
+* This setting is required to enable SAML authentication scheme when
+  'authVersion' is set to "v2".
+* No default.
+
+authType = SAML
+* Specifies that the settings pertain to the SAML authentication scheme.
+* Valid only when 'authVersion' is set to "v2"
+* Required.
+* No default.
 
 fqdn = <string>
 * The fully qualified domain name where this splunk instance is running.
@@ -649,7 +789,8 @@ fqdn = <string>
   present, the Splunk platform uses the SSL setting for Splunk Web.
 * This setting is optional.
 * the Splunk platform uses this information to populate the 'assertionConsumerServiceUrl'.
-* Default: $HOSTNAME
+* Default (on Splunk Cloud Platform): https://<stack_name>.splunkcloud.com
+* Default (on Splunk Enterprise): $HOSTNAME
 
 redirectPort = <port number>
 * The port where SAML responses are sent.
@@ -659,7 +800,8 @@ redirectPort = <port number>
   instead of the Splunk Web port.
 * To prevent any port information to be appended in the
   'assertionConsumerServiceUrl' setting, set this to 0.
-* Default: The value of 'httpport' in the web.conf file
+* Default (on Splunk Cloud Platform): 443
+* Default (on Splunk Enterprise): The value of 'httpport' in the web.conf file
 
 idpSSOUrl = <url>
 * The protocol endpoint on the IDP (Identity Provider) where the
@@ -997,6 +1139,56 @@ useAuthExtForTokenAuthOnly = <boolean>
 * This setting is optional.
 * Default: true
 
+getUserInfoCacheRefresh = <boolean>
+* Whether or not the Splunk platform refreshes cached SAML user information
+  before the cached entry expires.
+* A value of "true" means the Splunk platform refreshes eligible cached SAML
+  user information with the 'getUserInfo' script function in background
+  workers.
+* A value of "false" means the Splunk platform does not refresh cached SAML
+  user information before the cached entry expires.
+* The Splunk platform ignores this setting when the 'getUserInfo' script
+  function is unavailable.
+* Changes to this setting require an authentication reload to take effect.
+* This setting is optional.
+* Default: false
+
+getUserInfoCacheRefreshWorkerCount = <positive integer>
+* The number of background workers that the Splunk platform uses for SAML user
+  information cache refresh requests that call the 'getUserInfo' script
+  function.
+* The Splunk platform ignores this setting when 'getUserInfoCacheRefresh' has
+  a value of "false".
+* Minimum value: 1
+* Maximum value: 10
+* Changes to this setting require an authentication reload to take effect.
+* This setting is optional.
+* Default: 3
+
+getUserInfoCacheRefreshDrainInterval = <timespan>
+* How often the Splunk platform submits queued SAML user information cache
+  refresh requests to background workers.
+* The Splunk platform ignores this setting when 'getUserInfoCacheRefresh' has
+  a value of "false".
+* Minimum value: 5s
+* Changes to this setting require an authentication reload to take effect.
+* This setting is optional.
+* Default: 5s
+
+getUserInfoCacheRefreshLeadTime = <timespan>
+* How long before the cached SAML user information expires the Splunk platform
+  considers the entry eligible for background refresh.
+* The Splunk platform ignores this setting when 'getUserInfoCacheRefresh' has
+  a value of "false".
+* Must be greater than 0s (0 seconds).
+* Must be less than the value of the 'getUserInfoTtl' setting.
+* If this value is greater than or equal to the value of 'getUserInfoTtl',
+  the Splunk platform treats the effective value of 'getUserInfoCacheRefresh'
+  as "false".
+* Changes to this setting require an authentication reload to take effect.
+* This setting is optional.
+* Default: 300s
+
 cacheSAMLUserInfotoDisk = <boolean>
 * Whether the Splunk auth system only keeps SAML user mapping
   information in server memory or additionally caches the information
@@ -1050,7 +1242,8 @@ cipherSuite = <cipher suite string>
 
 sslVersions = <comma-separated list>
 * The list of TLS versions to support.
-* The versions available are "tls1.0", "tls1.1", "tls1.2", and "tls1.3".
+* The versions available are "tls1.2" and "tls1.3".
+* TLS versions 1.0 and 1.1 are not supported and are always turned off.
 * Default: The value of 'sslVersions' in the server.conf configuration file
 
 sslCommonNameToCheck = <commonName>
@@ -1247,6 +1440,8 @@ includeAssertionConsumerServiceURL = <boolean>
   field in the Security Assertion Markup Language (SAML) request.
 * A value of "true" means the Splunk platform includes this field.
 * A value of "false" means the Splunk platform does not include this field.
+* If you use the same IdP to authenticate into different Splunk
+  platform instances, give this setting a value of "true".
 * NOTE: The Splunk platform also includes this field when the
   'signAuthnRequest' setting has a value of "true".
 * This setting is optional.
@@ -1418,7 +1613,7 @@ allowEntities = <boolean>
 # Authentication Response Attribute Map
 #####################
 
-[authenticationResponseAttrMap_SAML]
+[authenticationResponseAttrMap_<string>]
 * The Splunk platform expects emails, real names, and roles to be returned as SAML
   attributes in SAML assertion. This stanza can be used to map attribute names
   to what is expected. These are optional settings, and are only needed for
@@ -1438,6 +1633,75 @@ mail = <string>
 * Attribute name to be used as email in SAML Assertion.
 * This setting is optional.
 * Default: mail
+
+#####################
+# OIDC Role Map
+#####################
+
+[roleMap_OIDC]
+* The mapping of Splunk roles to OpenID Connect (OIDC) groups for OIDC
+  authentication.
+* If no explicit mapping maps an OIDC group to a Splunk role, and the OIDC
+  group name matches a valid Splunk role name, the Splunk platform can map
+  the group automatically when 'enableAutoMappedRoles' has a value of "true".
+* Follow this stanza name with one or more role-to-group mappings as defined
+  later in this section.
+
+[roleMap_OIDC_<idpLabel>]
+* Per-IdP (Identity Provider) variant of the '[roleMap_OIDC]' stanza.
+* When this stanza exists, the Splunk platform uses it exclusively for the IdP
+  identified by '<idpLabel>' and does not use '[roleMap_OIDC]' as a fallback.
+* When no '[roleMap_OIDC_<idpLabel>]' stanza exists for the token's IdP label,
+  the Splunk platform uses '[roleMap_OIDC]' as a fallback.
+* If the '[roleMap_OIDC_<idpLabel>]' stanza exists but contains no matching
+  role-to-group mappings, the Splunk platform grants no roles from OIDC role
+  mapping and does not use '[roleMap_OIDC]' as a fallback.
+* The Splunk platform matches '<idpLabel>' case-insensitively against the
+  'idp_label' value that it receives in the OIDC token.
+
+<Splunk RoleName> = <OIDC group string>
+* Maps a Splunk role from the authorize.conf configuration file to one or more
+  OIDC groups.
+* The value is a semicolon-separated list of OIDC group names.
+* Do not include spaces around the semicolons in the group list.
+* Optionally list several of these setting/value pairs to map multiple Splunk
+  roles to OIDC groups.
+* No default.
+
+enableAutoMappedRoles = <boolean>
+* Whether or not the Splunk platform automatically maps OIDC groups to Splunk
+  roles when the group name matches a valid Splunk role name.
+* A value of "true" means the Splunk platform grants any Splunk role whose
+  name matches an OIDC group in the token, except for roles listed in
+  'excludedAutoMappedRoles'.
+* A value of "false" means the Splunk platform only grants roles that are
+  explicitly mapped in this stanza.
+* This setting is optional.
+* Default: false
+
+excludedAutoMappedRoles = <comma-separated list>
+* A list of Splunk roles that the Splunk platform must never grant through
+  auto-mapping, regardless of the OIDC group name.
+* This setting only applies when 'enableAutoMappedRoles' has a value of
+  "true".
+* This setting is optional.
+* Default: admin,power
+
+defaultRoleIfMissing = <string>
+* When the IdP does not return any groups in the OIDC token, the Splunk
+  platform grants the role that you specify with this setting.
+* When you configure this setting in a '[roleMap_OIDC_<idpLabel>]' stanza, it
+  applies exclusively to that IdP and does not fall back to the
+  'defaultRoleIfMissing' value that you configure in the
+  '[roleMap_OIDC]' stanza.
+* The Splunk platform ignores this setting and grants no default role when:
+  * You omit it from the stanza or set it to an empty string.
+  * You configure it with a role name that the Splunk platform cannot grant,
+    for example, because the role does not exist or is not assignable.
+    Splunkd logs an error in this case.
+  * The 'enableAutoMappedRoles' has a value of "false" or is empty.
+* This setting is optional.
+* No default.
 
 #####################
 # Settings for Proxy SSO mode
@@ -1602,7 +1866,8 @@ timeout = <integer>
 
 sslVersions = <versions_list>
 * The list of TLS versions to support for incoming connections.
-* The versions available are "tls1.0", "tls1.1", "tls1.2", and "tls1.3".
+* The versions available are "tls1.2" and "tls1.3".
+* TLS versions 1.0 and 1.1 are not supported and are always turned off.
 * This setting is optional.
 * Default: The value of 'sslVersions in the server.conf configuration file
 
@@ -1741,7 +2006,8 @@ messageOnError = <string>
 
 sslVersions = <comma-separated list>
 * The list of TLS versions to support for incoming connections.
-* The versions available are "tls1.0", "tls1.1", "tls1.2", and "tls1.3".
+* The versions available are "tls1.2" and "tls1.3".
+* TLS versions 1.0 and 1.1 are not supported and are always turned off.
 * If not set, the Splunk platform uses the value of 'sslVersions' in server.conf.
 * This setting is optional.
 * The default can vary. See the 'sslVersions' setting in
@@ -1819,6 +2085,7 @@ sslRootCAPath = <path>
 
 sslVersionsForClient = <versions_list>
 * Comma-separated list of SSL versions to support for outgoing HTTP connections.
+* TLS versions 1.0 and 1.1 are not supported and are always turned off.
 * If not set, Splunk uses the value for 'sslVersionsForClient' in server.conf.
 * This setting is optional.
 * The default can vary. See the 'sslVersionsForClient' setting in the
@@ -1847,6 +2114,219 @@ enableMfaAuthRest = <boolean>
 
 
 
+#####################
+# SAML Identity Provider
+#####################
+
+[samlIdp]
+* The settings for the Splunk SAML identity provider (IDP).
+* The identity provider lets service providers use the Splunk platform to authenticate users.
+* The settings in this stanza are used in the SAML protocol.
+
+idpId = <string>
+* The unique identifier of the SAML identity provider.
+* The Splunk platform instance provides REST endpoints for the SAML IdPs at `/samlp/<idpId>`.
+* If you do not give this setting a value, the SAML identity provider does not start.
+* Optional.
+* No default.
+
+entityId = <string>
+* The SAML entity identifier (the "issuer") as configured on the SAML clients.
+* Required.
+* No default.
+
+acs = <string>
+* The URL at a service provider that accepts SAML response messages from
+  the identity provider.
+* Required.
+* No default.
+
+audience = <string>
+* The issuer attribute required for the SAML assertion as it is configured at
+  the service provider.
+* Required.
+* No default.
+
+certFile = <string>
+* The full path to the SSL certificate used to sign SAML assertions.
+* The certificate is in privacy-enhanced mail (PEM) format.
+* Optional.
+* Default: The value of 'server.conf:[sslConfig]/serverCert'.
+
+sslPassword = <password>
+* The certificate password.
+* Optional.
+* Default: The value of 'server.conf:[sslConfig]/sslPassword'.
+
+signatureAlgorithm = [RSA-SHA256|RSA-SHA384|RSA-SHA512]
+* The signature algorithm that is used for signing SAML messages produced by the
+  identity provider.
+* RSA-SHA256 corresponds to 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'.
+* RSA-SHA384 corresponds to 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha384'.
+* RSA-SHA512 corresponds to 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha512'.
+* The "RSA-SHA1" algorithm has been removed. Setting this as a value no longer
+  has an effect.
+* Optional.
+* Default: RSA-SHA256
+
+signatureRawPubKey = <boolean>
+* Whether or not the signatures in the SAML response that the Splunk platform
+  sends to a SAML service provider (SP) contain a KeyValue element that
+  contains the raw public key.
+* The Splunk platform populates this field during SAML IdP configuration,
+  and can send it as part of any assertion to the SAML SP.
+* For security reasons, if the SP supports it, the Splunk platform should not
+  supply this element. However, if the SP does require the element to complete the
+  authentication process, give this setting a value of "true".
+* This setting is optional.
+* Default: false
+
+enableIdentityConvergence = <boolean>
+* Whether or not Splunk Cloud Services uses this instance as an identity provider.
+* Optional.
+* Default: false.
+
+
+############################################################
+# Splunk Identity Service (SIS) feature and settings
+############################################################
+[sis:features]
+* Feature settings for Splunk Identity Service (SIS).
+* To turn off a feature, omit the setting or set it to "false".
+
+secureProdAccess = <boolean>
+* Whether or not the Secure Production Access (SPA) SIS feature is
+  turned on.
+* When you turn this setting on, you let authorized Splunk Support
+  personnel access your deployment using Splunk-managed credentials
+  for a specific support incident and time window of your choosing.
+* The support user account is visible in your Splunk user list so that your
+  administrators can audit all access.
+* A value of "true" means Splunk Support personnel can be granted time-limited,
+  incident-scoped access to this deployment. The support account is visible
+  in your user list for audit purposes.
+* A value of "false" means Splunk Support cannot access this deployment
+  through the Secure Production Access mechanism.
+* Default: false
+
+circularAuth = <boolean>
+* Whether or not the circular authentication SIS feature is turned on.
+* When turned on, the Splunk platform authenticates with Cisco Unified
+  Identity (CUI) services using Splunk identity credentials.
+* You must configure this feature in CUI before turning it on here.
+* A value of "true" means the Splunk platform uses Splunk identity credentials
+  to authenticate with CUI services. Single sign-on between Splunk and CUI
+  becomes active.
+* A value of "false" means the Splunk platform does not authenticate with
+  CUI using Splunk identity credentials. CUI integration is inactive.
+* Default: false
+
+[sis:settings]
+* Advanced individual settings for Splunk Identity Service (SIS) capabilities.
+* These settings override the defaults that the '[sis:features]' stanza applies.
+* These settings also override the default values that the Splunk platform
+  uses when 'splunkOAuthAuthorizationServer' has a value of "true".
+* Setting 'automaticTrustBootstrap' or 'sisOidcClientFlow' to "false" can
+  prevent Splunk-managed integrations from using the required SIS capability.
+* Do not modify these settings unless Splunk Support directs you to do so.
+
+automaticTrustBootstrap = <boolean>
+* Whether or not the Splunk platform automatically establishes
+  trust with Splunk Identity Service during startup.
+* A value of "true" means the Splunk platform performs a trust handshake
+  with Splunk Identity Service at startup, so that SIS-dependent features
+  function without manual trust configuration.
+* A value of "false" means the Splunk platform does not attempt to establish
+  trust with Splunk Identity Service at startup.
+* Default (when 'secureProdAccess', 'circularAuth', or
+  'splunkOAuthAuthorizationServer' has a value of "true"): true
+* Default (otherwise): false
+
+sisOidcClientFlow = <boolean>
+* Whether or not the Splunk platform authenticates to Splunk Identity Service
+  using the OIDC client flow.
+* A value of "true" means the Splunk platform acts as an OIDC client toward
+  Splunk Identity Service, making SIS-backed user authentication and
+  token-based integrations active.
+* A value of "false" means the Splunk platform does not initiate the OIDC
+  client flow toward Splunk Identity Service. SIS-backed user authentication
+  is inactive.
+* Default (when 'secureProdAccess', 'circularAuth', or
+  'splunkOAuthAuthorizationServer' has a value of "true"): true
+* Default (otherwise): false
+
+sisTokenExchange = <boolean>
+* Whether or not the Splunk platform exchanges tokens with Splunk
+  Identity Service to support circular authentication flows.
+* A value of "true" means the Splunk platform exchanges Splunk tokens for
+  SIS tokens, so that services depending on circular authentication can
+  authenticate on behalf of logged-in users.
+* A value of "false" means token exchange with Splunk Identity Service is
+  inactive. Services depending on circular authentication cannot obtain
+  SIS tokens.
+* Default (when 'circularAuth' has a value of "true"): true
+* Default (otherwise): false
+
+allowSamlSessionlessCrossLaunch = <boolean>
+* Whether or not a CUI cross-launch can restore a SAML user's Splunk platform
+  session without an existing SAML session index.
+* Do not modify this setting unless Splunk Support directs you to do so.
+* A value of "true" means a cross-launch can restore the user's session if the
+  user's SAML identity provider configuration is valid.
+* Sessions restored this way cannot participate in SAML single logout because
+  the Splunk platform does not have the identity provider's SAML session index.
+* A value of "false" means a cross-launch logs the user out. The user must
+  reauthenticate manually.
+* Default: false
+
+oidcJitProvision = <boolean>
+* Whether or not SIS-backed OpenID Connect (OIDC) just-in-time (JIT) user
+  provisioning is turned on.
+* JIT provisioning means the Splunk platform automatically creates a local
+  user account the first time a user authenticates through Splunk Identity
+  Service, without requiring an administrator to create the account in advance.
+* When OIDC JIT provisioning is active, the Splunk platform automatically
+  provisions local Splunk accounts upon first login for users who
+  authenticate through Splunk Identity Service.
+* Requires 'sisOidcClientFlow' to have a value of "true".
+* A value of "true" means the Splunk platform automatically creates a
+  local user account the first time a user authenticates through
+  Splunk Identity Service without requiring prior manual provisioning.
+* A value of "false" means that the Splunk platform rejects first-time
+  logins for users who authenticate through SIS. You must provision a
+  local Splunk user for that user first.
+* Default: false
+
+defaultSisIdpLabel = <string>
+* The identity provider label that Splunk Web shows for login flows
+  that use Splunk Identity Service.
+* Default (when 'circularAuth' has a value of "true"): cui
+* Default (otherwise): empty string
+
+oidcUserCacheBackend = <string>
+* The backend that the Splunk platform uses for SIS OIDC
+  user cache persistence.
+* Default: authentication.conf
+
+oidcClientScopes = <space-separated list>
+* The scopes that the Splunk platform requests when it acts as an OIDC client
+  to SIS.
+* SIS authorization server policy determines which requested scopes
+  the Splunk platform accepts and returns.
+* Default: openid offline_access profile email groups fedtype
+
+oidcUserDomains = <comma-separated list>
+* An optional allowlist of user domains for SIS OIDC authentication.
+* When this list is not empty, only users whose username contains one of
+  the domains in the list can authenticate through Splunk Identity Services
+  OIDC. The Splunk platform rejects users whose username does not match
+  a listed domain, regardless of whether their credentials are valid.
+* When this setting has no value, all users can authenticate through
+  SIS OIDC without domain restriction.
+* The Splunk platform normalizes values that you specify here to lowercase.
+  It ignores empty entries and those that contain whitespace.
+* No default.
+
 ############################################################################
 # Open Authorization version 2.0 (OAuth2) Token Validation Configuration
 ############################################################################
@@ -1861,7 +2341,8 @@ certFile = <string>
   uses to sign OAuth2 tokens.
 * The certificate you specify must be in privacy-enhanced mail
   (PEM) format.
-* Default: Not set
+* Default (on Splunk Cloud Platform): The value of 'authentication.conf:[samlIdp]/certFile'
+* Default (on Splunk Enterprise): Not set
 
 sslPassword = <string>
 * The password for the certificate that the authentication system
@@ -2122,4 +2603,45 @@ cloudconnect_tenant = <string>
 * For this setting to work, the 'cloudconnect' setting must have
   a value of "true".
 * This setting is optional.
+* No default.
+
+[cui]
+* Settings for Cisco Unified Identity, the Cisco identity service integration
+  that works with Splunk Identity Service (SIS).
+* Settings in this stanza affect runtime behavior only when authentication.conf
+  also turns on the SIS circular authentication feature and its required SIS
+  capabilities.
+
+enable_circular_auth = <boolean>
+* Whether or not the Splunk platform uses Cisco Unified Identity circular
+  authentication for the SIS OAuth client.
+* Circular authentication lets the Splunk platform issue authorization-code and
+  token responses for the SIS client, so SIS and Cisco Unified Identity can map
+  eligible Splunk platform users into Cisco identity privileges.
+* This setting requires '[sis:features]/circularAuth' to have a value of
+  "true".
+* The '[sis:features]/circularAuth' feature also derives a default SIS IdP
+  label of "cui" unless '[sis:settings]/defaultSisIdpLabel' overrides it.
+* A value of "true" means Cisco Unified Identity circular authentication is
+  active.
+* A value of "false" means Cisco Unified Identity circular authentication is
+  inactive.
+* If this setting is absent or set to an empty value, Cisco Unified Identity
+  circular authentication is not applicable on this deployment. The
+  '/services/authentication/cisco_identity' opt-out API reports
+  'enabled=null' and rejects updates until 'enable_circular_auth' is
+  set to "true" or "false".
+* Invalid Boolean values are treated the same as absent or empty values: the
+  API reports 'enabled=null' and rejects updates.
+* No default.
+
+[crosslaunch::<target>]
+* Configures an outbound cross-launch destination identified by <target>
+  (for example, "c3").
+* The Splunk platform compares <target> values without regard to case.
+
+redirect_uri = <string>
+* The HTTPS URL, or HTTP loopback URL, to which the Splunk platform redirects
+  the user.
+* Required.
 * No default.

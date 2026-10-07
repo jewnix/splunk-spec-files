@@ -301,7 +301,8 @@ chunked = <boolean>
   * 'maxchunksize'
   * 'filename'
   * 'command.arg.<N>'
-  * 'python.version', and
+  * 'python.version'
+  * 'python.required'
   * 'run_in_preview'.
 * If set to "false", this command uses the legacy custom search command
   protocol supported by Intersplunk.py.

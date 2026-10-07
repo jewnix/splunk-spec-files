@@ -130,6 +130,19 @@ health_report_period = <number>
   of the data management health report.
 * Default: 30
 
+[noah]
+disabled = <boolean>
+* Whether or not this Splunk platform instance calls Noah Server to retrieve
+  health report information.
+* A value of 1 disables the calling into Noah Server for health report
+  information.
+* Default: 1 (disabled)
+
+noah_server_request_interval = <number>
+* The amount of time, in seconds, that elapses between each request into the
+  Noah Server.
+* Default: 60.
+
 [tree_view:health_subset]
 * Defines a tree view for health features.
 * Users with 'list_health_subset' capability can view features belonging

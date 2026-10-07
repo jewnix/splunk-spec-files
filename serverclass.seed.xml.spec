@@ -1,4 +1,4 @@
-#   Version 10.4.2
+#   Version 10.6.0.5
 
 <!--
 # This configuration is used by deploymentClient to seed a Splunk installation with applications, at startup time.

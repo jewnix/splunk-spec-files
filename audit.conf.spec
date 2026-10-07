@@ -1,4 +1,4 @@
-#   Version 10.4.2
+#   Version 10.6.0.5
 #
 # This file contains possible attributes and values you can use to configure
 # auditing in audit.conf.
@@ -43,6 +43,60 @@ logging_format = v1|v2|both
   "v2" formats. Use this setting when transitioning from "v1" to "v2".
 * Default: both
 
+redact_fields = <comma-separated list>
+* A list of configuration files, stanzas, and settings whose values the Splunk
+  platform must redact in log files that it writes.
+* Provide the files, stanzas, and settings that must be redacted as a 
+  field that includes 3 elements.
+* Separate field elements with colons, and fields with commas. For example:
+  <conf-file>:<stanza-prefix>:<setting>,<conf-file>:<stanza-prefix>:<setting>,...
+* Each field must contain at least 2 colons that separate the field elements:
+  * The first colon separates the configuration file name element from the
+    stanza prefix element
+  * The second colon separates the stanza prefix element from the
+    setting name element
+  * The Splunk platform treats the string between the first and last colon as
+    the stanza prefix element
+* Do not include stanza brackets when you specify a stanza prefix element.
+* The Splunk platform automatically trims whitespace around colons. For example,
+  "app: :api_key" and "app::api_key" are equivalent. This description shows
+  examples without spaces for clarity, but spaces are acceptable.
+* To represent a wildcard, leave the element empty between colons.
+  Do not use asterisks (*) as wildcards. The Splunk platform will treat them 
+  as literal characters.
+* To match all stanzas from a configuration file, leave the ‘stanza-prefix’ element
+  empty. For example: "app::api_key" matches all stanzas in the app.conf 
+  configuration file that have 'api_key' as a setting.
+* The stanza prefix also supports prefix matching. For example,
+  "passwords:credential:password" matches stanzas in the passwords.conf file like
+  '[credential:admin]' or '[credential:user]'.
+* To match stanzas whose names include colons, you can include colons in stanza prefixes.
+  For example:
+  * "inputs:monitor://:host" matches the 'host' setting in inputs.conf stanzas
+    like [monitor://var/log/app.log]
+  * "outputs:tcpout:mygroup:server" matches the 'server' setting in outputs.conf
+    stanzas like [tcpout:mygroup]
+  * "passwords:credential:app:user" matches stanzas in passwords.conf like
+    [credential:app:user] or [credential:app:user:admin]
+* To match a field across all configuration files, leave the 'conf-file' element empty.
+  For example: "::password" matches any setting named 'password' in any stanza
+  of any configuration file.
+* To match all properties in a stanza, leave the 'setting' element empty.
+  For example: "server:general:" matches all properties in the [general] stanza
+  of the server.conf file.
+* You can combine wildcards. For example: "::" matches all properties in all
+  stanzas of all configuration files.
+* While it is possible for '<stanza-prefix>' elements to contain colons, 
+  it is not possible for '<conf-file>' or '<setting>' elements to contain them. 
+* There is no support for the following scenarios:
+  * Specifying whitespace at the beginning or end of a stanza prefix
+  * Specifying a file name, stanza name, or property names that contains
+    one or more commas.
+* The Splunk platform automatically redacts fields that you specify in the
+  'encrypt_fields' setting in the server.conf file, in addition to fields
+  that you redact using this setting.
+* You must either reload the audit subsystem or the audit.conf configuration
+  file directly through the REST API for changes to this setting to take affect.
 
 [auditconfig:/path]
 enabled = <comma-separated list>
@@ -79,3 +133,13 @@ the child stanza overrides the same setting.
 All settings in [auditconfig:/path] stanzas take effect when you reload 
 the audit subsystem or the audit.conf file using the REST API.
 
+[throttling]
+eventCountThreshold = <nonnegative integer>
+* Number of audit events per action, per user, before a summarized audit entry
+  is generated.
+* Throttling is disabled if this value is 0 or 1.
+* Default: 1000
+
+users = <colon-separated list>
+* Users whose audit entries will be throttled.
+* Default: internal_observability

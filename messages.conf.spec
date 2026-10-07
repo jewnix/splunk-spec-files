@@ -1,4 +1,4 @@
-#   Version 10.4.2
+#   Version 10.6.0.5
 #
 # This file contains attribute/value pairs for configuring externalized strings
 # in messages.conf.
@@ -107,7 +107,7 @@ roles = <comma-separated list>
   "capabilities" setting, which is ignored for the message.
 * This setting should be manually configured with any system- or user-created
   role.
-* Default (Splunk Enterprise): not set
+* Default (on Splunk Enterprise): not set
 
 help = <string>
 * The location string to link users to specific documentation.

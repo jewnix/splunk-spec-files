@@ -1,4 +1,4 @@
-#   Version 10.4.2
+#   Version 10.6.0.5
 #
 ############################################################################
 # OVERVIEW
@@ -56,6 +56,27 @@ allow_basic = <boolean>
 * NOTE: Do not change this setting unless instructed to do so by Splunk
   Support.
 * Default: false
+
+async_remote_move = <boolean>
+* Whether or not the search head sends remote move requests asynchronously for
+  runtime workload rule move actions.
+* A value of "true" means the search head applies the local move and queues
+  remote peer propagation without waiting for peer responses.
+* A value of "false" means the search head waits for remote peer move requests
+  to complete before runtime workload rule evaluation finishes. This blocks
+  runtime workload rule evaluation while waiting for those remote requests.
+* Default: true
+
+async_remote_move_timeout_secs = <integer>
+* The connect, read, and write timeout in seconds for asynchronous remote move
+  requests that the search head sends to search peers.
+* This setting applies only when 'async_remote_move' has a value of
+  "true".
+* Valid values are integers from 1 through 900.
+* Invalid values, including zero, negative values, empty values, non-integer
+  values, and values greater than 900, cause splunkd to log an error and use
+  the default value.
+* Default: 20
 
 default_pool = <string>
 * Specifies the default workload pool to be used at runtime for search workloads.

@@ -1,4 +1,4 @@
-#   Version 10.4.2
+#   Version 10.6.0.5
 #
 # This file documents the syntax of default-mode.conf for comprehension and
 # troubleshooting purposes.

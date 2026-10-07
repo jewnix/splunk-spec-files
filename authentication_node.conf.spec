@@ -1,4 +1,4 @@
-#   Version 10.4.2
+#   Version 10.6.0.5
 #
 # This file contains possible settings and values for configuring
 # node-local authentication settings via authentication_node.conf.
@@ -70,7 +70,7 @@ instanceId = <string>
 * This ID is a globally unique identifier (GUID).
 * You can obtain this ID by running an HTTP GET method against the
   /services/server/info REST endpoint and extracting the "guid" field.
-* Required.
+* Optional.
 * No default.
 
 redirectUris = <semicolon-separated list>

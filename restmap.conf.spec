@@ -1,4 +1,4 @@
-# Version 10.4.2
+# Version 10.6.0.5
 #
 # This file contains possible attribute/value pairs for creating new
 # Representational State Transfer (REST) endpoints.
@@ -65,6 +65,27 @@ v1APIBlockGETSearchLaunch = <boolean>
 * /search/parser
 * These changes involve removing the abilty to launch searches using
   HTTP GET requests.
+* Default: false
+
+blockRetiredConfigHandlers = <boolean>
+* Whether or not to block Splunk REST API requests for retired configuration
+  handlers.
+* Retired configuration files and their handlers are not intended for use,
+  regardless of this setting's value.
+* A value of "true" means REST requests for retired handlers return 
+  an HTTP 403 (Forbidden) error.
+* Applies to the following Splunk REST API endpoints:
+  * /services/configs/conf-<filename>
+  * /services/properties/<filename>
+* The currently retired handler names are:
+  * conf
+  * crawl
+  * datatypesbnf
+  * deployed-fwd-mode
+  * deployment
+  * literals
+  * livetail
+  * pubsub
 * Default: false
 
 [<rest endpoint name>:<endpoint description string>]

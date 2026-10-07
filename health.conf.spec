@@ -1,4 +1,4 @@
-#   Version 10.4.2
+#   Version 10.6.0.5
 #
 # This file sets the default thresholds for Splunk Enterprise's built
 # in Health Report.
@@ -130,6 +130,19 @@ health_report_period = <number>
 * The time interval, in seconds, between each execution
   of the data management health report.
 * Default: 30
+
+[noah]
+disabled = <boolean>
+* Whether or not this Splunk platform instance calls Noah Server to retrieve
+  health report information.
+* A value of 1 disables the calling into Noah Server for health report
+  information.
+* Default: 1 (disabled)
+
+noah_server_request_interval = <number>
+* The amount of time, in seconds, that elapses between each request into the
+  Noah Server.
+* Default: 60.
 
 [tree_view:health_subset]
 * Defines a tree view for health features.

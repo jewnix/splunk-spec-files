@@ -1,4 +1,4 @@
-#   Version 10.4.2
+#   Version 10.6.0.5
 #
 # This file contains possible setting/value pairs for metric alert entries in the
 # metric_alerts.conf file. You can configure metric alerts by creating your own
@@ -182,8 +182,7 @@ splunk_ui.<label-name> = <label-value>
 
 splunk_ui.track = <boolean>
 * Optional.
-* Indicates whether the alert is tracked on the Triggered Alerts page and the
-  Splunk Analytics Workspace.
+* Indicates whether the alert is tracked on the Triggered Alerts page.
 * Defaults: false
 
 splunk_ui.severity = <integer>

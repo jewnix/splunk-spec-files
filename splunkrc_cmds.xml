@@ -267,6 +267,20 @@ The package might be referenced either via a url or a local path.]]>
             </help>
         </common>
     </item>
+
+    <item obj="reencrypt" verb="true">
+        <common>
+            <help>
+                <header><![CDATA[Re-encrypt encrypted configuration with a stronger cipher, keeping the current splunk.secret.]]></header>
+                <syntax><![CDATA[reencrypt [secrets|shcluster-secrets]]]></syntax>
+                <examples>
+                    <ex><![CDATA[./splunk reencrypt secrets]]></ex>
+                    <ex><![CDATA[./splunk reencrypt secrets -cipher 8]]></ex>
+                    <ex><![CDATA[./splunk reencrypt shcluster-secrets]]></ex>
+                </examples>
+            </help>
+        </common>
+    </item>
     <!-- ==== end of specific 'help' handling ==== -->
 
     <!-- rotate splunk-secret -->
@@ -286,6 +300,33 @@ The package might be referenced either via a url or a local path.]]>
                 <optional/>
                 <examples>
                     <ex><![CDATA[./splunk rotate splunk-secret]]></ex>
+                </examples>
+            </help>
+            <type>edit</type>
+            <post_only/>
+        </cmd>
+    </item>
+
+    <!-- reencrypt secrets -->
+    <item obj="secrets">
+        <common>
+            <help>
+                <header><![CDATA[These are the sensitive configuration values stored encrypted on disk.]]></header>
+                <syntax><![CDATA[[reencrypt] secrets]]></syntax>
+            </help>
+        </common>
+        <cmd name="reencrypt">
+            <uri><![CDATA[/server/security/secrets/reencrypt]]></uri>
+            <help>
+                <title><![CDATA[Re-encrypt encrypted configuration with a stronger cipher, keeping the current splunk.secret.]]></title>
+                <syntax><![CDATA[reencrypt secrets [-cipher <version>]]]></syntax>
+                <required/>
+                <optional>
+                    <arg name="cipher"><![CDATA[the cipher version to re-encrypt into. Only "8" (HKDF) is accepted, which is also the default.]]></arg>
+                </optional>
+                <examples>
+                    <ex><![CDATA[./splunk reencrypt secrets]]></ex>
+                    <ex><![CDATA[./splunk reencrypt secrets -cipher 8]]></ex>
                 </examples>
             </help>
             <type>edit</type>
@@ -2749,6 +2790,32 @@ More information in the online documentation for the corresponding REST endpoint
         </cmd>
     </item>
 
+    <item obj="shcluster-secrets">
+        <common>
+            <help>
+                <header><![CDATA[These are the sensitive configuration values stored encrypted on disk by each search head cluster member.]]></header>
+                <syntax><![CDATA[[reencrypt] shcluster-secrets]]></syntax>
+            </help>
+        </common>
+        <cmd name="reencrypt">
+            <uri><![CDATA[/shcluster/captain/control/default/reencrypt-secrets]]></uri>
+            <help>
+                <title><![CDATA[Re-encrypt encrypted configuration with a stronger cipher on every search head cluster member, keeping the current splunk.secret. Each member does its own rewrite when it next contacts the captain, so this command returns before the migration has finished; see splunkd.log on each member for the result.]]></title>
+                <syntax><![CDATA[reencrypt shcluster-secrets [-cipher <version>]]]></syntax>
+                <required/>
+                <optional>
+                    <arg name="cipher"><![CDATA[the cipher version to re-encrypt into. Only "8" (HKDF) is accepted, which is also the default.]]></arg>
+                </optional>
+                <examples>
+                    <ex><![CDATA[./splunk reencrypt shcluster-secrets]]></ex>
+                    <ex><![CDATA[./splunk reencrypt shcluster-secrets -cipher 8]]></ex>
+                </examples>
+            </help>
+            <type>edit</type>
+            <post_only/>
+        </cmd>
+    </item>
+
     <item obj="shcluster-splunk-secret">
         <cmd name="rotate">
             <uri><![CDATA[/shcluster/captain/control/default/rotate-splunk-secret]]></uri>
@@ -3246,6 +3313,43 @@ More information in the online documentation for the corresponding REST endpoint
             </help>
             <type>edit</type>
             <post_only/>
+        </cmd>
+    </item>
+
+    <!-- stop kvstore-postgres-migration -->
+    <item obj="kvstore-postgres-migration">
+        <cmd name="stop">
+            <uri><![CDATA[/kvstore/migrateToPostgres/stop]]></uri>
+            <help>
+                <title><![CDATA[Stop an active KV Store migration to Postgres]]></title>
+                <syntax><![CDATA[stop kvstore-postgres-migration]]></syntax>
+                <required/>
+                <examples>
+                    <ex><![CDATA['./splunk stop kvstore-postgres-migration']]></ex>
+                </examples>
+            </help>
+            <type>edit</type>
+            <post_only/>
+        </cmd>
+    </item>
+
+    <!-- show kvstore-postgres-migration-status -->
+    <item obj="kvstore-postgres-migration-status">
+        <cmd name="show">
+            <uri><![CDATA[/kvstore/migrateToPostgres/status]]></uri>
+            <help>
+                <title><![CDATA[View status of KV Store migration to Postgres.]]></title>
+                <syntax><![CDATA[show kvstore-postgres-migration-status [--verbose]]]></syntax>
+                <required/>
+                <optional>
+                    <arg name="--verbose"><![CDATA[Show collection-level migration details.]]></arg>
+                </optional>
+                <examples>
+                    <ex><![CDATA['./splunk show kvstore-postgres-migration-status']]></ex>
+                    <ex><![CDATA['./splunk show kvstore-postgres-migration-status --verbose']]></ex>
+                </examples>
+            </help>
+            <type>list</type>
         </cmd>
     </item>
 
@@ -5718,12 +5822,14 @@ Supported commands and objects:
 
         show                [config|datastore-dir|deploy-poll|default-hostname|default-index|
                             jobs|minfreemb|servername|splunkd-port|web-port|kvstore-port|
-                            kvstore-status|postgres-status|postgres-health|
+                            kvstore-status|kvstore-postgres-migration-status|postgres-status|postgres-health|
                             postgres-recovery-status]
 
         spool               NONE
 
-        start,stop,restart  [splunkd|splunkweb]
+        start,restart       [splunkd|splunkweb]
+
+        stop                [splunkd|splunkweb|kvstore-postgres-migration]
 
         status              [splunkd|splunkweb]
 

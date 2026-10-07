@@ -1,4 +1,4 @@
-#   Version 10.4.2
+#   Version 10.6.0.5
 #
 # This file contains possible setting and value pairs for federated provider entries
 # for use when the federated search functionality is enabled.
@@ -27,12 +27,76 @@
 * <unique-federated-provider-name> can contain only alphanumeric characters and 
   underscores.
 
-type = [splunk]
+type = [splunk | aws_s3 | aws_lake]
 * Specifies the type of the federated provider.
 * A setting of 'splunk' means that the federated provider is a Splunk
   deployment.
+* A setting of 'aws_s3' means that you are configuring this federated provider
+  to facilitate access to a data source in Amazon S3. This setting is reserved
+  for Federated Search for Amazon S3.
+* A setting of 'aws_lake' means that you are configuring this federated provider
+  to facilitate access to a data source in Amazon Security Lake (ASL). This
+  setting is reserved for Data Lake Federated Analytics.
+* The 'aws_s3' and 'aws_lake' values are supported only on Splunk Cloud Platform.
 * Default: splunk
 
+subtype = [cisco_sal]
+* The subtype of the federated provider when 'type' has a value of
+  "aws_s3".
+* A value of "cisco_sal" means that this is a Cisco Security Analytics and
+  Logging (SAL) integration that provides federated access to Cisco-managed
+  Amazon Web Services (AWS) resources.
+* This setting recognizes no other values.
+* This setting is required if you integrate with Cisco SAL. Do not set it
+  otherwise.
+* Supported only on Splunk Cloud Platform.
+* No default.
+
+sal_token = <string>
+* The Cisco Security Analytics and Logging token for authenticating with
+  the SAL API.
+* This token is provided by Cisco SAL. The token must have appropriate scopes
+  for federation resource management.
+* This setting is required when 'subtype' has a value of "cisco_sal". Do not
+  set it otherwise.
+* The Splunk platform encrypts the token when it stores the token in the
+  provider configuration.
+* Supported only on Splunk Cloud Platform.
+* No default.
+
+sal_tenant_id = <string>
+* The unique tenant identifier for the Cisco Security Analytics and Logging
+  (SAL) tenant.
+* Cisco SAL provides this tenant ID. The 'sal_tenant_id' uniquely identifies the
+  customer's SAL environment and corresponds to the 'tentant_name' setting.
+* This setting is required when 'subtype' has a value of "cisco_sal". Do not
+  set it otherwise.
+* Supported only on Splunk Cloud Platform.
+* No default.
+
+sal_tenant_name = <string>
+* The human-readable name for the Cisco Security Analytics and Logging (SAL)
+  tenant.
+* Cisco SAL provides this name. The 'sal_tenant_name' corresponds to the
+  'sal_tenant_id' setting.
+* This setting is required when 'subtype' has a value of "cisco_sal". Do not
+  set it otherwise.
+* Supported only on Splunk Cloud Platform.
+* No default.
+
+
+sal_dataset = <string>
+* The dataset type for Cisco Security Analytics and Logging (SAL)
+  dataset discovery operations.
+* The Splunk platform uses this setting with the 'getSalDatasets'
+  REST API endpoint to retrieve metadata for specific SAL dataset types.
+* The Splunk platform uses this setting only as a parameter for the
+  'getSalDatasets' API call. It does not store the setting in the provider
+  configuration.
+* This setting is required when Splunk software must call the 'getSalDatasets'
+  endpoint. Do not set it otherwise.
+* Supported only on Splunk Cloud Platform.
+* No default.
 
 hostPort = <Host_Name_or_IP_Address>:<service_port>
 * Specifies the protocols required to connect to a federated provider.
@@ -166,6 +230,126 @@ mode = [ standard | transparent ]
   the federated search head.
 * Default: standard
 
+aws_account_id = <string>
+* Specifies a 12-digit Amazon Web Services (AWS) account ID.
+* Required when 'type=aws_s3' or 'type=aws_lake'. Do not set otherwise.
+  * When 'type=aws_s3', the 'aws_account_id' is the account where the
+    'database' exists.
+  * When 'type=aws_lake', the 'aws_account_id' is the account where the
+    'remote_aws_database' exists.
+    * When 'type=aws_lake', you do not need to set the 'aws_account_id'. Splunk
+      software automatically extracts the 'aws_account_id' from the
+      'resourceShareName' and 'resourceShareARN'.
+* Along with 'aws_region', this setting enables connection to an Amazon S3 data
+  source indicated in a Federated Search for Amazon S3 search.
+* Supported only on Splunk Cloud Platform.
+* No default.
+
+database = <string>
+* Specifies the name of the AWS Glue database that contains the data schema
+  and AWS Glue tables.
+* Required when 'type=aws_s3' or 'type=aws_lake'. Do not set otherwise.
+* When 'type=aws_lake', 'database' refers to the database that Splunk software
+  generates based on the 'remote_aws_database' setting and then adds to the
+  Splunk-owned AWS account. You do not need to set it.
+* Supported only on Splunk Cloud Platform.
+* No default.
+
+data_catalog = <string>
+* Specifies the Amazon Resource Name (ARN) for an AWS Glue data catalog. The
+  ARN points to an AWS account.
+* Required when 'type=aws_s3' or 'type=aws_lake'. Do not set otherwise.
+* When 'type=aws_s3', this value is generated automatically from a combination of the
+  'aws_account_id' and 'aws_region' settings. You do not need to set it.
+* When 'type=aws_lake', this value is generated automatically from a combination of the
+  Splunk-owned AWS account ID and 'aws_region' setting. You do not need to set it.
+* If you must enter this setting manually, the format is as follows:
+  * glue:arn:aws:glue:<aws_region>:<aws_account-id>:catalog
+* CAUTION: If you overwrite this setting with a setting of your own, you risk
+  causing your Federated Search for Amazon S3 searches to fail.
+* Supported only on Splunk Cloud Platform.
+* No default.
+
+aws_glue_tables_allowlist = <string>
+* Specifies a comma-separated list of AWS Glue tables from which Federated
+  Search for Amazon S3 can get metadata and data schemas.
+* This list is specific to this federated provider.
+* Required when 'type=aws_s3' or 'type=aws_lake'. Do not set otherwise.
+* Supported only on Splunk Cloud Platform.
+* No default.
+
+aws_s3_paths_allowlist = <string>
+* Specifies a comma-separated list of Amazon S3 location paths that you can
+  search with Federated Search for Amazon S3.
+* An Amazon S3 location path can contain wildcards only at the end of the path.
+* This list is specific to this federated provider.
+* Required when 'type=aws_s3'. Do not set otherwise.
+* Supported only on Splunk Cloud Platform.
+* No default.
+
+aws_kms_keys_arn_allowlist = <string>
+* Specifies a comma-separated list of Amazon KMS Key ARNs (Amazon Resource
+  Names) that encrypt the Amazon S3 objects specified to be searched by
+  Federated Search for Amazon S3.
+* Optional when 'type=aws_s3'. Do not set otherwise.
+* Supported only on Splunk Cloud Platform.
+* No default.
+
+remote_aws_database = <string>
+* Specifies the name of the original AWS Glue database that contains the data
+  schema and the AWS Glue tables specified in the 'aws_glue_tables_allowlist'.
+* Splunk software creates a local alias to this database under the 'database'
+  setting on the Splunk-owned AWS account.
+* Required when 'type=aws_lake'. Do not set otherwise.
+* Supported only on Splunk Cloud Platform.
+* No default.
+
+resourceShareName = <string>
+* Specifies the name of the Resource Share. This must be suffixed with the
+  provided external ID. Must correspond to the same Resource Share as the
+  'resourceShareARN'.
+* Required when 'type=aws_lake'. Do not set otherwise.
+* Supported only on Splunk Cloud Platform.
+* No default.
+
+resourceShareARN = <string>
+* Specifies a Resource Share ARN (Amazon Resource Name). Must correspond to the
+  same Resource Share as the 'resourceShareName'.
+* Required when 'type=aws_lake'. Do not set otherwise.
+* Supported only on Splunk Cloud Platform.
+* No default.
+
+manage_aws_glue_tables = <boolean>
+* Specifies whether Splunk can manage AWS Glue tables.
+* A setting of 'false' means that Splunk is not allowed to manage AWS Glue
+  tables within this federated provider.
+* A setting of 'true' means that Splunk can create and manage AWS Glue tables
+  within this federated provider.
+* If 'supports_only_splunk_managed_glue_tables' is set to 'true',
+  'manage_aws_glue_tables' must be set to 'true'.
+* Optional when 'type=aws_s3'. Do not set otherwise.
+* Supported only on Splunk Cloud Platform.
+* Default: false
+
+supports_only_splunk_managed_glue_tables = <boolean>
+* Specifies whether this federated provider supports only Splunk-managed AWS
+  Glue tables.
+* A setting of 'false' means that both Splunk-managed and user-managed AWS Glue
+  tables are allowed for this federated provider.
+* A setting of 'true' means that this federated provider permits only AWS Glue
+  tables created and managed by Splunk.
+* If 'manage_aws_glue_tables' is missing or set to 'false', this
+  setting must not be specified.
+* Optional when 'type=aws_s3'. Do not set otherwise.
+* Supported only on Splunk Cloud Platform.
+* Default: false
+
+federated.migrated_to = <string>
+* Contains the ID of the connection that the Data Orchestrator creates during
+  automatic migration of the federated provider to the Data Management app.
+* The Data Orchestrator sets this field automatically. Do not set or edit it.
+* This setting is provided purely for informational purposes.
+* No default.
 
 #
 # General Federated Search Stanza
@@ -229,24 +413,6 @@ connectivityFailuresThreshold = <integer>
   Support.
 * Default: 3
 
-providerVerificationMode = [deactivated | audit | strict | auto]
-* Controls provider verification enforcement for remote search execution.
-* Determines whether federated providers must pass heartbeat verification 
-  before searches run against them.
-* A value of "deactivated" means no verification is required. The system does
-  not create or validate challenges during heartbeat operations.
-* A value of "audit" means the system verifies providers and logs failures,
-  but allows all searches to proceed regardless of verification status.
-* A value of "strict" means the system blocks all searches to providers that
-  have not passed heartbeat verification.
-* A value of "auto" means the system applies "strict" mode only for providers
-  that advertise verification capability in their capabilities response.
-  Providers without verification capability are allowed without verification.
-  This functionality allows for gradual rollout during upgrades where mixed 
-  versions exist.
-* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
-* Default: deactivated
-
 controlCommandsMaxThreads = <int>
 * The maximum number of threads that can run a federated search action, such as 
   a search pause or search cancellation, from a local federated search head on 
@@ -298,6 +464,17 @@ allowCaseInsensitivityForFederatedProvider = <boolean>
 * A value of "false" means that federated providers are case-sensitive
   when they are accessed via REST calls.
 * CAUTION: Change this setting only when Splunk Support directs you to do so.
+* Default: true
+
+useGuidForFederatedProxyBundleId = <boolean>
+* Whether or not a standalone (non-clustered) federated search head
+  identifies its proxy knowledge bundle to remote search heads using its
+  instance globally unique identifier (GUID) instead of its server name.
+* A value of "true" means the search head uses its instance GUID, which
+  keeps the proxy bundle identity stable across a server name change.
+* A value of "false" means the search head uses its server name, which
+  matches legacy behavior.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
 * Default: true
 
 allowIndexBasedProviderFiltering = <boolean>
@@ -419,6 +596,66 @@ previewOnRshEnabled = <boolean>
   efficiency of long-running high cardinality federated searches.
 * Change this setting only when directed to do so by Splunk Support.
 * Default: false
+
+federatedSearchRshToFshKeepaliveIntervalSec = <unsigned integer>
+* Specifies the interval, in seconds, at which remote search heads send
+  keepalive messages to federated search heads during federated searches
+  when they are idle and no search results are available to send.
+* Set this value to 0 to turn off this keepalive mechanism.
+* This setting is specific to federated search and is distinct from the
+  'search_keepalive_frequency' setting in limits.conf that is used by
+  distributed search between indexers and search heads to control
+  distributed search keepalive behavior. See that setting for additional
+  information about the keepalive mechanism.
+* Smaller values increase network traffic but result in more frequent
+  checks of connection health. Larger values reduce overhead but might
+  delay the detection of connection issues.
+* The keepalive mechanism resets the federated search head timeout timer
+  specified by 'results_queue_read_timeout_sec' in limits.conf. The
+  default value for 'results_queue_read_timeout_sec' is 900 seconds.
+* By default, federated searches can run for up to 3 hours before
+  reaching the maximum keepalive count, calculated as:
+  30 seconds × 360 = 10,800 seconds, which equals 3 hours.
+* NOTE: Changes to this setting take effect only for new federated searches.
+  Searches that are already running on the remote search head continue to use
+  the value that was in effect when they started.
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+* Default: 30
+
+federatedSearchRshToFshKeepaliveMax = <unsigned integer>
+* Specifies the maximum number of consecutive keepalive messages that a
+  remote search head can send to a federated search head during a
+  federated search before the search is considered timed out. This limit
+  prevents searches from running indefinitely when a data source is
+  unresponsive or when no results are returned.
+* When this limit is reached, keepalive messages stop being sent and the
+  federated search head times out after the value of
+  'results_queue_read_timeout_sec' is reached.
+* Keepalive messages are disabled when
+  'federatedSearchRshToFshKeepaliveIntervalSec' is set to 0.
+* This setting is specific to federated search and is distinct from the
+  'search_keepalive_max' setting in limits.conf that is used by
+  distributed search between indexers and search heads to control the
+  distributed search keepalive behavior.
+* The maximum search duration is calculated as:
+  federatedSearchRshToFshKeepaliveIntervalSec value ×
+  federatedSearchRshToFshKeepaliveMax value.
+* By default, the maximum search duration for federated search is
+  3 hours, which is calculated as:
+  30 seconds × 360 = 10,800 seconds, which equals 3 hours.
+* For comparison, the default maximum duration for distributed search is
+  50 minutes, which is calculated as:
+  30000 milliseconds × 100 = 3,000,000 milliseconds, which equals 50 minutes.
+* The higher default value for federated searches compared to distributed
+  searches accommodates potentially slower cross-network searches and
+  large-scale data processing on remote providers.
+* NOTE: Changes to this setting take effect only for new federated searches.
+  Searches that are already running on the remote search head continue to use
+  the value that was in effect when they started.
+* NOTE: Do not change this setting unless instructed to do so by Splunk
+  Support.
+* Default: 360
 
 proxyBundlesTTL = <int>
 * Specifies the time to live in seconds of a proxy bundle on the remote search 
@@ -546,10 +783,11 @@ s2s_standard_mode_local_only_commands = <comma-separated list>
     the command and all the commands that follow it in the search string are
     processed only on the local search head.
 * Change this setting only when instructed to do so by Splunk Support.
-* Default: mcollect, outputlookup, sendalert, sendemail
+* Default: collect, mcollect, outputlookup, sendalert, sendemail
 
 sal_api_base_url = <URL>
 * The base URL for the Cisco Security Analytics and Logging (SAL) API.
+* Supported only on Splunk Cloud Platform.
 * Default: https://ci.manage.security.cisco.com/
 
 rsh_delta_write_timeout = <unsigned integer>
@@ -591,6 +829,15 @@ expand_federated_index_wildcard_only = <bool>
     "|index=fin OR index=federated:fedfin".
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.  
 * Default: true 
+
+expansionOptimizationEnabled = <boolean>
+* Whether or not the federated search head skips KV field expansion. The
+  federated search head does not need to apply this expansion because the
+  remote search head applies it later.
+* A value of "true" means the federated search head skips KV field expansion.
+* A value of "false" means the federated search head applies KV field expansion.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: true
 
 fshFeaturesTransactionRequestEnabled = <boolean>
 * NOTE: Do not change this setting unless instructed to do so by Splunk Support.
@@ -684,6 +931,7 @@ legacy_aws_federated_provider_support = <string>
     and editing for 'aws_s3'. Only 'list' and 'delete' are allowed.
 * NOTE: Federated providers for Federated Search for Splunk (FS-S2S) are
   not affected by this setting.
+* Supported only on Splunk Cloud Platform.
 * Default: *:*
 
 legacy_aws_federated_index_support = <string>
@@ -698,15 +946,18 @@ legacy_aws_federated_index_support = <string>
   * Federated provider types: 'aws_s3', 'aws_s3_sal', 'aws_lake', or '*'
     for all types.
   * Actions: 'create', 'edit', 'list', 'delete', 'search',
-    'search_deprecated', or '*' for all actions.
+    'search_deprecated', 'search_spl2_only', or '*' for all actions.
   * Separate multiple actions with a pipe (|) character.
 * The 'search' action allows 'sdselect' queries to execute against indexes
   of this federated provider type without any deprecation warning.
 * The 'search_deprecated' action allows 'sdselect' queries to execute but
   displays a deprecation warning in the search job messages (visible in the
   Search UI job inspector and REST API search results).
-* If neither 'search' nor 'search_deprecated' is specified, 'sdselect'
-  queries are blocked with an error.
+* The 'search_spl2_only' action blocks direct SPL1 'sdselect' invocation
+  but allows 'sdselect' when compiled from an SPL2 query through the Data
+  Orchestrator.
+* If none of 'search', 'search_deprecated', or 'search_spl2_only' is
+  specified, 'sdselect' queries are blocked with an error.
 * Provider type mapping:
   * 'aws_s3': Legacy FS-S3 providers (Splunk-managed and customer-managed).
   * 'aws_s3_sal': Federated Search for Cisco Security Analytics and Logging
@@ -725,6 +976,7 @@ legacy_aws_federated_index_support = <string>
     'aws_s3_sal' and 'aws_lake' federated indexes.
 * NOTE: Federated indexes for Federated Search for Splunk (FS-S2S) are not
   affected by this setting.
+* Supported only on Splunk Cloud Platform.
 * Default: *:*
 
 [features]

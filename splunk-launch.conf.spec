@@ -1,4 +1,4 @@
-#   Version 10.4.2
+#   Version 10.6.0.5
 
 # splunk-launch.conf contains values used at startup time, by the Splunk
 # command and by Windows services.
@@ -32,7 +32,20 @@
 
 <environment_variable>=<value>
 
-* Any desired environment variable can be set to any value.
+* Any desired environment variable can be set to any value; however,
+  support for most environment variables for starting the Splunk
+  platform has been deprecated and might be restricted or removed in
+  a future release. In the future, this support will apply only to
+  environment variables whose names begin with "SPLUNK" and that this
+  file documents.
+  The Splunk launcher uses SPLUNK_LAUNCH_ALLOWLIST environment
+  variable to enforce this documented-variable policy. This variable is read
+  only from the Splunk launcher process environment before this file is loaded;
+  setting it in splunk-launch.conf has no effect. When set to "1", only
+  environment variables allowed for splunk-launch.conf are exported. The
+  allowlist is based on variables documented in this file, with compatibility
+  handling for SPLUNK* variables. Other variables are ignored and a warning is
+  logged. Some sensitive SPLUNK* variables are always blocked.
   Whitespace is trimmed from around both the key and value.
   Variable substitution (VAR=$OTHER_VAL) is not supported.
 * Environment variables set here will be available to all Splunk 
@@ -246,3 +259,16 @@ ENABLE_CPUSHARES = <boolean>
   unit file named Splunkd.service by default, in /etc/systemd/system.
 * Supported for only Linux.
 * Defaults: true
+
+SPLUNKD_MINIMUM_UMASK = <string>
+* The minimum user file creation mask (umask) that the Splunk
+  launcher applies to the Splunk daemon process at startup.
+* This setting applies only on machines that run *nix. It does
+  not apply to machines that run Windows.
+* The value must be a valid octal string in the range 000–077.
+* The launcher enforces a floor on the current umask: it performs
+  umask(umask(0777) | SPLUNKD_MINIMUM_UMASK), so the effective
+  umask is always at least as restrictive as this value.
+* The launcher rejects values above 077, and splunkd exits with
+  an error if you configure this setting to those values.
+* Default: 067

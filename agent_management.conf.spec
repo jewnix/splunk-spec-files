@@ -1,4 +1,4 @@
-#   Version 10.4.2
+#   Version 10.6.0.5
 #
 ############################################################################
 # OVERVIEW
@@ -46,7 +46,7 @@ repository_type = <string>
   * A value of "database" means agent
     management uses a database as the storage
     layer.
-* Default: database
+* Default: ds
 
 [search_client]
 * Agent management helper process settings for the SPL subsystem.

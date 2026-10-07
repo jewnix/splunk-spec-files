@@ -1,30 +1,289 @@
-# Splunk REST API Reference (version 10.4)
+# Splunk REST API Reference (version 10.6)
 
-Source: https://help.splunk.com/en/splunk-enterprise/rest-api-reference/10.4/
+Source: https://help.splunk.com/en/splunk-enterprise/rest-api-reference/10.6/
 
 ## Endpoint Groups
 
-- [Access](#access) (29 endpoints)
+- [Access](#access) (49 endpoints)
 - [Application](#application) (8 endpoints)
 - [Cluster](#cluster) (70 endpoints)
-- [Configuration](#configuration) (2 endpoints)
+- [Configuration](#configuration) (6 endpoints)
 - [Deployment](#deployment) (24 endpoints)
 - [Federated Search](#federated-search) (10 endpoints)
 - [Input](#input) (55 endpoints)
 - [Introspection](#introspection) (41 endpoints)
-- [Knowledge](#knowledge) (40 endpoints)
-- [Kv Store](#kv-store) (13 endpoints)
+- [Knowledge](#knowledge) (42 endpoints)
+- [Kv Store](#kv-store) (15 endpoints)
 - [License](#license) (14 endpoints)
 - [Metrics Catalog](#metrics-catalog) (5 endpoints)
 - [Output](#output) (9 endpoints)
 - [Search](#search) (44 endpoints)
-- [System](#system) (10 endpoints)
-- [Topology](#topology) (0 endpoints)
+- [System](#system) (12 endpoints)
+- [Topology](#topology) (5 endpoints)
 - [Workload Management](#workload-management) (10 endpoints)
 
 ---
 
 ## Access
+
+### `/services/admin/Duo-MFA`
+
+Configure Duo Multifactor authentication.
+
+#### GET
+
+List Duo Multifactor configuration settings.
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `integrationKey` | Duo integration key for Splunk. Must be of size = 20. |  |
+| `secretKey` | Shared secret key between Splunk and Duo. |  |
+| `apiHostname` | Duo REST API endpoint used by Splunk for multifactor authentication |  |
+| `appSecretKey` | Splunk application specific secret key. Must be a random generated hex of length 40 or more. |  |
+| `failOpen` | Boolean indicating whether Splunk should bypass the Duo service if it is unavailable. Defaults to false . |  |
+| `timeout` | Positive integer indicating the Duo connection timeout, in seconds, for declaring the Duo service unavailable. Defaults to 15 seconds. |  |
+| `sslVersions` | SSL version to use for accessing the Duo REST API. Defaults to Splunkd sslVersion . |  |
+| `cipherSuite` | Cipher suite to use for accessing the Duo REST API. Defaults to Splunkd cipherSuite . |  |
+| `ecdhCurves` | ECDH curve value to use for accessing the Duo REST API. Defaults to Splunkd ecdhCurves . |  |
+| `sslVerifyServerCert` | Boolean indicating if Duo server certificate verification is required. Defaults to false . |  |
+| `sslRootCAPath` | Full path of the certificate to be used for certificate verification if sslVerifyServerCert is true . |  |
+| `sslCommonNameToCheck` | Common name to verify if sslVerifyServerCert is true . |  |
+| `sslAltNameToCheck` | Alternate name to verify if sslVerifyServerCert is true . |  |
+| `useClientSSLCompression` | Boolean indicating if client side SSL compression is enabled. Defaults to Splunkd useClientSSLCompression . |  |
+
+#### POST
+
+Create a Duo Multifactor configuration.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `integrationKey` | See description | Required . Duo integration key for Splunk. Must be of size = 20. |
+| `secretKey` | See description | Required . Shared secret key between Splunk and Duo. |
+| `apiHostname` | See description | Required . Duo REST API endpoint used by Splunk for multifactor authentication |
+| `appSecretKey` | See description | Required . Splunk application specific secret key. Must be a random generated hex of length 40 or more. |
+| `failOpen` | Boolean | Optional. Indicates whether Splunk should bypass the Duo service if it is unavailable. Defaults to false . |
+| `timeout` | Positive integer | Optional. Positive integer indicating the Duo connection timeout, in seconds, for declaring the Duo service unavailable. Defaults to 15 seconds. |
+| `sslVersions` | See description | Optional. SSL version to use for accessing the Duo REST API. Defaults to Splunkd sslVersion . |
+| `cipherSuite` | See description | Optional. Cipher suite to use for accessing the Duo REST API. Defaults to Splunkd cipherSuite . |
+| `ecdhCurves` | See description | Optional. ECDH curve value to use for accessing the Duo REST API. Defaults to Splunkd ecdhCurves . |
+| `sslVerifyServerCert` | Boolean | Optional. Indicates if Duo server certificate verification is required. Defaults to false . If set to true , provide a sslRootCAPath to ensure successful certificate validation. |
+| `sslRootCAPath` | See description | Optional. Full path of the certificate to be used for certificate verification. If sslVerifyServerCert is true , this path must be provided to ensure successful certificate validation. |
+| `sslCommonNameToCheck` | See description | Optional. Common name to verify if sslVerifyServerCert is true . |
+| `sslAltNameToCheck` | See description | Optional. Alternate name to verify if sslVerifyServerCert is true . |
+| `useClientSSLCompression` | See description | Optional. Boolean indicating if client side SSL compression is enabled. Defaults to Splunkd useClientSSLCompression . |
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `integrationKey` | Duo integration key for Splunk. Must be of size = 20. |  |
+| `secretKey` | Shared secret key between Splunk and Duo. |  |
+| `apiHostname` | Duo REST API endpoint used by Splunk for multifactor authentication |  |
+| `appSecretKey` | Splunk application specific secret key. Must be a random generated hex of length 40 or more. |  |
+| `failOpen` | Boolean indicating whether Splunk should bypass the Duo service if it is unavailable. Defaults to false . |  |
+| `timeout` | Positive integer indicating the Duo connection timeout, in seconds, for declaring the Duo service unavailable. Defaults to 15 seconds. |  |
+| `sslVersions` | SSL version to use for accessing the Duo REST API. Defaults to Splunkd sslVersion . |  |
+| `cipherSuite` | Cipher suite to use for accessing the Duo REST API. Defaults to Splunkd cipherSuite . |  |
+| `ecdhCurves` | ECDH curve value to use for accessing the Duo REST API. Defaults to Splunkd ecdhCurves . |  |
+| `sslVerifyServerCert` | Boolean that indicates if Duo server certificate verification is required. Defaults to false . If set to true , provide a sslRootCAPath to ensure successful certificate validation. |  |
+| `sslRootCAPath` | Full path of the certificate to be used for certificate verification. If sslVerifyServerCert is true , this path must be provided to ensure successful certificate validation. |  |
+| `sslCommonNameToCheck` | Common name to verify if sslVerifyServerCert is true . |  |
+| `sslAltNameToCheck` | Alternate name to verify if sslVerifyServerCert is true . |  |
+| `useClientSSLCompression` | Boolean indicating if client side SSL compression is enabled. Defaults to Splunkd useClientSSLCompression . |  |
+
+### `/services/admin/Duo-MFA/{name}`
+
+Access and manage the {name} Duo Multifactor configuration.
+
+#### GET
+
+List the {name} Duo Multifactor configuration settings.
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `integrationKey` | Duo integration key for Splunk. Must be of size = 20. |  |
+| `secretKey` | Shared secret key between Splunk and Duo. |  |
+| `apiHostname` | Duo REST API endpoint used by Splunk for multifactor authentication |  |
+| `appSecretKey` | Splunk application specific secret key. Must be a random generated hex of length 40 or more. |  |
+| `failOpen` | Boolean indicating whether Splunk should bypass the Duo service if it is unavailable. Defaults to false . |  |
+| `timeout` | Positive integer indicating the Duo connection timeout, in seconds, for declaring the Duo service unavailable. Defaults to 15 seconds. |  |
+| `sslVersions` | SSL version to use for accessing the Duo REST API. Defaults to Splunkd sslVersion . |  |
+| `cipherSuite` | Cipher suite to use for accessing the Duo REST API. Defaults to Splunkd cipherSuite . |  |
+| `ecdhCurves` | ECDH curve value to use for accessing the Duo REST API. Defaults to Splunkd ecdhCurves . |  |
+| `sslVerifyServerCert` | Boolean indicating if Duo server certificate verification is required. Defaults to false . |  |
+| `sslRootCAPath` | Full path of the certificate to be used for certificate verification if sslVerifyServerCert is true . |  |
+| `sslCommonNameToCheck` | Common name to verify if sslVerifyServerCert is true . |  |
+| `sslAltNameToCheck` | Alternate name to verify if sslVerifyServerCert is true . |  |
+| `useClientSSLCompression` | Boolean indicating if client side SSL compression is enabled. Defaults to Splunkd useClientSSLCompression . |  |
+
+#### POST
+
+Update the {name} Duo Multifactor configuration.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `integrationKey` | See description | Duo integration key for Splunk. Must be of size = 20. |
+| `secretKey` | See description | Shared secret key between Splunk and Duo. |
+| `apiHostname` | See description | Duo REST API endpoint used by Splunk for multifactor authentication |
+| `appSecretKey` | See description | Splunk application specific secret key. Must be a random generated hex of length 40 or more. |
+| `failOpen` | Boolean | Indicates whether Splunk should bypass the Duo service if it is unavailable. Defaults to false . |
+| `timeout` | Positive integer | Optional. Positive integer indicating the Duo connection timeout, in seconds, for declaring the Duo service unavailable. Defaults to 15 seconds. |
+| `sslVersions` | See description | Optional. SSL version to use for accessing the Duo REST API. Defaults to Splunkd sslVersion . |
+| `cipherSuite` | See description | Optional. Cipher suite to use for accessing the Duo REST API. Defaults to Splunkd cipherSuite . |
+| `ecdhCurves` | See description | Optional. ECDH curve value to use for accessing the Duo REST API. Defaults to Splunkd ecdhCurves . |
+| `sslVerifyServerCert` | Boolean | Optional. Indicates if Duo server certificate verification is required. Defaults to false . If set to true , provide a sslRootCAPath to ensure successful certificate validation. |
+| `sslRootCAPath` | See description | Optional. Full path of the certificate to be used for certificate verification. If sslVerifyServerCert is true , this path must be provided to ensure successful certificate validation. |
+| `sslCommonNameToCheck` | See description | Optional. Common name to verify if sslVerifyServerCert is true . |
+| `sslAltNameToCheck` | See description | Optional. Alternate name to verify if sslVerifyServerCert is true . |
+| `useClientSSLCompression` | See description | Optional. Boolean indicating if client side SSL compression is enabled. Defaults to Splunkd useClientSSLCompression . |
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `integrationKey` | Duo integration key for Splunk. Must be of size = 20. |  |
+| `secretKey` | Shared secret key between Splunk and Duo. |  |
+| `apiHostname` | Duo REST API endpoint used by Splunk for multifactor authentication |  |
+| `appSecretKey` | Splunk application specific secret key. Must be a random generated hex of length 40 or more. |  |
+| `failOpen` | Boolean indicating whether Splunk should bypass the Duo service if it is unavailable. Defaults to false . |  |
+| `timeout` | Positive integer indicating the Duo connection timeout, in seconds, for declaring the Duo service unavailable. Defaults to 15 seconds. |  |
+| `sslVersions` | SSL version to use for accessing the Duo REST API. Defaults to Splunkd sslVersion . |  |
+| `cipherSuite` | Cipher suite to use for accessing the Duo REST API. Defaults to Splunkd cipherSuite . |  |
+| `ecdhCurves` | ECDH curve value to use for accessing the Duo REST API. Defaults to Splunkd ecdhCurves . |  |
+| `sslVerifyServerCert` | Boolean that indicates if Duo server certificate verification is required. Defaults to false . If set to true , provide a sslRootCAPath to ensure successful certificate validation. |  |
+| `sslRootCAPath` | Full path of the certificate to be used for certificate verification. If sslVerifyServerCert is true , this path must be provided to ensure successful certificate validation. |  |
+| `sslCommonNameToCheck` | Common name to verify if sslVerifyServerCert is true . |  |
+| `sslAltNameToCheck` | Alternate name to verify if sslVerifyServerCert is true . |  |
+| `useClientSSLCompression` | Boolean indicating if client side SSL compression is enabled. Defaults to Splunkd useClientSSLCompression . |  |
+
+#### DELETE
+
+Delete the {name} Duo Multifactor configuration.
+
+### `/services/admin/Rsa-MFA`
+
+Configure RSA multifactor authentication.
+
+#### GET
+
+List the RSA Authentication Manager configuration settings.
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `authManagerUrl` | URL of REST endpoint of RSA Authentication Manager. |  |
+| `accessKey` | Access key needed by Splunk to communicate with RSA Authentication Manager. Note that this value is hidden output. |  |
+| `clientId` | Agent name created on RSA Authentication Manager is clientId. |  |
+| `failOpen` | If true, allow login in case authentication server is unavailable. |  |
+| `timeout` | It determines the connection timeout in seconds for the outbound HTTPS connection. |  |
+| `messageOnError` | Message that will be shown to user in case of login failure. |  |
+| `enableMfaAuthRest` | If true, enable authentication of REST calls. |  |
+| `caCertBundlePayload` | SSL certificate chain return by RSA server. |  |
+| `replicateCertificates` | If enabled, RSA certificate files are replicated across search head cluster setup. |  |
+
+#### POST
+
+Edit the RSA Authentication Manager configuration.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `authManagerUrl` | String | Required. URL of REST endpoint of RSA Authentication Manager. |
+| `accessKey` | String | Required. Access key needed by Splunk to communicate with RSA Authentication Manager. |
+| `clientId` | String | Required. Agent name created on RSA Authentication Manager is clientId. |
+| `failOpen` | Boolean | Optional. If true, allow login in case authentication server is unavailable. |
+| `timeout` | Integer | Optional. It determines the connection timeout in seconds for the outbound HTTPS connection. |
+| `messageOnError` | String | Optional. Message that will be shown to user in case of login failure. |
+| `enableMfaAuthRest` | Boolean | Optional. If true, enable authentication of REST calls. |
+| `caCertBundlePayload` | String | Required. SSL certificate chain return by RSA server. |
+| `replicateCertificates` | Boolean | If enabled, RSA certificate files will be replicated across search head cluster setup. |
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `authManagerUrl` | URL of REST endpoint of RSA Authentication Manager. |  |
+| `accessKey` | Access key needed by Splunk to communicate with RSA Authentication Manager. Note that this value is hidden output. |  |
+| `clientId` | Agent name created on RSA Authentication Manager is clientId. |  |
+| `failOpen` | If true, allow login in case authentication server is unavailable. |  |
+| `timeout` | It determines the connection timeout in seconds for the outbound HTTPS connection. |  |
+| `messageOnError` | Message that will be shown to user in case of login failure. |  |
+| `enableMfaAuthRest` | If true, enable authentication of REST calls. |  |
+| `caCertBundlePayload` | SSL certificate chain return by RSA server. |  |
+| `replicateCertificates` | If enabled, RSA certificate files will be replicated across search head cluster setup. |  |
+
+#### DELETE
+
+Delete the RSA Authentication Manager configuration.
+
+### `/services/admin/Rsa-MFA-config-verify/<rsa-stanza-name>`
+
+Verify RSA multifactor authentication.
+
+#### POST
+
+Verify the RSA mutifactor authentication.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `username'` | String | Optional. RSA username. |
+| `passcode` | String | Optional. RSA passcode consists of PIN followed by tokencode. |
+
+### `/services/admin/LDAP-groups`
+
+Access and update LDAP group to role mappings.
+
+#### GET
+
+Access LDAP group mappings.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `strategy` | LDAP strategy name |  |
+| `LDAPgroup` | LDAP group name |  |
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `roles` | Roles mapped to this group |  |
+| `strategy` | Strategy name |  |
+| `type` | Group type |  |
+| `users` | List of users in this group |  |
+
+#### POST
+
+Create an LDAP group.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `strategy` | Required . LDAP strategy name |  |
+| `LDAPgroup` | Required . LDAP group name |  |
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `roles` | Roles mapped to this group. |  |
+| `strategy` | Strategy name |  |
+| `type` | Group type |  |
+| `users` | List of users in this group. |  |
 
 ### `/services/authentication/providers/LDAP`
 
@@ -162,6 +421,194 @@ Creates a group-to-role mapping for an OAuth configuration.
 | `config` | String | Required. The name of the OAuth configuration this mapping belongs to. |
 | `roles` | String | Required. The Splunk role to assign to the group. Supply this parameter for each role you want to assign. |
 
+### `/services/admin/ProxySSO-auth`
+
+Access or create a ProxySSO configuration.
+
+#### GET
+
+Review existing ProxySSO configurations.
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `defaultRoleIfMissing` | Name of default role to use if no mapping is found. |  |
+| `blacklistedUsers` | Comma separated list of blacklisted users. |  |
+| `blacklistedAutoMappedRoles` | Comma separated list of blacklisted roles. |  |
+| `disabled` | Boolean value indicating whether the configuration is disabled. 0 indicates that the configuration is enabled. |  |
+| `title` | Configuration name |  |
+
+#### POST
+
+Add a new ProxySSO configuration.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `defaultRoleIfMissing` | Role name | Specify a default role to use if no mapping is found. |
+| `blacklistedUsers` | Comma separated list | Specify blacklisted users. |
+| `blacklistedAutoMappedRoles` | Comma separated list | Specify blacklisted roles. |
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `defaultRoleIfMissing` | Name of default role to use if no mapping is found. |  |
+| `blacklistedUsers` | Comma separated list of blacklisted users. |  |
+| `blacklistedAutoMappedRoles` | Comma separated list of blacklisted roles. |  |
+| `disabled` | Boolean value indicating whether the configuration is disabled. 0 indicates that the configuration is enabled. |  |
+
+### `/services/admin/ProxySSO-auth/{proxy_name}`
+
+Access, update, or delete the {proxy_name} configuration.
+
+#### GET
+
+Access configuration details.
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `defaultRoleIfMissing` | Name of default role to use if no mapping is found. |  |
+| `blacklistedUsers` | Comma separated list of blacklisted users. |  |
+| `blacklistedAutoMappedRoles` | Comma separated list of blacklisted roles. |  |
+| `disabled` | Boolean value indicating whether the configuration is disabled. 0 indicates that the configuration is enabled. |  |
+| `title` | Configuration name |  |
+
+#### POST
+
+Update a configuration.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `defaultRoleIfMissing` | Role name | Specify a default role to use if no mapping is found. |
+| `blacklistedUsers` | Comma separated list | Specify blacklisted users. |
+| `blacklistedAutoMappedRoles` | Comma separated list | Specify blacklisted roles. |
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `defaultRoleIfMissing` | Name of default role to use if no mapping is found. |  |
+| `blacklistedUsers` | Comma separated list of blacklisted users. |  |
+| `blacklistedAutoMappedRoles` | Comma separated list of blacklisted roles. |  |
+| `disabled` | Boolean value indicating whether the configuration is disabled. 0 indicates that the configuration is enabled. |  |
+| `title` | Configuration name |  |
+
+#### DELETE
+
+Delete a configuration.
+
+### `/services/admin/ProxySSO-auth/{proxy_name}/disable`
+
+Disable the {proxy_name} configuration.
+
+#### GET
+
+Disable the {proxy_name} configuration.
+
+### `/services/admin/ProxySSO-auth/{proxy_name}/enable`
+
+Use a GET request to create and enable the {proxy_name} authentication setting. Changes are made in the default app context.
+
+#### GET
+
+Enable the {proxy_name} configuration.
+
+### `/services/admin/ProxySSO-groups`
+
+Access or create role to group ProxySSO mappings.
+
+#### GET
+
+Access ProxySSO role to group mappings.
+
+#### POST
+
+Create a new mapping.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `roles` | User role name | Specify roles to map to the group that you are creating. Use a separate roles parameter for each role added. |
+
+### `/services/admin/ProxySSO-groups/{group_name}`
+
+Access, create, and manage role to group mappings.
+
+#### GET
+
+Access role mappings for the {group_name} group.
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `roles` | Roles mapped to this group. |  |
+
+#### POST
+
+Create a new {group_name} mapping or update an existing one.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `roles` | User role name | Specify roles to map to the group that you are creating or updating. Use a separate roles parameter for each role added. |
+
+#### DELETE
+
+Delete the {group_name} group mapping.
+
+### `/services/admin/ProxySSO-user-role-map`
+
+Access or create a user to role mapping.
+
+#### GET
+
+Access user to role mappings
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `roles` | Roles mapped to the user |  |
+| `title` | User name |  |
+
+#### POST
+
+Create a user to role mapping.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `roles` | User role name | Specify a role to map to the user. Use a separate roles parameter for each role that you are mapping. |
+
+### `/services/admin/ProxySSO-user-role-map/{user_name}`
+
+Access or delete a user to role mapping.
+
+#### GET
+
+Access role mappings for the {user_name} user.
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `roles` | Roles mapped to the {user_name} user. |  |
+
+#### DELETE
+
+Delete the {user_name} user to role mapping.
+
 ### `/services/admin/replicate-SAML-certs`
 
 Replicate SAML IdP certificates across a search head cluster.
@@ -169,6 +616,84 @@ Replicate SAML IdP certificates across a search head cluster.
 #### POST
 
 Usage details
+
+### `/services/admin/SAML-groups`
+
+Manage external groups in an IdP response to internal Splunk roles.
+
+#### GET
+
+Access internal roles for this external group.
+
+#### POST
+
+Convert an external group to internal roles.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `roles` | String | Equivalent internal role for the group. |
+
+### `/services/admin/SAML-groups/{group_name}`
+
+Delete the {group_name} group.
+
+#### DELETE
+
+Delete the {group_name} particular group.
+
+### `/services/admin/SAML-idp-metadata`
+
+Access IdP SAML metadata attributes.
+
+#### GET
+
+Access SAML user and role information for saved searches.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `idpMetadataFile` | File path. See description. | Full path of the metadata file location. File should be local to splunkd server. |
+
+### `/services/admin/SAML-sp-metadata`
+
+Access service provider SAML metadata attributes.
+
+#### GET
+
+Access SAML metadata attributes.
+
+### `/services/admin/SAML-user-role-map`
+
+Access or create SAML user and role information for saved searches if your IdP does not support Attribute Query Requests. To delete a username, see admin/SAML-user-role-map/{name} .
+
+#### GET
+
+Access SAML user and role information for saved searches.
+
+#### POST
+
+Update SAML user and role information for saved searches.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `roles` | String | Assigned roles for this user. |
+
+#### DELETE
+
+See admin/SAML-user-role-map/{name}
+
+### `/services/admin/SAML-user-role-map/{name}`
+
+Delete SAML user and role information for saved searches if your IdP does not support Attribute Query Requests.
+
+#### DELETE
+
+Remove a username from SAML users for saved searches.
 
 ### `/services/authentication/providers/SAML`
 
@@ -555,6 +1080,23 @@ Create a token for the specified username.
 | `audience` | String | The purpose for the token. Can be up to 256 characters. |
 | `expires_on` | String | The time that the token expires. Can be either of an absolute time (ex.: 2019-02-09T07:35:00+07:00 ) or a relative time (ex.: +90d ). This time cannot be in the past. Note : If you specify not_before in addition to expires_on , not_before cannot be after expires_on .. |
 | `not_before` | String | The time that the token becomes valid. Can be an absolute time or a relative time. This time cannot be in the past. Note : If you specify not_before in addition to expires_on , not_before cannot be after expires_on .. |
+
+### `/services/oauth2/v1/token`
+
+This is a public endpoint and does not require prior authentication with the Splunk platform. The platform validates the authorization through the client_assertion JSON Web Token (JWT).
+
+#### POST
+
+Exchanges an IdP token for a Splunk token.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `grant_type` | String | Required. Must be set to client_credentials . |
+| `client_id` | String | Required. The client ID of the OAuth application. This must match the corresponding claim in the IdP token. |
+| `client_assertion_type` | String | Required. Must be set to urn:ietf:params:oauth:client-assertion-type:jwt-bearer . |
+| `client_assertion` | String | Required. The JWT access token obtained from the Identity Provider. |
 
 ### `/services/storage/passwords`
 
@@ -2126,6 +2668,83 @@ Update or add property to {stanza} in {file} configuration file.
 | Name | Type | Description |
 |------|------|-------------|
 | `<variable>` | String | Arbitrary number of key/value pairs to update. |
+
+### `/services/properties`
+
+#### GET
+
+List all system and app configuration files.
+
+#### POST
+
+Create a configuration file.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `__conf` | String | Required . Name of the configuration file to create. (Note double underscore prefix. |
+
+### `/services/properties/{file}`
+
+Access stanzas in specified configuration file, or optionally validate an entire configuration file.
+
+#### GET
+
+List stanzas in {file} configuration file.
+
+#### POST
+
+Add stanza to {file} configuration file or validate the entire configuration file.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `__stanza` | String | The key/value pair of the stanza to add. Note double underscore prefix. |
+| `validate` | Boolean | If set to "true", this request does not modify the configuration file; instead, it only validates the configuration file. Set to "false" or omit this parameter to add the specified stanza to the configuration file without performing validation. |
+
+### `/services/properties/{file}/{stanza}`
+
+#### GET
+
+List {stanza} key/value pair(s) of {file} configuration file.
+
+#### POST
+
+Add or update one or more key/value pair(s) in {stanza} of {file} configuration file.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `<variable>` | String | Required . One or more key/value pair(s). |
+
+#### DELETE
+
+Removes only the local copy of the stanza at the path resolved by the URL namespace. If the stanza also exists in a default or inherited layer, those layers are not affected and the stanza remains visible in the merged view after the operation. If the stanza exists only in the local layer, it is removed entirely from the merged view.
+
+### `/services/properties/{file}/{stanza}/{key}`
+
+Access and update values for the specified configuration file, stanza, and key.
+
+#### GET
+
+Get a plaintext {key} value for a configuration file stanza and key.
+
+#### POST
+
+Update a plaintext {key} value for a configuration file stanza and key.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `<variable>` | String | Required . Plaintext value. |
+
+#### DELETE
+
+Removes only the local copy of the key-value pair at the path resolved by the URL namespace. If the key also exists in a default or inherited layer, that layer is not affected and the key remains visible in the merged view at its default value. If the key exists only in the local layer, it is removed entirely from the merged view. Other keys in the same stanza are not affected.
 
 ---
 
@@ -4700,7 +5319,7 @@ Query the status of pipeline sets.
 | `requests_last_period` | The number of ingestion requests processed by the pipeline set in the past calculation period. |  |
 | `share` | The relative probability of selection of the pipeline set for the past calculation period. |  |
 
-### `/services/services/collector`
+### `/services/collector`
 
 Send events to HTTP Event Collector using the Splunk platform JSON event protocol.
 
@@ -4730,7 +5349,7 @@ Send events to the HTTP Event Collector.
 | `invalid-event-number` | When errors occur, indicates the zero-based index of first invalid event in an event sequence. |  |
 | `ackId` | If useACK is enabled for the token, indicates the ackId to use for checking an indexer acknowledgement. |  |
 
-### `/services/services/collector/ack`
+### `/services/collector/ack`
 
 #### GET
 
@@ -4749,7 +5368,7 @@ Get HTTP Event Collector event indexing status.
 |------|------|-------------|
 | `acks` | Contains the key/value pairs for each ACK ID requested. For each key in the "acks" object, a true value means the ACK ID's events were indexed. A false value means that indexing status is unknown. For example, an event may have an indexing delay long enough that it is no longer tracked. Here is an example response. {"acks" : { "0" : true, "1" : false, "2" : true, "3" : false}} |  |
 
-### `/services/services/collector/mint`
+### `/services/collector/mint`
 
 Post MINT formatted data to the HTTP Event Collector. The authorization header contains the authorization scheme and application token. The HTTP POST body contains event data in the MINT payload format.
 
@@ -4767,7 +5386,7 @@ Post MINT formatted data.
 | `sourcetype` | string | User-defined event sourcetype. Specify with the sourcetype query string parameter. Sets a default for all events in the request. The default sourcetype can be overridden. |
 | `time` | string or unsigned integer | Epoch-formatted time. Specify with the time query string parameter. Sets a default for all events in the request. The default time can be overridden. |
 
-### `/services/services/collector/raw`
+### `/services/collector/raw`
 
 #### POST
 
@@ -5792,7 +6411,7 @@ Access server details.
 | `transparent_hugepages` | For Linux systems, includes the following THP status indicators. defrag effective_state enabled For non-Linux systems, effective_state is set to ok |  |
 | `ulimits` | On all UNIX systems, lists settings for the following ulimits in place on splunkd at runtime. core_file_size cpu_time data_file_size data_segment_size nice open_files resident_memory_size stack_size user_processes virtual_address_space_size |  |
 
-### `/services/services/saved/bookmarks/monitoring_console`
+### `/services/saved/bookmarks/monitoring_console`
 
 Add URLs that link to monitoring consoles of your other deployments. For example, if you're admin overseeing multiple separate Splunk deployments for different teams.
 
@@ -7128,6 +7747,28 @@ Get information about a specific pivot.
 | `search` | The search string for running the pivot report |  |
 | `tstats_search` | The search for running this pivot report using tstats |  |
 
+### `/services/directory`
+
+Access user configurable objects.
+
+#### GET
+
+List app-scoped objects.
+
+### `/services/directory/{name}`
+
+Get information about the {name} directory entity.
+
+#### GET
+
+Get information about a specific directory entity.
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `eai:type` | Entity type. |  |
+
 ### `/services/saved/bookmarks/monitoring_console`
 
 Add URLs that link to monitoring consoles of your other deployments. For example, if you're admin overseeing multiple separate Splunk deployments for different teams.
@@ -7577,6 +8218,58 @@ Perform multiple save operations in a batch.
 #### POST
 
 Perform multiple save operations in a batch.
+
+### `/services/storage/collections/stats`
+
+#### GET
+
+Get global statistics for a specific collection.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `collection` | string | Required. Name of the collection. |
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `record_count` | Number of records returned. |  |
+| `estimated_size_bytes` | Estimated size of the collection in bytes. |  |
+| `index_count` | Number of indexes. |  |
+| `last_updated` | Timestamp of when the collection was last updated. |  |
+
+### `/services/storage/collections/stats/fields`
+
+#### GET
+
+Get filtered statistics for records in a KV store collection.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `collection` | String | Required. Name of the collection. |
+| `filter` | String | Required. URL-encoded JSON filter object, using the same syntax as existing KV store query filters. |
+| `fields` | String | Optional, unless a value is specified for agg. Then, fields is required. Comma-separated list of fields to aggregate. Requested fields must be declared as number fields in your collections.conf file. |
+| `agg` | String | Optional. Comma-separated aggregation functions. Supported values are count , sum , min , and max . Default: count . |
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `collection` | String | Name of the collection represented by the response. |
+| `filter` | Object | Filter applied to the statistics request. |
+| `stats` | Object | Filtered statistics for the collection. |
+| `stats.count` | Integer | Always returned. Number of records that match the supplied filter. |
+| `stats.aggregations` | Object | Returned only if fields is specified and agg is set to either count , sum , min , or max . Returns field-level aggregations for each requested field. Aggregation results keyed by field name. |
+| `stats.aggregations.<field>.count` | Integer | Returned only if a value is specified for fields , but agg is left blank or set to count . Number of matching records with an applicable numeric value for the field. Returns a value for each requested field. |
+| `stats.aggregations.<field>.min` | Number | Minimum numeric value for the field. |
+| `stats.aggregations.<field>.max` | Number | Maximum numeric value for the field. |
+| `stats.aggregations.<field>.sum` | Number | Sum of numeric values for the field. |
+| `stats.execution_time_ms` | Integer | Time spent computing the filtered statistics, in milliseconds. |
+| `stats.last_updated` | String | Most recent known modification time relevant to the returned statistics, in RFC 3339 format when available, otherwise an empty string. If your KV store has not been upgraded to cohosted, this value is always an empty string. |
 
 ---
 
@@ -10356,6 +11049,36 @@ Get a list of words or descriptions for possible auto-complete terms.
 
 ## System
 
+### `/services/messages`
+
+#### GET
+
+Show systemwide messages.
+
+#### POST
+
+Create a persistent message displayed at /services/messages.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `<name>` | String | Required . Message name (key). |
+| `capability` | String | One or more capabilities that users must have to view the message. Capability names are validated. If multiple capabilities are required, include them each as separate fields. |
+| `role` | Comma separated list | One or more roles that users must have to view the message. Role names are validated. |
+| `value` | String | Required . Message text. |
+| `severity` | String | One of the following message severity values. info warn error |
+
+### `/services/messages/{name}`
+
+#### DELETE
+
+Delete the specified message.
+
+#### GET
+
+Get details of the specified message.
+
 ### `/services/server/control`
 
 #### GET
@@ -10461,6 +11184,111 @@ Returns server configuration for a Splunk deployment.
 ---
 
 ## Topology
+
+### `/services/stack-explainer/v1/topology`
+
+Retrieves a complete view of the deployment topology for the Splunk platform, including all managed node roles. Use this information to visualize and analyze your deployment structure.
+
+#### GET
+
+Retrieves a complete view of the deployment topology for the Splunk platform.
+
+**Request parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `include_unmanaged_actors` | Boolean (Flag) | Optional. If present, the response includes unmanaged nodes that communicate with the deployment, typically by ingesting data, but their details cannot be verified. |
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `header.timestamp` | String | The UTC timestamp of when the response was generated. |
+| `license_manager` | Object | The node object for the License Manager. |
+| `cluster_manager` | Object | The node object for the Cluster Manager |
+| `indexers` | Array | Node objects for indexers |
+| `search_heads` | Array | Node objects for search heads |
+| `deployers` | Array | Node objects for deployers |
+| `unrecognized` | Array | Node objects that could not be assigned a known role. This typically occurs when deployment peers remain undiscovered due to network or configuration constraints. |
+| `unmanaged_actors` | Array | Only present when the request included the include_unmanaged_actors parameter. |
+
+### `/services/stack-explainer/v1/node-identity`
+
+Retrieves identity information for the local Splunk platform node. Use this information to uniquely identify the node within the deployment.
+
+#### GET
+
+Retrieves identity information for the local Splunk platform node.
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `header.timestamp` | String | The UTC timestamp of when the response was generated. |
+| `fips_enabled` | Boolean | Whether or not the node is running in FIPS mode. The value of true means that FIPS mode is turned on. The value of false means that FIPS mode is turned off. |
+| `host_info` | Object | A nested object that contains network connectivity details for the remote node: fqdn - The Fully Qualified Domain Name (FQDN) of the remote node. mgmt_scheme - The protocol used for management interface, for example, http or https . mgmt_hostname - The hostname used for the management interface. mgmt_port - The port number for the management interface, for example, 8089. web_scheme - The protocol used for the web interface, for example, http or https . web-port - The port number for the web interface, for example, 8000. |
+| `roles` | Array | Server roles assigned to this node |
+| `version_info` | Object | A nested object that contains the following fields: build - The build number of the current Splunk Enterprise or Splunk Cloud Platform installation version - The version of the current Splunk Enterprise or Splunk Cloud Platform installation |
+| `os_info:` | Object | A nested object that contains the following fields: build - The specific build identifier of the host operating system name - The name of the host operating system version - The version of the host operating system |
+
+### `/services/stack-explainer/v1/node-identity/{guid}`
+
+Available only on License Manager nodes which are the only nodes capable of connecting to remote nodes.
+
+#### GET
+
+Retrieves identity information for a remote Splunk platform node identified by its {guid} .
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `header.timestamp` | String | The UTC timestamp of when the response was generated. |
+| `fips_enabled` | Boolean | Whether or not the remote node is running in FIPS mode. The value of true means that FIPS mode is turned on. The value of false means that FIPS mode is turned off. |
+| `host_info` | Object | A nested object that contains network connectivity details for the remote node: fqdn - The Fully Qualified Domain Name (FQDN) of the remote node. mgmt_scheme - The protocol used for management interface, for example, http or https . mgmt_hostname - The hostname used for the management interface. mgmt_port - The port number for the management interface, for example, 8089. web_scheme - The protocol used for the web interface, for example, http or https . web-port - The port number for the web interface, for example, 8000. |
+| `roles` | Array | Server roles assigned to the remote node |
+| `version_info` | Object | A nested object that contains the following fields: build - The build number of the current Splunk Enterprise or Splunk Cloud Platform installation version - The version of the current Splunk Enterprise or Splunk Cloud Platform installation |
+| `os_info:` | Object | A nested object that contains the following fields: build - The specific build identifier of the host operating system name - The name of the host operating system version - The version of the host operating system |
+
+### `/services/stack-explainer/v1/trusted-connections`
+
+Available on all node types except universal forwarders.
+
+#### GET
+
+Retrieves configuration settings for the trusted connections of the local node, including HEC, S2S, and search peer relationships.
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `header.timestamp` | String | The UTC timestamp of when the response was generated. |
+| `guid` | String | The unique identifier of the host node |
+| `hec` | Object | A nested object that contains configuration and status details for the HTTP Event Collector (HEC): enabled - Whether or not HEC is activated. The value of <codeph>true</codeph> means that HEC is turned on. The value of <codeph>false</codeph> means that HEC is turned off. port - The port number on which HEC is configured to receive data. hashed_tokens - A list of SHA-256 hashed HEC tokens. Only activated tokens are included. senders - A list of IP addresses of HEC senders currently connected to the node. |
+| `s2s` | Object | A nested objects that contains configuration details for Splunk-to-Splunk (S2S) connections: receiving_ports - A mapping of TCP ports to lists of sender IP addresses for incoming S2S (cooked) TCP data. Cooked data refers to the data format native to the Splunk platform, used for S2S communication. forwarding_hosts - A list of the destination host:port pairs for outgoing data. |
+| `tcp_inputs` | Object | A mapping of Transmission Control Protocol (TCP) ports to sender IP addresses for TCP inputs. |
+| `udp_inputs` | Object | A mapping of User Datagram Protocol (UDP) ports to sender IP addresses for UDP inputs. |
+| `searchPeers` | Array | A list of search peers. This field is present only when the node acts as a search head. name - The hostname or display label of the search peer. guid - The unique identifier (GUID) of the search peer. |
+
+### `/services/stack-explainer/v1/trusted-connections/{guid}`
+
+Available only on License Manager nodes.
+
+#### GET
+
+Retrieves configuration settings for the trusted connections of the remote node, identified by {guid} , including HEC, S2S, and search peer relationships.
+
+**Returned values**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `header.timestamp` | String | The UTC timestamp of when the response was generated. |
+| `guid` | String | The unique identifier of the queried remote node |
+| `hec` | Object | A nested object that contains configuration and status details for the HTTP Event Collector (HEC) on the remote node: enabled - Whether or not HEC is activated. A value of <codeph>true</codeph> means that HEC is turned on. A value of <codeph>false</codeph> means that HEC is turned off. port - The port number on which HEC is configured to receive data. hashed_tokens - A list of SHA-256 hashed HEC tokens. Only activated tokens are included. senders - A list of IP addresses of HEC senders currently connected to the node. |
+| `s2s` | Object | A nested objects that contains configuration details for Splunk-to-Splunk (S2S) connections: receiving_ports - A mapping of TCP ports to lists of sender IP addresses for incoming S2S (cooked) TCP data. Cooked data refers to the data format native to the Splunk platform, used for S2S communication. forwarding_hosts - A list of the destination host:port pairs for outgoing data. |
+| `tcp_inputs` | Object | A mapping of Transmission Control Protocol (TCP) ports to sender IP addresses for TCP inputs. |
+| `udp_inputs` | Object | A mapping of User Datagram Protocol (UDP) ports to sender IP addresses for UDP inputs. |
+| `searchPeers` | Array | A list of search peers. This field is present only when the node acts as a search head. name - The hostname or display label of the search peer. guid - The unique identifier (GUID) of the search peer. |
 
 ---
 

@@ -1,4 +1,4 @@
-#   Version 10.4.2
+#   Version 10.6.0.5
 #
 # This file contains settings and values that you can use to configure
 # data transformations.
@@ -472,28 +472,27 @@ CAN_OPTIMIZE_IE = <boolean>
 * Default: false
 
 STOP_PROCESSING_IF = <evaluator expression>
-* An evaluator expression that the regexreplacement processor uses to determine 
-  whether or not further processing is to occur for this event.
-* If you set STOP_PROCESSING_IF, and the regexreplacement processor evaluates the
-  expression that you supply to be true, then the processor stops further 
-  processing of this event.
-* When you set STOP_PROCESSING_IF, like INGEST_EVAL, this setting overrides
-  all of the other index-time settings (such as REGEX, DEST_KEY, etc) except
-  for INGEST_EVAL. STOP_PROCESSING_IF executes after INGEST_EVAL.
-* The processor treats the return value for <evaluator expression> as a boolean value.
-  The final value depends on the value to which the expression initially calculates.
-  See the following list:
+* An evaluator expression that determines whether Splunk software skips the
+  remaining transform stanzas in the current processing class for an event.
+* You can use this setting for index-time field extractions that are referenced
+  by TRANSFORMS-<class> or RULESET-<class> in props.conf and for search-time
+  field extractions that are referenced by REPORT-<class> in props.conf.
+* The processor treats the return value for <evaluator expression> as a
+  boolean value. The final value depends on the value to which the expression
+  initially evaluates. See the following list:
     Numeric "0": false
     Boolean: true/false
     Null value: false
     Any other value: true
-* If this setting appears in multiple rules, then the processor applies the settings
-  in the following order:
+* At index time, STOP_PROCESSING_IF overrides all other settings in the
+  transform stanza except INGEST_EVAL. STOP_PROCESSING_IF executes after
+  INGEST_EVAL.
+* At index time, the processor applies transform classes in the following
+  order:
   * All TRANSFORMS, alphabetically
   * All RULESETs, alphabetically
-  * Within a single rule set class, where they appear in the rule set class
-    determines the order. For example, in the following configuration:
-
+  * Within a single transform class, the processor applies transform stanzas
+    in the order in which they appear in the class. For example:
     [rule1]
     STOP_PROCESSING_IF = <expression1>
 
@@ -507,9 +506,14 @@ STOP_PROCESSING_IF = <evaluator expression>
     STOP_PROCESSING_IF setting executes.
     If <expression1> evaluates to "true", then the processor skips rule2
     and all rules after rule2 in ruleset1.
+* At search time, STOP_PROCESSING_IF overrides all other settings in its
+  transform stanza. INGEST_EVAL is not supported at search time.
+* Within a REPORT-<class> list, Splunk software applies transform stanzas in
+  list order. If <evaluator expression> evaluates to "true", Splunk software
+  skips the remaining transform stanzas in that REPORT-<class> list for the
+  current event. Processing continues with the next REPORT-<class>.
 * Optional.
 * Default: empty string
-* NOTE: This setting is only valid for index-time field extractions.
 
 #*******
 # Lookup tables
@@ -608,6 +612,20 @@ match_type = <string>
 * The available match_type values are WILDCARD, CIDR, and EXACT. Only fields
   that should use WILDCARD or CIDR matching should be specified in this list.
 * Default: EXACT
+
+cidr_priority = most_specific|first_match
+* Controls the order in which the Splunk platform returns matching lookup
+  table rows when multiple CIDR ranges match an input value.
+* A value of "most_specific" means that the Splunk platform returns matching
+  rows by prefix length, from longest prefix to shortest prefix.
+* For example, the Splunk platform returns a /24 match before a /8 match.
+* A value of "first_match" means that the Splunk platform returns matching
+  rows in the order they appear in the lookup table.
+* This setting applies only to lookups where 'match_type' has a value of
+  "CIDR". For non-CIDR lookups, the Splunk platform ignores this setting.
+* To apply most-specific-first behavior to all CIDR lookups, set
+  'cidr_priority' to "most_specific" in the [default] stanza.
+* Default: first_match
 
 external_cmd = <string>
 * Provides the command and arguments to invoke to perform a lookup. Use this

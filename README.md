@@ -71,11 +71,36 @@ Each version of Splunk is tagged in this repository, making it easy to track cha
 
 ## Available Versions
 
-This repository tracks Splunk versions from **6.5.0** to **10.2.1**. You can see all available versions with:
+This repository tracks Splunk versions from **6.5.0** to **10.6.0.5**. You can see all available versions with:
 
 ```bash
-git tag --list
+git tag --list '[0-9]*'
 ```
+
+The `latest` tag always points to the newest version. Because it moves on every release, refresh it in an existing clone with:
+
+```bash
+git fetch --tags --force
+```
+
+### Clean tags
+
+Every version also has a `clean/<version>` tag on the `clean` branch. These hold the same files with the noise that changes on every release removed:
+
+- The `# Version X.Y.Z` header line at the top of each file
+- The generated timestamp suffix on `[../scripts/logs/...]` stanzas in `sourcetypes.conf`
+
+Compare two clean tags to see only the real changes. For example, 10.2.2 to 10.2.3 touches 112 files on `master`, but only 2 files on the clean tags:
+
+```
+https://github.com/jewnix/splunk-spec-files/compare/clean/10.2.2..clean/10.2.3
+```
+
+```bash
+git diff clean/10.2.2 clean/10.2.3
+```
+
+Every release links to both the full diff and the clean diff against the previous version. Use the original tags when you need the files exactly as Splunk ships them.
 
 ## Comparing Configuration Changes Between Versions
 
@@ -165,7 +190,13 @@ This shows a summary of which files changed and how many lines were added/remove
 
 ### Filter out noise when comparing versions
 
-When comparing versions, you often want to ignore version number changes and log file references. Use the `-I` flag to ignore lines matching patterns:
+The simplest option is to compare [clean tags](#clean-tags):
+
+```bash
+git diff clean/9.4.3 clean/10.0.0 -- *spec
+```
+
+Alternatively, use the `-I` flag on the original tags to ignore lines matching patterns:
 
 ```bash
 git diff 9.4.3 10.0.0 -I"Version " -Iscripts/logs -- *spec
@@ -311,6 +342,9 @@ git diff 9.4.3 10.0.0 --stat -- *spec | sort -k2 -n -r | head -10
 Here are the commands you'll likely use most often:
 
 ```bash
+# Real changes only, using clean tags
+git diff clean/9.4.3 clean/10.0.0 -- *spec
+
 # Clean diff ignoring version numbers and noise
 git diff 9.4.3 10.0.0 -I"Version " -Iscripts/logs -- *spec
 

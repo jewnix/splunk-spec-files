@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "[0-9]+.*"
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
+      REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Resolve versions
+        id: versions
+        run: |
+          versions=$(git tag -l '[0-9]*' | sort -V)
+          prev=$(printf '%s\n' "$versions" | grep -Fx -B1 "$TAG" | head -n1)
+          [ "$prev" = "$TAG" ] && prev=""
+          newest=$(printf '%s\n' "$versions" | tail -n1)
+          echo "prev=$prev" >> "$GITHUB_OUTPUT"
+          echo "is_newest=$([ "$newest" = "$TAG" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Build clean tag
+        run: |
+          if git rev-parse -q --verify refs/remotes/origin/clean >/dev/null; then
+            git update-ref refs/heads/clean refs/remotes/origin/clean
+          fi
+          .github/scripts/build-clean-tag.sh "$TAG"
+          git push origin refs/heads/clean:refs/heads/clean "+refs/tags/clean/$TAG:refs/tags/clean/$TAG"
+
+      - name: Move latest tag
+        if: steps.versions.outputs.is_newest == 'true'
+        run: |
+          git tag -f latest "$TAG"
+          git push origin refs/tags/latest --force
+
+      - name: Create release
+        env:
+          PREV: ${{ steps.versions.outputs.prev }}
+          IS_NEWEST: ${{ steps.versions.outputs.is_newest }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists"
+            exit 0
+          fi
+          notes="Splunk $TAG spec files."
+          if [ -n "$PREV" ]; then
+            notes+=$'\n\n'"**Full Changelog**: $REPO_URL/compare/$PREV...$TAG"
+            notes+=$'\n'"**Clean diff** (without version headers and generated noise): $REPO_URL/compare/clean/$PREV..clean/$TAG"
+          fi
+          gh release create "$TAG" --verify-tag --title "$TAG" --notes "$notes" --latest="$IS_NEWEST"

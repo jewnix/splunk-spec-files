@@ -1,4 +1,4 @@
-#   Version 10.6.0.5
+#   Version 10.6.1.1
 #
 ############################################################################
 # OVERVIEW
@@ -2686,6 +2686,21 @@ mkdir_max_retries = <integer>
   subdir of SPLUNK_HOME/var/run/splunk)
 * Default: 100
 
+enforce_permissions_for_reading_shared_csv = [warn|block]
+* How the inputcsv command responds when a user does not have the
+  'input_csv_file' capability and tries to read a file that contains
+  comma-separated values (CSV) from the shared
+  $SPLUNK_HOME/var/run/splunk/csv directory.
+* A value of "warn" means that the command returns a warning and reads the
+  file.
+* A value of "block" means that the command fails and does not read the file.
+* Any other value, including an empty value, makes the command behave as though
+  this setting has a value of "block".
+* The user must also have the 'input_file' capability.
+* This setting does not apply to the inputlookup command or when the inputcsv
+  command uses "dispatch=t".
+* Default: warn
+
 [inputlookup]
 kv_chunk_size = <integer>
 * Specifies the maximum number of results to fetch in a single read from an
@@ -3067,6 +3082,28 @@ max_mem_usage_mb = <non-negative integer>
 * See definition in the [default] stanza for 'max_mem_usage_mb'
   for more details.
 * Default: 500
+
+
+[outputcsv]
+* The [outputcsv] stanza contains settings that control how the outputcsv
+  command writes files to the shared $SPLUNK_HOME/var/run/splunk/csv
+  directory.
+
+enforce_permissions_for_writing_shared_csv = [warn|block]
+* How the outputcsv command responds when a user does not have the
+  'output_csv_file' capability and tries to write a CSV file to the shared
+  $SPLUNK_HOME/var/run/splunk/csv directory.
+* A value of "warn" means that the command returns a warning and writes the
+  file.
+* A value of "block" means that the command fails and does not write the file.
+* Any other value, including an empty value, makes the command behave as though
+  this setting has a value of "block".
+* The user must also have the 'output_file' capability.
+* This setting does not apply to the outputlookup command.
+* This setting does not apply when the outputcsv command uses "dispatch=t".
+* This setting does not apply when the outputcsv command writes to the search
+  response.
+* Default: warn
 
 
 [outputlookup]
@@ -4817,14 +4854,51 @@ checkpoint_nextrun_map = <boolean>
 * Default: false
 
 checkpoint_nextrun_map_ttl = <integer>
-* The maximum age, in seconds, of next-run map checkpoint data that the
-  scheduler can restore from KV Store.
-* The scheduler treats checkpoint data older than this value as expired and
-  does not load it.
+* The activity-retention interval, in seconds, for next-run map checkpoint
+  data that the scheduler can restore from KV Store.
+* A checkpoint remains eligible while either its activity-retention interval
+  or its late-recovery protection remains valid. Late-recovery protection
+  includes the maximum scheduler skew window derived from the checkpoint's
+  cron schedule, followed by the configured grace interval. The scheduler
+  deletes a checkpoint only after both protections have expired.
 * The scheduler deletes expired checkpoint data during best-effort restore
   cleanup.
 * This setting applies only when 'checkpoint_nextrun_map' has a value of
   "true".
+* NOTE: Do not change this setting unless instructed to do so by
+  Splunk Support.
+* Default: 7200
+
+checkpoint_nextrun_map_late_recovery_grace = <integer>
+* This setting specifies the duration, in seconds, of the late-recovery grace
+  interval. The scheduler measures the maximum skew window for the
+  checkpoint's stored cron schedule from 'next_runtime'. The grace interval
+  begins after that window ends.
+* For cron schedules that do not match the following patterns, the maximum
+  skew window is 60 seconds.
+* For '*/N * * * *', where N is from 1 through 60, the maximum skew window
+  is N minutes.
+* For '0 * * * *', the maximum skew window is one hour.
+* For '0 */N * * *', where N is from 1 through 24, the maximum skew window
+  is N hours.
+* For '0 0 * * *', the maximum skew window is 24 hours.
+* The scheduler uses these cron categories for skew calculation. The
+  categories do not depend on the current 'allow_skew' value.
+* The scheduler might retain a checkpoint longer than the current 'allow_skew'
+  setting requires because the window is conservative.
+* Future and exactly due occurrences remain eligible because the late-recovery
+  protection has not expired.
+* A checkpoint remains eligible until both the activity-retention interval and
+  the late-recovery protection have expired.
+* The scheduler evaluates this policy independently for each checkpoint row.
+* The effective value is an integer from 60 to 604800 seconds, inclusive.
+* Values from 0 to 59, inclusive, use the minimum value of 60 seconds.
+* Values above 604800, empty values, non-integer values, and negative values
+  use the default of 7200 seconds.
+* The setting applies only when 'checkpoint_nextrun_map' has a value of
+  "true".
+* Changing this setting does not immediately remove existing checkpoints. The
+  scheduler applies the new value during the next restore.
 * NOTE: Do not change this setting unless instructed to do so by
   Splunk Support.
 * Default: 7200
@@ -5052,9 +5126,9 @@ max_pull_based_fetch = <percentage>
   available scheduled search capacity and available historical search capacity.
 * The Splunk platform rounds nonzero percentages up to the next whole search
   and caps the result at the currently available search capacity.
-* For values outside the valid range, the Splunk platform uses the default
-  value of 0. A value of 0 is equivalent to 100 for backward compatibility.
-* Default: 0
+* For values outside the valid range, the Splunk platform uses a value of 0.
+* A value of 0 is equivalent to 100 for backward compatibility.
+* Default: 10
 
 dynamic_max_searches_perc = <boolean>
 * Whether or not the search scheduler can dynamically adjust the maximum 

@@ -1,4 +1,4 @@
-#   Version 10.6.0.5
+#   Version 10.6.1.1
 #
 ############################################################################
 # OVERVIEW
@@ -183,9 +183,10 @@ predicate = <string>
 * The format is a logical expression where the predicate is <type>=<value>.
 * For example, "app=search AND (NOT role=power)".
 * The valid <type> values are "app", "role", "user", "index",
-  "indexes_count", "search_type", "search_mode", "search_time_range", and
-  "adhoc_search_percentage". Provide the exact value for the specified
-  <type>.
+  "indexes_count", "search_type", "search_mode", "search_time_range",
+  "adhoc_search_percentage", "is_federated_search_on_rsh", and
+  "is_scheduled_federated_search_on_rsh". Provide the exact value for the
+  specified <type>.
 * For the "app" type, provide the name of the app. For example,
   "app=search".
 * For the "role" type, provide the name of the role. For example,
@@ -209,6 +210,24 @@ predicate = <string>
   range [0,100] indicating the percentage of total concurrent searches
   that adhoc searches can consume before being filtered or queued. If
   specified, the predicate must also include "search_type=adhoc".
+* For the "is_federated_search_on_rsh" type, provide "true" or "false".
+  A value of "true" identifies a federated search that runs on a remote
+  search head.
+* A value of "false" identifies a search that does not run on a remote
+  search head as part of a federated search.
+* For the "is_scheduled_federated_search_on_rsh" type, provide "true" or
+  "false". A value of "true" identifies a federated search that runs on a
+  remote search head and whose originating federated search head's search ID
+  (SID) begins with "scheduler_".
+* A value of "false" identifies a search that is not a scheduled federated
+  search running on a remote search head.
+* The "is_federated_search_on_rsh" and
+  "is_scheduled_federated_search_on_rsh" types support the "=" and "!="
+  operators.
+* Rules containing either predicate support only the "filter" action.
+* These predicates are not supported in [workload_rule:<rule_name>] stanzas.
+* To identify scheduled federated searches, install the rule on a remote
+  search head that supports these predicate types.
 * Required.
 
 action = filter | queue

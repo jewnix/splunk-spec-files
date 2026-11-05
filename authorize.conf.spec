@@ -1,4 +1,4 @@
-#   Version 10.6.0.5
+#   Version 10.6.1.1
 #
 ############################################################################
 # OVERVIEW
@@ -1125,9 +1125,22 @@ ephemeralExpiration = <relative-time-modifier>
 [capability::indexes_edit]
 * Lets a user change any index settings such as file size and memory limits.
 
+[capability::input_csv_file]
+* Lets a user read files that contain comma-separated values (CSV) from the
+  shared $SPLUNK_HOME/var/run/splunk/csv directory through the inputcsv
+  command.
+* The user must also have the 'input_file' capability.
+* This capability does not apply to the inputlookup command or when inputcsv
+  uses "dispatch=t".
+* See the 'limits.conf:[inputcsv]/enforce_permissions_for_reading_shared_csv'
+  setting to control how the inputcsv command responds when a user does not have
+  this capability.
+
 [capability::input_file]
 * Lets a user add a file as an input through the inputcsv command (except for
   dispatch=t mode) and the inputlookup command.
+* The inputcsv command can additionally require the 'input_csv_file'
+  capability.
 
 [capability::install_apps]
 * Lets a user install, uninstall, create, and update apps on the local
@@ -1262,9 +1275,23 @@ ephemeralExpiration = <relative-time-modifier>
 [capability::never_expire]
 * Allows a user's account to never expire.
 
+[capability::output_csv_file]
+* Lets a user write CSV files to the shared
+  $SPLUNK_HOME/var/run/splunk/csv directory through the outputcsv command.
+* The user must also have the 'output_file' capability.
+* This capability does not apply to the outputlookup command.
+* This capability does not apply when the outputcsv command uses "dispatch=t".
+* This capability does not apply when the outputcsv command writes to the
+  search response.
+* See the 'limits.conf:[outputcsv]/enforce_permissions_for_writing_shared_csv'
+  setting to control how the outputcsv command responds when a user does not have
+  this capability.
+
 [capability::output_file]
 * Lets a user create file outputs, including the 'outputcsv' command (except for
   dispatch=t mode) and the 'outputlookup' command.
+* The outputcsv command can additionally require the 'output_csv_file'
+  capability.
 
 [capability::pattern_detect]
 * Controls ability to see and use the Patterns tab in the Search view.

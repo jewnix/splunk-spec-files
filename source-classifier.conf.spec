@@ -1,4 +1,4 @@
-#   Version 10.6.0.5
+#   Version 10.6.1.1
 #
 # This file contains all possible options for configuring settings for the
 # file classifier in source-classifier.conf.

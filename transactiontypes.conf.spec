@@ -1,4 +1,4 @@
-#   Version 10.6.0.5
+#   Version 10.6.1.1
 #
 # This file contains all possible attributes and value pairs for a
 # transactiontypes.conf file.  Use this file to configure transaction searches

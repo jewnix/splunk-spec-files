@@ -1,4 +1,4 @@
-#   Version 10.6.0.5
+#   Version 10.6.1.1
 #
 ############################################################################
 # OVERVIEW
@@ -77,6 +77,22 @@ async_remote_move_timeout_secs = <integer>
   values, and values greater than 900, cause splunkd to log an error and use
   the default value.
 * Default: 20
+
+apply_rules_to_non_detached_searches = <boolean>
+* Whether or not workload management applies runtime workload rule "move" and
+  "abort" actions to non-detached (in-process) search processes as well as
+  detached search processes.
+* A value of "true" means that workload management skips a matching "move"
+  action for a non-detached search. In addition, a matching "abort" action
+  requests cooperative cancellation of the non-detached search and
+  hard-terminates the detached search.
+* A value of "false" means that workload management restores legacy behavior.
+  A matching "abort" action drops a marker file indicating that workload
+  management terminated the search, but does not stop a non-detached search.
+  Workload management still attempts a matching "move" action whether or not
+  the search is detached.
+* NOTE: Do not change this setting unless instructed to do so by Splunk Support.
+* Default: false
 
 default_pool = <string>
 * Specifies the default workload pool to be used at runtime for search workloads.

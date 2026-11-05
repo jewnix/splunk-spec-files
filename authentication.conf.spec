@@ -1,4 +1,4 @@
-#   Version 10.6.0.5
+#   Version 10.6.1.1
 #
 # This file contains possible settings and values for configuring
 # authentication via authentication.conf.
@@ -228,6 +228,47 @@ SSLEnabled = [0|1]
 * See the file $SPLUNK_HOME/etc/openldap/ldap.conf for SSL LDAP settings
 * This setting is optional.
 * Default: 0 (disabled)
+
+sslVerifyServerCert = <boolean>
+* Whether or not the Splunk platform overrides the OpenLDAP global policy
+  to require server certificate verification for this Lightweight Directory
+  Access Protocol (LDAP) strategy when 'SSLEnabled' has a value of 1.
+* A value of "true" means the Splunk platform configures OpenLDAP to require
+  certificate verification for this LDAP connection. The LDAP server must
+  present a certificate that chains to a trusted Certificate Authority (CA)
+  and whose identity matches the LDAP host. The Splunk platform terminates the
+  connection and logs an error to splunkd.log if either check fails.
+* A value of "false" means the Splunk platform does not override the OpenLDAP
+  certificate verification policy for this LDAP connection. OpenLDAP applies
+  the Transport Layer Security (TLS) 'TLS_REQCERT' directive in
+  the '$SPLUNK_HOME/etc/openldap/ldap.conf' file. The Splunk platform sets
+  'TLS_REQCERT' to "never" in this file, so OpenLDAP does not verify LDAP
+  server certificates by default. If an administrator sets 'TLS_REQCERT' to a
+  value that requires certificate verification, OpenLDAP enforces that policy
+  even when this setting has a value of "false".
+* This setting has no effect when 'SSLEnabled' has a value of 0.
+* This setting is optional.
+* Default: false
+
+sslRootCAPath = <path>
+* The path to a Privacy-Enhanced Mail (PEM) file that contains one or more
+  Certificate Authority (CA) certificates for verifying the LDAP server
+  certificate.
+* This setting applies only when 'SSLEnabled' has a value of 1 and
+  'sslVerifyServerCert' has a value of "true".
+* When this setting has no value, either because it is not in the configuration
+  file or you have configured it with an empty value, OpenLDAP uses the
+  'TLS_CACERT' and 'TLS_CACERTDIR' directives in the
+  '$SPLUNK_HOME/etc/openldap/ldap.conf' configuration file. The default file
+  comments out both directives, so OpenLDAP falls back further to its own
+  default trust store.
+* If OpenLDAP cannot read or process the file at 'sslRootCAPath' as a
+  PEM CA certificate file, the Splunk platform fails to create the TLS
+  context, logs an error to splunkd.log, and refuses to connect to the LDAP
+  server. It does not fall back to the default CA verification paths in this
+  case.
+* This setting is optional.
+* Default: empty
 
 port = <integer>
 * The port that the Splunk platform should use to connect to your LDAP server.
